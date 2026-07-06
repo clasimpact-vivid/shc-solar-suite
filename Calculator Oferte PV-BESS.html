@@ -58,6 +58,30 @@
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
   .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
   @media (max-width:800px){.grid2{grid-template-columns:1fr}.grid4{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:600px){
+    body{padding:12px 10px;}
+    .wrap{max-width:100%;}
+    .row2{grid-template-columns:1fr!important;}
+    .grid4{grid-template-columns:1fr 1fr!important;}
+    .topbar{flex-direction:column;align-items:stretch;}
+    .topbar>*{width:100%!important;}
+    .card{padding:13px 13px;border-radius:10px;}
+    h1{font-size:17px;}
+    .metric .v{font-size:18px;}
+    table{font-size:12px;}
+    td{padding:5px 2px;}
+    .section{font-size:13px!important;}
+    button{font-size:12px;padding:8px 10px;}
+    input[type=text],input[type=number],select,textarea{font-size:13px;padding:8px 10px;}
+    /* Tabel deviz scroll orizontal */
+    #devizTable{min-width:520px;}
+    .deviz-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    /* Topbar butoane wrap */
+    #topBtns{flex-wrap:wrap!important;gap:6px!important;}
+    #topBtns button{flex:1 1 calc(50% - 6px);font-size:11px;padding:8px 6px;}
+    /* Centralizator financiar tabele */
+    .capex-tbl td{padding:4px 3px;font-size:11px;}
+  }
 
   label{font-size:11px;color:var(--text2);display:block;margin-bottom:5px;font-weight:600;letter-spacing:.2px;text-transform:uppercase;}
   input[type=text],input[type=number],textarea,select{
@@ -903,7 +927,7 @@
   <div class="card">
     <h2 class="section">🧱 Deviz de lucrări</h2>
     <p style="font-size:12px;color:var(--text2);margin:0 0 12px">Completează tabelul ca în Excel. <strong>„Valoare total" se calculează automat</strong> (Cantitate × Preț unitar, fără TVA). Apare în PDF cu subtotal, TVA și total. Folosește „+ Adaugă rând" pentru linii noi.</p>
-    <div style="overflow-x:auto">
+    <div class="deviz-wrap" style="overflow-x:auto">
       <table id="devizTable" style="width:100%;border-collapse:collapse;font-size:13px;min-width:680px">
         <thead>
           <tr style="background:#0b1e3d">

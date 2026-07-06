@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  @page{size:A4;margin:0}
+  @media print{
+    .doc-bg{background:#fff!important;padding:0!important}
+    .page{box-shadow:none!important;margin:0!important;page-break-after:always;break-after:page}
+    .page:last-child{page-break-after:auto}
+  }
+</style>
+</helmet>
+<div class="doc-bg" style="--accent:{{ accent }};--accent-deep:{{ accentDeep }};--gold:{{ gold }};--soft:{{ soft }};--ink:{{ ink }};--muted:{{ muted }};--line:{{ line }};--head-text:{{ headText }};background:#e7e5df;min-height:100vh;padding:32px 24px;font-family:'IBM Plex Sans',sans-serif;font-variant-numeric:tabular-nums;display:flex;flex-direction:column;align-items:center;gap:28px">
+
+  <!-- CRM banner -->
+  <sc-if value="{{ fromCRM }}" hint-placeholder-val="{{ false }}">
+    <div style="width:210mm;background:#fff8e1;border:1px solid #fde68a;border-radius:10px;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px;font-family:'IBM Plex Sans',sans-serif;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        <span style="font-size:12px;font-weight:600;color:#92400e;">Ofertă din SolarCRM · <strong>{{ crmClientName }}</strong></span>
+      </div>
+      <a href="./SolarCRM v3.dc.html" style="font-size:11px;color:#92400e;font-weight:700;text-decoration:none;background:#fde68a;padding:4px 12px;border-radius:5px;white-space:nowrap;">← CRM</a>
+    </div>
+  </sc-if>
+
+  <!-- ════════ PAGE 1 — COPERTĂ + SUMAR ════════ -->
+  <div class="page" style="width:210mm;min-height:297mm;background:#fff;box-shadow:0 4px 24px rgba(20,30,50,.12);display:flex;flex-direction:column">
+    <!-- header band -->
+    <div style="background:var(--accent,#0f2850);color:var(--head-text,#fff);padding:22px 18mm 18px;display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:21px;letter-spacing:.5px;line-height:1">{{ firmaUpper }}</div>
+        <div style="font-size:9.5px;letter-spacing:2.5px;color:rgba(255,255,255,.62);margin-top:7px;font-weight:500">EPC CONTRACTOR · ENERGIE REGENERABILĂ</div>
+      </div>
+      <div style="text-align:right;font-size:10px;color:rgba(255,255,255,.78);line-height:1.7">
+        <div>Nr. ofertă: <strong style="color:#fff">{{ nrOferta }}</strong></div>
+        <div>Data: {{ dataOferta }}</div>
+        <div>Valabilă până la: {{ valabilUntil }}</div>
+      </div>
+    </div>
+    <div style="height:3px;background:var(--gold,#c8963c)"></div>
+
+    <div style="padding:0 18mm;flex:1;display:flex;flex-direction:column">
+      <!-- draft + client -->
+      <div style="display:flex;align-items:center;gap:12px;margin-top:26px">
+        <span style="display:inline-block;border:1.5px solid var(--gold,#c8963c);color:var(--gold,#c8963c);font-family:'Archivo',sans-serif;font-weight:700;font-size:11px;letter-spacing:3px;padding:5px 12px;border-radius:3px">DRAFT</span>
+        <span style="font-size:11px;color:var(--muted,#5b6675)">Document orientativ — valori supuse confirmării în oferta finală</span>
+      </div>
+
+      <div style="margin-top:30px;border-left:3px solid var(--gold,#c8963c);padding-left:16px">
+        <div style="font-size:11px;letter-spacing:2px;color:var(--muted,#5b6675);font-weight:600;text-transform:uppercase">Ofertă tehnico-economică pentru</div>
+        <div style="font-family:'Archivo',sans-serif;font-weight:700;font-size:24px;color:var(--ink,#1a2230);margin-top:5px">{{ clientDisplay }}</div>
+      </div>
+
+      <h1 style="font-family:'Archivo',sans-serif;font-weight:800;font-size:33px;line-height:1.12;color:var(--accent,#0f2850);margin:30px 0 8px;letter-spacing:-.5px">{{ sysTitle }}</h1>
+      <p style="font-size:13px;color:var(--muted,#5b6675);margin:0;max-width:150mm;line-height:1.55">Soluție EPC completă „la cheie": proiectare, aprovizionare echipamente, instalare, testare și punere în funcțiune.</p>
+
+      <!-- KPI cards -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:30px">
+        <div style="background:var(--soft,#eef3fb);border:1px solid var(--line,#dfe4ec);border-top:3px solid var(--gold,#c8963c);border-radius:8px;padding:15px 14px">
+          <div style="font-size:8.5px;letter-spacing:1.3px;color:var(--muted,#5b6675);font-weight:700;text-transform:uppercase">Putere instalată</div>
+          <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:23px;color:var(--accent,#0f2850);margin-top:8px">{{ kwpStr }}<span style="font-size:13px;font-weight:600"> kWp</span></div>
+          <div style="font-size:10px;color:var(--muted,#5b6675);margin-top:5px">{{ numPanouri }} panouri</div>
+        </div>
+        <div style="background:var(--soft,#eef3fb);border:1px solid var(--line,#dfe4ec);border-top:3px solid var(--gold,#c8963c);border-radius:8px;padding:15px 14px">
+          <div style="font-size:8.5px;letter-spacing:1.3px;color:var(--muted,#5b6675);font-weight:700;text-transform:uppercase">Producție An 1</div>
+          <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:23px;color:var(--accent,#0f2850);margin-top:8px">{{ prodAn1Str }}<span style="font-size:13px;font-weight:600"> kWh</span></div>
+          <div style="font-size:10px;color:var(--muted,#5b6675);margin-top:5px">yield {{ yieldStr }} kWh/kWp/an</div>
+        </div>
+        <div style="background:var(--soft,#eef3fb);border:1px solid var(--line,#dfe4ec);border-top:3px solid var(--gold,#c8963c);border-radius:8px;padding:15px 14px">
+          <div style="font-size:8.5px;letter-spacing:1.3px;color:var(--muted,#5b6675);font-weight:700;text-transform:uppercase">CAPEX (fără TVA)</div>
+          <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:22px;color:var(--accent,#0f2850);margin-top:8px">€ {{ capexFaraStr }}</div>
+          <div style="font-size:10px;color:var(--muted,#5b6675);margin-top:5px">{{ capexFaraRonStr }} lei</div>
+        </div>
+        <div style="background:var(--accent,#0f2850);border:1px solid var(--accent,#0f2850);border-top:3px solid var(--gold,#c8963c);border-radius:8px;padding:15px 14px">
+          <div style="font-size:8.5px;letter-spacing:1.3px;color:rgba(255,255,255,.55);font-weight:700;text-transform:uppercase">Payback simplu</div>
+          <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:23px;color:#fff;margin-top:8px">{{ paybackStr }}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:5px">ROI {{ roiStr }}% în {{ durata }} ani</div>
+        </div>
+      </div>
+
+      <!-- value highlight -->
+      <div style="display:flex;gap:0;margin-top:22px;border:1px solid var(--line,#dfe4ec);border-radius:9px;overflow:hidden">
+        <div style="flex:1;padding:18px 22px;border-right:1px solid var(--line,#dfe4ec)">
+          <div style="font-size:10px;letter-spacing:1px;color:var(--muted,#5b6675);font-weight:600;text-transform:uppercase">Valoare ofertă · fără TVA</div>
+          <div style="font-family:'Archivo',sans-serif;font-weight:700;font-size:21px;color:var(--ink,#1a2230);margin-top:6px">€ {{ totalFaraEur }}</div>
+          <div style="font-size:11px;color:var(--muted,#5b6675);margin-top:2px">{{ totalFaraRon }} lei</div>
+        </div>
+        <div style="flex:1;padding:18px 22px;background:var(--soft,#eef3fb)">
+          <div style="font-size:10px;letter-spacing:1px;color:var(--accent,#0f2850);font-weight:700;text-transform:uppercase">Valoare totală · cu TVA</div>
+          <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:24px;color:var(--accent,#0f2850);margin-top:6px">€ {{ totalTvaEur }}</div>
+          <div style="font-size:11px;color:var(--muted,#5b6675);margin-top:2px">{{ totalTvaRon }} lei · curs {{ cursStr }} RON/EUR</div>
+        </div>
+      </div>
+
+      <!-- system config diagram -->
+      <div style="margin-top:24px;display:flex;align-items:center;gap:18px;padding:18px;border:1px solid var(--line,#dfe4ec);border-radius:9px">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="width:78px;height:52px;background:var(--accent,#0f2850);opacity:.92;border-radius:5px;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,1fr);gap:2px;padding:4px">
+            <div style="background:rgba(255,255,255,.22)"></div><div style="background:rgba(255,255,255,.22)"></div><div style="background:rgba(255,255,255,.22)"></div><div style="background:rgba(255,255,255,.22)"></div>
+            <div style="background:rgba(255,255,255,.22)"></div><div style="background:rgba(255,255,255,.22)"></div><div style="background:rgba(255,255,255,.22)"></div><div style="background:rgba(255,255,255,.22)"></div>
+          </div>
+          <div style="font-size:11px;line-height:1.4"><div style="font-weight:700;color:var(--ink,#1a2230)">Câmp fotovoltaic</div><div style="color:var(--muted,#5b6675)">{{ kwpStr }} kWp · {{ numPanouri }} module</div></div>
+        </div>
+        <div style="color:var(--muted,#5b6675);font-size:20px">→</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:40px;height:52px;background:var(--gold,#c8963c);opacity:.85;border-radius:5px;position:relative"><div style="position:absolute;top:-5px;left:13px;width:14px;height:6px;border-radius:2px;background:var(--gold,#c8963c)"></div></div>
+          <div style="font-size:11px;line-height:1.4"><div style="font-weight:700;color:var(--ink,#1a2230)">Stocare BESS</div><div style="color:var(--muted,#5b6675)">autoconsum {{ autoconsumStr }}%</div></div>
+        </div>
+        <div style="color:var(--muted,#5b6675);font-size:20px">→</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:44px;height:52px;background:var(--soft,#eef3fb);border:1.5px solid var(--accent,#0f2850);border-radius:5px;display:flex;align-items:center;justify-content:center;color:var(--accent,#0f2850);font-weight:700;font-size:11px">CONS</div>
+          <div style="font-size:11px;line-height:1.4"><div style="font-weight:700;color:var(--ink,#1a2230)">Consum / rețea</div><div style="color:var(--muted,#5b6675)">economii € {{ economiiStr }}/an</div></div>
+        </div>
+      </div>
+
+      <div style="flex:1"></div>
+      <div style="border-top:1px solid var(--line,#dfe4ec);padding:12px 0 16px;display:flex;justify-content:space-between;font-size:9px;color:var(--muted,#5b6675)">
+        <span>© 2026 {{ firma }} · Software proprietar · Legea nr. 8/1996</span>
+        <span>Pag. 1</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ PAGE 2 — CENTRALIZATOR VALORIC ════════ -->
+  <div class="page" style="width:210mm;min-height:297mm;background:#fff;box-shadow:0 4px 24px rgba(20,30,50,.12);padding:16mm 18mm;display:flex;flex-direction:column">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--accent,#0f2850);padding-bottom:9px">
+      <h2 style="font-family:'Archivo',sans-serif;font-weight:700;font-size:17px;color:var(--accent,#0f2850);margin:0">Centralizator valoric</h2>
+      <span style="font-size:10px;color:var(--muted,#5b6675)">Toate valorile în EUR și RON · curs {{ cursStr }}</span>
+    </div>
+
+    <table style="width:100%;border-collapse:collapse;margin-top:18px;font-size:11.5px">
+      <thead>
+        <tr style="color:var(--muted,#5b6675);font-size:9px;letter-spacing:1px;text-transform:uppercase">
+          <th style="text-align:left;padding:0 0 8px;font-weight:700">Descriere</th>
+          <th style="text-align:right;padding:0 0 8px;font-weight:700">EUR (fără TVA)</th>
+          <th style="text-align:right;padding:0 0 8px;font-weight:700">RON (fără TVA)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <sc-for list="{{ costRows }}" as="row" hint-placeholder-count="7">
+          <tr style="border-bottom:1px solid var(--line,#dfe4ec)">
+            <td style="padding:10px 0;color:var(--ink,#1a2230)">{{ row.label }}</td>
+            <td style="padding:10px 0;text-align:right;font-weight:600;color:var(--ink,#1a2230)">€ {{ row.eur }}</td>
+            <td style="padding:10px 0;text-align:right;color:var(--muted,#5b6675)">{{ row.ron }} lei</td>
+          </tr>
+        </sc-for>
+        <tr style="background:var(--soft,#eef3fb)">
+          <td style="padding:11px 8px;font-weight:700;color:var(--accent,#0f2850)">TVA ({{ tvaPctStr }}%)</td>
+          <td style="padding:11px 0;text-align:right;font-weight:700;color:var(--accent,#0f2850)">€ {{ tvaEur }}</td>
+          <td style="padding:11px 8px;text-align:right;color:var(--muted,#5b6675)">{{ tvaRon }} lei</td>
+        </tr>
+        <tr style="background:var(--accent,#0f2850);color:#fff">
+          <td style="padding:14px 8px;font-family:'Archivo',sans-serif;font-weight:700;font-size:13px">TOTAL GENERAL CU TVA</td>
+          <td style="padding:14px 0;text-align:right;font-family:'Archivo',sans-serif;font-weight:800;font-size:15px">€ {{ totalTvaEur }}</td>
+          <td style="padding:14px 8px;text-align:right;font-weight:600;color:rgba(255,255,255,.8)">{{ totalTvaRon }} lei</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- CAPEX distribution -->
+    <h3 style="font-family:'Archivo',sans-serif;font-weight:700;font-size:13px;color:var(--ink,#1a2230);margin:34px 0 14px">Distribuția investiției</h3>
+    <div style="display:flex;height:34px;border-radius:6px;overflow:hidden;border:1px solid var(--line,#dfe4ec)">
+      <sc-for list="{{ capexSegs }}" as="seg" hint-placeholder-count="4">
+        <div style="width:{{ seg.widthPct }}%;background:{{ seg.color }};display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700">{{ seg.pct }}%</div>
+      </sc-for>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:18px;margin-top:14px">
+      <sc-for list="{{ capexSegs }}" as="seg" hint-placeholder-count="4">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="width:11px;height:11px;border-radius:3px;background:{{ seg.color }}"></span>
+          <span style="font-size:11px;color:var(--ink,#1a2230)"><strong>{{ seg.label }}</strong> · € {{ seg.eur }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- grafic de plati -->
+    <h3 style="font-family:'Archivo',sans-serif;font-weight:700;font-size:13px;color:var(--ink,#1a2230);margin:34px 0 14px">Grafic de plăți (raportat la total cu TVA)</h3>
+    <div style="display:flex;gap:10px">
+      <sc-for list="{{ transe }}" as="t" hint-placeholder-count="3">
+        <div style="flex:{{ t.flex }};background:var(--soft,#eef3fb);border:1px solid var(--line,#dfe4ec);border-left:3px solid var(--gold,#c8963c);border-radius:7px;padding:14px">
+          <div style="font-size:9.5px;letter-spacing:.5px;color:var(--muted,#5b6675);font-weight:600;text-transform:uppercase">{{ t.label }}</div>
+          <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:18px;color:var(--accent,#0f2850);margin-top:8px">{{ t.pct }}%</div>
+          <div style="font-size:11.5px;color:var(--ink,#1a2230);margin-top:4px;font-weight:600">€ {{ t.eur }}</div>
+          <div style="font-size:10px;color:var(--muted,#5b6675)">{{ t.ron }} lei</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="flex:1"></div>
+    <div style="border-top:1px solid var(--line,#dfe4ec);padding-top:12px;display:flex;justify-content:space-between;font-size:9px;color:var(--muted,#5b6675)">
+      <span>{{ nrOferta }} · {{ clientDisplay }}</span><span>Pag. 2</span>
+    </div>
+  </div>
+
+  <!-- ════════ PAGE 3 — ANALIZĂ FINANCIARĂ + IPOTEZE ════════ -->
+  <div class="page" style="width:210mm;min-height:297mm;background:#fff;box-shadow:0 4px 24px rgba(20,30,50,.12);padding:16mm 18mm;display:flex;flex-direction:column">
+    <div style="border-bottom:2px solid var(--accent,#0f2850);padding-bottom:9px">
+      <h2 style="font-family:'Archivo',sans-serif;font-weight:700;font-size:17px;color:var(--accent,#0f2850);margin:0">Analiză financiară</h2>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px">
+      <div style="border:1px solid var(--line,#dfe4ec);border-radius:8px;padding:15px">
+        <div style="font-size:9px;letter-spacing:1px;color:var(--muted,#5b6675);font-weight:700;text-transform:uppercase">Economii anuale (An 1)</div>
+        <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:21px;color:var(--accent,#0f2850);margin-top:8px">€ {{ economiiStr }}</div>
+        <div style="font-size:10px;color:var(--muted,#5b6675);margin-top:4px">{{ economiiRon }} lei/an</div>
+      </div>
+      <div style="border:1px solid var(--line,#dfe4ec);border-radius:8px;padding:15px">
+        <div style="font-size:9px;letter-spacing:1px;color:var(--muted,#5b6675);font-weight:700;text-transform:uppercase">Autoconsumție</div>
+        <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:21px;color:var(--accent,#0f2850);margin-top:8px">{{ autoconsumStr }}%</div>
+        <div style="font-size:10px;color:var(--muted,#5b6675);margin-top:4px">cu stocare BESS</div>
+      </div>
+      <div style="border:1px solid var(--line,#dfe4ec);border-radius:8px;padding:15px">
+        <div style="font-size:9px;letter-spacing:1px;color:var(--muted,#5b6675);font-weight:700;text-transform:uppercase">Payback simplu</div>
+        <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:21px;color:var(--accent,#0f2850);margin-top:8px">{{ paybackStr }}</div>
+        <div style="font-size:10px;color:var(--muted,#5b6675);margin-top:4px">recuperare investiție</div>
+      </div>
+      <div style="border:1px solid var(--line,#dfe4ec);border-radius:8px;padding:15px">
+        <div style="font-size:9px;letter-spacing:1px;color:var(--muted,#5b6675);font-weight:700;text-transform:uppercase">ROI total ({{ durata }} ani)</div>
+        <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:21px;color:var(--accent,#0f2850);margin-top:8px">{{ roiStr }}%</div>
+        <div style="font-size:10px;color:var(--muted,#5b6675);margin-top:4px">randament total</div>
+      </div>
+      <div style="border:1px solid var(--line,#dfe4ec);border-radius:8px;padding:15px">
+        <div style="font-size:9px;letter-spacing:1px;color:var(--muted,#5b6675);font-weight:700;text-transform:uppercase">O&amp;M anual</div>
+        <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:21px;color:var(--accent,#0f2850);margin-top:8px">€ {{ omStr }}</div>
+        <div style="font-size:10px;color:var(--muted,#5b6675);margin-top:4px">mentenanță / an</div>
+      </div>
+      <div style="border:1px solid var(--accent,#0f2850);background:var(--soft,#eef3fb);border-radius:8px;padding:15px">
+        <div style="font-size:9px;letter-spacing:1px;color:var(--accent,#0f2850);font-weight:700;text-transform:uppercase">Valoare netă · {{ durata }} ani</div>
+        <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:21px;color:var(--accent,#0f2850);margin-top:8px">€ {{ finalValStr }}</div>
+        <div style="font-size:10px;color:var(--muted,#5b6675);margin-top:4px">{{ finalValRon }} lei</div>
+      </div>
+    </div>
+
+    <h3 style="font-family:'Archivo',sans-serif;font-weight:700;font-size:13px;color:var(--ink,#1a2230);margin:30px 0 6px">Ipoteze de calcul</h3>
+    <table style="width:100%;border-collapse:collapse;font-size:11.5px">
+      <tbody>
+        <sc-for list="{{ ipoteze }}" as="ip" hint-placeholder-count="7">
+          <tr style="border-bottom:1px solid var(--line,#dfe4ec)">
+            <td style="padding:9px 0;color:var(--muted,#5b6675)">{{ ip.k }}</td>
+            <td style="padding:9px 0;text-align:right;font-weight:600;color:var(--ink,#1a2230)">{{ ip.v }}</td>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+
+    <div style="margin-top:22px;background:var(--soft,#eef3fb);border-radius:8px;padding:16px 18px">
+      <div style="font-family:'Archivo',sans-serif;font-weight:700;font-size:11px;color:var(--accent,#0f2850);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Note ofertă</div>
+      <p style="font-size:11.5px;color:var(--ink,#1a2230);line-height:1.6;margin:0">{{ notesText }}</p>
+    </div>
+
+    <div style="flex:1"></div>
+    <div style="border-top:1px solid var(--line,#dfe4ec);padding-top:12px;display:flex;justify-content:space-between;font-size:9px;color:var(--muted,#5b6675)">
+      <span>{{ nrOferta }} · {{ clientDisplay }}</span><span>Pag. 3</span>
+    </div>
+  </div>
+
+  <!-- ════════ PAGE 4 — CASH-FLOW ════════ -->
+  <div class="page" style="width:210mm;min-height:297mm;background:#fff;box-shadow:0 4px 24px rgba(20,30,50,.12);padding:16mm 18mm;display:flex;flex-direction:column">
+    <div style="border-bottom:2px solid var(--accent,#0f2850);padding-bottom:9px">
+      <h2 style="font-family:'Archivo',sans-serif;font-weight:700;font-size:17px;color:var(--accent,#0f2850);margin:0">Proiecție cash-flow cumulat — {{ durata }} ani</h2>
+    </div>
+    <p style="font-size:12px;color:var(--muted,#5b6675);margin:14px 0 0;line-height:1.55">Evoluția cash-flow-ului cumulat: de la investiția inițială (CAPEX negativ) până la valoarea netă finală. Linia depășește pragul zero în punctul de payback.</p>
+
+    <div style="margin-top:22px;border:1px solid var(--line,#dfe4ec);border-radius:9px;padding:18px 16px 10px;background:#fcfcfd">
+      <svg viewBox="0 0 1000 320" style="width:100%;height:auto" preserveAspectRatio="xMidYMid meet">
+        <sc-for list="{{ cfGrid }}" as="g" hint-placeholder-count="5">
+          <line x1="60" y1="{{ g.y }}" x2="980" y2="{{ g.y }}" stroke="#e8ebf0" stroke-width="1"></line>
+        </sc-for>
+        <path d="{{ cfArea }}" fill="{{ accent }}" fill-opacity="0.08"></path>
+        <line x1="60" y1="{{ cfZeroY }}" x2="980" y2="{{ cfZeroY }}" stroke="#c0392b" stroke-width="1.4" stroke-dasharray="5 4"></line>
+        <sc-if value="{{ hasPayback }}" hint-placeholder-val="{{ true }}">
+          <line x1="{{ cfPayX }}" y1="20" x2="{{ cfPayX }}" y2="270" stroke="{{ gold }}" stroke-width="1.6"></line>
+          <circle cx="{{ cfPayX }}" cy="{{ cfZeroY }}" r="5.5" fill="{{ gold }}"></circle>
+        </sc-if>
+        <polyline points="{{ cfPoints }}" fill="none" stroke="{{ accent }}" stroke-width="2.6" stroke-linejoin="round"></polyline>
+        <sc-for list="{{ cfXLabels }}" as="x" hint-placeholder-count="6">
+          <text x="{{ x.x }}" y="290" text-anchor="middle" font-size="13" fill="#8a94a3" font-family="IBM Plex Sans">{{ x.label }}</text>
+        </sc-for>
+        <sc-for list="{{ cfYLabels }}" as="yl" hint-placeholder-count="3">
+          <text x="54" y="{{ yl.y }}" text-anchor="end" font-size="12" fill="#8a94a3" font-family="IBM Plex Sans">{{ yl.label }}</text>
+        </sc-for>
+      </svg>
+    </div>
+
+    <div style="display:flex;gap:24px;margin-top:18px">
+      <div style="display:flex;align-items:center;gap:8px"><span style="width:18px;height:3px;background:var(--accent,#0f2850);border-radius:2px"></span><span style="font-size:11px;color:var(--muted,#5b6675)">Cash-flow cumulat</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><span style="width:18px;height:0;border-top:2px dashed #c0392b"></span><span style="font-size:11px;color:var(--muted,#5b6675)">Prag recuperare investiție</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><span style="width:11px;height:11px;border-radius:50%;background:var(--gold,#c8963c)"></span><span style="font-size:11px;color:var(--muted,#5b6675)">Punct payback · {{ paybackStr }}</span></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:26px">
+      <div style="background:var(--soft,#eef3fb);border-radius:8px;padding:15px">
+        <div style="font-size:9px;letter-spacing:1px;color:var(--muted,#5b6675);font-weight:700;text-transform:uppercase">Investiție inițială</div>
+        <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:19px;color:var(--accent,#0f2850);margin-top:7px">€ {{ capexFaraStr }}</div>
+      </div>
+      <div style="background:var(--soft,#eef3fb);border-radius:8px;padding:15px">
+        <div style="font-size:9px;letter-spacing:1px;color:var(--muted,#5b6675);font-weight:700;text-transform:uppercase">Recuperare la</div>
+        <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:19px;color:var(--accent,#0f2850);margin-top:7px">{{ paybackStr }}</div>
+      </div>
+      <div style="background:var(--soft,#eef3fb);border-radius:8px;padding:15px">
+        <div style="font-size:9px;letter-spacing:1px;color:var(--muted,#5b6675);font-weight:700;text-transform:uppercase">Valoare netă finală</div>
+        <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:19px;color:var(--accent,#0f2850);margin-top:7px">€ {{ finalValStr }}</div>
+      </div>
+    </div>
+
+    <div style="flex:1"></div>
+    <div style="border-top:1px solid var(--line,#dfe4ec);padding-top:12px;display:flex;justify-content:space-between;font-size:9px;color:var(--muted,#5b6675)">
+      <span>{{ nrOferta }} · {{ clientDisplay }}</span><span>Pag. 4</span>
+    </div>
+  </div>
+
+  <!-- ════════ PAGE 5 — TABEL AMORTIZARE ════════ -->
+  <div class="page" style="width:210mm;min-height:297mm;background:#fff;box-shadow:0 4px 24px rgba(20,30,50,.12);padding:16mm 18mm;display:flex;flex-direction:column">
+    <div style="border-bottom:2px solid var(--accent,#0f2850);padding-bottom:9px">
+      <h2 style="font-family:'Archivo',sans-serif;font-weight:700;font-size:17px;color:var(--accent,#0f2850);margin:0">Tabel amortizare an cu an</h2>
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-top:16px;font-size:10.5px">
+      <thead>
+        <tr style="background:var(--accent,#0f2850);color:#fff">
+          <th style="text-align:left;padding:9px 8px;font-weight:600">An</th>
+          <th style="text-align:right;padding:9px 8px;font-weight:600">Producție (kWh)</th>
+          <th style="text-align:right;padding:9px 8px;font-weight:600">Economii (€)</th>
+          <th style="text-align:right;padding:9px 8px;font-weight:600">Economii (RON)</th>
+          <th style="text-align:right;padding:9px 8px;font-weight:600">O&amp;M (€)</th>
+          <th style="text-align:right;padding:9px 8px;font-weight:600">Net anual (€)</th>
+          <th style="text-align:right;padding:9px 8px;font-weight:600">Cumulat (€)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <sc-for list="{{ amortRows }}" as="row" hint-placeholder-count="25">
+          <tr style="background:{{ row.bg }};border-bottom:1px solid var(--line,#eef0f4)">
+            <td style="padding:6.5px 8px;font-weight:600;color:var(--ink,#1a2230)">{{ row.an }}</td>
+            <td style="padding:6.5px 8px;text-align:right;color:var(--muted,#5b6675)">{{ row.prod }}</td>
+            <td style="padding:6.5px 8px;text-align:right;color:var(--ink,#1a2230)">{{ row.econEur }}</td>
+            <td style="padding:6.5px 8px;text-align:right;color:var(--muted,#5b6675)">{{ row.econRon }}</td>
+            <td style="padding:6.5px 8px;text-align:right;color:var(--muted,#5b6675)">{{ row.om }}</td>
+            <td style="padding:6.5px 8px;text-align:right;color:var(--ink,#1a2230)">{{ row.net }}</td>
+            <td style="padding:6.5px 8px;text-align:right;font-weight:700;color:{{ row.cumColor }}">{{ row.cum }}</td>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+    <div style="display:flex;gap:20px;margin-top:14px;font-size:10px;color:var(--muted,#5b6675)">
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:#fff6e6;border:1px solid #ecd9a8"></span>An payback</span>
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:#f1f8f3"></span>Cumulat pozitiv</span>
+    </div>
+
+    <div style="flex:1"></div>
+    <div style="border-top:1px solid var(--line,#dfe4ec);padding-top:12px;display:flex;justify-content:space-between;font-size:9px;color:var(--muted,#5b6675)">
+      <span>{{ nrOferta }} · {{ clientDisplay }}</span><span>Pag. 5</span>
+    </div>
+  </div>
+
+  <!-- ════════ PAGE 6 — PRODUCȚIE LUNARĂ + CO2 ════════ -->
+  <div class="page" style="width:210mm;min-height:297mm;background:#fff;box-shadow:0 4px 24px rgba(20,30,50,.12);padding:16mm 18mm;display:flex;flex-direction:column">
+    <div style="border-bottom:2px solid var(--accent,#0f2850);padding-bottom:9px">
+      <h2 style="font-family:'Archivo',sans-serif;font-weight:700;font-size:17px;color:var(--accent,#0f2850);margin:0">Producție lunară estimată (An 1)</h2>
+    </div>
+    <p style="font-size:12px;color:var(--muted,#5b6675);margin:14px 0 0">Distribuție sezonală tipică pentru România — producție maximă vara, minimă iarna.</p>
+
+    <div style="margin-top:18px;border:1px solid var(--line,#dfe4ec);border-radius:9px;padding:18px 16px 8px;background:#fcfcfd">
+      <svg viewBox="0 0 1000 280" style="width:100%;height:auto" preserveAspectRatio="xMidYMid meet">
+        <line x1="60" y1="230" x2="980" y2="230" stroke="#d8dde4" stroke-width="1"></line>
+        <sc-for list="{{ months }}" as="m" hint-placeholder-count="12">
+          <rect x="{{ m.x }}" y="{{ m.barY }}" width="48" height="{{ m.barH }}" rx="3" fill="{{ accent }}"></rect>
+          <text x="{{ m.lblX }}" y="{{ m.valY }}" text-anchor="middle" font-size="11" fill="#8a94a3" font-family="IBM Plex Sans">{{ m.kwh }}</text>
+          <text x="{{ m.lblX }}" y="248" text-anchor="middle" font-size="13" fill="#5b6675" font-family="IBM Plex Sans" font-weight="600">{{ m.name }}</text>
+        </sc-for>
+      </svg>
+    </div>
+
+    <div style="border-top:2px solid var(--accent,#0f2850);padding-bottom:9px;margin-top:30px">
+      <h2 style="font-family:'Archivo',sans-serif;font-weight:700;font-size:17px;color:var(--accent,#0f2850);margin:0 0 9px">Impact de mediu · CO₂ evitat</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px">
+      <div style="border:1px solid var(--line,#dfe4ec);border-top:3px solid #2f9e5e;border-radius:8px;padding:15px">
+        <div style="font-size:9px;letter-spacing:1px;color:var(--muted,#5b6675);font-weight:700;text-transform:uppercase">CO₂ evitat / an</div>
+        <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:20px;color:#1f7a47;margin-top:8px">{{ co2Annual }}</div>
+        <div style="font-size:9.5px;color:var(--muted,#5b6675);margin-top:5px">factor rețea RO ~0,3 kg/kWh</div>
+      </div>
+      <div style="border:1px solid var(--line,#dfe4ec);border-top:3px solid #2f9e5e;border-radius:8px;padding:15px">
+        <div style="font-size:9px;letter-spacing:1px;color:var(--muted,#5b6675);font-weight:700;text-transform:uppercase">CO₂ pe {{ durata }} ani</div>
+        <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:20px;color:#1f7a47;margin-top:8px">{{ co2Total }}</div>
+        <div style="font-size:9.5px;color:var(--muted,#5b6675);margin-top:5px">cu degradare inclusă</div>
+      </div>
+      <div style="border:1px solid var(--line,#dfe4ec);border-radius:8px;padding:15px">
+        <div style="font-size:9px;letter-spacing:1px;color:var(--muted,#5b6675);font-weight:700;text-transform:uppercase">Echiv. copaci</div>
+        <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:20px;color:var(--ink,#1a2230);margin-top:8px">{{ co2Trees }}</div>
+        <div style="font-size:9.5px;color:var(--muted,#5b6675);margin-top:5px">~21 kg CO₂/copac/an</div>
+      </div>
+      <div style="border:1px solid var(--line,#dfe4ec);border-radius:8px;padding:15px">
+        <div style="font-size:9px;letter-spacing:1px;color:var(--muted,#5b6675);font-weight:700;text-transform:uppercase">Echiv. km auto</div>
+        <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:20px;color:var(--ink,#1a2230);margin-top:8px">{{ co2Km }}</div>
+        <div style="font-size:9.5px;color:var(--muted,#5b6675);margin-top:5px">~0,12 kg CO₂/km</div>
+      </div>
+    </div>
+
+    <div style="flex:1"></div>
+    <div style="border-top:1px solid var(--line,#dfe4ec);padding-top:12px;display:flex;justify-content:space-between;font-size:9px;color:var(--muted,#5b6675)">
+      <span>{{ nrOferta }} · {{ clientDisplay }}</span><span>Pag. 6</span>
+    </div>
+  </div>
+
+  <!-- ════════ PAGE 7 — ANEXĂ TEHNICĂ ════════ -->
+  <div class="page" style="width:210mm;min-height:297mm;background:#fff;box-shadow:0 4px 24px rgba(20,30,50,.12);padding:16mm 18mm;display:flex;flex-direction:column">
+    <div style="border-bottom:2px solid var(--accent,#0f2850);padding-bottom:9px">
+      <h2 style="font-family:'Archivo',sans-serif;font-weight:700;font-size:17px;color:var(--accent,#0f2850);margin:0">Anexă tehnică — listă echipamente &amp; lucrări</h2>
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-top:16px;font-size:11.5px">
+      <thead>
+        <tr style="background:var(--accent,#0f2850);color:#fff">
+          <th style="text-align:left;padding:10px 10px;font-weight:600">Descriere</th>
+          <th style="text-align:right;padding:10px 10px;font-weight:600;width:60px">UM</th>
+          <th style="text-align:right;padding:10px 10px;font-weight:600;width:70px">Cant.</th>
+        </tr>
+      </thead>
+      <tbody>
+        <sc-for list="{{ equipRows }}" as="e" hint-placeholder-count="8">
+          <tr style="background:{{ e.bg }};border-bottom:1px solid var(--line,#eef0f4)">
+            <td style="padding:10px;color:var(--ink,#1a2230)">{{ e.desc }}</td>
+            <td style="padding:10px;text-align:right;color:var(--muted,#5b6675)">{{ e.um }}</td>
+            <td style="padding:10px;text-align:right;font-weight:600;color:var(--ink,#1a2230)">{{ e.cant }}</td>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+    <p style="font-size:10.5px;color:var(--muted,#5b6675);margin-top:14px;line-height:1.6">Lista are caracter orientativ. Cantitățile finale se confirmă după releveul tehnic la fața locului și proiectul de execuție.</p>
+
+    <div style="flex:1"></div>
+    <div style="border-top:1px solid var(--line,#dfe4ec);padding-top:12px;display:flex;justify-content:space-between;font-size:9px;color:var(--muted,#5b6675)">
+      <span>© 2026 {{ firma }} · Software proprietar · Legea nr. 8/1996</span><span>Pag. 7</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:880,&quot;height&quot;:1180},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;navy&quot;,&quot;options&quot;:[&quot;navy&quot;,&quot;green&quot;,&quot;graphite&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;client&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;nrOferta&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;SHC-2026-001&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;dataOferta&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;18.06.2026&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { prefill: null };
+
+  componentDidMount() {
+    try {
+      const raw = localStorage.getItem('shc_offer_prefill');
+      if (raw) this.setState({ prefill: JSON.parse(raw) });
+    } catch(e) {}
+  }
+
+  renderVals() {
+    const P = this.props || {};
+    const fmt = (n, d = 2) => new Intl.NumberFormat('ro-RO', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n);
+    const fmt0 = (n) => new Intl.NumberFormat('ro-RO', { maximumFractionDigits: 0 }).format(Math.round(n));
+
+    // ── theme ──
+    const themes = {
+      navy:     { accent:'#0f2850', accentDeep:'#0a1d3a', gold:'#c8963c', soft:'#eef3fb', ink:'#1a2230', muted:'#5b6675', line:'#dfe4ec', headText:'#ffffff' },
+      green:    { accent:'#14432f', accentDeep:'#0e3122', gold:'#c8923c', soft:'#eef4ef', ink:'#1c241f', muted:'#586056', line:'#dde6df', headText:'#ffffff' },
+      graphite: { accent:'#1f2228', accentDeep:'#141619', gold:'#e0892b', soft:'#f3f3f4', ink:'#1c1e22', muted:'#62656c', line:'#e2e2e4', headText:'#ffffff' }
+    };
+    const th = themes[P.theme] || themes.navy;
+
+    // ── proiect (CRM prefill sau valori demo) ──
+    const pf = this.state.prefill || {};
+    const curs = 5.07;
+    const panelPower = 645;
+    const numPanouri = pf.panels ? parseInt(pf.panels) : (pf.kwp ? Math.round(parseFloat(pf.kwp) * 1000 / panelPower) : 624);
+    const kwp = pf.kwp ? parseFloat(pf.kwp) : numPanouri * panelPower / 1000;
+    const yieldZi = 3.42, zile = 365, correction = 1.0;
+    const yieldSpec = yieldZi * zile;
+    const prodAn1 = kwp * yieldSpec * correction;
+
+    const capexPv = 290 * numPanouri;
+    const capexInvertor = 38000;
+    const capexBess = 60000;
+    const atr = 1500, alteElem = 8000, montaj = Math.round(50 * kwp), comisionare = 3000;
+    const capexTotal = capexPv + capexInvertor + capexBess + atr + alteElem + montaj + comisionare;
+    const tvaPct = 0.21;
+    const tvaAmount = capexTotal * tvaPct;
+    const capexTotalTva = capexTotal + tvaAmount;
+
+    const pretEnergie = 0.16, pretInjectie = 0.07, autoconsum = 0.95;
+    const degradare = 0.005, escaladare = 0.02, om = 2000, durata = 25;
+
+    // ── projection ──
+    const rows = [{ an: 0, cumulative: -capexTotal, economii: 0, prod: 0 }];
+    let cum = -capexTotal, econ1 = 0;
+    for (let an = 1; an <= durata; an++) {
+      const prod = prodAn1 * Math.pow(1 - degradare, an - 1);
+      const pe = pretEnergie * Math.pow(1 + escaladare, an - 1);
+      const pi = pretInjectie * Math.pow(1 + escaladare, an - 1);
+      const consumat = prod * autoconsum, injectat = prod * (1 - autoconsum);
+      const gross = consumat * pe + injectat * pi;
+      const economii = gross - om;
+      if (an === 1) econ1 = gross;
+      cum += economii;
+      rows.push({ an, cumulative: cum, economii, prod, net: economii });
+    }
+    let payback = null;
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i].cumulative >= 0) {
+        const prev = rows[i - 1].cumulative, curr = rows[i].cumulative;
+        payback = (i - 1) + (0 - prev) / (curr - prev);
+        break;
+      }
+    }
+    const finalValue = rows[rows.length - 1].cumulative;
+    const roiPct = capexTotal > 0 ? finalValue / capexTotal * 100 : 0;
+    const economiiNet1 = econ1 - om;
+    const paybackStr = payback !== null ? fmt(payback, 1).replace(',', ',') + ' ani' : '> ' + durata + ' ani';
+    const paybackYr = payback !== null ? Math.floor(payback) : -1;
+
+    // ── header / meta ──
+    const firma = 'Smart House Color SRL';
+    const dataOferta = pf.dataOferta || P.dataOferta || new Date().toLocaleDateString('ro-RO',{day:'2-digit',month:'2-digit',year:'numeric'}).replace(/\//g,'.');
+    let valabilUntil = '—';
+    const dp = dataOferta.split('.');
+    if (dp.length === 3) {
+      const d = new Date(+dp[2], +dp[1] - 1, +dp[0]); d.setDate(d.getDate() + 30);
+      valabilUntil = String(d.getDate()).padStart(2, '0') + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + d.getFullYear();
+    }
+    const client = (pf.client || P.client || '').trim();
+
+    // ── cost rows ──
+    const costRows = [
+      { label: 'Panouri fotovoltaice (' + numPanouri + ' × 645 Wp)', v: capexPv },
+      { label: 'Invertoare trifazice on-grid', v: capexInvertor },
+      { label: 'Sistem stocare BESS (LiFePO₄)', v: capexBess },
+      { label: 'Structuri montaj & alte elemente', v: alteElem },
+      { label: 'Montaj, cablare & punere în funcțiune', v: montaj },
+      { label: 'Comisionare & documentație', v: comisionare },
+      { label: 'Aviz tehnic de racordare (ATR)', v: atr }
+    ].map(r => ({ label: r.label, eur: fmt(r.v), ron: fmt(r.v * curs) }));
+
+    // ── capex distribution segments ──
+    const segDefs = [
+      { label: 'Panouri PV', v: capexPv, color: th.accent },
+      { label: 'Invertoare', v: capexInvertor, color: th.gold },
+      { label: 'Stocare BESS', v: capexBess, color: '#2f9e5e' },
+      { label: 'TVA', v: tvaAmount, color: '#9aa3b0' }
+    ];
+    const segTotal = segDefs.reduce((a, b) => a + b.v, 0);
+    const capexSegs = segDefs.map(s => ({ label: s.label, color: s.color, eur: fmt(s.v), pct: Math.round(s.v / segTotal * 100), widthPct: (s.v / segTotal * 100).toFixed(2) }));
+
+    // ── payment tranches ──
+    const transeDef = [
+      { label: 'Avans la semnare', pct: 30 },
+      { label: 'Livrare echipamente', pct: 50 },
+      { label: 'Tranșă finală — PIF', pct: 20 }
+    ];
+    const transe = transeDef.map(t => ({ label: t.label, pct: t.pct, flex: t.pct, eur: fmt(capexTotalTva * t.pct / 100), ron: fmt(capexTotalTva * t.pct / 100 * curs) }));
+
+    // ── ipoteze ──
+    const ipoteze = [
+      { k: 'Producție specifică', v: fmt(yieldZi, 2) + ' kWh/kWp/zi × ' + zile + ' zile = ' + fmt0(yieldSpec) + ' kWh/kWp/an' },
+      { k: 'Preț energie', v: '€ ' + fmt(pretEnergie, 3) + '/kWh' },
+      { k: 'Preț injecție surplus', v: '€ ' + fmt(pretInjectie, 3) + '/kWh' },
+      { k: 'Autoconsumție (cu BESS)', v: Math.round(autoconsum * 100) + '%' },
+      { k: 'Degradare anuală module', v: fmt(degradare * 100, 1) + ' %/an' },
+      { k: 'Escaladare preț energie', v: fmt(escaladare * 100, 1) + ' %/an' },
+      { k: 'Mentenanță O&M', v: '€ ' + fmt0(om) + '/an' },
+      { k: 'Durată analiză', v: durata + ' ani' }
+    ];
+
+    // ── cashflow chart geometry ──
+    const X0 = 60, X1 = 980, Y0 = 20, Y1 = 260;
+    const vals = rows.map(r => r.cumulative);
+    const vmin = Math.min(...vals), vmax = Math.max(...vals);
+    const range = (vmax - vmin) || 1;
+    const xFor = (an) => X0 + (an / durata) * (X1 - X0);
+    const yFor = (v) => Y1 - ((v - vmin) / range) * (Y1 - Y0);
+    const cfPoints = rows.map(r => xFor(r.an).toFixed(1) + ',' + yFor(r.cumulative).toFixed(1)).join(' ');
+    const cfArea = 'M' + xFor(0).toFixed(1) + ',' + yFor(rows[0].cumulative).toFixed(1) + ' ' +
+      rows.map(r => 'L' + xFor(r.an).toFixed(1) + ',' + yFor(r.cumulative).toFixed(1)).join(' ') +
+      ' L' + X1.toFixed(1) + ',' + Y1 + ' L' + X0.toFixed(1) + ',' + Y1 + ' Z';
+    const cfZeroY = yFor(0).toFixed(1);
+    const cfGrid = [0, 1, 2, 3, 4].map(i => ({ y: (Y0 + (Y1 - Y0) / 4 * i).toFixed(1) }));
+    const cfXLabels = [];
+    for (let yr = 0; yr <= durata; yr += 5) cfXLabels.push({ x: xFor(yr).toFixed(1), label: 'An ' + yr });
+    const cfYLabels = [vmin, (vmin + vmax) / 2, vmax].map(v => ({ y: (yFor(v) + 4).toFixed(1), label: (v >= 0 ? '+' : '−') + '€' + fmt0(Math.abs(v) / 1000) + 'k' }));
+
+    // ── amortization rows ──
+    const amortRows = rows.filter(r => r.an >= 1).map(r => {
+      const pos = r.cumulative >= 0;
+      const isPay = r.an === paybackYr;
+      const zebra = r.an % 2 === 0;
+      let bg = pos ? (zebra ? '#f1f8f3' : '#f7fbf8') : (zebra ? '#fbf4f4' : '#fdf8f8');
+      if (isPay) bg = '#fff6e6';
+      return {
+        an: r.an, prod: fmt0(r.prod), econEur: fmt(r.economii), econRon: fmt(r.economii * curs),
+        om: fmt0(om), net: fmt(r.net), cum: fmt(r.cumulative), bg,
+        cumColor: pos ? '#1f7a47' : '#b04a3a'
+      };
+    });
+
+    // ── monthly production ──
+    const weights = [0.045, 0.06, 0.08, 0.10, 0.115, 0.12, 0.125, 0.115, 0.095, 0.075, 0.05, 0.04];
+    const mNames = ['Ian', 'Feb', 'Mar', 'Apr', 'Mai', 'Iun', 'Iul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const maxW = Math.max(...weights);
+    const slot = (980 - 60) / 12, barW = 48, baseY = 230, maxH = 175;
+    const months = weights.map((w, i) => {
+      const barH = (w / maxW) * maxH;
+      const x = 60 + slot * i + (slot - barW) / 2;
+      const barY = baseY - barH;
+      return { name: mNames[i], kwh: fmt0(prodAn1 * w), x: x.toFixed(1), barY: barY.toFixed(1), barH: barH.toFixed(1), lblX: (x + barW / 2).toFixed(1), valY: (barY - 7).toFixed(1) };
+    });
+
+    // ── CO2 ──
+    const co2Factor = 0.3;
+    const totalKwh = rows.filter(r => r.an >= 1).reduce((s, r) => s + r.prod, 0);
+    const co2AnnualKg = prodAn1 * co2Factor;
+    const co2TotalT = totalKwh * co2Factor / 1000;
+
+    // ── equipment ──
+    const equipDef = [
+      ['Panouri fotovoltaice monocristaline 645 Wp', 'buc', '624'],
+      ['Invertor trifazic on-grid 100 kW', 'buc', '4'],
+      ['Sistem stocare energie BESS LiFePO₄', 'set', '1'],
+      ['Structură montaj acoperiș / teren', 'set', '1'],
+      ['Cablu solar 6 mm² (roșu / negru)', 'm', '4.200'],
+      ['Tablouri electrice AC/DC + protecții', 'set', '1'],
+      ['Sistem monitorizare & management energie', 'set', '1'],
+      ['Montaj, testare și punere în funcțiune (PIF)', 'serviciu', '1']
+    ];
+    const equipRows = equipDef.map((e, i) => ({ desc: e[0], um: e[1], cant: e[2], bg: i % 2 === 0 ? '#ffffff' : '#fafbfc' }));
+
+    return {
+      ...th,
+      firma, firmaUpper: firma.toUpperCase(),
+      nrOferta: pf.nrOferta || P.nrOferta || 'SHC-' + new Date().getFullYear() + '-001',
+      fromCRM: !!(pf && pf.fromCRM),
+      crmClientName: pf.client || '—',
+      dataOferta, valabilUntil,
+      clientDisplay: client || 'Client beneficiar',
+      kwpStr: fmt(kwp, 2), numPanouri,
+      sysTitle: 'Sistem fotovoltaic ' + fmt(kwp, 2) + ' kWp + Stocare BESS',
+      prodAn1Str: fmt0(prodAn1), yieldStr: fmt0(yieldSpec),
+      capexFaraStr: fmt(capexTotal), capexFaraRonStr: fmt(capexTotal * curs),
+      paybackStr, roiStr: fmt0(roiPct), durata,
+      totalFaraEur: fmt(capexTotal), totalFaraRon: fmt(capexTotal * curs),
+      totalTvaEur: fmt(capexTotalTva), totalTvaRon: fmt(capexTotalTva * curs),
+      cursStr: fmt(curs, 4),
+      autoconsumStr: Math.round(autoconsum * 100),
+      economiiStr: fmt(economiiNet1), economiiRon: fmt(economiiNet1 * curs),
+      omStr: fmt0(om),
+      finalValStr: fmt(finalValue), finalValRon: fmt(finalValue * curs),
+      tvaPctStr: fmt0(tvaPct * 100), tvaEur: fmt(tvaAmount), tvaRon: fmt(tvaAmount * curs),
+      costRows, capexSegs, transe, ipoteze,
+      cfPoints, cfArea, cfZeroY, cfGrid, cfXLabels, cfYLabels,
+      hasPayback: payback !== null, cfPayX: payback !== null ? xFor(payback).toFixed(1) : 0,
+      amortRows, months,
+      co2Annual: fmt0(co2AnnualKg / 1000) + ' tone', co2Total: fmt0(co2TotalT) + ' tone',
+      co2Trees: fmt0(co2AnnualKg / 21) + ' /an', co2Km: fmt0(co2AnnualKg / 0.12) + ' /an',
+      equipRows,
+      notesText: 'Ofertă draft generată automat din calculatorul SHC Group. Valorile sunt orientative și se confirmă în oferta finală după releveul tehnic. Prețurile nu includ eventuale lucrări de consolidare structurală sau extinderi de rețea solicitate de operatorul de distribuție.'
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+body { margin: 0; background: #555; display: flex; flex-direction: column; align-items: center; padding: 20px; gap: 16px; }
+canvas { box-shadow: 0 2px 12px rgba(0,0,0,.4); max-width: 100%; }
+</style>
+</head>
+<body>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+async function renderPDF() {
+  const response = await fetch('./uploads/Oferta_Profesionala_Parc_PV_BESS_Viscri_2026.pdf');
+  const data = await response.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data }).promise;
+
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({ scale: 1.5 });
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    document.body.appendChild(canvas);
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+    // Also extract text
+    const textContent = await page.getTextContent();
+    const text = textContent.items.map(i => i.str).join(' ');
+    const pre = document.createElement('pre');
+    pre.style.cssText = 'display:none;';
+    pre.className = 'page-text';
+    pre.setAttribute('data-page', i);
+    pre.textContent = text;
+    document.body.appendChild(pre);
+  }
+  // Log all text to console
+  const allText = [...document.querySelectorAll('.page-text')].map(p => '=== Pag '+p.dataset.page+' ===\n'+p.textContent).join('\n\n');
+  console.log(allText);
+}
+renderPDF();
+</script>
+</body>
+</html>
