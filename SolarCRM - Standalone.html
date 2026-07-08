@@ -1175,10 +1175,10 @@ class Component extends DCLogic {
       const data = snap.val() || {};
       // Suporta atat structura noua (data.projects obiect, data.config) cat si veche (data.projects array, data.users)
       let projects;
-      if(data.projects && typeof data.projects === 'object' && !Array.isArray(data.projects)){
-        projects = Object.values(data.projects).map(migrate);
-      } else if(Array.isArray(data.projects)){
-        projects = data.projects.map(migrate);
+      const rawP = data.projects;
+      if(rawP && typeof rawP === 'object'){
+        const arr = Array.isArray(rawP) ? rawP : Object.values(rawP);
+        projects = arr.filter(p=>p!=null&&typeof p==='object').map(migrate);
       } else {
         projects = [];
       }
