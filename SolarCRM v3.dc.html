@@ -994,13 +994,13 @@ function getDb(){
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 const ADMIN_ID = '_admin';
-const ADMIN_DEFAULT_PW = 'Admin2025';
+const ADMIN_DEFAULT_PW = '12345';
 
 const DEFAULT_USERS = [
-  {id:'u_chirila', name:'Alexandru Chirila', role:'Manager', password:'Admin2025', color:'#7c3aed'},
-  {id:'u_dobre', name:'Cristian Dobre', role:'Vânzări', password:'Admin2025', color:'#16a34a'},
-  {id:'u_nicoras', name:'Ionut Nicoras', role:'Administrator', password:'Admin2025', color:'#d97706'},
-  {id:'u_sirb', name:'Beniamin Sirb', role:'Backoffice', password:'Admin2025', color:'#0891b2'},
+  {id:'u_chirila', name:'Alexandru Chirila', role:'Manager', password:'12345', color:'#7c3aed'},
+  {id:'u_dobre', name:'Cristian Dobre', role:'Vânzări', password:'12345', color:'#16a34a'},
+  {id:'u_nicoras', name:'Ionut Nicoras', role:'Administrator', password:'12345', color:'#d97706'},
+  {id:'u_sirb', name:'Beniamin Sirb', role:'Backoffice', password:'12345', color:'#0891b2'},
 ];
 
 const ADMIN_USER = {
@@ -1026,21 +1026,7 @@ const COMPANY_INFO = {
 
 const CONTRACT_STATUSES = ['Contract', 'Programat', 'În execuție', 'Finalizat'];
 
-// ─── SAMPLE DATA ─────────────────────────────────────────────────────────────
-const SAMPLE_DATA = [
-  {id:1,types:['PV'],status:'Finalizat',client:'Ion Popescu',phone:'0721 234 567',email:'ion@gmail.com',address:'Str. Florilor 12, Cluj-Napoca',date_start:'2026-05-01',date_executie:'2026-05-18',date_end:'2026-05-20',equipment:'12x Jinko 440W, Huawei SUN2000-5KTL',kwp:5.28,panels:12,mounting:'acoperiș',prosumator:true,value:24500,responsabil:'Mihai D.',notes:'Client mulțumit.',auditLog:[{id:1001,timestamp:'2026-05-01T09:00:00',userName:'Administrator',userId:ADMIN_ID,userColor:'#dc2626',action:'create',description:'Lucrare creată',reason:null},{id:1002,timestamp:'2026-05-18T16:00:00',userName:'Administrator',userId:ADMIN_ID,userColor:'#dc2626',action:'status_change',description:'Status: Programat → Finalizat',reason:'Instalare completă, PV semnat.'}],attachments:[]},
-  {id:2,types:['BESS','PV'],status:'În execuție',client:'SC TechBuild SRL',phone:'0733 456 789',email:'office@techbuild.ro',address:'Calea Turzii 55, Cluj',date_start:'2026-06-01',date_executie:'2026-06-10',date_end:null,equipment:'BYD Battery-Box HVS 10.2 + 8x Jinko 400W',kwp:3.2,panels:8,mounting:'acoperiș',prosumator:false,value:32000,responsabil:'Andrei P.',notes:'Se lucrează la cablaj DC.',auditLog:[],attachments:[]},
-  {id:3,types:['Inverter'],status:'Programat',client:'Maria Ionescu',phone:'0745 987 654',email:'maria@yahoo.com',address:'Str. Avram Iancu 3, Turda',date_start:'2026-06-20',date_executie:'2026-07-05',date_end:null,equipment:'Fronius Primo 6.0-1',kwp:null,panels:null,mounting:null,prosumator:false,value:4200,responsabil:'Mihai D.',notes:'Înlocuire inverter.',auditLog:[],attachments:[]},
-  {id:4,types:['PV','Baterie'],status:'Contract',client:'Gheorghe Mureșan',phone:'0762 111 222',email:'gh.muresan@gmail.com',address:'Str. Libertății 8, Dej',date_start:'2026-07-01',date_executie:null,date_end:null,equipment:'20x JA Solar 410W, Pylontech US3000C x2',kwp:8.2,panels:20,mounting:'acoperiș',prosumator:true,value:49000,responsabil:'Andrei P.',notes:'',auditLog:[],attachments:[]},
-  {id:5,types:['Baterie'],status:'Ofertă',client:'Florin Niță',phone:'0788 333 444',email:'f.nita@gmail.com',address:'Str. M. Eminescu 22, Florești',date_start:null,date_executie:null,date_end:null,equipment:'Pylontech US3000C x2',kwp:null,panels:null,mounting:null,prosumator:false,value:7800,responsabil:null,notes:'Oferta trimisă.',auditLog:[],attachments:[]},
-  {id:6,types:['PV'],status:'Lead',client:'Elena Dragomir',phone:'0799 555 666',email:'elena.d@gmail.com',address:'Str. Câmpului 14, Gherla',date_start:null,date_executie:null,date_end:null,equipment:null,kwp:null,panels:null,mounting:null,prosumator:false,value:null,responsabil:null,notes:'Interesată de 10kWp.',auditLog:[],attachments:[]},
-  {id:7,types:['BESS'],status:'Finalizat',client:'SC Agro Trans SRL',phone:'0721 777 888',email:'office@agrotrans.ro',address:'DN1 km 45, Gilău',date_start:'2026-04-01',date_executie:'2026-04-10',date_end:'2026-04-12',equipment:'Huawei LUNA2000-15-S0, 3x 5kWh',kwp:null,panels:null,mounting:null,prosumator:false,value:32000,responsabil:'Andrei P.',notes:'Proiect industrial.',auditLog:[],attachments:[]},
-  {id:8,types:['PV','Inverter'],status:'Service',client:'Dan Stoica',phone:'0734 999 000',email:'dan.stoica@yahoo.com',address:'Str. Brândușelor 5, Baciu',date_start:'2026-06-25',date_executie:null,date_end:null,equipment:'SMA Sunny Boy 5.0',kwp:4.4,panels:10,mounting:'acoperiș',prosumator:true,value:1200,responsabil:'Mihai D.',notes:'Inverter nu comunică.',auditLog:[],attachments:[]},
-  {id:9,types:['Inverter'],status:'Finalizat',client:'Vasile Pop',phone:'0756 123 456',email:null,address:'Str. Grădinilor 9, Apahida',date_start:'2026-06-09',date_executie:'2026-06-11',date_end:'2026-06-11',equipment:'Growatt MIN 3000TL-X',kwp:null,panels:null,mounting:null,prosumator:false,value:3100,responsabil:'Mihai D.',notes:'',auditLog:[],attachments:[]},
-  {id:10,types:['PV'],status:'Ofertă',client:'Radu Toma',phone:'0743 321 654',email:'r.toma@gmail.com',address:'Str. Primăverii 33, Câmpia Turzii',date_start:null,date_executie:null,date_end:null,equipment:'16x Canadian Solar 420W, Solis 6K',kwp:6.72,panels:16,mounting:'sol',prosumator:false,value:28500,responsabil:null,notes:'Compară oferte.',auditLog:[],attachments:[]},
-  {id:11,types:['Baterie'],status:'Finalizat',client:'Aurel Costea',phone:'0723 456 789',email:null,address:'Str. Unirii 5, Turda',date_start:'2026-03-14',date_executie:'2026-03-16',date_end:'2026-03-16',equipment:'Pylontech US5000 x1',kwp:null,panels:null,mounting:null,prosumator:false,value:5200,responsabil:'Andrei P.',notes:'',auditLog:[],attachments:[]},
-  {id:12,types:['PV'],status:'Programat',client:'Silvia Moldovan',phone:'0751 234 567',email:'silvia@gmail.com',address:'Str. Dezrobirii 18, Câmpia Turzii',date_start:'2026-07-01',date_executie:'2026-07-12',date_end:null,equipment:'8x Longi 430W, Goodwe 3.6KTL',kwp:3.44,panels:8,mounting:'acoperiș',prosumator:true,value:15600,responsabil:'Mihai D.',notes:'',auditLog:[],attachments:[]},
-];
+const SAMPLE_DATA = [];
 
 // ─── COLORS ──────────────────────────────────────────────────────────────────
 const TYPE_COLORS = {PV:{bg:'#fef3c7',color:'#92400e',bar:'#f59e0b'},Inverter:{bg:'#dbeafe',color:'#1e40af',bar:'#3b82f6'},Baterie:{bg:'#ede9fe',color:'#5b21b6',bar:'#8b5cf6'},BESS:{bg:'#dcfce7',color:'#14532d',bar:'#22c55e'}};
@@ -1183,20 +1169,29 @@ class Component extends DCLogic {
   componentDidMount(){
     const db = getDb();
     if(!db){ this._loadFromLS(); return; }
-    this._fbRef = db.ref('solarcrm');
+    this._fbRef = db.ref('solarcrm_v2');
     this._fbRef.on('value', snap => {
       this._firebaseLoaded = true;
-      const data = snap.val();
-      if(!data){ if(!this._initialized){ this._initialized=true; this.setState({projects:[],users:[...DEFAULT_USERS]},()=>this._initAuth()); } return; }
-      const projects=(data.projects||[]).map(migrate);
-      const users=data.users&&data.users.length?data.users:DEFAULT_USERS;
-      if(data.adminPw) this.adminPassword=data.adminPw;
-      const companyInfo=data.companyInfo?{...COMPANY_INFO,...data.companyInfo}:this.state.companyInfo;
+      const data = snap.val() || {};
+      // Suporta atat structura noua (data.projects obiect, data.config) cat si veche (data.projects array, data.users)
+      let projects;
+      if(data.projects && typeof data.projects === 'object' && !Array.isArray(data.projects)){
+        projects = Object.values(data.projects).map(migrate);
+      } else if(Array.isArray(data.projects)){
+        projects = data.projects.map(migrate);
+      } else {
+        projects = [];
+      }
+      projects.sort((a,b)=>b.id-a.id);
+      const cfg = data.config||{};
+      const users = (cfg.users&&cfg.users.length)?cfg.users:(data.users&&data.users.length?data.users:DEFAULT_USERS);
+      const adminPw = cfg.adminPw||data.adminPw||null;
+      if(adminPw) this.adminPassword = adminPw;
+      const ci = cfg.companyInfo||data.companyInfo||null;
+      const companyInfo = ci ? {...COMPANY_INFO,...ci} : this.state.companyInfo;
       if(!this._initialized){
         this._initialized=true;
-        this.setState({projects,users,companyInfo},()=>{
-          this.setState({showUserModal:true,userModalMode:'login'});
-        });
+        this.setState({projects,users,companyInfo},()=>this._initAuth());
       } else {
         this.setState({projects,users,companyInfo});
       }
@@ -1211,6 +1206,19 @@ class Component extends DCLogic {
 
   _loadFromLS(){
     try {
+      // Versiune date: daca e mai veche, sterge proiectele sample
+      const DATA_VERSION = 3;
+      const storedVer = parseInt(localStorage.getItem('solarcrm_data_ver')||'0');
+      if(storedVer < DATA_VERSION){
+        // Stergem cheile vechi care contin sample data
+        const oldRaw = localStorage.getItem('solarcrm_v3');
+        if(oldRaw){
+          const oldData = JSON.parse(oldRaw);
+          // Reset complet: stergem proiecte + useri + parola admin (forteaza re-seed cu DEFAULT_USERS si parola 12345)
+          localStorage.removeItem('solarcrm_v3');
+        }
+        localStorage.setItem('solarcrm_data_ver', String(DATA_VERSION));
+      }
       const raw=localStorage.getItem('solarcrm_v3');
       if(raw){
         const data=JSON.parse(raw);
@@ -1226,15 +1234,22 @@ class Component extends DCLogic {
   persist(){
     try {
       const {projects,users,companyInfo}=this.state;
-      const data={projects,users,adminPw:this.adminPassword,companyInfo};
-      // Salvam in localStorage intotdeauna (backup offline)
-      localStorage.setItem('solarcrm_v3',JSON.stringify(data));
-      // Scriem in Firebase DOAR dupa ce am confirmat ca datele au fost incarcate din Firebase
-      // (prevenim suprascrierea accidentala cu date goale la initializare)
+      localStorage.setItem('solarcrm_v3',JSON.stringify({projects,users,adminPw:this.adminPassword,companyInfo}));
       if(this._firebaseLoaded){
-        const db=getDb();
-        if(db) db.ref('solarcrm').set(data);
+        const db=getDb(); if(!db) return;
+        // Salveaza fiecare proiect individual — NU suprascrie proiectele colegilor
+        const updates={};
+        projects.forEach(p=>{ updates[String(p.id)]=p; });
+        db.ref('solarcrm_v2/projects').update(updates);
+        // Config separat
+        db.ref('solarcrm_v2/config').set({users,adminPw:this.adminPassword,companyInfo});
       }
+    } catch(e){}
+  }
+
+  _fbDeleteProject(id){
+    try {
+      if(this._firebaseLoaded){ const db=getDb(); if(db) db.ref('solarcrm_v2/projects/'+String(id)).remove(); }
     } catch(e){}
   }
 
@@ -1625,7 +1640,9 @@ class Component extends DCLogic {
       deleteSelected:()=>{
         if(!selected)return;
         if(!window.confirm('Ștergi lucrarea lui '+selected.client+'?'))return;
-        this.setState(s=>{const projects=s.projects.filter(p=>p.id!==selected.id);setTimeout(()=>this.persist(),0);return {projects,selectedId:null};});
+        const delId=selected.id;
+        this._fbDeleteProject(delId);
+        this.setState(s=>{const projects=s.projects.filter(p=>p.id!==delId);setTimeout(()=>this.persist(),0);return {projects,selectedId:null};});
       },
       showModal,modalTitle:editingId?'Editare lucrare':'Lucrare nouă',modalSaveLabel:editingId?'Salvează modificările':'Adaugă lucrarea',
       closeModal:()=>this.setState({showModal:false,editingId:null}),saveProject:()=>this.handleSave(),

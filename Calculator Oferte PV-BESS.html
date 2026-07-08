@@ -2938,7 +2938,7 @@ var USERS = [
 window.SESSION = null;
 var SESSION = window.SESSION;
 var JOURNAL_KEY = 'pvbessJournal_v1';
-var USERS_KEY = 'pvbessUsers_v1';
+var USERS_KEY = 'pvbessUsers_v2';
 
 function loadUsers(){
   try{
@@ -3169,7 +3169,7 @@ function exportJournalCSV(){
 // ── Seed users in localStorage if missing or all inactive ──
 (function(){
   try{
-    var stored=JSON.parse(localStorage.getItem('pvbessUsers_v1')||'null');
+    var stored=JSON.parse(localStorage.getItem('pvbessUsers_v2')||'null');
     var needSeed=!stored||!Array.isArray(stored)||!stored.length||!stored.some(function(u){return u.active;});
     if(needSeed){
       localStorage.setItem('pvbessUsers_v1', JSON.stringify(USERS));
