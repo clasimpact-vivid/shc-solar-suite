@@ -372,6 +372,7 @@ function doLogin(){
   if(!u){err.textContent='Utilizator negăsit.';return;}
   const stored=u.id==='_admin'?adminPw:(u.password||'');
   if(stored&&pw!==stored){err.textContent='Parolă incorectă.';return;}
+  if(u.apps && u.apps.vizita===false){ err.textContent='Nu ai acces la Vizită Șantier. Contactează administratorul.'; return; }
   currentUser=u;
   document.getElementById('loginOverlay').style.display='none';
   document.getElementById('app').style.display='flex';

@@ -135,6 +135,8 @@
   .badge.good{background:#dcfce7;color:#15803d}
   .badge.warn{background:#fef3c7;color:#b45309}
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -2943,18 +2945,29 @@ var JOURNAL_KEY = 'pvbessJournal_v1';
 var USERS_KEY = 'pvbessUsers_v2';
 
 function loadUsers(){
+  var base;
   try{
     var stored=JSON.parse(localStorage.getItem(USERS_KEY));
     if(Array.isArray(stored)&&stored.length){
-      // Păstrează doar utilizatorii din USERS hardcodat, cu parolele din stored
       var result=USERS.map(function(u){
         var s=stored.find(function(x){return x.id===u.id;});
         return s?Object.assign({},u,{hash:s.hash,active:s.active!==undefined?s.active:true}):Object.assign({},u);
       });
-      if(result.some(function(u){return u.active;})) return result;
+      base = result.some(function(u){return u.active;}) ? result : USERS.map(function(x){return Object.assign({},x);});
+    } else {
+      base = USERS.map(function(x){return Object.assign({},x);});
     }
-  }catch(e){}
-  return USERS.map(function(x){return Object.assign({},x);});
+  }catch(e){ base = USERS.map(function(x){return Object.assign({},x);}); }
+  // Merge utilizatori din SolarCRM (Firebase) — completare automată, fără a afecta conturile locale existente
+  if(window._crmSharedUsers&&window._crmSharedUsers.length){
+    window._crmSharedUsers.forEach(function(cu){
+      var cuNameNorm=(cu.name||'').trim().toLowerCase();
+      var dup=base.some(function(b){return b.id===cu.id || (b.name||'').trim().toLowerCase()===cuNameNorm;});
+      if(dup) return;
+      base.push({id:cu.id, name:cu.name, role:(cu.id==='u_chirila'||cu.id==='u_nicoras')?'admin':'user', active:true, fromCRM:true, plainPassword:cu.password||'', apps:cu.apps||null});
+    });
+  }
+  return base;
 }
 function saveUsers(arr){ try{ localStorage.setItem(USERS_KEY, JSON.stringify(arr)); }catch(e){} }
 function getJournal(){ try{ return JSON.parse(localStorage.getItem(JOURNAL_KEY)||'[]'); }catch(e){ return []; } }
@@ -3077,12 +3090,13 @@ function renderAdminUsers(){
   users.forEach(function(u){
     var isSelf=(SESSION&&u.id===SESSION.userId);
     html+='<tr style="border-bottom:1px solid var(--border)">'+
-      '<td style="padding:9px 10px;font-weight:600">'+u.name+(isSelf?' <span style="font-size:10px;color:var(--accent)">(tu)</span>':'')+'</td>'+
+      '<td style="padding:9px 10px;font-weight:600">'+u.name+(isSelf?' <span style="font-size:10px;color:var(--accent)">(tu)</span>':'')+(u.fromCRM?' <span style="font-size:10px;color:#2563eb;background:#dbeafe;padding:1px 6px;border-radius:4px;">din SolarCRM</span>':'')+'</td>'+
       '<td style="padding:9px 10px;text-align:center"><span style="background:'+(u.role==='admin'?'#0f2850':u.role==='backoffice'?'#7b5ea7':'#2f9e5e')+';color:#fff;border-radius:4px;padding:2px 8px;font-size:11px">'+u.role+'</span></td>'+
       '<td style="padding:9px 10px;text-align:center"><span style="color:'+(u.active?'#1f7a47':'#c0392b')+';font-weight:700">'+(u.active?'Activ':'Inactiv')+'</span></td>'+
       '<td style="padding:9px 10px;text-align:center;display:flex;gap:6px;justify-content:center">'+
+        (u.fromCRM ? '<span style="font-size:11px;color:var(--text3);">gestionat în SolarCRM</span>' : (
         (!isSelf?'<button type="button" data-toggle-uid="'+u.id+'" style="font-size:11px;padding:4px 8px">'+(u.active?'Dezactivează':'Activează')+'</button>':'') +
-        '<button type="button" data-reset-uid="'+u.id+'" style="font-size:11px;padding:4px 8px">Reset parolă</button>'+
+        '<button type="button" data-reset-uid="'+u.id+'" style="font-size:11px;padding:4px 8px">Reset parolă</button>')) +
       '</td></tr>';
   });
   html+='</tbody></table>';
@@ -3179,6 +3193,31 @@ function exportJournalCSV(){
   }catch(e){}
 })();
 
+// ── Firebase: sincronizare utilizatori din SolarCRM (completare automată) ──
+window._crmSharedUsers = [];
+(function(){
+  var FB_CONFIG = {
+    apiKey: "AIzaSyBVElgXbEabUcwjNMa27IEw0YkxaEaXYl0",
+    authDomain: "solarcrm-ba919.firebaseapp.com",
+    databaseURL: "https://solarcrm-ba919-default-rtdb.firebaseio.com",
+    projectId: "solarcrm-ba919",
+    storageBucket: "solarcrm-ba919.firebasestorage.app",
+    messagingSenderId: "349523166308",
+    appId: "1:349523166308:web:0533aa1dae74f9a0b3cb71"
+  };
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+    var db=firebase.database();
+    db.ref('solarcrm_v2/config').once('value', function(snap){
+      var cfg=snap.val()||{};
+      if(cfg.users&&Array.isArray(cfg.users)&&cfg.users.length){
+        window._crmSharedUsers = cfg.users;
+        if(window.renderUserCards) window.renderUserCards();
+      }
+    });
+  }catch(e){ console.warn('Firebase (users sync):', e); }
+})();
+
 // ── Bootstrap login ──
 (function(){
   var users=loadUsers();
@@ -3196,6 +3235,7 @@ function exportJournalCSV(){
 
   var selectedUserId=null;
 
+  window.renderUserCards = renderUserCards;
   function renderUserCards(){
     var users=loadUsers().filter(function(u){return u.active;});
     var list=document.getElementById('loginUserList');
@@ -3248,6 +3288,11 @@ function exportJournalCSV(){
     var users=loadUsers();
     var user=users.find(function(u){return u.id===uid&&u.active;});
     if(!user){err.textContent='Utilizator indisponibil.';return;}
+    if(user.fromCRM){
+      if(pass!==user.plainPassword){err.textContent='Parolă incorectă. Încearcă din nou.';return;}
+      if(user.apps && user.apps.calculator===false){ err.textContent='Nu ai acces la Calculatorul de oferte. Contactează administratorul.'; return; }
+      err.textContent=''; startSession(user); return;
+    }
     var hashed=await sha256hexAsync(pass);
     if(hashed!==user.hash){err.textContent='Parolă incorectă. Încearcă din nou.';return;}
     err.textContent=''; startSession(user);
