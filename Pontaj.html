@@ -504,8 +504,8 @@ function renderTeam(){
   let html='<thead><tr><th>Coleg</th><th>Intrare</th><th>Locație</th><th>Ieșire</th><th>Locație</th><th>Status</th><th></th></tr></thead><tbody>';
   rows.forEach(({u,r})=>{
     const status = !r||!r.checkIn ? '<span class="badge badge-gray">Absent</span>' : !r.checkOut ? '<span class="badge badge-green">Prezent</span>' : '<span class="badge badge-gray">Program încheiat</span>';
-    const locIn = r&&r.checkIn&&r.checkIn.lat ? '<a href="https://www.openstreetmap.org/?mlat='+r.checkIn.lat+'&mlon='+r.checkIn.lng+'#map=16/'+r.checkIn.lat+'/'+r.checkIn.lng+'" target="_blank">hartă</a>' : '—';
-    const locOut = r&&r.checkOut&&r.checkOut.lat ? '<a href="https://www.openstreetmap.org/?mlat='+r.checkOut.lat+'&mlon='+r.checkOut.lng+'#map=16/'+r.checkOut.lat+'/'+r.checkOut.lng+'" target="_blank">hartă</a>' : '—';
+    const locIn = r&&r.checkIn&&r.checkIn.lat ? '<a href="https://www.google.com/maps?q='+r.checkIn.lat+','+r.checkIn.lng+'" target="_blank">hartă</a>' : '—';
+    const locOut = r&&r.checkOut&&r.checkOut.lat ? '<a href="https://www.google.com/maps?q='+r.checkOut.lat+','+r.checkOut.lng+'" target="_blank">hartă</a>' : '—';
     html+='<tr><td style="display:flex;align-items:center;gap:8px;"><div style="width:20px;height:20px;border-radius:50%;background:'+(u.color||'#f59e0b')+';display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;">'+initials(u.name)+'</div>'+u.name+deviceHint(u,r)+'</td>'+
       '<td>'+(r&&r.checkIn?r.checkIn.time+(r.checkIn.editedManually?' <span class="badge badge-amber" title="'+(r.checkIn.editReason||'')+'">editat</span>':''):'—')+'</td>'+
       '<td>'+locIn+'</td>'+
@@ -582,7 +582,7 @@ function renderMap(){
       mapMarkers.push(accCircle);
     }
     const marker=L.circleMarker([last.lat,last.lng],{radius:9,color:u?u.color:'#f59e0b',fillColor:u?u.color:'#f59e0b',fillOpacity:0.85,weight:2}).addTo(map);
-    marker.bindPopup('<strong>'+(u?u.name:r.userName)+'</strong><br>Intrare: '+(r.checkIn?r.checkIn.time:'—')+'<br>Ieșire: '+(r.checkOut?r.checkOut.time:'în teren')+(last.accuracy?'<br><span style="color:#94a3b8;font-size:11px;">Precizie GPS: ±'+last.accuracy+'m</span>':''));
+    marker.bindPopup('<strong>'+(u?u.name:r.userName)+'</strong><br>Intrare: '+(r.checkIn?r.checkIn.time:'—')+'<br>Ieșire: '+(r.checkOut?r.checkOut.time:'în teren')+(last.accuracy?'<br><span style="color:#94a3b8;font-size:11px;">Precizie GPS: ±'+last.accuracy+'m</span>':'')+'<br><a href="https://www.google.com/maps?q='+last.lat+','+last.lng+'" target="_blank">Deschide în Google Maps</a>');
     mapMarkers.push(marker);
     pts.push([last.lat,last.lng]);
   });
