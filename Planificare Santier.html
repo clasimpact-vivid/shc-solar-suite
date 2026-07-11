@@ -989,9 +989,9 @@ addCalendarPicker('pmStart'); addCalendarPicker('smStart'); addCalendarPicker('s
   }
 
   // Start after login when app is visible
-  window.startParticles=function(){ init(); draw(); };
+  window.startParticles=function(){ if(window.innerWidth<=768) return; init(); draw(); };
   // Also try on timeout as fallback
-  setTimeout(()=>{ if(W===0) init(); if(H>0) draw(); },800);
+  setTimeout(()=>{ if(window.innerWidth<=768) return; if(W===0) init(); if(H>0) draw(); },800);
 })();
 
 // ── CLOCK ──

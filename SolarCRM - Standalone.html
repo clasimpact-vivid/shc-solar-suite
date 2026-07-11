@@ -1320,6 +1320,8 @@ class Component extends DCLogic {
   adminPassword = ADMIN_DEFAULT_PW;
 
   _startParticles(){
+    // dezactivăm animația decorativă pe mobil — poate încărca inutil CPU-ul pe telefoane mai vechi
+    if(window.innerWidth<=768) return;
     setTimeout(()=>{
       const canvas=document.getElementById('crmParticleCanvas');
       if(!canvas||canvas._particlesStarted) return;

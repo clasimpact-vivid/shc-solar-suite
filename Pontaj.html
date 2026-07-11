@@ -694,6 +694,7 @@ function addCalendarPicker(textId){
 addCalendarPicker('teamDate'); addCalendarPicker('exportFrom'); addCalendarPicker('exportTo');
 
 function startSidebarParticles(){
+  if(window.innerWidth<=768) return;
   const canvas=document.getElementById('sidebarParticleCanvas');
   if(!canvas||canvas._started) return; canvas._started=true;
   const ctx=canvas.getContext('2d');

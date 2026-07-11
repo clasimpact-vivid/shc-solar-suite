@@ -1001,6 +1001,7 @@ function addCalendarPicker(textId){
 addCalendarPicker('fDate');
 
 function startSidebarParticles(){
+  if(window.innerWidth<=768) return;
   const canvas=document.getElementById('sidebarParticleCanvas');
   if(!canvas||canvas._started) return; canvas._started=true;
   const ctx=canvas.getContext('2d');
