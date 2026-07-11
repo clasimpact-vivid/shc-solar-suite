@@ -254,6 +254,13 @@ function initials(n){ return (n||'?').split(' ').slice(0,2).map(w=>w[0]||'').joi
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function nowTime(){ const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
 function isFullAccess(){ return !!currentUser && (currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'); }
+function getDeviceFingerprint(){
+  try{
+    let id=localStorage.getItem('shc_device_id');
+    if(!id){ id='dev_'+Date.now().toString(36)+Math.random().toString(36).slice(2,10); localStorage.setItem('shc_device_id',id); }
+    return id;
+  }catch(e){ return null; }
+}
 function getUserById(id){ return loginUsers.find(u=>u.id===id); }
 
 // ── Firebase ──
@@ -411,7 +418,7 @@ async function doCheck(kind){
   const t=todayISO();
   let rec=myTodayRecord();
   if(!rec){ rec={id:uid(),userId:currentUser.id,userName:currentUser.name,date:t}; }
-  const entry={time:nowTime(), lat:gps?gps.lat:null, lng:gps?gps.lng:null, editedManually:false};
+  const entry={time:nowTime(), lat:gps?gps.lat:null, lng:gps?gps.lng:null, editedManually:false, device:getDeviceFingerprint()};
   if(kind==='in') rec.checkIn=entry; else rec.checkOut=entry;
   saveRecord(rec);
   btn.disabled=false;
@@ -456,12 +463,22 @@ function renderTeam(){
     const r=dayRecs.find(x=>x.userId===u.id);
     return {u,r};
   });
+  // silent device-sharing hint (visible only to full-access users)
+  function deviceHint(u,r){
+    if(!isFullAccess()) return '';
+    const dev=r&&r.checkIn&&r.checkIn.device;
+    if(!dev) return '';
+    const allRecent=Object.values(records).filter(x=>x.date===date && x.userId!==u.id && x.checkIn && x.checkIn.device===dev);
+    if(!allRecent.length) return '';
+    const otherNames=[...new Set(allRecent.map(x=>x.userName||'?'))].join(', ');
+    return ' <span class="badge badge-gray" style="opacity:.75" title="Pontat de pe acelasi dispozitiv ca: '+otherNames.replace(/"/g,'')+' - doar informativ">📱 același dispozitiv</span>';
+  }
   let html='<thead><tr><th>Coleg</th><th>Intrare</th><th>Locație</th><th>Ieșire</th><th>Locație</th><th>Status</th><th></th></tr></thead><tbody>';
   rows.forEach(({u,r})=>{
     const status = !r||!r.checkIn ? '<span class="badge badge-gray">Absent</span>' : !r.checkOut ? '<span class="badge badge-green">Prezent</span>' : '<span class="badge badge-gray">Program încheiat</span>';
     const locIn = r&&r.checkIn&&r.checkIn.lat ? '<a href="https://www.openstreetmap.org/?mlat='+r.checkIn.lat+'&mlon='+r.checkIn.lng+'#map=16/'+r.checkIn.lat+'/'+r.checkIn.lng+'" target="_blank">hartă</a>' : '—';
     const locOut = r&&r.checkOut&&r.checkOut.lat ? '<a href="https://www.openstreetmap.org/?mlat='+r.checkOut.lat+'&mlon='+r.checkOut.lng+'#map=16/'+r.checkOut.lat+'/'+r.checkOut.lng+'" target="_blank">hartă</a>' : '—';
-    html+='<tr><td style="display:flex;align-items:center;gap:8px;"><div style="width:20px;height:20px;border-radius:50%;background:'+(u.color||'#f59e0b')+';display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;">'+initials(u.name)+'</div>'+u.name+'</td>'+
+    html+='<tr><td style="display:flex;align-items:center;gap:8px;"><div style="width:20px;height:20px;border-radius:50%;background:'+(u.color||'#f59e0b')+';display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;">'+initials(u.name)+'</div>'+u.name+deviceHint(u,r)+'</td>'+
       '<td>'+(r&&r.checkIn?r.checkIn.time+(r.checkIn.editedManually?' <span class="badge badge-amber" title="'+(r.checkIn.editReason||'')+'">editat</span>':''):'—')+'</td>'+
       '<td>'+locIn+'</td>'+
       '<td>'+(r&&r.checkOut?r.checkOut.time+(r.checkOut.editedManually?' <span class="badge badge-amber" title="'+(r.checkOut.editReason||'')+'">editat</span>':''):'—')+'</td>'+
