@@ -164,6 +164,7 @@ a:hover{color:#fbbf24;}
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
           <div class="section-title" style="margin:0;">Prezență echipă</div>
           <input type="date" id="teamDate" class="form-input" style="width:auto;">
+          <button class="btn btn-ghost btn-sm" id="btnDeleteAllPontaj" style="color:#ef4444;border-color:#7f1d1d;margin-left:auto;">🗑 Șterge toate înregistrările</button>
         </div>
         <div style="overflow-x:auto"><table id="teamTable"></table></div>
       </div>
@@ -438,6 +439,14 @@ function renderMyHistory(){
 // ── TEAM TAB ──
 document.getElementById('teamDate').value=todayISO();
 document.getElementById('teamDate').addEventListener('input',renderTeam);
+document.getElementById('btnDeleteAllPontaj').addEventListener('click',()=>{
+  if(!isFullAccess()){ alert('Doar Alexandru Chirila sau Ionut Nicoras pot șterge toate înregistrările.'); return; }
+  if(!confirm('Ștergi TOATE înregistrările de pontaj (inclusiv de test), pentru toți colegii? Această acțiune nu poate fi anulată.')) return;
+  if(db){ db.ref('shc_pontaj/records').remove().catch(()=>{}); }
+  records={};
+  if(!db){ localStorage.setItem('shc_pontaj',JSON.stringify(records)); }
+  renderCurrentTab();
+});
 function renderTeam(){
   if(!isFullAccess()) return;
   const date=document.getElementById('teamDate').value||todayISO();
@@ -458,12 +467,24 @@ function renderTeam(){
       '<td>'+(r&&r.checkOut?r.checkOut.time+(r.checkOut.editedManually?' <span class="badge badge-amber" title="'+(r.checkOut.editReason||'')+'">editat</span>':''):'—')+'</td>'+
       '<td>'+locOut+'</td>'+
       '<td>'+status+'</td>'+
-      '<td><button class="btn btn-ghost btn-sm" data-edit-uid="'+u.id+'" data-edit-date="'+date+'">Corectează</button></td></tr>';
+      '<td style="display:flex;gap:6px;"><button class="btn btn-ghost btn-sm" data-edit-uid="'+u.id+'" data-edit-date="'+date+'">Corectează</button>'+(r?'<button class="btn btn-ghost btn-sm" style="color:#ef4444;border-color:#7f1d1d;" data-del-record="'+r.id+'">Șterge</button>':'')+'</td></tr>';
   });
   tbl.innerHTML=html+'</tbody>';
   tbl.querySelectorAll('[data-edit-uid]').forEach(btn=>{
     btn.addEventListener('click',()=>openEditModal(btn.dataset.editUid,btn.dataset.editDate));
   });
+  tbl.querySelectorAll('[data-del-record]').forEach(btn=>{
+    btn.addEventListener('click',()=>deletePontajRecord(btn.dataset.delRecord));
+  });
+}
+
+function deletePontajRecord(recordId){
+  if(!isFullAccess()){ alert('Doar Alexandru Chirila sau Ionut Nicoras pot șterge înregistrări de pontaj.'); return; }
+  if(!confirm('Ștergi definitiv această înregistrare de pontaj?')) return;
+  if(db){ db.ref('shc_pontaj/records/'+String(recordId)).remove().catch(()=>{}); }
+  delete records[recordId];
+  if(!db){ localStorage.setItem('shc_pontaj',JSON.stringify(records)); }
+  renderTeam();
 }
 
 // ── EDIT MODAL ──
