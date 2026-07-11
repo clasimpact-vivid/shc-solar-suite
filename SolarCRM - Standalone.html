@@ -1302,7 +1302,7 @@ class Component extends DCLogic {
       canvas._particlesStarted=true;
       const ctx=canvas.getContext('2d');
       let W,H,particles=[];
-      function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=32; }
+      function resize(){ const r=canvas.parentElement.getBoundingClientRect(); W=canvas.width=Math.max(r.width||window.innerWidth,50); H=canvas.height=32; }
       function mkParticle(){
         return { x:Math.random()*W, y:Math.random()*H, z:Math.random()*600+100, vz:-(Math.random()*0.4+0.1),
           color:['#3b82f6','#f59e0b','#10b981','#8b5cf6','#06b6d4','#f97316'][Math.floor(Math.random()*6)],
@@ -1329,6 +1329,7 @@ class Component extends DCLogic {
       }
       init(); draw();
       window.addEventListener('resize',resize);
+      setTimeout(resize,300);
     },150);
   }
 
