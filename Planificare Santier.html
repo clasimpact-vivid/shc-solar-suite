@@ -541,7 +541,7 @@ function renderGantt(){
           <div style="width:10px;height:10px;background:${color};border-radius:50%;flex-shrink:0;"></div>
           <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;">${p.name}</span>
           <span style="font-size:11px;color:#334155;flex-shrink:0;">${chevron}</span>
-          <button class="btn btn-ghost btn-icon" data-action="add-stage" data-pid="${p.id}" title="Adaugă etapă" style="flex-shrink:0;">+</button>
+          <button class="btn btn-ghost btn-icon" data-action="add-stage" data-pid="${p.id}" title="${canEditStages()?'Adaugă etapă':'Doar Chirila / Nicoraș pot adăuga etape'}" style="flex-shrink:0;${canEditStages()?'':'opacity:.35;cursor:not-allowed;'}">+</button>
           <button class="btn btn-ghost btn-icon" data-action="edit-proj" data-pid="${p.id}" title="Editează" style="flex-shrink:0;">✎</button>
         </div>
       </td>
@@ -735,7 +735,13 @@ document.getElementById('btnDeleteProject').addEventListener('click',()=>{
   sel.innerHTML=STAGE_TYPES.map(t=>`<option value="${t.id}">${t.label}</option>`).join('');
 })();
 
+function canEditStages(){ return !!currentUser && (currentUser.id==='_admin'||currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'); }
+
 function openStageModal(pid,si){
+  if(!canEditStages()){
+    alert('Doar Alexandru Chirila și Ionuț Nicoraș pot modifica etapele de șantier.');
+    return;
+  }
   editingStage={projectId:pid,stageIdx:si};
   const p=projects[pid];
   const s=si>=0?(p.stages||[])[si]:null;
