@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planificare Șantier — SHC Solar Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;font-family:'DM Sans',system-ui,sans-serif;background:#090f1c;color:#e2e8f0;}
+
+/* ── Login ── */
+#loginOverlay{position:fixed;inset:0;z-index:9999;background:#090f1c;display:flex;align-items:center;justify-content:center;}
+.login-card{background:#111827;border:1px solid #1e3a5f;border-radius:16px;padding:36px 32px;width:380px;max-width:92vw;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+.form-label{font-size:11px;font-weight:700;color:#475569;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+.form-select,.form-input{width:100%;padding:10px 13px;border:1.5px solid #334155;border-radius:10px;font-size:14px;font-family:inherit;background:#1e293b;color:#f1f5f9;outline:none;}
+.form-select:focus,.form-input:focus{border-color:#3b82f6;}
+.btn-login{width:100%;padding:12px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:0;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+.btn-login:hover{opacity:.9;}
+
+/* ── App layout ── */
+#app{display:none;height:100vh;flex-direction:column;}
+#topBar{background:#0d1b2e;border-bottom:1px solid #1e3a5f;padding:0 18px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px;}
+#layout{display:flex;flex:1;overflow:hidden;}
+
+/* ── Sidebar ── */
+#sidebar{width:256px;background:#0d1b2e;border-right:1px solid #1e3a5f;display:flex;flex-direction:column;flex-shrink:0;}
+#sidebarHeader{padding:12px;border-bottom:1px solid #1e3a5f;display:flex;flex-direction:column;gap:6px;}
+#projectList{max-height:260px;overflow-y:auto;padding:6px 0;}
+#appFooter canvas{display:block;}
+.proj-item{padding:9px 14px;cursor:pointer;border-left:3px solid transparent;display:flex;align-items:center;gap:10px;transition:background .1s;}
+.proj-item:hover{background:rgba(59,130,246,.08);}
+.proj-item.active{background:rgba(59,130,246,.12);border-left-color:#3b82f6;}
+.proj-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.proj-name{font-size:13px;font-weight:600;color:#cbd5e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.proj-client{font-size:11px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* ── Main ── */
+#main{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+#ganttControls{padding:8px 14px;background:#0d1b2e;border-bottom:1px solid #1e3a5f;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;}
+#ganttWrap{flex:1;overflow:auto;position:relative;}
+
+/* ── Gantt table ── */
+#ganttTable{border-collapse:collapse;table-layout:fixed;}
+.gantt-th-label{background:#0d1b2e;position:sticky;left:0;z-index:10;padding:6px 12px;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;width:240px;min-width:240px;border-right:1px solid #1e3a5f;border-bottom:1px solid #1e3a5f;}
+.gantt-th-month{background:#0d1b2e;padding:6px 4px;font-size:11px;font-weight:700;color:#94a3b8;text-align:center;border-bottom:1px solid #1e3a5f;white-space:nowrap;border-right:1px solid rgba(30,58,95,.4);}
+.gantt-td-label{background:#090f1c;position:sticky;left:0;z-index:5;padding:5px 10px;border-right:1px solid #1e3a5f;border-bottom:1px solid rgba(30,58,95,.35);width:240px;min-width:240px;max-width:240px;}
+.gantt-td-cell{background:#090f1c;border-bottom:1px solid rgba(30,58,95,.35);position:relative;}
+.proj-row .gantt-td-label{background:#0d1b2e;}
+.proj-row .gantt-td-cell{background:#0d1b2e;}
+.proj-label{font-size:12px;font-weight:700;color:#e2e8f0;display:flex;align-items:center;gap:6px;user-select:none;}
+.stage-label{font-size:11px;color:#94a3b8;display:flex;align-items:center;gap:5px;padding-left:14px;}
+.gantt-bar{position:absolute;top:5px;height:22px;border-radius:5px;cursor:pointer;display:flex;align-items:center;padding:0 7px;font-size:10px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 6px rgba(0,0,0,.35);}
+.gantt-bar:hover{filter:brightness(1.15);}
+.today-line{position:absolute;top:0;bottom:0;width:2px;background:#ef4444;z-index:8;pointer-events:none;}
+.today-label{position:absolute;top:1px;left:4px;font-size:8px;font-weight:800;color:#ef4444;white-space:nowrap;}
+
+/* ── Buttons ── */
+.btn{padding:6px 13px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;border:1px solid transparent;transition:opacity .15s;}
+.btn:hover{opacity:.85;}
+.btn-blue{background:#2563eb;color:#fff;}
+.btn-green{background:#16a34a;color:#fff;}
+.btn-ghost{background:transparent;color:#94a3b8;border-color:#334155;}
+.btn-red{background:#dc2626;color:#fff;}
+.btn-sm{padding:4px 9px;font-size:11px;border-radius:6px;}
+.btn-icon{padding:3px 7px;font-size:11px;border-radius:5px;}
+
+/* ── Modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:2000;display:none;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal-card{background:#111827;border:1px solid #1e3a5f;border-radius:14px;padding:26px 28px;width:480px;max-width:96vw;max-height:90vh;overflow-y:auto;}
+.modal-title{font-size:16px;font-weight:800;color:#f1f5f9;margin-bottom:18px;}
+.field{margin-bottom:12px;}
+.field label{font-size:10px;font-weight:700;color:#475569;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.field input,.field select,.field textarea{width:100%;padding:9px 11px;border:1.5px solid #334155;border-radius:8px;font-size:13px;font-family:inherit;background:#1e293b;color:#f1f5f9;outline:none;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#3b82f6;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* ── Badges ── */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;}
+.badge-red{background:rgba(239,68,68,.15);color:#f87171;}
+.badge-yellow{background:rgba(234,179,8,.15);color:#fbbf24;}
+.badge-green{background:rgba(34,197,94,.15);color:#4ade80;}
+.badge-blue{background:rgba(59,130,246,.15);color:#60a5fa;}
+
+/* ── Empty ── */
+.empty-state{padding:70px 20px;text-align:center;color:#334155;}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#1e3a5f;border-radius:3px;}
+
+a{color:#60a5fa;}
+a:hover{color:#93c5fd;}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══ -->
+<div id="loginOverlay">
+  <div class="login-card">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:26px;">
+      <div style="width:40px;height:40px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+      <div>
+        <div style="font-weight:800;font-size:16px;color:#f1f5f9;">Planificare Șantier</div>
+        <div style="font-size:11px;color:#64748b;">Smart House Color · SHC Solar Suite</div>
+      </div>
+    </div>
+    <div class="field"><label>Utilizator</label>
+      <select id="loginUser" class="form-select"><option value="">— Selectează utilizatorul —</option></select>
+    </div>
+    <div class="field" style="margin-bottom:18px;"><label>Parolă</label>
+      <input type="password" id="loginPassword" class="form-input" placeholder="••••••••">
+    </div>
+    <button class="btn-login" id="btnLogin">Intră în aplicație →</button>
+    <div id="loginError" style="color:#f87171;font-size:12px;text-align:center;margin-top:10px;min-height:16px;"></div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app">
+
+  <!-- Top bar -->
+  <div id="topBar">
+    <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+      <div style="width:32px;height:32px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+      <div>
+        <div style="font-size:14px;font-weight:800;color:#f1f5f9;">Planificare Șantier</div>
+        <div style="font-size:10px;color:#475569;">SHC Solar Suite</div>
+      </div>
+      <a href="./index.html" style="margin-left:4px;font-size:11px;color:#475569;text-decoration:none;padding:4px 10px;border:1px solid #1e3a5f;border-radius:6px;">← Suite</a>
+    </div>
+    <div id="alertBanner" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"></div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <div id="clockDisplay" style="font-size:11px;color:#94a3b8;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums;"></div>
+      <div id="userBadge" style="display:flex;align-items:center;gap:7px;">
+        <div id="userAvatar" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0;"></div>
+        <span id="userName" style="font-size:12px;font-weight:600;color:#94a3b8;white-space:nowrap;"></span>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="btnLogout">Ieși</button>
+    </div>
+  </div>
+
+  <!-- Layout -->
+  <div id="layout">
+
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <div id="sidebarHeader">
+        <button class="btn btn-green" id="btnNewProject" style="width:100%;font-size:12px;">+ Proiect nou</button>
+        <button class="btn btn-ghost btn-sm" id="btnImportCRM" style="width:100%;font-size:11px;">⬇ Import din SolarCRM</button>
+      </div>
+      <div id="projectList"></div>
+    </div>
+
+    <!-- Gantt -->
+    <div id="main">
+      <div id="ganttControls">
+        <button class="btn btn-ghost btn-sm" id="btnPrev">‹ Înapoi</button>
+        <div id="viewLabel" style="font-size:12px;font-weight:700;color:#94a3b8;min-width:220px;text-align:center;"></div>
+        <button class="btn btn-ghost btn-sm" id="btnNext">Înainte ›</button>
+        <button class="btn btn-ghost btn-sm" id="btnToday" style="font-size:11px;">Azi</button>
+        <button class="btn btn-ghost btn-sm" id="btnCenterActive" style="font-size:11px;">⊙ Etape active</button>
+        <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+          <span style="font-size:11px;color:#475569;">Zoom</span>
+          <button class="btn btn-ghost btn-sm btn-icon" id="btnZoomOut">−</button>
+          <button class="btn btn-ghost btn-sm btn-icon" id="btnZoomIn">+</button>
+        </div>
+      </div>
+      <div id="ganttWrap">
+        <div id="ganttEmpty" class="empty-state" style="display:none;">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="1.5" style="margin-bottom:14px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <div style="font-size:15px;font-weight:700;color:#475569;margin-bottom:6px;">Niciun proiect planificat</div>
+          <div style="font-size:12px;color:#334155;">Adaugă un proiect nou sau importă din SolarCRM</div>
+        </div>
+        <table id="ganttTable"></table>
+      </div>
+    </div>
+  </div>
+  <div id="appFooter" style="height:36px;background:#0a1628;border-top:1px solid #1e3a5f;flex-shrink:0;position:relative;overflow:hidden;">
+    <canvas id="sidebarCanvas" style="position:absolute;inset:0;"></canvas>
+  </div>
+</div>
+
+<!-- Modal Proiect -->
+<div class="modal-overlay" id="projectModal">
+  <div class="modal-card">
+    <div class="modal-title" id="projectModalTitle">Proiect nou</div>
+    <div class="field"><label>Nume proiect *</label><input type="text" id="pmName" placeholder="ex: Sistem PV 400 kWp Arad"></div>
+    <div class="row2">
+      <div class="field"><label>Client</label><input type="text" id="pmClient" placeholder="ex: SC Exemplu SRL"></div>
+      <div class="field"><label>Putere (kWp)</label><input type="number" id="pmKwp" step="0.1" placeholder="400"></div>
+    </div>
+    <div class="field"><label>Adresă șantier</label><input type="text" id="pmAddress" placeholder="ex: Str. Exemplu 1, Arad"></div>
+    <div class="row2">
+      <div class="field"><label>Data estimată start</label><input type="date" id="pmStart"></div>
+      <div class="field"><label>Culoare proiect</label>
+        <select id="pmColor">
+          <option value="#3b82f6">Albastru</option>
+          <option value="#f59e0b">Portocaliu</option>
+          <option value="#22c55e">Verde</option>
+          <option value="#8b5cf6">Violet</option>
+          <option value="#ec4899">Roz</option>
+          <option value="#06b6d4">Cyan</option>
+          <option value="#ef4444">Roșu</option>
+          <option value="#f97316">Orange</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Note</label><textarea id="pmNotes" rows="2" placeholder="Observații..."></textarea></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+      <button class="btn btn-red btn-sm" id="btnDeleteProject" style="display:none;">Șterge proiect</button>
+      <div style="display:flex;gap:10px;margin-left:auto;">
+        <button class="btn btn-ghost" id="btnCancelProject">Anulează</button>
+        <button class="btn btn-blue" id="btnSaveProject">Salvează</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Etapă -->
+<div class="modal-overlay" id="stageModal">
+  <div class="modal-card">
+    <div class="modal-title">Editează etapă</div>
+    <div class="field"><label>Tip etapă</label><select id="smType"></select></div>
+    <div class="row2">
+      <div class="field"><label>Data start</label><input type="text" id="smStart" placeholder="dd/mm/yyyy" maxlength="10"></div>
+      <div class="field"><label>Data finalizare</label><input type="text" id="smEnd" placeholder="dd/mm/yyyy" maxlength="10"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Responsabil</label><select id="smResp"><option value="">— Neasignat —</option></select></div>
+      <div class="field"><label>Status</label>
+        <select id="smStatus">
+          <option value="planificat">Planificat</option>
+          <option value="in_lucru">În lucru</option>
+          <option value="finalizat">Finalizat</option>
+          <option value="intarziat">Întârziat</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Note</label><textarea id="smNotes" rows="2"></textarea></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+      <button class="btn btn-red btn-sm" id="btnDeleteStage" style="display:none;">Șterge etapă</button>
+      <div style="display:flex;gap:10px;margin-left:auto;">
+        <button class="btn btn-ghost" id="btnCancelStage">Anulează</button>
+        <button class="btn btn-blue" id="btnSaveStage">Salvează</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Import CRM -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal-card">
+    <div class="modal-title">Import proiecte din SolarCRM</div>
+    <div id="importList" style="max-height:360px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
+      <button class="btn btn-ghost" id="btnCancelImport">Anulează</button>
+      <button class="btn btn-green" id="btnConfirmImport">Importă selectate</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+//  SHC PLANIFICARE ȘANTIER
+// ═══════════════════════════════════════════════════════════
+
+const FB_CONFIG = {
+  apiKey: "AIzaSyBVElgXbEabUcwjNMa27IEw0YkxaEaXYl0",
+  authDomain: "solarcrm-ba919.firebaseapp.com",
+  databaseURL: "https://solarcrm-ba919-default-rtdb.firebaseio.com",
+  projectId: "solarcrm-ba919",
+  storageBucket: "solarcrm-ba919.firebasestorage.app",
+  messagingSenderId: "349523166308",
+  appId: "1:349523166308:web:0533aa1dae74f9a0b3cb71"
+};
+
+const STAGE_TYPES = [
+  {id:'proiectare',    label:'Proiectare / Avize',        color:'#8b5cf6'},
+  {id:'aprovizionare', label:'Aprovizionare echipamente',  color:'#06b6d4'},
+  {id:'montaj_pv',    label:'Montaj panouri',             color:'#f59e0b'},
+  {id:'montaj_bess',  label:'Montaj invertor / BESS',     color:'#f97316'},
+  {id:'cablare',      label:'Cablare și tablou electric', color:'#ec4899'},
+  {id:'comisionare',  label:'Comisionare',                color:'#3b82f6'},
+  {id:'racordare',    label:'Racordare la rețea',         color:'#10b981'},
+  {id:'receptie',     label:'Recepție client',            color:'#22c55e'},
+];
+
+const STATUS_COLORS = {
+  planificat:'#475569', in_lucru:'#f59e0b', finalizat:'#22c55e', intarziat:'#ef4444'
+};
+
+const DEFAULT_USERS = [
+  {id:'_admin',    name:'Administrator',    color:'#dc2626', password:'12345'},
+  {id:'u_chirila', name:'Alexandru Chirila',color:'#7c3aed', password:'12345'},
+  {id:'u_dobre',   name:'Cristian Dobre',   color:'#16a34a', password:'12345'},
+  {id:'u_nicoras', name:'Ionut Nicoras',    color:'#d97706', password:'12345'},
+  {id:'u_sirb',    name:'Beniamin Sirb',    color:'#0891b2', password:'12345'},
+];
+
+// ── State ──
+let db = null;
+let currentUser = null;
+let loginUsers = [...DEFAULT_USERS];
+let adminPw = '12345';
+let projects = {};
+let crmProjects = [];
+let expandedProjects = {};
+let viewStart = (function(){ const d=new Date(); d.setDate(1); d.setMonth(d.getMonth()-1); return d; })();
+let PX_PER_DAY = 26;
+let editingProjectId = null;
+let editingStage = null;
+
+// ── Firebase ──
+try {
+  if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+  db = firebase.database();
+} catch(e){ console.warn('Firebase:', e); }
+
+// ── Helpers ──
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function initials(n){ return (n||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase(); }
+function parseDate(s){ 
+  if(!s) return null; 
+  // Handle dd/mm/yyyy
+  if(s.includes('/')){
+    const p=s.split('/');
+    if(p.length===3) s=p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');
+  }
+  const d=new Date(s+'T00:00:00'); 
+  return isNaN(d)?null:d; 
+}
+function fmtDate(d){ if(!d) return ''; return d.toLocaleDateString('ro-RO',{day:'2-digit',month:'short'}); }
+function toISO(d){ if(!d) return ''; return d.toISOString().slice(0,10); }
+function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+function diffDays(a,b){ return Math.round((b-a)/864e5); }
+function today(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
+function getStageType(id){ return STAGE_TYPES.find(t=>t.id===id)||STAGE_TYPES[0]; }
+function getUserById(id){ return loginUsers.find(u=>u.id===id); }
+function viewEnd(){ const d=new Date(viewStart); d.setMonth(d.getMonth()+6); return d; }
+function viewTotalDays(){ return diffDays(viewStart,viewEnd()); }
+function dateToX(date){ return Math.round(diffDays(viewStart,date)*PX_PER_DAY); }
+
+// ═══════════════════════════════════════════════════════════
+//  FIREBASE LOAD / SAVE
+// ═══════════════════════════════════════════════════════════
+function loadFirebase(){
+  if(!db){ loadLS(); return; }
+  db.ref('shc_planning/projects').on('value', snap=>{
+    const raw=snap.val()||{};
+    projects={};
+    Object.values(raw).filter(p=>p&&p.id).forEach(p=>{ projects[p.id]=p; });
+    renderAll();
+  });
+  db.ref('solarcrm_v2/config').once('value', snap=>{
+    const cfg=snap.val()||{};
+    if(cfg.users&&Array.isArray(cfg.users)&&cfg.users.length){
+      loginUsers=[{id:'_admin',name:'Administrator',color:'#dc2626',password:cfg.adminPw||'12345'},...cfg.users];
+    }
+    if(cfg.adminPw) adminPw=cfg.adminPw;
+    populateLoginUsers();
+    populateStageResponsabili();
+  });
+}
+
+function loadLS(){
+  try{ const r=localStorage.getItem('shc_planning'); if(r) projects=JSON.parse(r); }catch(e){}
+  renderAll();
+}
+
+function saveFirebase(){
+  if(!db){ localStorage.setItem('shc_planning',JSON.stringify(projects)); return; }
+  try{
+    const updates={};
+    Object.values(projects).forEach(p=>{ updates[String(p.id)]=p; });
+    db.ref('shc_planning/projects').update(updates);
+    // Dual-write: sincronizează etapele înapoi în proiectul SolarCRM legat (pentru afișare în CRM)
+    Object.values(projects).forEach(p=>{
+      if(p.crmId){
+        db.ref('solarcrm_v2/projects/'+String(p.crmId)+'/stages').set(p.stages||[]).catch(()=>{});
+      }
+    });
+  }catch(e){}
+}
+
+function deleteProjectFirebase(id){
+  if(db) db.ref('shc_planning/projects/'+String(id)).remove().catch(()=>{});
+  delete projects[id];
+}
+
+// ═══════════════════════════════════════════════════════════
+//  LOGIN
+// ═══════════════════════════════════════════════════════════
+function populateLoginUsers(){
+  const sel=document.getElementById('loginUser');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— Selectează utilizatorul —</option>';
+  loginUsers.forEach(u=>{
+    const o=document.createElement('option');
+    o.value=u.id; o.textContent=u.name+(u.role?' — '+u.role:'');
+    sel.appendChild(o);
+  });
+  if(cur) sel.value=cur;
+}
+
+function doLogin(){
+  const uid2=document.getElementById('loginUser').value;
+  const pw=document.getElementById('loginPassword').value;
+  const err=document.getElementById('loginError');
+  if(!uid2){err.textContent='Selectează un utilizator.';return;}
+  const u=loginUsers.find(x=>x.id===uid2);
+  if(!u){err.textContent='Utilizator negăsit.';return;}
+  const stored=u.id==='_admin'?adminPw:(u.password||'');
+  if(stored&&pw!==stored){err.textContent='Parolă incorectă.';return;}
+  currentUser=u;
+  document.getElementById('loginOverlay').style.display='none';
+  document.getElementById('app').style.display='flex';
+  const av=document.getElementById('userAvatar');
+  av.style.background=u.color||'#3b82f6';
+  av.textContent=initials(u.name);
+  document.getElementById('userName').textContent=u.name;
+  populateStageResponsabili();
+  if(window.startParticles) window.startParticles();
+  renderAll();
+}
+
+document.getElementById('btnLogin').addEventListener('click',doLogin);
+document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('btnLogout').addEventListener('click',()=>{
+  currentUser=null;
+  document.getElementById('loginPassword').value='';
+  document.getElementById('loginError').textContent='';
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginOverlay').style.display='flex';
+});
+
+function populateStageResponsabili(){
+  const sel=document.getElementById('smResp');
+  sel.innerHTML='<option value="">— Neasignat —</option>';
+  loginUsers.forEach(u=>{
+    const o=document.createElement('option');
+    o.value=u.id; o.textContent=u.name;
+    sel.appendChild(o);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SIDEBAR
+// ═══════════════════════════════════════════════════════════
+function renderSidebar(){
+  const list=document.getElementById('projectList');
+  const arr=Object.values(projects).sort((a,b)=>a.name.localeCompare(b.name,'ro'));
+  if(!arr.length){
+    list.innerHTML='<div style="padding:20px 14px;font-size:12px;color:#334155;text-align:center;">Niciun proiect</div>';
+    return;
+  }
+  list.innerHTML=arr.map(p=>{
+    const stages=p.stages||[];
+    const late=stages.filter(s=>s.status==='intarziat').length;
+    const done=stages.filter(s=>s.status==='finalizat').length;
+    return `<div class="proj-item${p.id===document.getElementById('projectList').dataset.sel?' active':''}" data-pid="${p.id}">
+      <div class="proj-dot" style="background:${p.color||'#3b82f6'}"></div>
+      <div style="flex:1;min-width:0;">
+        <div class="proj-name">${p.name}</div>
+        <div class="proj-client">${p.client||''}${stages.length?' · '+done+'/'+stages.length:''}</div>
+      </div>
+      ${late?`<span class="badge badge-red">${late}⚠</span>`:''}
+    </div>`;
+  }).join('');
+  list.querySelectorAll('.proj-item').forEach(el=>{
+    el.addEventListener('click',()=>{
+      list.querySelectorAll('.proj-item').forEach(e=>e.classList.remove('active'));
+      el.classList.add('active');
+      const pid=el.dataset.pid;
+      expandedProjects[pid]=expandedProjects[pid]!==false?!expandedProjects[pid]:true;
+      // scroll gantt to show project
+      renderGantt();
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  GANTT
+// ═══════════════════════════════════════════════════════════
+function buildMonthHeaders(){
+  const result=[];
+  let cur=new Date(viewStart.getFullYear(),viewStart.getMonth(),1);
+  const end=viewEnd();
+  while(cur<end){
+    const next=new Date(cur.getFullYear(),cur.getMonth()+1,1);
+    const segEnd=next<end?next:end;
+    const segStart=cur<viewStart?viewStart:cur;
+    const days=diffDays(segStart,segEnd);
+    result.push({label:cur.toLocaleDateString('ro-RO',{month:'short',year:'numeric'}),startDay:diffDays(viewStart,segStart),days:days});
+    cur=next;
+  }
+  return result;
+}
+
+function renderGantt(){
+  const table=document.getElementById('ganttTable');
+  const empty=document.getElementById('ganttEmpty');
+  const arr=Object.values(projects).sort((a,b)=>a.name.localeCompare(b.name,'ro'));
+
+  if(!arr.length){table.style.display='none';empty.style.display='block';return;}
+  table.style.display='';empty.style.display='none';
+
+  const months=buildMonthHeaders();
+  const totalW=viewTotalDays()*PX_PER_DAY;
+  const todayX=dateToX(today());
+  const todayVisible=todayX>=0&&todayX<=totalW;
+
+  const end=new Date(viewEnd()); end.setDate(end.getDate()-1);
+  document.getElementById('viewLabel').textContent=
+    viewStart.toLocaleDateString('ro-RO',{month:'long',year:'numeric'})+
+    ' → '+end.toLocaleDateString('ro-RO',{month:'long',year:'numeric'});
+
+  const monthCols=months.map(m=>`<th class="gantt-th-month" style="width:${m.days*PX_PER_DAY}px;min-width:${m.days*PX_PER_DAY}px;">${m.label}</th>`).join('');
+
+  let rows='';
+  arr.forEach(p=>{
+    const expanded=expandedProjects[p.id]!==false;
+    const stages=p.stages||[];
+    const color=p.color||'#3b82f6';
+    const chevron=expanded?'▾':'▸';
+
+    const todayTd=todayVisible?`<div class="today-line" style="left:${todayX}px;"><div class="today-label">AZI</div></div>`:'';
+
+    rows+=`<tr class="proj-row" data-pid="${p.id}">
+      <td class="gantt-td-label" style="height:36px;">
+        <div class="proj-label" data-toggle="${p.id}" style="cursor:pointer;">
+          <div style="width:10px;height:10px;background:${color};border-radius:50%;flex-shrink:0;"></div>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;">${p.name}</span>
+          <span style="font-size:11px;color:#334155;flex-shrink:0;">${chevron}</span>
+          <button class="btn btn-ghost btn-icon" data-action="add-stage" data-pid="${p.id}" title="Adaugă etapă" style="flex-shrink:0;">+</button>
+          <button class="btn btn-ghost btn-icon" data-action="edit-proj" data-pid="${p.id}" title="Editează" style="flex-shrink:0;">✎</button>
+        </div>
+      </td>
+      <td class="gantt-td-cell" style="height:36px;position:relative;width:${totalW}px;">${todayTd}</td>
+    </tr>`;
+
+    if(expanded){
+      if(!stages.length){
+        rows+=`<tr><td class="gantt-td-label" style="height:30px;">
+          <div class="stage-label" style="color:#334155;font-style:italic;font-size:10px;">Nicio etapă — apasă + pentru a adăuga</div>
+        </td><td class="gantt-td-cell" style="height:30px;position:relative;">${todayTd}</td></tr>`;
+      }
+      stages.forEach((s,si)=>{
+        const sType=getStageType(s.type);
+        const barColor=s.status==='finalizat'?'#22c55e':s.status==='intarziat'?'#ef4444':s.status==='in_lucru'?sType.color:sType.color;
+        const barOpacity=s.status==='planificat'?'0.45':'1';
+        const resp=getUserById(s.responsabil);
+        const respLabel=resp?resp.name.split(' ')[0]:'';
+        const statusBadge=s.status==='intarziat'?'<span class="badge badge-red" style="font-size:9px;padding:1px 5px;">⚠</span>':
+                          s.status==='finalizat'?'<span class="badge badge-green" style="font-size:9px;padding:1px 5px;">✓</span>':'';
+        let barHtml='';
+        if(s.startDate&&s.endDate){
+          const sd=parseDate(s.startDate),ed=parseDate(s.endDate);
+          if(sd&&ed){
+            const x1=Math.max(0,dateToX(sd));
+            const x2=Math.min(totalW,dateToX(ed)+PX_PER_DAY);
+            const w=x2-x1;
+            if(w>0) barHtml=`<div class="gantt-bar" data-action="edit-stage" data-pid="${p.id}" data-si="${si}"
+              style="left:${x1}px;width:${w}px;background:${barColor};opacity:${barOpacity};"
+              title="${sType.label} | ${fmtDate(sd)} – ${fmtDate(ed)} | ${respLabel}">
+              ${w>55?sType.label.replace(' / Avize','').replace(' echipamente',''):''} ${w>110&&respLabel?'· '+respLabel:''}
+            </div>`;
+          }
+        }
+        rows+=`<tr data-pid="${p.id}" data-si="${si}">
+          <td class="gantt-td-label" style="height:30px;">
+            <div class="stage-label">
+              <div style="width:7px;height:7px;background:${barColor};border-radius:2px;flex-shrink:0;"></div>
+              <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${sType.label}</span>
+              ${statusBadge}
+              ${resp?`<div style="width:16px;height:16px;border-radius:50%;background:${resp.color||'#3b82f6'};display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;flex-shrink:0;" title="${resp.name}">${initials(resp.name)}</div>`:''}
+            </div>
+          </td>
+          <td class="gantt-td-cell" style="height:30px;position:relative;">${todayTd}${barHtml}</td>
+        </tr>`;
+      });
+    }
+  });
+
+  table.innerHTML=`<thead><tr>
+    <th class="gantt-th-label">Proiect / Etapă</th>${monthCols}
+  </tr></thead><tbody>${rows}</tbody>`;
+
+  // Events
+  table.querySelectorAll('[data-toggle]').forEach(el=>{
+    el.addEventListener('click',e=>{
+      if(e.target.dataset.action) return;
+      const pid=el.dataset.toggle;
+      expandedProjects[pid]=!expandedProjects[pid];
+      renderAll();
+    });
+  });
+  table.querySelectorAll('[data-action="add-stage"]').forEach(el=>{
+    el.addEventListener('click',e=>{e.stopPropagation();openStageModal(el.dataset.pid,-1);});
+  });
+  table.querySelectorAll('[data-action="edit-proj"]').forEach(el=>{
+    el.addEventListener('click',e=>{e.stopPropagation();openProjectModal(el.dataset.pid);});
+  });
+  table.querySelectorAll('[data-action="edit-stage"]').forEach(el=>{
+    el.addEventListener('click',e=>{e.stopPropagation();openStageModal(el.dataset.pid,parseInt(el.dataset.si));});
+  });
+}
+
+// ── Alerts ──
+function renderAlerts(){
+  const banner=document.getElementById('alertBanner');
+  const t=today(),soon=addDays(t,3);
+  let late=0,upcoming=0;
+  Object.values(projects).forEach(p=>{
+    (p.stages||[]).forEach(s=>{
+      if(s.status==='intarziat') late++;
+      if(s.startDate){const sd=parseDate(s.startDate);if(sd&&sd>=t&&sd<=soon&&s.status==='planificat')upcoming++;}
+    });
+  });
+  let html='';
+  if(late) html+=`<span class="badge badge-red" style="cursor:pointer;" id="alertLate">⚠ ${late} etape întârziate</span>`;
+  if(upcoming) html+=`<span class="badge badge-yellow" style="cursor:pointer;" id="alertUpcoming">⏰ ${upcoming} încep în 3 zile</span>`;
+  banner.innerHTML=html;
+  banner.style.display=html?'flex':'none';
+  // Make late badge clickable
+  const upcomingBadge=document.getElementById('alertUpcoming');
+  if(upcomingBadge){
+    upcomingBadge.addEventListener('click',()=>{
+      const t=today(),soon=addDays(t,3);
+      let earliest=null;
+      Object.values(projects).forEach(p=>{
+        const hasUpcoming=(p.stages||[]).some(s=>{
+          if(!s.startDate||s.status!=='planificat') return false;
+          const d=parseDate(s.startDate);
+          return d&&d>=t&&d<=soon;
+        });
+        if(hasUpcoming){
+          expandedProjects[p.id]=true;
+          (p.stages||[]).forEach(s=>{
+            if(s.startDate&&s.status==='planificat'){
+              const d=parseDate(s.startDate);
+              if(d&&d>=t&&d<=soon&&(!earliest||d<earliest)) earliest=d;
+            }
+          });
+        }
+      });
+      if(earliest) viewStart=new Date(earliest.getFullYear(),earliest.getMonth()-1,1);
+      renderAll();
+    });
+  }
+  const lateBadge=document.getElementById('alertLate');
+  if(lateBadge){
+    lateBadge.addEventListener('click',()=>{
+      let earliest=null;
+      Object.values(projects).forEach(p=>{
+        if((p.stages||[]).some(s=>s.status==='intarziat')){
+          expandedProjects[p.id]=true;
+          (p.stages||[]).forEach(s=>{
+            if(s.status==='intarziat'){
+              const d=parseDate(s.startDate)||parseDate(s.endDate);
+              if(d&&(!earliest||d<earliest)) earliest=d;
+            }
+          });
+        }
+      });
+      const target=earliest||today();
+      viewStart=new Date(target.getFullYear(),target.getMonth()-1,1);
+      renderAll();
+      setTimeout(()=>{ document.getElementById('ganttWrap').scrollLeft=0; },50);
+    });
+  }
+}
+
+function renderAll(){ renderSidebar(); renderGantt(); renderAlerts(); }
+
+// ═══════════════════════════════════════════════════════════
+//  MODAL PROIECT
+// ═══════════════════════════════════════════════════════════
+function openProjectModal(pid){
+  editingProjectId=pid||null;
+  const p=pid?projects[pid]:null;
+  document.getElementById('projectModalTitle').textContent=p?'Editează proiect':'Proiect nou';
+  document.getElementById('pmName').value=p?p.name:'';
+  document.getElementById('pmClient').value=p?p.client:'';
+  document.getElementById('pmAddress').value=p?p.address:'';
+  document.getElementById('pmKwp').value=p&&p.kwp?p.kwp:'';
+  document.getElementById('pmColor').value=p?(p.color||'#3b82f6'):'#3b82f6';
+  document.getElementById('pmStart').value=p?p.startDate||'':'';
+  document.getElementById('pmNotes').value=p?p.notes||'':'';
+  document.getElementById('btnDeleteProject').style.display=p?'inline-block':'none';
+  document.getElementById('projectModal').classList.add('show');
+}
+function saveProject(){
+  const name=document.getElementById('pmName').value.trim();
+  if(!name){alert('Introduceți un nume de proiect.');return;}
+  const id=editingProjectId||uid();
+  const ex=projects[id]||{};
+  projects[id]={...ex,id,name,
+    client:document.getElementById('pmClient').value.trim(),
+    address:document.getElementById('pmAddress').value.trim(),
+    kwp:parseFloat(document.getElementById('pmKwp').value)||0,
+    color:document.getElementById('pmColor').value,
+    startDate:document.getElementById('pmStart').value,
+    notes:document.getElementById('pmNotes').value.trim(),
+    stages:ex.stages||[],
+    createdAt:ex.createdAt||Date.now()
+  };
+  saveFirebase();
+  document.getElementById('projectModal').classList.remove('show');
+  expandedProjects[id]=true;
+}
+document.getElementById('btnNewProject').addEventListener('click',()=>openProjectModal(null));
+document.getElementById('btnSaveProject').addEventListener('click',saveProject);
+document.getElementById('btnCancelProject').addEventListener('click',()=>document.getElementById('projectModal').classList.remove('show'));
+document.getElementById('btnDeleteProject').addEventListener('click',()=>{
+  if(!confirm('Ștergi proiectul și toate etapele sale?')) return;
+  deleteProjectFirebase(editingProjectId);
+  document.getElementById('projectModal').classList.remove('show');
+});
+
+// ═══════════════════════════════════════════════════════════
+//  MODAL ETAPĂ
+// ═══════════════════════════════════════════════════════════
+(function populateStageTypes(){
+  const sel=document.getElementById('smType');
+  sel.innerHTML=STAGE_TYPES.map(t=>`<option value="${t.id}">${t.label}</option>`).join('');
+})();
+
+function openStageModal(pid,si){
+  editingStage={projectId:pid,stageIdx:si};
+  const p=projects[pid];
+  const s=si>=0?(p.stages||[])[si]:null;
+  document.getElementById('smType').value=s?s.type:STAGE_TYPES[0].id;
+  document.getElementById('smStart').value=s?isoToDmy(s.startDate||''):isoToDmy(toISO(today()));
+  document.getElementById('smEnd').value=s?isoToDmy(s.endDate||''):isoToDmy(toISO(addDays(today(),14)));
+  document.getElementById('smResp').value=s?s.responsabil||'':'';
+  document.getElementById('smStatus').value=s?s.status||'planificat':'planificat';
+  document.getElementById('smNotes').value=s?s.notes||'':'';
+  document.getElementById('btnDeleteStage').style.display=si>=0?'inline-block':'none';
+  document.getElementById('stageModal').classList.add('show');
+}
+function saveStage(){
+  const {projectId,stageIdx}=editingStage;
+  const p=projects[projectId]; if(!p) return;
+  if(!p.stages) p.stages=[];
+  const stage={
+    id:uid(),
+    type:document.getElementById('smType').value,
+    startDate:dmyToIso(document.getElementById('smStart').value),
+    endDate:dmyToIso(document.getElementById('smEnd').value),
+    responsabil:document.getElementById('smResp').value,
+    status:document.getElementById('smStatus').value,
+    notes:document.getElementById('smNotes').value.trim(),
+  };
+  if(stageIdx>=0){stage.id=p.stages[stageIdx].id||stage.id;p.stages[stageIdx]=stage;}
+  else p.stages.push(stage);
+  saveFirebase();
+  document.getElementById('stageModal').classList.remove('show');
+}
+document.getElementById('btnSaveStage').addEventListener('click',saveStage);
+document.getElementById('btnDeleteStage').addEventListener('click',()=>{
+  const {projectId,stageIdx}=editingStage;
+  if(!confirm('Ștergi această etapă?')) return;
+  projects[projectId].stages.splice(stageIdx,1);
+  saveFirebase();
+  document.getElementById('stageModal').classList.remove('show');
+});
+document.getElementById('btnCancelStage').addEventListener('click',()=>document.getElementById('stageModal').classList.remove('show'));
+
+// ═══════════════════════════════════════════════════════════
+//  IMPORT DIN SOLARCRM
+// ═══════════════════════════════════════════════════════════
+document.getElementById('btnImportCRM').addEventListener('click',()=>{
+  if(!db){alert('Firebase nu este disponibil.');return;}
+  db.ref('solarcrm_v2/projects').once('value',snap=>{
+    const raw=snap.val()||{};
+    crmProjects=Object.values(raw).filter(p=>p&&p.id);
+    const list=document.getElementById('importList');
+    if(!crmProjects.length){
+      list.innerHTML='<p style="color:#475569;text-align:center;padding:20px;">Niciun proiect în SolarCRM.</p>';
+    } else {
+      list.innerHTML=crmProjects.map((p,i)=>{
+        const already=Object.values(projects).some(pp=>pp.crmId===String(p.id));
+        return `<label style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;background:#1e293b;${already?'opacity:.4;pointer-events:none;':'cursor:pointer;'}">
+          <input type="checkbox" value="${i}" style="width:15px;height:15px;accent-color:#3b82f6;" ${already?'disabled':''}>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#f1f5f9;">${p.client||'Fără client'}</div>
+            <div style="font-size:11px;color:#64748b;">${p.address||''} ${p.kwp?'· '+p.kwp+' kWp':''} ${p.status?'· '+p.status:''} ${already?'<em style="color:#f59e0b;">· deja importat</em>':''}</div>
+          </div>
+        </label>`;
+      }).join('');
+    }
+    document.getElementById('importModal').classList.add('show');
+  });
+});
+document.getElementById('btnConfirmImport').addEventListener('click',()=>{
+  document.getElementById('importList').querySelectorAll('input:checked').forEach(cb=>{
+    const p=crmProjects[parseInt(cb.value)]; if(!p) return;
+    const id=uid();
+    projects[id]={id,crmId:String(p.id),
+      name:(p.client||'Proiect')+(p.kwp?' · '+p.kwp+' kWp':''),
+      client:p.client||'',address:p.address||'',kwp:parseFloat(p.kwp)||0,
+      color:'#3b82f6',notes:'',stages:[],createdAt:Date.now()};
+    expandedProjects[id]=true;
+  });
+  saveFirebase();
+  document.getElementById('importModal').classList.remove('show');
+});
+document.getElementById('btnCancelImport').addEventListener('click',()=>document.getElementById('importModal').classList.remove('show'));
+
+// Close modals on backdrop click
+['projectModal','stageModal','importModal'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});
+});
+
+// ═══════════════════════════════════════════════════════════
+//  GANTT NAVIGATION
+// ═══════════════════════════════════════════════════════════
+document.getElementById('btnPrev').addEventListener('click',()=>{
+  viewStart=new Date(viewStart.getFullYear(),viewStart.getMonth()-1,1);renderGantt();
+});
+document.getElementById('btnNext').addEventListener('click',()=>{
+  viewStart=new Date(viewStart.getFullYear(),viewStart.getMonth()+1,1);renderGantt();
+});
+document.getElementById('btnToday').addEventListener('click',()=>{
+  const d=new Date(); d.setDate(1); d.setMonth(d.getMonth()-1); viewStart=d; renderGantt();
+});
+document.getElementById('btnCenterActive').addEventListener('click',()=>{
+  let earliest=null;
+  Object.values(projects).forEach(p=>{
+    (p.stages||[]).forEach(s=>{
+      if(s.startDate&&s.status!=='finalizat'){
+        const d=parseDate(s.startDate);
+        if(d&&(!earliest||d<earliest)) earliest=d;
+      }
+    });
+  });
+  if(!earliest){alert('Nicio etapă activă găsită.');return;}
+  viewStart=new Date(earliest.getFullYear(),earliest.getMonth()-1,1);
+  renderGantt();
+});
+document.getElementById('btnZoomIn').addEventListener('click',()=>{ PX_PER_DAY=Math.min(60,PX_PER_DAY+4); renderGantt(); });
+document.getElementById('btnZoomOut').addEventListener('click',()=>{ PX_PER_DAY=Math.max(8,PX_PER_DAY-4); renderGantt(); });
+
+// ── DATE HELPERS dd/mm/yyyy ──
+function isoToDmy(s){ if(!s) return ''; const p=s.split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:''; }
+function dmyToIso(s){ if(!s) return ''; const p=s.split('/'); return p.length===3&&p[2].length===4?p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0'):''; }
+function addDateMask(id){
+  const el=document.getElementById(id);
+  el.addEventListener('input',function(){
+    const prev=this._prev||''; const cur=this.value;
+    let v=cur.replace(/[^0-9\/]/g,'');
+    if(prev.length<cur.length){
+      const digits=v.replace(/\//g,'');
+      v='';
+      for(let i=0;i<Math.min(digits.length,8);i++){
+        if(i===2||i===4) v+='/';
+        v+=digits[i];
+      }
+    }
+    this.value=v.slice(0,10);
+    this._prev=this.value;
+  });
+}
+addDateMask('smStart');
+addDateMask('smEnd');
+
+// ── SIDEBAR PARTICLE ANIMATION ──
+(function(){
+  const canvas=document.getElementById('sidebarCanvas');
+  const ctx=canvas.getContext('2d');
+  let W,H,particles=[];
+
+  function resize(){
+    W=canvas.width=window.innerWidth;
+    H=canvas.height=36;
+  }
+
+  function mkParticle(){
+    return {
+      x: Math.random()*W,
+      y: Math.random()*H,
+      z: Math.random()*600+100, // depth 100-700
+      vz: -(Math.random()*0.4+0.1), // moving toward viewer
+      color: ['#3b82f6','#f59e0b','#10b981','#8b5cf6','#06b6d4','#f97316'][Math.floor(Math.random()*6)],
+      pulse: Math.random()*Math.PI*2,
+      pulseSpeed: Math.random()*0.02+0.01,
+    };
+  }
+
+  function init(){
+    resize();
+    particles=[];
+    for(let i=0;i<55;i++) particles.push(mkParticle());
+  }
+
+  function project(p){
+    const fov=400;
+    const scale=fov/(fov+p.z);
+    return { x:W/2+(p.x-W/2)*scale, y:H/2+(p.y-H/2)*scale, r:Math.max(0.5,(8-p.z/100)*scale*2), scale };
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    particles.sort((a,b)=>b.z-a.z);
+    particles.forEach(p=>{
+      p.z+=p.vz*2;
+      p.pulse+=p.pulseSpeed;
+      if(p.z<50||p.z>700){ Object.assign(p,mkParticle(),{z:650}); return; }
+      const {x,y,r}=project(p);
+      const pulseMod=1+Math.sin(p.pulse)*0.3;
+      const rr=r*pulseMod;
+      // glow
+      const g=ctx.createRadialGradient(x,y,0,x,y,rr*3);
+      g.addColorStop(0,p.color+'cc');
+      g.addColorStop(0.4,p.color+'44');
+      g.addColorStop(1,'transparent');
+      ctx.beginPath();
+      ctx.arc(x,y,rr*3,0,Math.PI*2);
+      ctx.fillStyle=g;
+      ctx.fill();
+      // core
+      ctx.beginPath();
+      ctx.arc(x,y,rr,0,Math.PI*2);
+      ctx.fillStyle=p.color;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+
+  // Start after login when app is visible
+  window.startParticles=function(){ init(); draw(); };
+  // Also try on timeout as fallback
+  setTimeout(()=>{ if(W===0) init(); if(H>0) draw(); },800);
+})();
+
+// ── CLOCK ──
+function updateClock(){
+  const now=new Date();
+  const dd=String(now.getDate()).padStart(2,'0');
+  const mm=String(now.getMonth()+1).padStart(2,'0');
+  const yyyy=now.getFullYear();
+  const d=dd+'/'+mm+'/'+yyyy;
+  const t=now.toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  const el=document.getElementById('clockDisplay');
+  if(el) el.textContent=d+' · '+t;
+}
+updateClock();
+setInterval(updateClock,1000);
+
+// ── BOOT ──
+populateLoginUsers();
+loadFirebase();
+</script>
+</body>
+</html>

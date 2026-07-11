@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vizită Șantier — SHC Solar Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;font-family:'DM Sans',system-ui,sans-serif;background:#090f1c;color:#e2e8f0;}
+#loginOverlay{position:fixed;inset:0;z-index:9999;background:#090f1c;display:flex;align-items:center;justify-content:center;}
+.login-card{background:#111827;border:1px solid #1e3a5f;border-radius:16px;padding:36px 32px;width:380px;max-width:92vw;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+.form-label{font-size:11px;font-weight:700;color:#475569;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+.form-select,.form-input{width:100%;padding:10px 13px;border:1.5px solid #334155;border-radius:10px;font-size:14px;font-family:inherit;background:#1e293b;color:#f1f5f9;outline:none;}
+.form-select:focus,.form-input:focus{border-color:#3b82f6;}
+.btn-login{width:100%;padding:12px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:0;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+.btn-login:hover{opacity:.9;}
+
+#app{display:none;height:100vh;flex-direction:column;}
+#topBar{background:#0d1b2e;border-bottom:1px solid #1e3a5f;padding:0 18px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px;}
+#layout{display:flex;flex:1;overflow:hidden;}
+
+#sidebar{width:270px;background:#0d1b2e;border-right:1px solid #1e3a5f;display:flex;flex-direction:column;flex-shrink:0;}
+#sidebarHeader{padding:12px;border-bottom:1px solid #1e3a5f;display:flex;flex-direction:column;gap:6px;}
+#visitList{flex:1;overflow-y:auto;padding:6px 0;}
+.group-header{padding:8px 14px 4px;font-size:10px;font-weight:800;color:#3b82f6;text-transform:uppercase;letter-spacing:.6px;}
+.visit-item{padding:9px 14px;cursor:pointer;border-left:3px solid transparent;display:flex;align-items:center;gap:10px;transition:background .1s;}
+.visit-item:hover{background:rgba(59,130,246,.08);}
+.visit-item.active{background:rgba(59,130,246,.12);border-left-color:#3b82f6;}
+.visit-thumb{width:34px;height:34px;border-radius:7px;background:#1e293b;flex-shrink:0;object-fit:cover;border:1px solid #334155;}
+.visit-name{font-size:12.5px;font-weight:600;color:#cbd5e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.visit-meta{font-size:10.5px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+#main{flex:1;overflow-y:auto;padding:22px 26px 60px;}
+.empty-state{padding:90px 20px;text-align:center;color:#334155;}
+
+.section-card{background:#111d35;border:1px solid #1e293b;border-radius:14px;padding:20px 22px;margin-bottom:18px;}
+.section-title{font-size:13px;font-weight:800;color:#f1f5f9;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.field{margin-bottom:12px;}
+.field label{font-size:10px;font-weight:700;color:#475569;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.field input,.field select,.field textarea{width:100%;padding:9px 11px;border:1.5px solid #334155;border-radius:8px;font-size:13px;font-family:inherit;background:#1e293b;color:#f1f5f9;outline:none;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#3b82f6;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+
+.btn{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;border:1px solid transparent;transition:opacity .15s;}
+.btn:hover{opacity:.85;}
+.btn-blue{background:#2563eb;color:#fff;}
+.btn-green{background:#16a34a;color:#fff;}
+.btn-ghost{background:transparent;color:#94a3b8;border-color:#334155;}
+.btn-red{background:#dc2626;color:#fff;}
+.btn-sm{padding:5px 10px;font-size:11px;}
+.btn-icon{padding:5px 9px;}
+.btn-active{background:#3b82f6 !important;color:#fff !important;border-color:#3b82f6 !important;}
+
+/* Canvas editor */
+#editorToolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+#canvasWrap{position:relative;width:100%;background:#0b1626;border:1.5px dashed #334155;border-radius:10px;overflow:hidden;}
+#sketchCanvas{display:block;width:100%;cursor:crosshair;touch-action:none;}
+.color-swatch{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;flex-shrink:0;}
+.color-swatch.sel{border-color:#fff;}
+#uploadBgBtn input{display:none;}
+
+/* Photo gallery */
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;}
+.photo-thumb{position:relative;border-radius:8px;overflow:hidden;aspect-ratio:1;background:#1e293b;border:1px solid #334155;}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;}
+.photo-del{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.6);color:#fff;border:0;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;line-height:20px;text-align:center;}
+.photo-add{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;color:#475569;font-size:10px;font-weight:600;cursor:pointer;border:1.5px dashed #334155;border-radius:8px;aspect-ratio:1;}
+.photo-add input{display:none;}
+
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;}
+.badge-blue{background:rgba(59,130,246,.15);color:#60a5fa;}
+
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#1e3a5f;border-radius:3px;}
+a{color:#60a5fa;}
+a:hover{color:#93c5fd;}
+
+/* Print */
+@media print{
+  body *{visibility:hidden;}
+  #printArea,#printArea *{visibility:visible;}
+  #printArea{position:absolute;top:0;left:0;width:100%;}
+}
+#printArea{display:none;}
+</style>
+</head>
+<body>
+
+<div id="loginOverlay">
+  <div class="login-card">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:26px;">
+      <div style="width:40px;height:40px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+      </div>
+      <div>
+        <div style="font-weight:800;font-size:16px;color:#f1f5f9;">Vizită Șantier</div>
+        <div style="font-size:11px;color:#64748b;">Smart House Color · SHC Solar Suite</div>
+      </div>
+    </div>
+    <div class="field"><label>Utilizator</label>
+      <select id="loginUser" class="form-select"><option value="">— Selectează utilizatorul —</option></select>
+    </div>
+    <div class="field" style="margin-bottom:18px;"><label>Parolă</label>
+      <input type="password" id="loginPassword" class="form-input" placeholder="••••••••">
+    </div>
+    <button class="btn-login" id="btnLogin">Intră în aplicație →</button>
+    <div id="loginError" style="color:#f87171;font-size:12px;text-align:center;margin-top:10px;min-height:16px;"></div>
+  </div>
+</div>
+
+<div id="app">
+  <div id="topBar">
+    <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+      <div style="width:32px;height:32px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><circle cx="11" cy="11" r="2"/></svg>
+      </div>
+      <div>
+        <div style="font-size:14px;font-weight:800;color:#f1f5f9;">Vizită Șantier</div>
+        <div style="font-size:10px;color:#475569;">SHC Solar Suite</div>
+      </div>
+      <a href="./index.html" style="margin-left:4px;font-size:11px;color:#475569;text-decoration:none;padding:4px 10px;border:1px solid #1e3a5f;border-radius:6px;">← Suite</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <div id="userBadge" style="display:flex;align-items:center;gap:7px;">
+        <div id="userAvatar" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0;"></div>
+        <span id="userName" style="font-size:12px;font-weight:600;color:#94a3b8;white-space:nowrap;"></span>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="btnLogout">Ieși</button>
+    </div>
+  </div>
+
+  <div id="layout">
+    <div id="sidebar">
+      <div id="sidebarHeader">
+        <button class="btn btn-green" id="btnNewVisit" style="width:100%;font-size:12px;">+ Vizită nouă</button>
+      </div>
+      <div id="visitList"></div>
+    </div>
+
+    <div id="main">
+      <div id="emptyState" class="empty-state">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="1.5" style="margin-bottom:14px;"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><circle cx="11" cy="11" r="2"/></svg>
+        <div style="font-size:15px;font-weight:700;color:#475569;margin-bottom:6px;">Nicio vizită selectată</div>
+        <div style="font-size:12px;color:#334155;">Adaugă o vizită nouă din stânga</div>
+      </div>
+
+      <div id="visitEditor" style="display:none;">
+
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+          <div>
+            <div style="font-size:19px;font-weight:800;color:#f1f5f9;" id="visitTitleDisplay">Vizită nouă</div>
+            <div style="font-size:12px;color:#475569;" id="visitDateDisplay"></div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" id="btnExportPdf">🖨 Export PDF</button>
+            <button class="btn btn-red btn-sm" id="btnDeleteVisit">Șterge vizita</button>
+          </div>
+        </div>
+
+        <!-- Date client / proiect -->
+        <div class="section-card">
+          <div class="section-title">📋 Client &amp; Locație</div>
+          <div class="field"><label>Proiect din SolarCRM (opțional)</label>
+            <select id="fCrmProject"><option value="">— Fără legătură —</option></select>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Client</label><input type="text" id="fClient" placeholder="Nume client"></div>
+            <div class="field"><label>Data vizitei</label><input type="date" id="fDate"></div>
+          </div>
+          <div class="field"><label>Adresă locație</label><input type="text" id="fAddress" placeholder="Str. Exemplu 1, Arad"></div>
+          <div class="row2">
+            <div class="field"><label>Coordonate GPS</label><input type="text" id="fGps" placeholder="ex: 46.1866, 21.3123"></div>
+            <div class="field"><label>Tip amplasare</label>
+              <select id="fTipAmplasare"><option value="acoperis">Acoperiș clădire</option><option value="sol">Sol (parc/teren)</option></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detalii tehnice -->
+        <div class="section-card">
+          <div class="section-title">⚙️ Detalii tehnice</div>
+          <div class="row3">
+            <div class="field"><label>Capacitate PV (kWp)</label><input type="number" id="fKwp" step="0.1" placeholder="0"></div>
+            <div class="field"><label>Nr. panouri</label><input type="number" id="fNumPanouri" placeholder="0"></div>
+            <div class="field"><label>Capacitate BESS (kWh)</label><input type="number" id="fKwh" step="0.1" placeholder="0"></div>
+          </div>
+          <div class="row3">
+            <div class="field"><label>Nr. baterii</label><input type="number" id="fNumBaterii" placeholder="0"></div>
+            <div class="field"><label>Tip acoperiș / teren</label><input type="text" id="fTipAcoperis" placeholder="ex: țiglă, tablă, plan"></div>
+            <div class="field"><label>Orientare / pantă</label><input type="text" id="fOrientare" placeholder="ex: Sud, 25°"></div>
+          </div>
+          <div class="field"><label>Umbrire / observații structură</label><input type="text" id="fUmbrire" placeholder="ex: umbrire parțială dimineața de la coșul vecin"></div>
+          <div class="field" style="margin-bottom:0;"><label>Note libere</label><textarea id="fNotes" rows="3" placeholder="Observații de la fața locului..."></textarea></div>
+        </div>
+
+        <!-- Schiță -->
+        <div class="section-card">
+          <div class="section-title">✏️ Schiță amplasament</div>
+          <div id="sketchTabs" style="display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap;"></div>
+          <div id="editorToolbar">
+            <button class="btn btn-ghost btn-icon" data-tool="select" title="Selectează/Mișcă">↖ Select</button>
+            <button class="btn btn-ghost btn-icon" id="btnDuplicate" title="Duplică elementul selectat">⧉ Duplică</button>
+            <button class="btn btn-ghost btn-icon" data-tool="pencil" title="Desen liber">✏️ Desen</button>
+            <button class="btn btn-ghost btn-icon" data-tool="line" title="Linie dreaptă (trage)">╱ Linie</button>
+            <button class="btn btn-ghost btn-icon" data-tool="roof" title="Contur clădire/teren (trage)">▢ Contur</button>
+            <button class="btn btn-ghost btn-icon" data-tool="rect" title="Panou — trage pentru dimensiune">▭ Panou</button>
+            <button class="btn btn-ghost btn-icon" data-tool="circle" title="Baterie rotundă — trage pentru dimensiune">● Baterie</button>
+            <button class="btn btn-ghost btn-icon" data-tool="batteryRect" title="Baterie rectangulară — trage pentru dimensiune">▪ Baterie□</button>
+            <button class="btn btn-ghost btn-icon" data-tool="text" title="Adaugă text">🔤 Text</button>
+            <button class="btn btn-ghost btn-icon" data-tool="erase" title="Șterge element">✕ Șterge</button>
+            <span style="width:1px;height:22px;background:#334155;margin:0 2px;"></span>
+            <div class="color-swatch sel" data-color="#3b82f6" style="background:#3b82f6"></div>
+            <div class="color-swatch" data-color="#f59e0b" style="background:#f59e0b"></div>
+            <div class="color-swatch" data-color="#22c55e" style="background:#22c55e"></div>
+            <div class="color-swatch" data-color="#ef4444" style="background:#ef4444"></div>
+            <div class="color-swatch" data-color="#e2e8f0" style="background:#e2e8f0"></div>
+            <span style="width:1px;height:22px;background:#334155;margin:0 2px;"></span>
+            <label class="btn btn-ghost btn-icon" id="uploadBgBtn" style="cursor:pointer;">📷 Fundal
+              <input type="file" id="bgFileInput" accept="image/*">
+            </label>
+            <button class="btn btn-ghost btn-icon" id="btnClearSketch">🗑 Golește schița</button>
+            <span style="width:1px;height:22px;background:#334155;margin:0 2px;"></span>
+            <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:#94a3b8;">Lățime reală desen (m)
+              <input type="number" id="scaleInput" value="20" min="1" step="0.5" style="width:60px;padding:5px 7px;border:1.5px solid #334155;border-radius:6px;background:#1e293b;color:#f1f5f9;font-size:11px;">
+            </label>
+          </div>
+          <div id="canvasWrap">
+            <canvas id="sketchCanvas" width="900" height="500"></canvas>
+          </div>
+          <div style="font-size:10.5px;color:#475569;margin-top:8px;">Setează lățimea reală a desenului (m) pentru a vedea dimensiuni reale pe panouri/contururi/linii. Trage pentru a desena forme; Select + Duplică pentru a copia un element cu aceleași dimensiuni.</div>
+        </div>
+
+        <!-- Poze -->
+        <div class="section-card">
+          <div class="section-title">📷 Poze de la fața locului</div>
+          <div class="photo-grid" id="photoGrid">
+            <label class="photo-add">
+              <span style="font-size:20px;">+</span><span>Adaugă</span>
+              <input type="file" id="photoInput" accept="image/*" multiple>
+            </label>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;">
+          <button class="btn btn-blue" id="btnSaveVisit" style="padding:10px 22px;font-size:13px;">Salvează vizita</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Print area -->
+<div id="printArea"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+//  SHC VIZITĂ ȘANTIER
+// ═══════════════════════════════════════════════════════════
+
+const FB_CONFIG = {
+  apiKey: "AIzaSyBVElgXbEabUcwjNMa27IEw0YkxaEaXYl0",
+  authDomain: "solarcrm-ba919.firebaseapp.com",
+  databaseURL: "https://solarcrm-ba919-default-rtdb.firebaseio.com",
+  projectId: "solarcrm-ba919",
+  storageBucket: "solarcrm-ba919.firebasestorage.app",
+  messagingSenderId: "349523166308",
+  appId: "1:349523166308:web:0533aa1dae74f9a0b3cb71"
+};
+
+const DEFAULT_USERS = [
+  {id:'_admin',    name:'Administrator',    color:'#dc2626', password:'12345'},
+  {id:'u_chirila', name:'Alexandru Chirila',color:'#7c3aed', password:'12345'},
+  {id:'u_dobre',   name:'Cristian Dobre',   color:'#16a34a', password:'12345'},
+  {id:'u_nicoras', name:'Ionut Nicoras',    color:'#d97706', password:'12345'},
+  {id:'u_sirb',    name:'Beniamin Sirb',    color:'#0891b2', password:'12345'},
+];
+
+let db=null, currentUser=null, loginUsers=[...DEFAULT_USERS], adminPw='12345';
+let visits={}; let crmProjects=[];
+let activeVisitId=null;
+let tool='pencil', drawColor='#3b82f6';
+let sketches=[{id:'s1',name:'Schiță 1',strokes:[],shapes:[],bg:null,scale:20}];
+let activeSketchIdx=0;
+let sketch=sketches[0];
+let isDrawing=false, curStroke=null;
+let dragShape=null, dragOffset={x:0,y:0};
+let selectedIndex=-1;
+let photos=[];
+
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function initials(n){ return (n||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase(); }
+function getUserById(id){ return loginUsers.find(u=>u.id===id); }
+
+// ── Firebase ──
+try{
+  if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+  db=firebase.database();
+}catch(e){ console.warn('Firebase:',e); }
+
+function loadFirebase(){
+  if(!db){ loadLS(); return; }
+  db.ref('shc_visits/visits').on('value', snap=>{
+    const raw=snap.val()||{};
+    visits={};
+    Object.values(raw).filter(v=>v&&v.id).forEach(v=>{ visits[v.id]=v; });
+    renderVisitList();
+  });
+  db.ref('solarcrm_v2/config').once('value', snap=>{
+    const cfg=snap.val()||{};
+    if(cfg.users&&Array.isArray(cfg.users)&&cfg.users.length){
+      loginUsers=[{id:'_admin',name:'Administrator',color:'#dc2626',password:cfg.adminPw||'12345'},...cfg.users];
+    }
+    if(cfg.adminPw) adminPw=cfg.adminPw;
+    populateLoginUsers();
+  });
+  db.ref('solarcrm_v2/projects').on('value', snap=>{
+    const raw=snap.val()||{};
+    crmProjects=Object.values(raw).filter(p=>p&&p.id);
+    populateCrmDropdown();
+  });
+}
+function loadLS(){ try{ const r=localStorage.getItem('shc_visits'); if(r) visits=JSON.parse(r); }catch(e){} renderVisitList(); }
+function saveFirebase(v){
+  if(!db){ visits[v.id]=v; localStorage.setItem('shc_visits',JSON.stringify(visits)); return; }
+  db.ref('shc_visits/visits/'+String(v.id)).set(v);
+}
+function deleteFirebase(id){
+  if(db) db.ref('shc_visits/visits/'+String(id)).remove().catch(()=>{});
+  delete visits[id];
+}
+
+// ── Login ──
+function populateLoginUsers(){
+  const sel=document.getElementById('loginUser'); const cur=sel.value;
+  sel.innerHTML='<option value="">— Selectează utilizatorul —</option>';
+  loginUsers.forEach(u=>{ const o=document.createElement('option'); o.value=u.id; o.textContent=u.name; sel.appendChild(o); });
+  if(cur) sel.value=cur;
+}
+function doLogin(){
+  const uid2=document.getElementById('loginUser').value;
+  const pw=document.getElementById('loginPassword').value;
+  const err=document.getElementById('loginError');
+  if(!uid2){err.textContent='Selectează un utilizator.';return;}
+  const u=loginUsers.find(x=>x.id===uid2);
+  if(!u){err.textContent='Utilizator negăsit.';return;}
+  const stored=u.id==='_admin'?adminPw:(u.password||'');
+  if(stored&&pw!==stored){err.textContent='Parolă incorectă.';return;}
+  currentUser=u;
+  document.getElementById('loginOverlay').style.display='none';
+  document.getElementById('app').style.display='flex';
+  const av=document.getElementById('userAvatar');
+  av.style.background=u.color||'#3b82f6'; av.textContent=initials(u.name);
+  document.getElementById('userName').textContent=u.name;
+  resizeCanvas();
+}
+document.getElementById('btnLogin').addEventListener('click',doLogin);
+document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('btnLogout').addEventListener('click',()=>{
+  currentUser=null;
+  document.getElementById('loginPassword').value='';
+  document.getElementById('loginError').textContent='';
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginOverlay').style.display='flex';
+});
+
+function populateCrmDropdown(){
+  const sel=document.getElementById('fCrmProject'); const cur=sel.value;
+  sel.innerHTML='<option value="">— Fără legătură —</option>';
+  crmProjects.forEach(p=>{
+    const o=document.createElement('option'); o.value=p.id;
+    o.textContent=(p.client||'Fără nume')+(p.address?' — '+p.address:'');
+    sel.appendChild(o);
+  });
+  sel.value=cur;
+}
+document.getElementById('fCrmProject').addEventListener('change',e=>{
+  const p=crmProjects.find(x=>String(x.id)===e.target.value);
+  if(p){
+    if(p.client) document.getElementById('fClient').value=p.client;
+    if(p.address) document.getElementById('fAddress').value=p.address;
+    if(p.kwp) document.getElementById('fKwp').value=p.kwp;
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+//  SIDEBAR — grouped by client
+// ═══════════════════════════════════════════════════════════
+function renderVisitList(){
+  const list=document.getElementById('visitList');
+  const arr=Object.values(visits).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+  if(!arr.length){ list.innerHTML='<div style="padding:20px 14px;font-size:12px;color:#334155;text-align:center;">Nicio vizită</div>'; return; }
+  const groups={};
+  arr.forEach(v=>{ const k=v.client||'Fără client'; (groups[k]=groups[k]||[]).push(v); });
+  let html='';
+  Object.keys(groups).sort((a,b)=>a.localeCompare(b,'ro')).forEach(client=>{
+    html+=`<div class="group-header">${client}</div>`;
+    groups[client].forEach(v=>{
+      const thumb=v.photos&&v.photos[0]?v.photos[0]:((v.sketches&&v.sketches[0]&&v.sketches[0].bg)?v.sketches[0].bg:(v.sketch&&v.sketch.bg?v.sketch.bg:''));
+      html+=`<div class="visit-item${v.id===activeVisitId?' active':''}" data-vid="${v.id}">
+        ${thumb?`<img class="visit-thumb" src="${thumb}">`:`<div class="visit-thumb"></div>`}
+        <div style="flex:1;min-width:0;">
+          <div class="visit-name">${v.address||'Fără adresă'}</div>
+          <div class="visit-meta">${v.date?new Date(v.date).toLocaleDateString('ro-RO'):''}${v.kwp?' · '+v.kwp+' kWp':''}</div>
+        </div>
+      </div>`;
+    });
+  });
+  list.innerHTML=html;
+  list.querySelectorAll('.visit-item').forEach(el=>{
+    el.addEventListener('click',()=>openVisit(el.dataset.vid));
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  VISIT EDITOR
+// ═══════════════════════════════════════════════════════════
+function newVisit(){
+  const v={id:uid(),client:'',date:new Date().toISOString().slice(0,10),address:'',gps:'',
+    tipAmplasare:'acoperis',kwp:'',numPanouri:'',kwh:'',numBaterii:'',tipAcoperis:'',orientare:'',umbrire:'',notes:'',
+    crmId:'',sketch:{strokes:[],shapes:[],bg:null},photos:[],createdAt:Date.now(),updatedAt:Date.now(),createdBy:currentUser?currentUser.name:''};
+  visits[v.id]=v;
+  openVisit(v.id);
+}
+document.getElementById('btnNewVisit').addEventListener('click',newVisit);
+
+function openVisit(id){
+  activeVisitId=id;
+  const v=visits[id]; if(!v) return;
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('visitEditor').style.display='block';
+  document.getElementById('visitTitleDisplay').textContent=v.address||v.client||'Vizită nouă';
+  document.getElementById('visitDateDisplay').textContent=v.createdBy?('Creat de '+v.createdBy):'';
+  document.getElementById('fCrmProject').value=v.crmId||'';
+  document.getElementById('fClient').value=v.client||'';
+  document.getElementById('fDate').value=v.date||'';
+  document.getElementById('fAddress').value=v.address||'';
+  document.getElementById('fGps').value=v.gps||'';
+  document.getElementById('fTipAmplasare').value=v.tipAmplasare||'acoperis';
+  document.getElementById('fKwp').value=v.kwp||'';
+  document.getElementById('fNumPanouri').value=v.numPanouri||'';
+  document.getElementById('fKwh').value=v.kwh||'';
+  document.getElementById('fNumBaterii').value=v.numBaterii||'';
+  document.getElementById('fTipAcoperis').value=v.tipAcoperis||'';
+  document.getElementById('fOrientare').value=v.orientare||'';
+  document.getElementById('fUmbrire').value=v.umbrire||'';
+  document.getElementById('fNotes').value=v.notes||'';
+  sketches = v.sketches ? JSON.parse(JSON.stringify(v.sketches)) : (v.sketch ? [{...JSON.parse(JSON.stringify(v.sketch)),id:'s1',name:'Schiță 1',scale:v.sketch.scale||20}] : [{id:'s1',name:'Schiță 1',strokes:[],shapes:[],bg:null,scale:20}]);
+  activeSketchIdx=0;
+  sketch=sketches[0];
+  selectedIndex=-1;
+  renderSketchTabs();
+  photos=v.photos?[...v.photos]:[];
+  renderPhotoGrid();
+  renderVisitList();
+  setTimeout(()=>{ resizeCanvas(); document.getElementById('scaleInput').value=sketch.scale||20; drawSketch(); },50);
+}
+
+function collectVisitFromForm(){
+  const v=visits[activeVisitId]; if(!v) return null;
+  v.crmId=document.getElementById('fCrmProject').value;
+  v.client=document.getElementById('fClient').value.trim();
+  v.date=document.getElementById('fDate').value;
+  v.address=document.getElementById('fAddress').value.trim();
+  v.gps=document.getElementById('fGps').value.trim();
+  v.tipAmplasare=document.getElementById('fTipAmplasare').value;
+  v.kwp=document.getElementById('fKwp').value;
+  v.numPanouri=document.getElementById('fNumPanouri').value;
+  v.kwh=document.getElementById('fKwh').value;
+  v.numBaterii=document.getElementById('fNumBaterii').value;
+  v.tipAcoperis=document.getElementById('fTipAcoperis').value.trim();
+  v.orientare=document.getElementById('fOrientare').value.trim();
+  v.umbrire=document.getElementById('fUmbrire').value.trim();
+  v.notes=document.getElementById('fNotes').value.trim();
+  v.sketches=sketches;
+  delete v.sketch;
+  v.photos=photos;
+  v.updatedAt=Date.now();
+  if(!v.createdBy) v.createdBy=currentUser?currentUser.name:'';
+  return v;
+}
+document.getElementById('btnSaveVisit').addEventListener('click',()=>{
+  const v=collectVisitFromForm(); if(!v) return;
+  saveFirebase(v);
+  document.getElementById('visitTitleDisplay').textContent=v.address||v.client||'Vizită nouă';
+  alert('Vizită salvată!');
+});
+document.getElementById('btnDeleteVisit').addEventListener('click',()=>{
+  if(!activeVisitId) return;
+  if(!confirm('Ștergi această vizită definitiv?')) return;
+  deleteFirebase(activeVisitId);
+  activeVisitId=null;
+  document.getElementById('visitEditor').style.display='none';
+  document.getElementById('emptyState').style.display='block';
+});
+
+// Autofill title from address as it's typed
+['fAddress','fClient'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',()=>{
+    const addr=document.getElementById('fAddress').value.trim();
+    const cl=document.getElementById('fClient').value.trim();
+    document.getElementById('visitTitleDisplay').textContent=addr||cl||'Vizită nouă';
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+//  CANVAS SKETCH EDITOR
+// ═══════════════════════════════════════════════════════════
+const canvas=document.getElementById('sketchCanvas');
+const ctx=canvas.getContext('2d');
+
+function resizeCanvas(){
+  const wrap=document.getElementById('canvasWrap');
+  const w=wrap.clientWidth||900;
+  canvas.width=w;
+  canvas.height=Math.round(w*0.55);
+  drawSketch();
+}
+window.addEventListener('resize',resizeCanvas);
+
+function drawSketch(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='#0b1626';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  if(sketch.bg){
+    const img=new Image();
+    img.onload=()=>{
+      // draw once loaded, then redraw strokes/shapes on top
+      ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      drawStrokesShapes();
+    };
+    img.src=sketch.bg;
+  } else {
+    drawStrokesShapes();
+  }
+}
+function drawStrokesShapes(){
+  const scaleM = sketch.scale || 20;
+  const mPerUnitX = scaleM;
+  const mPerUnitY = scaleM * (canvas.height/canvas.width);
+  (sketch.strokes||[]).forEach(s=>{
+    if(!s.points||s.points.length<2) return;
+    ctx.beginPath();
+    ctx.strokeStyle=s.color; ctx.lineWidth=s.width||3;
+    ctx.lineCap='round'; ctx.lineJoin='round';
+    ctx.moveTo(s.points[0].x*canvas.width,s.points[0].y*canvas.height);
+    for(let i=1;i<s.points.length;i++) ctx.lineTo(s.points[i].x*canvas.width,s.points[i].y*canvas.height);
+    ctx.stroke();
+    if(s.points.length===2){
+      const dx=(s.points[1].x-s.points[0].x)*mPerUnitX, dy=(s.points[1].y-s.points[0].y)*mPerUnitY;
+      const len=Math.sqrt(dx*dx+dy*dy);
+      if(len>0.15){
+        const mx=(s.points[0].x+s.points[1].x)/2*canvas.width, my=(s.points[0].y+s.points[1].y)/2*canvas.height;
+        ctx.font='10px DM Sans, sans-serif'; ctx.fillStyle='#f1f5f9';
+        ctx.fillText(len.toFixed(1)+'m',mx+4,my-4);
+      }
+    }
+  });
+  (sketch.shapes||[]).forEach((sh,idx)=>{
+    const x=sh.x*canvas.width, y=sh.y*canvas.height, w=sh.w*canvas.width, h=sh.h*canvas.height;
+    const realW=(sh.w*mPerUnitX), realH=(sh.h*mPerUnitY);
+    const dimLabel=realW>0.3&&realH>0.3?realW.toFixed(1)+'×'+realH.toFixed(1)+'m':'';
+    if(sh.type==='text'){
+      ctx.font=(sh.fontSize||16)+'px DM Sans, sans-serif'; ctx.fillStyle=sh.color;
+      ctx.fillText(sh.text||'', x, y);
+      if(idx===selectedIndex){ const m=ctx.measureText(sh.text||''); ctx.strokeStyle='#fff'; ctx.setLineDash([3,3]); ctx.strokeRect(x-3,y-(sh.fontSize||16),m.width+6,(sh.fontSize||16)+6); ctx.setLineDash([]); }
+      return;
+    }
+    if(sh.type==='roof'){
+      ctx.setLineDash([6,4]); ctx.strokeStyle=sh.color||'#94a3b8'; ctx.lineWidth=2;
+      ctx.strokeRect(x,y,w,h); ctx.setLineDash([]);
+      if(dimLabel){ ctx.font='10px DM Sans, sans-serif'; ctx.fillStyle='#94a3b8'; ctx.fillText(dimLabel,x+4,y+h-6); }
+      if(idx===selectedIndex) drawSelectionBox(x,y,w,h);
+      return;
+    }
+    ctx.strokeStyle=sh.color; ctx.lineWidth=2.5; ctx.fillStyle=sh.color+'33';
+    if(sh.type==='rect'){
+      ctx.fillRect(x,y,w,h); ctx.strokeRect(x,y,w,h);
+      if(w>18&&h>14){ ctx.fillStyle=sh.color; ctx.font='bold 11px DM Sans, sans-serif'; ctx.fillText('☀️',x+4,y+16); }
+    } else if(sh.type==='circle'){
+      const cx=x+w/2, cy=y+h/2, r=Math.min(w,h)/2;
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill(); ctx.stroke();
+      if(r>10){ ctx.fillStyle=sh.color; ctx.font='bold 11px DM Sans, sans-serif'; ctx.fillText('🔋',cx-7,cy+4); }
+    } else if(sh.type==='batteryRect'){
+      ctx.fillRect(x,y,w,h); ctx.strokeRect(x,y,w,h);
+      if(w>18&&h>14){ ctx.fillStyle=sh.color; ctx.font='bold 11px DM Sans, sans-serif'; ctx.fillText('🔋',x+4,y+16); }
+    }
+    if(dimLabel&&sh.type!=='text'){ ctx.font='9.5px DM Sans, sans-serif'; ctx.fillStyle='#f1f5f9'; ctx.fillText(dimLabel,x+2,y+h+11); }
+    if(idx===selectedIndex) drawSelectionBox(x,y,w,h);
+  });
+}
+function drawSelectionBox(x,y,w,h){
+  ctx.save(); ctx.setLineDash([4,3]); ctx.strokeStyle='#fff'; ctx.lineWidth=1.5;
+  ctx.strokeRect(x-3,y-3,w+6,h+6); ctx.restore();
+}
+
+function relPos(e){
+  const rect=canvas.getBoundingClientRect();
+  const clientX=e.touches?e.touches[0].clientX:e.clientX;
+  const clientY=e.touches?e.touches[0].clientY:e.clientY;
+  const x=(clientX-rect.left)/rect.width;
+  const y=(clientY-rect.top)/rect.height;
+  return {x,y,px:(clientX-rect.left),py:(clientY-rect.top)};
+}
+function shapeAt(px,py){
+  for(let i=(sketch.shapes||[]).length-1;i>=0;i--){
+    const sh=sketch.shapes[i];
+    const x=sh.x*canvas.width, y=sh.y*canvas.height;
+    if(sh.type==='text'){
+      ctx.font=(sh.fontSize||16)+'px DM Sans, sans-serif';
+      const m=ctx.measureText(sh.text||'');
+      if(px>=x-3&&px<=x+m.width+3&&py>=y-(sh.fontSize||16)-3&&py<=y+3) return i;
+      continue;
+    }
+    const w=sh.w*canvas.width, h=sh.h*canvas.height;
+    if(px>=x&&px<=x+w&&py>=y&&py<=y+h) return i;
+  }
+  return -1;
+}
+
+canvas.addEventListener('mousedown',startAction);
+canvas.addEventListener('touchstart',startAction,{passive:false});
+canvas.addEventListener('mousemove',moveAction);
+canvas.addEventListener('touchmove',moveAction,{passive:false});
+canvas.addEventListener('mouseup',endAction);
+canvas.addEventListener('touchend',endAction);
+canvas.addEventListener('mouseleave',endAction);
+
+let tempShape=null, creatingLine=null;
+
+function startAction(e){
+  e.preventDefault();
+  const p=relPos(e);
+  if(tool==='pencil'){
+    isDrawing=true;
+    curStroke={points:[{x:p.x,y:p.y}],color:drawColor,width:3};
+    sketch.strokes=sketch.strokes||[];
+    sketch.strokes.push(curStroke);
+  } else if(tool==='line'){
+    isDrawing=true;
+    creatingLine={x0:p.x,y0:p.y,x1:p.x,y1:p.y};
+  } else if(tool==='rect'||tool==='circle'||tool==='roof'||tool==='batteryRect'){
+    isDrawing=true;
+    tempShape={type:tool,x0:p.x,y0:p.y,x:p.x,y:p.y,w:0,h:0,color:drawColor};
+  } else if(tool==='text'){
+    const txt=prompt('Text:'); 
+    if(txt){
+      sketch.shapes=sketch.shapes||[];
+      sketch.shapes.push({type:'text',x:p.x,y:p.y,w:0.001,h:0.001,color:drawColor,text:txt,fontSize:18});
+      selectedIndex=sketch.shapes.length-1;
+      drawSketch();
+    }
+  } else if(tool==='select'){
+    const idx=shapeAt(p.px,p.py);
+    selectedIndex=idx;
+    if(idx>=0){
+      dragShape=idx;
+      const sh=sketch.shapes[idx];
+      dragOffset={x:p.x-sh.x,y:p.y-sh.y};
+    }
+    drawSketch();
+  } else if(tool==='erase'){
+    const idx=shapeAt(p.px,p.py);
+    if(idx>=0){ sketch.shapes.splice(idx,1); selectedIndex=-1; drawSketch(); }
+  }
+}
+function moveAction(e){
+  if(!isDrawing&&dragShape===null) return;
+  e.preventDefault();
+  const p=relPos(e);
+  if(tool==='pencil'&&curStroke){
+    curStroke.points.push({x:p.x,y:p.y});
+    drawSketch();
+  } else if(tool==='line'&&creatingLine){
+    creatingLine.x1=p.x; creatingLine.y1=p.y;
+    drawSketch(); drawLinePreview(creatingLine);
+  } else if(tempShape){
+    tempShape.x=Math.min(tempShape.x0,p.x);
+    tempShape.y=Math.min(tempShape.y0,p.y);
+    tempShape.w=Math.abs(p.x-tempShape.x0);
+    tempShape.h=Math.abs(p.y-tempShape.y0);
+    drawSketch(); drawShapePreview(tempShape);
+  } else if(dragShape!==null){
+    const sh=sketch.shapes[dragShape];
+    sh.x=p.x-dragOffset.x; sh.y=p.y-dragOffset.y;
+    drawSketch();
+  }
+}
+function endAction(){
+  if(tool==='line'&&creatingLine){
+    const dx=Math.abs(creatingLine.x1-creatingLine.x0), dy=Math.abs(creatingLine.y1-creatingLine.y0);
+    if(dx>0.01||dy>0.01){
+      sketch.strokes=sketch.strokes||[];
+      sketch.strokes.push({points:[{x:creatingLine.x0,y:creatingLine.y0},{x:creatingLine.x1,y:creatingLine.y1}],color:drawColor,width:3});
+    }
+    creatingLine=null; drawSketch();
+  } else if(tempShape){
+    if(tempShape.w>0.015&&tempShape.h>0.015){
+      sketch.shapes=sketch.shapes||[];
+      sketch.shapes.push({type:tempShape.type,x:tempShape.x,y:tempShape.y,w:tempShape.w,h:tempShape.h,color:tempShape.color});
+    }
+    tempShape=null; drawSketch();
+  }
+  isDrawing=false; curStroke=null; dragShape=null;
+}
+function drawLinePreview(l){
+  ctx.beginPath(); ctx.strokeStyle=drawColor; ctx.lineWidth=3; ctx.lineCap='round';
+  ctx.moveTo(l.x0*canvas.width,l.y0*canvas.height);
+  ctx.lineTo(l.x1*canvas.width,l.y1*canvas.height);
+  ctx.stroke();
+}
+function drawShapePreview(s){
+  const x=s.x*canvas.width, y=s.y*canvas.height, w=s.w*canvas.width, h=s.h*canvas.height;
+  if(s.type==='roof'){
+    ctx.setLineDash([6,4]); ctx.strokeStyle='#94a3b8'; ctx.lineWidth=2;
+    ctx.strokeRect(x,y,w,h); ctx.setLineDash([]);
+  } else if(s.type==='circle'){
+    ctx.strokeStyle=s.color; ctx.lineWidth=2.5; ctx.fillStyle=s.color+'33';
+    const cx=x+w/2, cy=y+h/2, r=Math.min(w,h)/2;
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  } else {
+    ctx.strokeStyle=s.color; ctx.lineWidth=2.5; ctx.fillStyle=s.color+'33';
+    ctx.fillRect(x,y,w,h); ctx.strokeRect(x,y,w,h);
+  }
+}
+
+// Toolbar
+document.querySelectorAll('[data-tool]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    tool=btn.dataset.tool;
+    document.querySelectorAll('[data-tool]').forEach(b=>b.classList.remove('btn-active'));
+    btn.classList.add('btn-active');
+  });
+});
+document.querySelector('[data-tool="pencil"]').classList.add('btn-active');
+document.querySelectorAll('.color-swatch').forEach(sw=>{
+  sw.addEventListener('click',()=>{
+    drawColor=sw.dataset.color;
+    document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('sel'));
+    sw.classList.add('sel');
+  });
+});
+document.getElementById('btnClearSketch').addEventListener('click',()=>{
+  if(!confirm('Golești toată schița?')) return;
+  sketch.strokes=[]; sketch.shapes=[];
+  selectedIndex=-1;
+  drawSketch();
+});
+document.getElementById('btnDuplicate').addEventListener('click',()=>{
+  if(selectedIndex<0||!sketch.shapes[selectedIndex]){ alert('Selectează mai întâi un element cu instrumentul Select.'); return; }
+  const orig=sketch.shapes[selectedIndex];
+  const copy=JSON.parse(JSON.stringify(orig));
+  copy.x=Math.min(0.92,orig.x+0.03); copy.y=Math.min(0.92,orig.y+0.03);
+  sketch.shapes.push(copy);
+  selectedIndex=sketch.shapes.length-1;
+  drawSketch();
+});
+document.getElementById('scaleInput').addEventListener('input',e=>{
+  sketch.scale=parseFloat(e.target.value)||20;
+  drawSketch();
+});
+function renderSketchTabs(){
+  const wrap=document.getElementById('sketchTabs');
+  let html=sketches.map((s,i)=>`<button class="btn ${i===activeSketchIdx?'btn-blue':'btn-ghost'} btn-sm" data-tabidx="${i}" style="padding:5px 12px;">${s.name}</button>`).join('');
+  html+=`<button class="btn btn-ghost btn-sm" id="btnAddSketch" style="padding:5px 10px;">+ Schiță</button>`;
+  if(sketches.length>1) html+=`<button class="btn btn-ghost btn-sm" id="btnDelSketch" style="padding:5px 10px;color:#f87171;">✕ Șterge schița</button>`;
+  wrap.innerHTML=html;
+  wrap.querySelectorAll('[data-tabidx]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      activeSketchIdx=parseInt(btn.dataset.tabidx);
+      sketch=sketches[activeSketchIdx];
+      selectedIndex=-1;
+      document.getElementById('scaleInput').value=sketch.scale||20;
+      renderSketchTabs();
+      drawSketch();
+    });
+  });
+  document.getElementById('btnAddSketch').addEventListener('click',()=>{
+    const n=sketches.length+1;
+    sketches.push({id:'s'+n,name:'Schiță '+n,strokes:[],shapes:[],bg:null,scale:20});
+    activeSketchIdx=sketches.length-1;
+    sketch=sketches[activeSketchIdx];
+    selectedIndex=-1;
+    document.getElementById('scaleInput').value=20;
+    renderSketchTabs();
+    drawSketch();
+  });
+  const delBtn=document.getElementById('btnDelSketch');
+  if(delBtn) delBtn.addEventListener('click',()=>{
+    if(!confirm('Ștergi "'+sketch.name+'"?')) return;
+    sketches.splice(activeSketchIdx,1);
+    activeSketchIdx=0;
+    sketch=sketches[0];
+    selectedIndex=-1;
+    document.getElementById('scaleInput').value=sketch.scale||20;
+    renderSketchTabs();
+    drawSketch();
+  });
+}
+
+function compressImage(file,maxW,quality,cb){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const scale=Math.min(1,maxW/img.width);
+      const w=Math.round(img.width*scale), h=Math.round(img.height*scale);
+      const c=document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      cb(c.toDataURL('image/jpeg',quality));
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+document.getElementById('bgFileInput').addEventListener('change',e=>{
+  const file=e.target.files[0]; if(!file) return;
+  compressImage(file,1400,0.75,dataUrl=>{ sketch.bg=dataUrl; drawSketch(); });
+  e.target.value='';
+});
+
+// ═══════════════════════════════════════════════════════════
+//  PHOTOS
+// ═══════════════════════════════════════════════════════════
+function renderPhotoGrid(){
+  const grid=document.getElementById('photoGrid');
+  let html=photos.map((p,i)=>`<div class="photo-thumb"><img src="${p}"><button class="photo-del" data-pi="${i}">✕</button></div>`).join('');
+  html+=`<label class="photo-add"><span style="font-size:20px;">+</span><span>Adaugă</span><input type="file" id="photoInput" accept="image/*" multiple></label>`;
+  grid.innerHTML=html;
+  document.getElementById('photoInput').addEventListener('change',handlePhotoInput);
+  grid.querySelectorAll('.photo-del').forEach(btn=>{
+    btn.addEventListener('click',()=>{ photos.splice(parseInt(btn.dataset.pi),1); renderPhotoGrid(); });
+  });
+}
+function handlePhotoInput(e){
+  const files=[...e.target.files];
+  let remaining=files.length;
+  files.forEach(file=>{
+    compressImage(file,1000,0.7,dataUrl=>{
+      photos.push(dataUrl);
+      remaining--;
+      if(remaining===0) renderPhotoGrid();
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  EXPORT PDF (print)
+// ═══════════════════════════════════════════════════════════
+function captureSketch(sk){
+  return new Promise(resolve=>{
+    const prevSketch=sketch, prevSelected=selectedIndex;
+    sketch=sk; selectedIndex=-1;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#0b1626'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    function finish(){
+      const url=canvas.toDataURL('image/png');
+      sketch=prevSketch; selectedIndex=prevSelected; drawSketch();
+      resolve(url);
+    }
+    if(sk.bg){
+      const img=new Image();
+      img.onload=()=>{ ctx.drawImage(img,0,0,canvas.width,canvas.height); drawStrokesShapes(); finish(); };
+      img.onerror=finish;
+      img.src=sk.bg;
+    } else {
+      drawStrokesShapes();
+      finish();
+    }
+  });
+}
+
+document.getElementById('btnExportPdf').addEventListener('click',async ()=>{
+  const v=collectVisitFromForm(); if(!v) return;
+  const printArea=document.getElementById('printArea');
+  const photoHtml=(v.photos||[]).map(p=>`<img src="${p}" style="width:140px;height:140px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">`).join('');
+  const sketchImgs=[];
+  for(const sk of (v.sketches||[])){ sketchImgs.push({name:sk.name,url:await captureSketch(sk)}); }
+  const sketchHtml=sketchImgs.map(s=>`<div style="margin-bottom:16px;"><div style="font-weight:700;font-size:12px;color:#64748b;margin-bottom:4px;">${s.name}</div><img src="${s.url}" style="width:100%;border:1px solid #ddd;border-radius:8px;"></div>`).join('');
+  printArea.innerHTML=`
+    <div style="font-family:DM Sans,Arial,sans-serif;color:#0f172a;padding:30px;max-width:900px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #f59e0b;padding-bottom:14px;margin-bottom:20px;">
+        <div>
+          <div style="font-size:22px;font-weight:800;">Raport Vizită Șantier</div>
+          <div style="font-size:12px;color:#64748b;">Smart House Color SRL</div>
+        </div>
+        <div style="text-align:right;font-size:11px;color:#64748b;">
+          ${v.date?new Date(v.date).toLocaleDateString('ro-RO'):''}<br>Vizitat de: ${v.createdBy||''}
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:12.5px;">
+        <tr><td style="padding:5px 0;color:#64748b;width:150px;">Client</td><td style="font-weight:700;">${v.client||'—'}</td></tr>
+        <tr><td style="padding:5px 0;color:#64748b;">Adresă</td><td>${v.address||'—'}</td></tr>
+        <tr><td style="padding:5px 0;color:#64748b;">GPS</td><td>${v.gps||'—'}</td></tr>
+        <tr><td style="padding:5px 0;color:#64748b;">Tip amplasare</td><td>${v.tipAmplasare==='sol'?'Sol':'Acoperiș clădire'}</td></tr>
+        <tr><td style="padding:5px 0;color:#64748b;">Capacitate PV</td><td>${v.kwp||'—'} kWp · ${v.numPanouri||'—'} panouri</td></tr>
+        <tr><td style="padding:5px 0;color:#64748b;">Capacitate BESS</td><td>${v.kwh||'—'} kWh · ${v.numBaterii||'—'} baterii</td></tr>
+        <tr><td style="padding:5px 0;color:#64748b;">Acoperiș / teren</td><td>${v.tipAcoperis||'—'}</td></tr>
+        <tr><td style="padding:5px 0;color:#64748b;">Orientare</td><td>${v.orientare||'—'}</td></tr>
+        <tr><td style="padding:5px 0;color:#64748b;">Umbrire</td><td>${v.umbrire||'—'}</td></tr>
+      </table>
+      ${v.notes?`<div style="margin-bottom:20px;"><div style="font-weight:700;font-size:12px;margin-bottom:6px;">Note</div><div style="font-size:12px;color:#334155;">${v.notes}</div></div>`:''}
+      <div style="font-weight:700;font-size:13px;margin-bottom:8px;">Schiță amplasament</div>
+      ${sketchHtml}
+      ${photoHtml?`<div style="font-weight:700;font-size:13px;margin-bottom:8px;">Poze de la fața locului</div><div style="display:flex;gap:8px;flex-wrap:wrap;">${photoHtml}</div>`:''}
+    </div>`;
+  window.print();
+});
+
+// ── BOOT ──
+populateLoginUsers();
+loadFirebase();
+</script>
+</body>
+</html>
