@@ -188,19 +188,19 @@ a:hover{color:#fbbf24;}
     <!-- TAB: EXPORT -->
     <div id="tab-export" class="tab-panel" style="display:none;">
       <div class="card" style="max-width:480px;">
-        <div class="section-title">Export lunar (CSV)</div>
+        <div class="section-title">Export perioadă (CSV)</div>
         <div class="field" id="exportUserField" style="display:none;">
           <label>Angajat</label>
           <select id="exportUser"></select>
         </div>
         <div class="row2">
           <div class="field">
-            <label>Lună</label>
-            <select id="exportMonth"></select>
+            <label>De la data</label>
+            <input type="date" id="exportFrom">
           </div>
           <div class="field">
-            <label>An</label>
-            <input type="number" id="exportYear" value="2026">
+            <label>Până la data</label>
+            <input type="date" id="exportTo">
           </div>
         </div>
         <button class="btn" id="btnExportCsv" style="background:#f59e0b;color:#fff;width:100%;padding:10px;font-size:13px;">⬇ Descarcă CSV</button>
@@ -571,18 +571,19 @@ function populateExportUsers(){
   loginUsers.filter(u=>u.id!=='_admin').forEach(u=>{ const o=document.createElement('option'); o.value=u.id; o.textContent=u.name; sel.appendChild(o); });
 }
 function initExportForm(){
-  const monthSel=document.getElementById('exportMonth');
-  monthSel.innerHTML=MONTH_NAMES.map((m,i)=>'<option value="'+i+'"'+(i===new Date().getMonth()?' selected':'')+'>'+m+'</option>').join('');
-  document.getElementById('exportYear').value=new Date().getFullYear();
+  const today=new Date();
+  const first=new Date(today.getFullYear(),today.getMonth(),1);
+  document.getElementById('exportFrom').value=first.toISOString().slice(0,10);
+  document.getElementById('exportTo').value=today.toISOString().slice(0,10);
   if(currentUser) document.getElementById('exportUser').value=currentUser.id;
 }
 document.getElementById('btnExportCsv').addEventListener('click',()=>{
-  const month=parseInt(document.getElementById('exportMonth').value);
-  const year=parseInt(document.getElementById('exportYear').value);
+  const dateFrom=document.getElementById('exportFrom').value;
+  const dateTo=document.getElementById('exportTo').value;
+  if(!dateFrom||!dateTo){ alert('Selectează ambele date (de la / până la).'); return; }
   const targetUserId = isFullAccess() ? document.getElementById('exportUser').value : currentUser.id;
   const u=getUserById(targetUserId);
-  const monthStr=String(month+1).padStart(2,'0');
-  const mine=Object.values(records).filter(r=>r.userId===targetUserId && r.date.startsWith(year+'-'+monthStr));
+  const mine=Object.values(records).filter(r=>r.userId===targetUserId && r.date>=dateFrom && r.date<=dateTo);
   mine.sort((a,b)=>a.date.localeCompare(b.date));
   let csv='Data,Intrare,Ora intrare,Editat,Ieșire,Ora ieșire,Editat,Ore lucrate\n';
   mine.forEach(r=>{
@@ -596,7 +597,7 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download='Pontaj_'+(u?u.name.replace(/\s+/g,'_'):targetUserId)+'_'+MONTH_NAMES[month]+'_'+year+'.csv';
+  a.download='Pontaj_'+(u?u.name.replace(/\s+/g,'_'):targetUserId)+'_'+dateFrom+'_'+dateTo+'.csv';
   a.click();
 });
 
