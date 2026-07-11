@@ -435,6 +435,27 @@ input,select,textarea,button{font-family:inherit;}
             </button>
           </div>
         </sc-if>
+        <!-- Etape șantier -->
+        <div style="border-top:1px solid #f1f5f9;padding-top:18px;margin-top:18px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;">Etape șantier</div>
+            <a href="./Planificare Santier.html" target="_blank" style="font-size:11px;font-weight:600;color:#2563eb;text-decoration:none;">Deschide Gantt →</a>
+          </div>
+          <sc-if value="{{ sel.hasStages }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <sc-for list="{{ sel.stagesSummary }}" as="st" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#334155;">
+                  <div style="width:8px;height:8px;border-radius:50%;background:{{ st.color }};flex-shrink:0;"></div>
+                  <span style="flex:1;">{{ st.label }}</span>
+                  <span style="font-size:11px;color:#94a3b8;">{{ st.dateRange }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ !sel.hasStages }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:12px;color:#94a3b8;font-style:italic;">Fără etape planificate încă. Adaugă din Planificare Șantier.</div>
+          </sc-if>
+        </div>
         <!-- Contract button -->
         <sc-if value="{{ sel.canContract }}" hint-placeholder-val="{{ false }}">
           <div style="border-top:1px solid #f1f5f9;padding-top:18px;margin-top:18px;">
@@ -861,6 +882,20 @@ input,select,textarea,button{font-family:inherit;}
             <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Confirmă parola *</label>
             <input type="password" value="{{ umForm.password2 }}" onChange="{{ onUmPassword2 }}" placeholder="••••••••" style="width:100%;padding:9px 11px;border:1px solid {{ umForm.pw2Border }};border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
           </div>
+          <div style="border-top:1px solid #f1f5f9;padding-top:12px;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:#0f172a;cursor:pointer;margin-bottom:10px;">
+              <input type="checkbox" checked="{{ umForm.isSuperAdmin }}" onChange="{{ onUmSuperAdmin }}" style="width:16px;height:16px;accent-color:#dc2626;"> Acces deplin (SuperAdmin) — vede toate lucrările
+            </label>
+            <sc-if value="{{ umNotSuperAdmin }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Segmente vizibile</div>
+              <div style="display:flex;flex-direction:column;gap:7px;">
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#334155;cursor:pointer;"><input type="checkbox" checked="{{ umForm.segPV }}" onChange="{{ onUmSegPV }}" style="width:15px;height:15px;accent-color:#f59e0b;"> PV (Fotovoltaic)</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#334155;cursor:pointer;"><input type="checkbox" checked="{{ umForm.segInverter }}" onChange="{{ onUmSegInverter }}" style="width:15px;height:15px;accent-color:#3b82f6;"> Inverter</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#334155;cursor:pointer;"><input type="checkbox" checked="{{ umForm.segBaterie }}" onChange="{{ onUmSegBaterie }}" style="width:15px;height:15px;accent-color:#8b5cf6;"> Baterie</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#334155;cursor:pointer;"><input type="checkbox" checked="{{ umForm.segBESS }}" onChange="{{ onUmSegBESS }}" style="width:15px;height:15px;accent-color:#22c55e;"> BESS industrial</label>
+              </div>
+            </sc-if>
+          </div>
           <button onClick="{{ umSaveAdd }}" style="padding:11px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;" style-hover="background:#1d4ed8;">Creează utilizatorul</button>
         </div>
       </sc-if>
@@ -885,6 +920,20 @@ input,select,textarea,button{font-family:inherit;}
           <div>
             <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Confirmă parola nouă</label>
             <input type="password" value="{{ umForm.password2 }}" onChange="{{ onUmPassword2 }}" placeholder="••••••••" style="width:100%;padding:9px 11px;border:1px solid {{ umForm.pw2Border }};border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
+          </div>
+          <div style="border-top:1px solid #f1f5f9;padding-top:12px;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:#0f172a;cursor:pointer;margin-bottom:10px;">
+              <input type="checkbox" checked="{{ umForm.isSuperAdmin }}" onChange="{{ onUmSuperAdmin }}" style="width:16px;height:16px;accent-color:#dc2626;"> Acces deplin (SuperAdmin) — vede toate lucrările
+            </label>
+            <sc-if value="{{ umNotSuperAdmin }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Segmente vizibile</div>
+              <div style="display:flex;flex-direction:column;gap:7px;">
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#334155;cursor:pointer;"><input type="checkbox" checked="{{ umForm.segPV }}" onChange="{{ onUmSegPV }}" style="width:15px;height:15px;accent-color:#f59e0b;"> PV (Fotovoltaic)</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#334155;cursor:pointer;"><input type="checkbox" checked="{{ umForm.segInverter }}" onChange="{{ onUmSegInverter }}" style="width:15px;height:15px;accent-color:#3b82f6;"> Inverter</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#334155;cursor:pointer;"><input type="checkbox" checked="{{ umForm.segBaterie }}" onChange="{{ onUmSegBaterie }}" style="width:15px;height:15px;accent-color:#8b5cf6;"> Baterie</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#334155;cursor:pointer;"><input type="checkbox" checked="{{ umForm.segBESS }}" onChange="{{ onUmSegBESS }}" style="width:15px;height:15px;accent-color:#22c55e;"> BESS industrial</label>
+              </div>
+            </sc-if>
           </div>
           <button onClick="{{ umSaveEdit }}" style="padding:11px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;" style-hover="background:#1d4ed8;">Salvează modificările</button>
         </div>
@@ -996,11 +1045,19 @@ function getDb(){
 const ADMIN_ID = '_admin';
 const ADMIN_DEFAULT_PW = '12345';
 
+const STAGE_TYPE_LABELS = {
+  proiectare:'Proiectare / Avize', aprovizionare:'Aprovizionare echipamente', montaj_pv:'Montaj panouri',
+  montaj_bess:'Montaj invertor / BESS', cablare:'Cablare și tablou electric', comisionare:'Comisionare',
+  racordare:'Racordare la rețea', receptie:'Recepție client'
+};
+const STATUS_STAGE_COLORS = { planificat:'#475569', in_lucru:'#f59e0b', finalizat:'#22c55e', intarziat:'#ef4444' };
+function fmtDateShort(s){ if(!s) return ''; const d=new Date(s+'T00:00:00'); if(isNaN(d)) return ''; return d.toLocaleDateString('ro-RO',{day:'2-digit',month:'short'}); }
+
 const DEFAULT_USERS = [
-  {id:'u_chirila', name:'Alexandru Chirila', role:'Manager', password:'12345', color:'#7c3aed'},
-  {id:'u_dobre', name:'Cristian Dobre', role:'Vânzări', password:'12345', color:'#16a34a'},
-  {id:'u_nicoras', name:'Ionut Nicoras', role:'Administrator', password:'12345', color:'#d97706'},
-  {id:'u_sirb', name:'Beniamin Sirb', role:'Backoffice', password:'12345', color:'#0891b2'},
+  {id:'u_chirila', name:'Alexandru Chirila', role:'Manager', password:'12345', color:'#7c3aed', isSuperAdmin:true, segmente:['PV','Inverter','Baterie','BESS']},
+  {id:'u_dobre', name:'Cristian Dobre', role:'Vânzări', password:'12345', color:'#16a34a', isSuperAdmin:false, segmente:['PV','Inverter','Baterie']},
+  {id:'u_nicoras', name:'Ionut Nicoras', role:'Administrator', password:'12345', color:'#d97706', isSuperAdmin:true, segmente:['PV','Inverter','Baterie','BESS']},
+  {id:'u_sirb', name:'Beniamin Sirb', role:'Backoffice', password:'12345', color:'#0891b2', isSuperAdmin:false, segmente:['PV','Inverter','Baterie']},
 ];
 
 const ADMIN_USER = {
@@ -1036,7 +1093,7 @@ const STATUSES_LIST = ['Lead','Ofertă','Contract','Programat','În execuție','
 const USER_COLORS = ['#2563eb','#16a34a','#7c3aed','#d97706','#0e7490','#9333ea','#c2410c','#0f766e','#b45309','#be185d'];
 const NAV_TYPES = [{key:'all',label:'Toate lucrările',dot:'#94a3b8'},{key:'PV',label:'PV (Fotovoltaic)',dot:'#f59e0b'},{key:'Inverter',label:'Inverter',dot:'#3b82f6'},{key:'Baterie',label:'Baterie',dot:'#8b5cf6'},{key:'BESS',label:'BESS',dot:'#22c55e'}];
 const EMPTY_FORM = {typePV:true,typeInverter:false,typeBaterie:false,typeBESS:false,status:'Lead',client:'',phone:'',email:'',address:'',value:'',responsabil:'',date_start:'',date_executie:'',date_end:'',equipment:'',kwp:'',panels:'',mounting:'acoperiș',prosumator:false,notes:'',bessKwh:'',capexBESS:'',capexSTS:''};
-const EMPTY_UM_FORM = {name:'',role:'Tehnician',password:'',password2:'',oldPw:''};
+const EMPTY_UM_FORM = {name:'',role:'Tehnician',password:'',password2:'',oldPw:'',isSuperAdmin:false,segPV:true,segInverter:true,segBaterie:true,segBESS:false};
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 function initials(name){ return (name||'').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase()||'?'; }
@@ -1254,9 +1311,16 @@ class Component extends DCLogic {
   }
 
   getPreFiltered(){
-    const {projects,filterType,search}=this.state;
+    const {projects,filterType,search,currentUser}=this.state;
     const q=search.trim().toLowerCase();
+    const isSuper = !currentUser || currentUser.isAdmin || currentUser.isSuperAdmin;
+    const allowedSeg = currentUser&&currentUser.segmente ? currentUser.segmente : null;
     return projects.filter(p=>{
+      if(!isSuper&&allowedSeg){
+        const types=p.types||[p.type||''];
+        const visible=types.some(t=>allowedSeg.includes(t));
+        if(!visible) return false;
+      }
       if(filterType!=='all'){ const types=p.types||[p.type||'']; if(!types.includes(filterType))return false; }
       if(q){ const hay=[p.client,p.address,p.equipment,p.responsabil,p.notes].filter(Boolean).join(' ').toLowerCase(); if(!hay.includes(q))return false; }
       return true;
@@ -1429,7 +1493,7 @@ class Component extends DCLogic {
   umGoAdd(){ this.setState({userMgmtMode:'add',editingUserId:null,umForm:{...EMPTY_UM_FORM}}); }
   umGoBack(){ this.setState({userMgmtMode:'list',umForm:{...EMPTY_UM_FORM}}); }
   umChangeAdminPw(){ this.setState({userMgmtMode:'changepw',umForm:{...EMPTY_UM_FORM}}); }
-  umStartEdit(userId){ const u=this.state.users.find(x=>x.id===userId); if(!u)return; this.setState({userMgmtMode:'edit',editingUserId:userId,umForm:{...EMPTY_UM_FORM,name:u.name,role:u.role}}); }
+  umStartEdit(userId){ const u=this.state.users.find(x=>x.id===userId); if(!u)return; const seg=u.segmente||['PV','Inverter','Baterie']; this.setState({userMgmtMode:'edit',editingUserId:userId,umForm:{...EMPTY_UM_FORM,name:u.name,role:u.role,isSuperAdmin:!!u.isSuperAdmin,segPV:seg.includes('PV'),segInverter:seg.includes('Inverter'),segBaterie:seg.includes('Baterie'),segBESS:seg.includes('BESS')}}); }
   setUmForm(k,v){ this.setState(s=>({umForm:{...s.umForm,[k]:v}})); }
 
   umSaveAdd(){
@@ -1438,7 +1502,8 @@ class Component extends DCLogic {
     if(umForm.password.trim().length<4){window.alert('Parola trebuie să aibă minim 4 caractere!');return;}
     if(umForm.password!==umForm.password2){window.alert('Parolele nu coincid!');return;}
     const color=USER_COLORS[users.length%USER_COLORS.length];
-    const user={id:'u'+Date.now(),name:umForm.name.trim(),role:umForm.role,color,password:umForm.password.trim()};
+    const segmente=[umForm.segPV&&'PV',umForm.segInverter&&'Inverter',umForm.segBaterie&&'Baterie',umForm.segBESS&&'BESS'].filter(Boolean);
+    const user={id:'u'+Date.now(),name:umForm.name.trim(),role:umForm.role,color,password:umForm.password.trim(),isSuperAdmin:!!umForm.isSuperAdmin,segmente};
     const newUsers=[...users,user];
     this.setState({users:newUsers,userMgmtMode:'list',umForm:{...EMPTY_UM_FORM}},()=>setTimeout(()=>this.persist(),0));
   }
@@ -1450,7 +1515,8 @@ class Component extends DCLogic {
     if(umForm.password&&umForm.password.trim().length<4){window.alert('Parola trebuie să aibă minim 4 caractere!');return;}
     const newUsers=users.map(u=>{
       if(u.id!==editingUserId)return u;
-      const updated={...u,name:umForm.name.trim(),role:umForm.role};
+      const segmente=[umForm.segPV&&'PV',umForm.segInverter&&'Inverter',umForm.segBaterie&&'Baterie',umForm.segBESS&&'BESS'].filter(Boolean);
+      const updated={...u,name:umForm.name.trim(),role:umForm.role,isSuperAdmin:!!umForm.isSuperAdmin,segmente};
       if(umForm.password.trim())updated.password=umForm.password.trim();
       return updated;
     });
@@ -1475,9 +1541,18 @@ class Component extends DCLogic {
 
   // ─── RENDER ────────────────────────────────────────────────────────────────
   renderVals(){
-    const {view,filterType,filterStatus,search,selectedId,detailTab,showModal,editingId,form,projects,currentUser,users,showUserModal,userModalMode,pwStep,pwInput,statusModal,showUserMgmt,userMgmtMode,editingUserId,umForm,mobileSidebarOpen}=this.state;
+    const {view,filterType,filterStatus,search,selectedId,detailTab,showModal,editingId,form,projects:allProjects,currentUser,users,showUserModal,userModalMode,pwStep,pwInput,statusModal,showUserMgmt,userMgmtMode,editingUserId,umForm,mobileSidebarOpen}=this.state;
+    let projects = allProjects;
 
     const preFiltered=this.getPreFiltered();
+    // Restrict raw `projects` var used below (nav counts, reports) to visible-only for non-superadmin
+    {
+      const isSuper = !currentUser || currentUser.isAdmin || currentUser.isSuperAdmin;
+      if(!isSuper && currentUser && currentUser.segmente){
+        const allowedSeg=currentUser.segmente;
+        projects = projects.filter(p=>{ const types=p.types||[p.type||'']; return types.some(t=>allowedSeg.includes(t)); });
+      }
+    }
     const filtered=this.getFiltered();
     const selected=selectedId!=null?projects.find(p=>p.id===selectedId):null;
     const isAdmin=!!(currentUser&&(currentUser.isAdmin||currentUser.role==='Admin'||currentUser.role==='Administrator'));
@@ -1525,7 +1600,7 @@ class Component extends DCLogic {
     const statusButtons=[]; let auditEntries=[],hasAuditEntries=false,noAuditEntries=true,attachmentItems=[],hasAttachments=false,noAttachments=true;
     if(selected){
       const f=this.fmt(selected); const sc=STATUS_COLORS[selected.status]||STATUS_COLORS.Lead;
-      sel={...selected,...f,phone:selected.phone||'—',email:selected.email||'—',responsabil:selected.responsabil||'—',date_start:fmtDate(selected.date_start)||'—',date_executie:fmtDate(selected.date_executie)||'—',date_end:fmtDate(selected.date_end)||'—',statusBg:sc.statusBg,statusColor:sc.statusColor,isPV:(selected.types||[]).includes('PV'),hasEquipment:!!(selected.equipment&&selected.equipment.trim()),hasNotes:!!(selected.notes&&selected.notes.trim()),prosumatorText:selected.prosumator?'Da ✓':'Nu',kwp:selected.kwp!=null?String(selected.kwp):'—',panels:selected.panels!=null?String(selected.panels):'—',mounting:selected.mounting||'—',typeBadges:(selected.types||[]).map(t=>({label:t,bg:(TYPE_COLORS[t]||{}).bg||'#f1f5f9',color:(TYPE_COLORS[t]||{}).color||'#475569'})),canContract:CONTRACT_STATUSES.includes(selected.status),hasBESS:(selected.types||[]).includes('BESS'),bessKwhDisplay:selected.bessKwh!=null?String(selected.bessKwh)+' kWh':'—'};
+      sel={...selected,...f,phone:selected.phone||'—',email:selected.email||'—',responsabil:selected.responsabil||'—',date_start:fmtDate(selected.date_start)||'—',date_executie:fmtDate(selected.date_executie)||'—',date_end:fmtDate(selected.date_end)||'—',statusBg:sc.statusBg,statusColor:sc.statusColor,isPV:(selected.types||[]).includes('PV'),hasEquipment:!!(selected.equipment&&selected.equipment.trim()),hasNotes:!!(selected.notes&&selected.notes.trim()),prosumatorText:selected.prosumator?'Da ✓':'Nu',kwp:selected.kwp!=null?String(selected.kwp):'—',panels:selected.panels!=null?String(selected.panels):'—',mounting:selected.mounting||'—',typeBadges:(selected.types||[]).map(t=>({label:t,bg:(TYPE_COLORS[t]||{}).bg||'#f1f5f9',color:(TYPE_COLORS[t]||{}).color||'#475569'})),canContract:CONTRACT_STATUSES.includes(selected.status),hasBESS:(selected.types||[]).includes('BESS'),bessKwhDisplay:selected.bessKwh!=null?String(selected.bessKwh)+' kWh':'—',hasStages:!!(selected.stages&&selected.stages.length),stagesSummary:(selected.stages||[]).map(s=>({label:STAGE_TYPE_LABELS[s.type]||s.type,color:STATUS_STAGE_COLORS[s.status]||'#475569',dateRange:(s.startDate&&s.endDate)?(fmtDateShort(s.startDate)+' – '+fmtDateShort(s.endDate)):''}))};
       (STATUS_NEXT[selected.status]||[]).forEach(ns=>{const sid=selected.id;statusButtons.push({label:'→ '+ns,onClick:()=>this.openStatusModal(sid,ns)});});
       auditEntries=[...(selected.auditLog||[])].reverse().slice(0,30).map(e=>({...e,userInitials:initials(e.userName||'?'),userColor:e.userColor||'#94a3b8',hasReason:!!(e.reason&&e.reason.trim()),timeAgo:timeAgo(e.timestamp)}));
       hasAuditEntries=auditEntries.length>0; noAuditEntries=!hasAuditEntries;
@@ -1707,6 +1782,12 @@ class Component extends DCLogic {
       umChangeAdminPw:()=>this.umChangeAdminPw(),
       umSaveAdd:()=>this.umSaveAdd(),umSaveEdit:()=>this.umSaveEdit(),umSaveAdminPw:()=>this.umSaveAdminPw(),
       onUmName:e=>this.setUmForm('name',e.target.value),onUmRole:e=>this.setUmForm('role',e.target.value),
+      onUmSuperAdmin:e=>this.setUmForm('isSuperAdmin',e.target.checked),
+      onUmSegPV:e=>this.setUmForm('segPV',e.target.checked),
+      onUmSegInverter:e=>this.setUmForm('segInverter',e.target.checked),
+      onUmSegBaterie:e=>this.setUmForm('segBaterie',e.target.checked),
+      onUmSegBESS:e=>this.setUmForm('segBESS',e.target.checked),
+      umNotSuperAdmin:!umForm.isSuperAdmin,
       onUmPassword:e=>this.setUmForm('password',e.target.value),onUmPassword2:e=>this.setUmForm('password2',e.target.value),
       onUmOldPw:e=>this.setUmForm('oldPw',e.target.value),
     };
