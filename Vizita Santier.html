@@ -156,6 +156,9 @@ a:hover{color:#93c5fd;}
         <button class="btn btn-green" id="btnNewVisit" style="width:100%;font-size:12px;">+ Vizită nouă</button>
       </div>
       <div id="visitList"></div>
+      <div style="height:32px;flex-shrink:0;position:relative;overflow:hidden;border-top:1px solid #1e3a5f;">
+        <canvas id="sidebarParticleCanvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+      </div>
     </div>
 
     <div id="main">
@@ -375,6 +378,7 @@ function doLogin(){
   const av=document.getElementById('userAvatar');
   av.style.background=u.color||'#3b82f6'; av.textContent=initials(u.name);
   document.getElementById('userName').textContent=u.name;
+  startSidebarParticles();
   resizeCanvas();
 }
 document.getElementById('btnLogin').addEventListener('click',doLogin);
@@ -946,6 +950,39 @@ document.getElementById('sidebarBackdrop').addEventListener('click',()=>{
 document.getElementById('visitList').addEventListener('click',()=>{
   if(window.innerWidth<=768){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarBackdrop').style.display='none'; }
 });
+function startSidebarParticles(){
+  const canvas=document.getElementById('sidebarParticleCanvas');
+  if(!canvas||canvas._started) return; canvas._started=true;
+  const ctx=canvas.getContext('2d');
+  let W,H,particles=[];
+  function resize(){ const r=canvas.parentElement.getBoundingClientRect(); W=canvas.width=Math.max(r.width||220,50); H=canvas.height=32; }
+  function mkParticle(){
+    return { x:Math.random()*W, y:Math.random()*H, z:Math.random()*400+50, vz:-(Math.random()*0.3+0.05),
+      color:['#3b82f6','#f59e0b','#10b981','#8b5cf6','#06b6d4','#f97316','#ec4899'][Math.floor(Math.random()*7)],
+      pulse:Math.random()*Math.PI*2, pulseSpeed:Math.random()*0.015+0.005 };
+  }
+  function init(){ resize(); particles=[]; for(let i=0;i<40;i++) particles.push(mkParticle()); }
+  function project(p){ const fov=400; const scale=fov/(fov+p.z); return { x:W/2+(p.x-W/2)*scale, y:H/2+(p.y-H/2)*scale, r:Math.max(0.5,(8-p.z/100)*scale*2) }; }
+  function draw(){
+    if(!document.body.contains(canvas)) return;
+    ctx.clearRect(0,0,W,H);
+    particles.sort((a,b)=>b.z-a.z);
+    particles.forEach(p=>{
+      p.z+=p.vz*2; p.pulse+=p.pulseSpeed;
+      if(p.z<50||p.z>450){ Object.assign(p,mkParticle(),{z:420}); return; }
+      const {x,y,r}=project(p);
+      const pulseMod=1+Math.sin(p.pulse)*0.2;
+      const rr=Math.min(r*pulseMod,1.5);
+      const g=ctx.createRadialGradient(x,y,0,x,y,rr*2.5);
+      g.addColorStop(0,p.color+'cc'); g.addColorStop(0.5,p.color+'33'); g.addColorStop(1,'transparent');
+      ctx.beginPath(); ctx.arc(x,y,rr*2.5,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+      ctx.beginPath(); ctx.arc(x,y,rr,0,Math.PI*2); ctx.fillStyle=p.color; ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  init(); draw();
+  window.addEventListener('resize',resize);
+}
 populateLoginUsers();
 loadFirebase();
 </script>
