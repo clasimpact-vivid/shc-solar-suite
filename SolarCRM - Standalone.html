@@ -869,6 +869,10 @@ input,select,textarea,button{font-family:inherit;}
             <input value="{{ umForm.name }}" onChange="{{ onUmName }}" placeholder="Ex: Mihai Dinescu" style="width:100%;padding:9px 11px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
           </div>
           <div>
+            <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Email (pentru notificări)</label>
+            <input type="email" value="{{ umForm.email }}" onChange="{{ onUmEmail }}" placeholder="nume@shc-group.ro" style="width:100%;padding:9px 11px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
+          </div>
+          <div>
             <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Rol</label>
             <select value="{{ umForm.role }}" onChange="{{ onUmRole }}" style="width:100%;padding:9px 11px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;cursor:pointer;">
               <option value="Tehnician">Tehnician</option><option value="Vânzări">Vânzări</option><option value="Backoffice">Backoffice</option><option value="Manager">Manager</option><option value="Administrator">Administrator</option>
@@ -896,6 +900,15 @@ input,select,textarea,button{font-family:inherit;}
               </div>
             </sc-if>
           </div>
+          <div style="border-top:1px solid #f1f5f9;padding-top:12px;">
+            <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Notificări email zilnice</div>
+            <div style="display:flex;flex-direction:column;gap:7px;">
+              <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#334155;cursor:pointer;"><input type="checkbox" checked="{{ umForm.notifSolarCRM }}" onChange="{{ onUmNotifCRM }}" style="width:15px;height:15px;accent-color:#f59e0b;"> SolarCRM (proiectele mele)</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#334155;cursor:pointer;"><input type="checkbox" checked="{{ umForm.notifPlanificare }}" onChange="{{ onUmNotifPlan }}" style="width:15px;height:15px;accent-color:#f59e0b;"> Planificare Șantier</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#334155;cursor:pointer;"><input type="checkbox" checked="{{ umForm.notifVizita }}" onChange="{{ onUmNotifViz }}" style="width:15px;height:15px;accent-color:#f59e0b;"> Vizită Șantier</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#334155;cursor:pointer;"><input type="checkbox" checked="{{ umForm.notifPontaj }}" onChange="{{ onUmNotifPontaj }}" style="width:15px;height:15px;accent-color:#f59e0b;"> Pontaj</label>
+            </div>
+          </div>
           <button onClick="{{ umSaveAdd }}" style="padding:11px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;" style-hover="background:#1d4ed8;">Creează utilizatorul</button>
         </div>
       </sc-if>
@@ -906,6 +919,10 @@ input,select,textarea,button{font-family:inherit;}
           <div>
             <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Nume *</label>
             <input value="{{ umForm.name }}" onChange="{{ onUmName }}" style="width:100%;padding:9px 11px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Email (pentru notificări)</label>
+            <input type="email" value="{{ umForm.email }}" onChange="{{ onUmEmail }}" placeholder="nume@shc-group.ro" style="width:100%;padding:9px 11px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
           </div>
           <div>
             <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Rol</label>
@@ -934,6 +951,15 @@ input,select,textarea,button{font-family:inherit;}
                 <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#334155;cursor:pointer;"><input type="checkbox" checked="{{ umForm.segBESS }}" onChange="{{ onUmSegBESS }}" style="width:15px;height:15px;accent-color:#22c55e;"> BESS industrial</label>
               </div>
             </sc-if>
+          </div>
+          <div style="border-top:1px solid #f1f5f9;padding-top:12px;">
+            <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Notificări email zilnice</div>
+            <div style="display:flex;flex-direction:column;gap:7px;">
+              <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#334155;cursor:pointer;"><input type="checkbox" checked="{{ umForm.notifSolarCRM }}" onChange="{{ onUmNotifCRM }}" style="width:15px;height:15px;accent-color:#f59e0b;"> SolarCRM (proiectele mele)</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#334155;cursor:pointer;"><input type="checkbox" checked="{{ umForm.notifPlanificare }}" onChange="{{ onUmNotifPlan }}" style="width:15px;height:15px;accent-color:#f59e0b;"> Planificare Șantier</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#334155;cursor:pointer;"><input type="checkbox" checked="{{ umForm.notifVizita }}" onChange="{{ onUmNotifViz }}" style="width:15px;height:15px;accent-color:#f59e0b;"> Vizită Șantier</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#334155;cursor:pointer;"><input type="checkbox" checked="{{ umForm.notifPontaj }}" onChange="{{ onUmNotifPontaj }}" style="width:15px;height:15px;accent-color:#f59e0b;"> Pontaj</label>
+            </div>
           </div>
           <button onClick="{{ umSaveEdit }}" style="padding:11px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;" style-hover="background:#1d4ed8;">Salvează modificările</button>
         </div>
@@ -1093,7 +1119,7 @@ const STATUSES_LIST = ['Lead','Ofertă','Contract','Programat','În execuție','
 const USER_COLORS = ['#2563eb','#16a34a','#7c3aed','#d97706','#0e7490','#9333ea','#c2410c','#0f766e','#b45309','#be185d'];
 const NAV_TYPES = [{key:'all',label:'Toate lucrările',dot:'#94a3b8'},{key:'PV',label:'PV (Fotovoltaic)',dot:'#f59e0b'},{key:'Inverter',label:'Inverter',dot:'#3b82f6'},{key:'Baterie',label:'Baterie',dot:'#8b5cf6'},{key:'BESS',label:'BESS',dot:'#22c55e'}];
 const EMPTY_FORM = {typePV:true,typeInverter:false,typeBaterie:false,typeBESS:false,status:'Lead',client:'',phone:'',email:'',address:'',value:'',responsabil:'',date_start:'',date_executie:'',date_end:'',equipment:'',kwp:'',panels:'',mounting:'acoperiș',prosumator:false,notes:'',bessKwh:'',capexBESS:'',capexSTS:''};
-const EMPTY_UM_FORM = {name:'',role:'Tehnician',password:'',password2:'',oldPw:'',isSuperAdmin:false,segPV:true,segInverter:true,segBaterie:true,segBESS:false};
+const EMPTY_UM_FORM = {name:'',email:'',role:'Tehnician',password:'',password2:'',oldPw:'',isSuperAdmin:false,segPV:true,segInverter:true,segBaterie:true,segBESS:false,notifSolarCRM:true,notifPlanificare:false,notifVizita:false,notifPontaj:false};
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 function initials(name){ return (name||'').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase()||'?'; }
@@ -1493,7 +1519,7 @@ class Component extends DCLogic {
   umGoAdd(){ this.setState({userMgmtMode:'add',editingUserId:null,umForm:{...EMPTY_UM_FORM}}); }
   umGoBack(){ this.setState({userMgmtMode:'list',umForm:{...EMPTY_UM_FORM}}); }
   umChangeAdminPw(){ this.setState({userMgmtMode:'changepw',umForm:{...EMPTY_UM_FORM}}); }
-  umStartEdit(userId){ const u=this.state.users.find(x=>x.id===userId); if(!u)return; const seg=u.segmente||['PV','Inverter','Baterie']; this.setState({userMgmtMode:'edit',editingUserId:userId,umForm:{...EMPTY_UM_FORM,name:u.name,role:u.role,isSuperAdmin:!!u.isSuperAdmin,segPV:seg.includes('PV'),segInverter:seg.includes('Inverter'),segBaterie:seg.includes('Baterie'),segBESS:seg.includes('BESS')}}); }
+  umStartEdit(userId){ const u=this.state.users.find(x=>x.id===userId); if(!u)return; const seg=u.segmente||['PV','Inverter','Baterie']; const nf=u.notif||{}; this.setState({userMgmtMode:'edit',editingUserId:userId,umForm:{...EMPTY_UM_FORM,name:u.name,email:u.email||'',role:u.role,isSuperAdmin:!!u.isSuperAdmin,segPV:seg.includes('PV'),segInverter:seg.includes('Inverter'),segBaterie:seg.includes('Baterie'),segBESS:seg.includes('BESS'),notifSolarCRM:nf.solarcrm!==false,notifPlanificare:!!nf.planificare,notifVizita:!!nf.vizita,notifPontaj:!!nf.pontaj}}); }
   setUmForm(k,v){ this.setState(s=>({umForm:{...s.umForm,[k]:v}})); }
 
   umSaveAdd(){
@@ -1503,7 +1529,8 @@ class Component extends DCLogic {
     if(umForm.password!==umForm.password2){window.alert('Parolele nu coincid!');return;}
     const color=USER_COLORS[users.length%USER_COLORS.length];
     const segmente=[umForm.segPV&&'PV',umForm.segInverter&&'Inverter',umForm.segBaterie&&'Baterie',umForm.segBESS&&'BESS'].filter(Boolean);
-    const user={id:'u'+Date.now(),name:umForm.name.trim(),role:umForm.role,color,password:umForm.password.trim(),isSuperAdmin:!!umForm.isSuperAdmin,segmente};
+    const notif={solarcrm:!!umForm.notifSolarCRM,planificare:!!umForm.notifPlanificare,vizita:!!umForm.notifVizita,pontaj:!!umForm.notifPontaj};
+    const user={id:'u'+Date.now(),name:umForm.name.trim(),email:umForm.email.trim(),role:umForm.role,color,password:umForm.password.trim(),isSuperAdmin:!!umForm.isSuperAdmin,segmente,notif};
     const newUsers=[...users,user];
     this.setState({users:newUsers,userMgmtMode:'list',umForm:{...EMPTY_UM_FORM}},()=>setTimeout(()=>this.persist(),0));
   }
@@ -1516,7 +1543,8 @@ class Component extends DCLogic {
     const newUsers=users.map(u=>{
       if(u.id!==editingUserId)return u;
       const segmente=[umForm.segPV&&'PV',umForm.segInverter&&'Inverter',umForm.segBaterie&&'Baterie',umForm.segBESS&&'BESS'].filter(Boolean);
-      const updated={...u,name:umForm.name.trim(),role:umForm.role,isSuperAdmin:!!umForm.isSuperAdmin,segmente};
+      const notif={solarcrm:!!umForm.notifSolarCRM,planificare:!!umForm.notifPlanificare,vizita:!!umForm.notifVizita,pontaj:!!umForm.notifPontaj};
+      const updated={...u,name:umForm.name.trim(),email:umForm.email.trim(),role:umForm.role,isSuperAdmin:!!umForm.isSuperAdmin,segmente,notif};
       if(umForm.password.trim())updated.password=umForm.password.trim();
       return updated;
     });
@@ -1785,6 +1813,11 @@ class Component extends DCLogic {
       umChangeAdminPw:()=>this.umChangeAdminPw(),
       umSaveAdd:()=>this.umSaveAdd(),umSaveEdit:()=>this.umSaveEdit(),umSaveAdminPw:()=>this.umSaveAdminPw(),
       onUmName:e=>this.setUmForm('name',e.target.value),onUmRole:e=>this.setUmForm('role',e.target.value),
+      onUmEmail:e=>this.setUmForm('email',e.target.value),
+      onUmNotifCRM:e=>this.setUmForm('notifSolarCRM',e.target.checked),
+      onUmNotifPlan:e=>this.setUmForm('notifPlanificare',e.target.checked),
+      onUmNotifViz:e=>this.setUmForm('notifVizita',e.target.checked),
+      onUmNotifPontaj:e=>this.setUmForm('notifPontaj',e.target.checked),
       onUmSuperAdmin:e=>this.setUmForm('isSuperAdmin',e.target.checked),
       onUmSegPV:e=>this.setUmForm('segPV',e.target.checked),
       onUmSegInverter:e=>this.setUmForm('segInverter',e.target.checked),
