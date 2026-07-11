@@ -1,4 +1,3 @@
-[README.md](https://github.com/user-attachments/files/29927415/README.md)
 # SHC Solar Suite
 
 Suită internă de aplicații pentru Smart House Color — CRM, oferte, planificare șantier și vizite tehnice. Toate sincronizate live prin Firebase.
@@ -12,6 +11,7 @@ Suită internă de aplicații pentru Smart House Color — CRM, oferte, planific
 | **Calculator Oferte PV-BESS** | `Calculator Oferte PV-BESS.html` | Oferte tehnico-economice, cash-flow, export PDF |
 | **Planificare Șantier** | `Planificare Santier.html` | Gantt cu etape, responsabili, alerte |
 | **Vizită Șantier** | `Vizita Santier.html` | Schițe amplasament, poze, date tehnice de la fața locului |
+| **Pontaj** | `Pontaj.html` | Check-in/out cu GPS, listă zilnică echipă, hartă live, export CSV lunar |
 
 Link live: `https://clasimpact-vivid.github.io/shc-solar-suite/`
 
