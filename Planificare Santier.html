@@ -22,7 +22,20 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',system-ui,sans-serif
 /* ── App layout ── */
 #app{display:none;height:100vh;flex-direction:column;}
 #topBar{background:#0d1b2e;border-bottom:1px solid #1e3a5f;padding:0 18px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px;}
-#layout{display:flex;flex:1;overflow:hidden;}
+#layout{display:flex;flex:1;overflow:hidden;position:relative;}
+.hamburger{display:none;}
+.sidebar-backdrop{display:none;}
+.sidebar-backdrop.show{display:block;}
+@media(max-width:768px){
+  #sidebar{position:fixed!important;left:0;top:0;height:100%!important;z-index:300;transform:translateX(-105%);transition:transform .25s cubic-bezier(.16,1,.3,1);width:82vw!important;max-width:300px;}
+  #sidebar.open{transform:translateX(0);}
+  .sidebar-backdrop{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:290;}
+  .hamburger{display:flex!important;align-items:center;justify-content:center;width:34px;height:34px;border:1px solid #334155;border-radius:8px;background:transparent;cursor:pointer;flex:none;color:#94a3b8;}
+  #topBar{padding:0 10px!important;gap:6px!important;}
+  #ganttControls{padding:8px 8px!important;gap:6px!important;}
+  #viewLabel{min-width:0!important;font-size:11px!important;}
+  #userName{display:none;}
+}
 
 /* ── Sidebar ── */
 #sidebar{width:256px;background:#0d1b2e;border-right:1px solid #1e3a5f;display:flex;flex-direction:column;flex-shrink:0;}
@@ -127,6 +140,9 @@ a:hover{color:#93c5fd;}
   <!-- Top bar -->
   <div id="topBar">
     <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+      <button class="hamburger" id="btnHamburger" aria-label="Meniu">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
       <div style="width:32px;height:32px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:8px;display:flex;align-items:center;justify-content:center;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       </div>
@@ -149,6 +165,7 @@ a:hover{color:#93c5fd;}
 
   <!-- Layout -->
   <div id="layout">
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
     <!-- Sidebar -->
     <div id="sidebar">
@@ -965,6 +982,18 @@ updateClock();
 setInterval(updateClock,1000);
 
 // ── BOOT ──
+document.getElementById('btnHamburger').addEventListener('click',()=>{
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarBackdrop').classList.add('show');
+  document.getElementById('sidebarBackdrop').style.display='block';
+});
+document.getElementById('sidebarBackdrop').addEventListener('click',()=>{
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarBackdrop').style.display='none';
+});
+document.getElementById('projectList').addEventListener('click',()=>{
+  if(window.innerWidth<=768){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarBackdrop').style.display='none'; }
+});
 populateLoginUsers();
 loadFirebase();
 </script>
