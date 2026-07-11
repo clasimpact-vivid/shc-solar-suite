@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pontaj — SHC Solar Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;font-family:'DM Sans',system-ui,sans-serif;background:#090f1c;color:#e2e8f0;}
+#loginOverlay{position:fixed;inset:0;z-index:9999;background:#090f1c;display:flex;align-items:center;justify-content:center;}
+.login-card{background:#111827;border:1px solid #1e3a5f;border-radius:16px;padding:36px 32px;width:380px;max-width:92vw;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+.form-select,.form-input{width:100%;padding:10px 13px;border:1.5px solid #334155;border-radius:10px;font-size:14px;font-family:inherit;background:#1e293b;color:#f1f5f9;outline:none;}
+.form-select:focus,.form-input:focus{border-color:#f59e0b;}
+.btn-login{width:100%;padding:12px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:0;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+.btn-login:hover{opacity:.9;}
+
+#app{display:none;height:100vh;flex-direction:column;}
+#topBar{background:#0d1b2e;border-bottom:1px solid #1e3a5f;padding:0 18px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px;}
+#tabBar{background:#0d1b2e;border-bottom:1px solid #1e3a5f;padding:0 18px;display:flex;gap:4px;flex-shrink:0;overflow-x:auto;}
+#tabBar button{padding:11px 16px;background:transparent;border:none;color:#64748b;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;font-family:inherit;}
+#tabBar button.active{color:#f59e0b;border-bottom-color:#f59e0b;}
+#main{flex:1;overflow-y:auto;padding:24px;}
+
+.btn{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;border:1px solid transparent;transition:opacity .15s;}
+.btn:hover{opacity:.85;}
+.btn-ghost{background:transparent;color:#94a3b8;border-color:#334155;}
+.btn-sm{padding:5px 10px;font-size:11px;}
+
+.card{background:#111d35;border:1px solid #1e293b;border-radius:14px;padding:22px;margin-bottom:18px;}
+.section-title{font-size:13px;font-weight:800;color:#f1f5f9;margin-bottom:14px;}
+
+/* Check-in card */
+.checkin-btn{width:100%;padding:26px;border-radius:16px;border:none;font-size:20px;font-weight:800;cursor:pointer;font-family:inherit;color:#fff;display:flex;align-items:center;justify-content:center;gap:12px;transition:transform .1s;}
+.checkin-btn:active{transform:scale(.98);}
+.checkin-in{background:linear-gradient(135deg,#16a34a,#15803d);}
+.checkin-out{background:linear-gradient(135deg,#dc2626,#b91c1c);}
+.checkin-done{background:#1e293b;color:#64748b;cursor:default;}
+
+.status-row{display:flex;gap:16px;margin-top:16px;flex-wrap:wrap;}
+.status-item{flex:1;min-width:140px;background:#0d1b2e;border-radius:10px;padding:14px 16px;}
+.status-label{font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.status-value{font-size:20px;font-weight:800;color:#f1f5f9;}
+.status-sub{font-size:11px;color:#64748b;margin-top:3px;}
+
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+th{text-align:left;padding:9px 10px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #1e293b;}
+td{padding:10px;border-bottom:1px solid #1a2740;color:#cbd5e1;}
+tr:hover td{background:rgba(255,255,255,0.02);}
+
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;}
+.badge-green{background:rgba(34,197,94,.15);color:#4ade80;}
+.badge-amber{background:rgba(245,158,11,.15);color:#fbbf24;}
+.badge-red{background:rgba(239,68,68,.15);color:#f87171;}
+.badge-gray{background:rgba(148,163,184,.15);color:#94a3b8;}
+
+#mapView{width:100%;height:calc(100vh - 200px);border-radius:14px;overflow:hidden;}
+.leaflet-popup-content-wrapper{background:#1e293b;color:#f1f5f9;}
+.leaflet-popup-tip{background:#1e293b;}
+
+.field{margin-bottom:12px;}
+.field label{font-size:10px;font-weight:700;color:#475569;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.field input,.field select,.field textarea{width:100%;padding:9px 11px;border:1.5px solid #334155;border-radius:8px;font-size:13px;font-family:inherit;background:#1e293b;color:#f1f5f9;outline:none;}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:2000;display:none;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal-card{background:#111827;border:1px solid #1e3a5f;border-radius:14px;padding:26px 28px;width:420px;max-width:96vw;}
+.modal-title{font-size:16px;font-weight:800;color:#f1f5f9;margin-bottom:16px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#1e3a5f;border-radius:3px;}
+a{color:#f59e0b;}
+a:hover{color:#fbbf24;}
+</style>
+</head>
+<body>
+
+<div id="loginOverlay">
+  <div class="login-card">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:26px;">
+      <div style="width:40px;height:40px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div>
+        <div style="font-weight:800;font-size:16px;color:#f1f5f9;">Pontaj</div>
+        <div style="font-size:11px;color:#64748b;">Smart House Color · SHC Solar Suite</div>
+      </div>
+    </div>
+    <div class="field"><label style="font-size:11px;font-weight:700;color:#475569;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Utilizator</label>
+      <select id="loginUser" class="form-select"><option value="">— Selectează utilizatorul —</option></select>
+    </div>
+    <div class="field" style="margin-bottom:18px;"><label style="font-size:11px;font-weight:700;color:#475569;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Parolă</label>
+      <input type="password" id="loginPassword" class="form-input" placeholder="••••••••">
+    </div>
+    <button class="btn-login" id="btnLogin">Intră în aplicație →</button>
+    <div id="loginError" style="color:#f87171;font-size:12px;text-align:center;margin-top:10px;min-height:16px;"></div>
+  </div>
+</div>
+
+<div id="app">
+  <div id="topBar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:32px;height:32px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div>
+        <div style="font-size:14px;font-weight:800;color:#f1f5f9;">Pontaj</div>
+        <div style="font-size:10px;color:#475569;">SHC Solar Suite</div>
+      </div>
+      <a href="./index.html" style="margin-left:4px;font-size:11px;color:#475569;text-decoration:none;padding:4px 10px;border:1px solid #1e3a5f;border-radius:6px;">← Suite</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div id="userAvatar" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0;"></div>
+      <span id="userName" style="font-size:12px;font-weight:600;color:#94a3b8;white-space:nowrap;"></span>
+      <button class="btn btn-ghost btn-sm" id="btnLogout">Ieși</button>
+    </div>
+  </div>
+
+  <div id="tabBar">
+    <button class="tab-btn active" data-tab="today">Pontaj azi</button>
+    <button class="tab-btn" data-tab="team" id="tabTeamBtn" style="display:none;">Listă echipă</button>
+    <button class="tab-btn" data-tab="map" id="tabMapBtn" style="display:none;">Hartă live</button>
+    <button class="tab-btn" data-tab="export">Export</button>
+  </div>
+
+  <div id="main">
+
+    <!-- TAB: TODAY -->
+    <div id="tab-today" class="tab-panel">
+      <div class="card">
+        <div class="section-title" id="todayDateLabel">—</div>
+        <button class="checkin-btn checkin-in" id="btnCheckAction">Se încarcă...</button>
+        <div id="gpsStatus" style="font-size:11px;color:#475569;margin-top:10px;text-align:center;"></div>
+        <div class="status-row">
+          <div class="status-item">
+            <div class="status-label">Intrare</div>
+            <div class="status-value" id="statIn">—</div>
+            <div class="status-sub" id="statInLoc">—</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">Ieșire</div>
+            <div class="status-value" id="statOut">—</div>
+            <div class="status-sub" id="statOutLoc">—</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">Ore lucrate azi</div>
+            <div class="status-value" id="statHours">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">Istoricul meu (ultimele 14 zile)</div>
+        <div style="overflow-x:auto"><table id="myHistoryTable"></table></div>
+      </div>
+    </div>
+
+    <!-- TAB: TEAM (Chirila/Nicoras only) -->
+    <div id="tab-team" class="tab-panel" style="display:none;">
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+          <div class="section-title" style="margin:0;">Prezență echipă</div>
+          <input type="date" id="teamDate" class="form-input" style="width:auto;">
+        </div>
+        <div style="overflow-x:auto"><table id="teamTable"></table></div>
+      </div>
+    </div>
+
+    <!-- TAB: MAP -->
+    <div id="tab-map" class="tab-panel" style="display:none;">
+      <div class="card" style="padding:12px;">
+        <div id="mapView"></div>
+      </div>
+    </div>
+
+    <!-- TAB: EXPORT -->
+    <div id="tab-export" class="tab-panel" style="display:none;">
+      <div class="card" style="max-width:480px;">
+        <div class="section-title">Export lunar (CSV)</div>
+        <div class="field" id="exportUserField" style="display:none;">
+          <label>Angajat</label>
+          <select id="exportUser"></select>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>Lună</label>
+            <select id="exportMonth"></select>
+          </div>
+          <div class="field">
+            <label>An</label>
+            <input type="number" id="exportYear" value="2026">
+          </div>
+        </div>
+        <button class="btn" id="btnExportCsv" style="background:#f59e0b;color:#fff;width:100%;padding:10px;font-size:13px;">⬇ Descarcă CSV</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Manual edit modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-card">
+    <div class="modal-title">Corectează manual</div>
+    <div class="row2">
+      <div class="field"><label>Ora intrare</label><input type="time" id="editInTime"></div>
+      <div class="field"><label>Ora ieșire</label><input type="time" id="editOutTime"></div>
+    </div>
+    <div class="field"><label>Motiv corectare *</label><textarea id="editReason" rows="2" placeholder="ex: am uitat să apăs Intrare la ora 8"></textarea></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;">
+      <button class="btn btn-ghost" id="btnCancelEdit">Anulează</button>
+      <button class="btn" id="btnSaveEdit" style="background:#f59e0b;color:#fff;">Salvează</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+//  SHC PONTAJ
+// ═══════════════════════════════════════════════════════════
+
+const FB_CONFIG = {
+  apiKey: "AIzaSyBVElgXbEabUcwjNMa27IEw0YkxaEaXYl0",
+  authDomain: "solarcrm-ba919.firebaseapp.com",
+  databaseURL: "https://solarcrm-ba919-default-rtdb.firebaseio.com",
+  projectId: "solarcrm-ba919",
+  storageBucket: "solarcrm-ba919.firebasestorage.app",
+  messagingSenderId: "349523166308",
+  appId: "1:349523166308:web:0533aa1dae74f9a0b3cb71"
+};
+
+const DEFAULT_USERS = [
+  {id:'_admin',    name:'Administrator',    color:'#dc2626', password:'12345'},
+  {id:'u_nicoras', name:'Ionut Nicoras',    color:'#d97706', password:'12345'},
+  {id:'u_chirila', name:'Alexandru Chirila',color:'#7c3aed', password:'12345'},
+  {id:'u_dobre',   name:'Cristian Dobre',   color:'#16a34a', password:'12345'},
+  {id:'u_sirb',    name:'Beniamin Sirb',    color:'#0891b2', password:'12345'},
+];
+const MONTH_NAMES=['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'];
+
+let db=null, currentUser=null, loginUsers=[...DEFAULT_USERS], adminPw='12345';
+let records={}; // id -> record
+let map=null, mapMarkers=[];
+
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function initials(n){ return (n||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase(); }
+function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function nowTime(){ const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function isFullAccess(){ return !!currentUser && (currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'); }
+function getUserById(id){ return loginUsers.find(u=>u.id===id); }
+
+// ── Firebase ──
+try{
+  if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+  db=firebase.database();
+}catch(e){ console.warn('Firebase:',e); }
+
+function loadFirebase(){
+  if(!db){ loadLS(); return; }
+  db.ref('shc_pontaj/records').on('value', snap=>{
+    const raw=snap.val()||{};
+    records={};
+    Object.values(raw).filter(r=>r&&r.id).forEach(r=>{ records[r.id]=r; });
+    renderCurrentTab();
+  });
+  db.ref('solarcrm_v2/config').once('value', snap=>{
+    const cfg=snap.val()||{};
+    if(cfg.users&&Array.isArray(cfg.users)&&cfg.users.length){
+      loginUsers=[{id:'_admin',name:'Administrator',color:'#dc2626',password:cfg.adminPw||'12345'},
+        ...cfg.users.filter(u=>u.id!=='_admin')];
+      // keep Nicoras/Chirila first if present
+      loginUsers.sort((a,b)=>{
+        const order=u=>u.id==='_admin'?0:u.id==='u_nicoras'?1:u.id==='u_chirila'?2:3;
+        return order(a)-order(b);
+      });
+    }
+    if(cfg.adminPw) adminPw=cfg.adminPw;
+    populateLoginUsers();
+    populateExportUsers();
+  });
+}
+function loadLS(){ try{ const r=localStorage.getItem('shc_pontaj'); if(r) records=JSON.parse(r); }catch(e){} renderCurrentTab(); }
+function saveRecord(r){
+  if(!db){ records[r.id]=r; localStorage.setItem('shc_pontaj',JSON.stringify(records)); renderCurrentTab(); return; }
+  db.ref('shc_pontaj/records/'+String(r.id)).set(r);
+}
+
+// ── Login ──
+function populateLoginUsers(){
+  const sel=document.getElementById('loginUser'); const cur=sel.value;
+  sel.innerHTML='<option value="">— Selectează utilizatorul —</option>';
+  loginUsers.forEach(u=>{ const o=document.createElement('option'); o.value=u.id; o.textContent=u.name; sel.appendChild(o); });
+  if(cur) sel.value=cur;
+}
+function doLogin(){
+  const uid2=document.getElementById('loginUser').value;
+  const pw=document.getElementById('loginPassword').value;
+  const err=document.getElementById('loginError');
+  if(!uid2){err.textContent='Selectează un utilizator.';return;}
+  const u=loginUsers.find(x=>x.id===uid2);
+  if(!u){err.textContent='Utilizator negăsit.';return;}
+  const stored=u.id==='_admin'?adminPw:(u.password||'');
+  if(stored&&pw!==stored){err.textContent='Parolă incorectă.';return;}
+  currentUser=u;
+  document.getElementById('loginOverlay').style.display='none';
+  document.getElementById('app').style.display='flex';
+  const av=document.getElementById('userAvatar');
+  av.style.background=u.color||'#f59e0b'; av.textContent=initials(u.name);
+  document.getElementById('userName').textContent=u.name;
+  if(isFullAccess()){
+    document.getElementById('tabTeamBtn').style.display='';
+    document.getElementById('tabMapBtn').style.display='';
+    document.getElementById('exportUserField').style.display='';
+  }
+  populateExportUsers();
+  initExportForm();
+  document.getElementById('todayDateLabel').textContent=new Date().toLocaleDateString('ro-RO',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  renderCurrentTab();
+}
+document.getElementById('btnLogin').addEventListener('click',doLogin);
+document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('btnLogout').addEventListener('click',()=>{
+  currentUser=null;
+  document.getElementById('loginPassword').value='';
+  document.getElementById('loginError').textContent='';
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginOverlay').style.display='flex';
+});
+
+// ── Tabs ──
+let activeTab='today';
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    if(btn.style.display==='none') return;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    activeTab=btn.dataset.tab;
+    document.querySelectorAll('.tab-panel').forEach(p=>p.style.display='none');
+    document.getElementById('tab-'+activeTab).style.display='block';
+    renderCurrentTab();
+    if(activeTab==='map') setTimeout(initMap,50);
+  });
+});
+function renderCurrentTab(){
+  if(!currentUser) return;
+  if(activeTab==='today') renderToday();
+  else if(activeTab==='team') renderTeam();
+  else if(activeTab==='map') renderMap();
+}
+
+// ── GPS ──
+function getGPS(){
+  return new Promise(resolve=>{
+    if(!navigator.geolocation){ resolve(null); return; }
+    navigator.geolocation.getCurrentPosition(
+      pos=>resolve({lat:+pos.coords.latitude.toFixed(6), lng:+pos.coords.longitude.toFixed(6)}),
+      ()=>resolve(null),
+      {enableHighAccuracy:true, timeout:8000}
+    );
+  });
+}
+
+// ── TODAY TAB ──
+function myTodayRecord(){
+  const t=todayISO();
+  return Object.values(records).find(r=>r.userId===currentUser.id && r.date===t);
+}
+function renderToday(){
+  const rec=myTodayRecord();
+  const btn=document.getElementById('btnCheckAction');
+  const gpsStatus=document.getElementById('gpsStatus');
+  gpsStatus.textContent='';
+  if(!rec || !rec.checkIn){
+    btn.className='checkin-btn checkin-in';
+    btn.textContent='● Intrare';
+    btn.onclick=()=>doCheck('in');
+  } else if(!rec.checkOut){
+    btn.className='checkin-btn checkin-out';
+    btn.textContent='■ Ieșire';
+    btn.onclick=()=>doCheck('out');
+  } else {
+    btn.className='checkin-btn checkin-done';
+    btn.textContent='✓ Program încheiat azi';
+    btn.onclick=null;
+  }
+  document.getElementById('statIn').textContent = rec&&rec.checkIn ? rec.checkIn.time + (rec.checkIn.editedManually?' ✎':'') : '—';
+  document.getElementById('statInLoc').textContent = rec&&rec.checkIn&&rec.checkIn.lat ? rec.checkIn.lat.toFixed(3)+', '+rec.checkIn.lng.toFixed(3) : (rec&&rec.checkIn?'fără GPS':'—');
+  document.getElementById('statOut').textContent = rec&&rec.checkOut ? rec.checkOut.time + (rec.checkOut.editedManually?' ✎':'') : '—';
+  document.getElementById('statOutLoc').textContent = rec&&rec.checkOut&&rec.checkOut.lat ? rec.checkOut.lat.toFixed(3)+', '+rec.checkOut.lng.toFixed(3) : (rec&&rec.checkOut?'fără GPS':'—');
+  let hours='—';
+  if(rec&&rec.checkIn&&rec.checkOut){
+    const [h1,m1]=rec.checkIn.time.split(':').map(Number), [h2,m2]=rec.checkOut.time.split(':').map(Number);
+    const mins=(h2*60+m2)-(h1*60+m1);
+    if(mins>=0) hours=(mins/60).toFixed(1)+' h';
+  }
+  document.getElementById('statHours').textContent=hours;
+
+  renderMyHistory();
+}
+async function doCheck(kind){
+  const btn=document.getElementById('btnCheckAction');
+  btn.disabled=true; btn.textContent='Se localizează...';
+  const gps=await getGPS();
+  const t=todayISO();
+  let rec=myTodayRecord();
+  if(!rec){ rec={id:uid(),userId:currentUser.id,userName:currentUser.name,date:t}; }
+  const entry={time:nowTime(), lat:gps?gps.lat:null, lng:gps?gps.lng:null, editedManually:false};
+  if(kind==='in') rec.checkIn=entry; else rec.checkOut=entry;
+  saveRecord(rec);
+  btn.disabled=false;
+  document.getElementById('gpsStatus').textContent = gps ? '📍 Locație înregistrată' : '⚠ GPS indisponibil — s-a înregistrat doar ora';
+}
+function renderMyHistory(){
+  const tbl=document.getElementById('myHistoryTable');
+  const mine=Object.values(records).filter(r=>r.userId===currentUser.id).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,14);
+  if(!mine.length){ tbl.innerHTML='<tr><td style="color:#475569;padding:16px 0;">Niciun pontaj înregistrat încă.</td></tr>'; return; }
+  let html='<thead><tr><th>Data</th><th>Intrare</th><th>Ieșire</th><th>Ore</th></tr></thead><tbody>';
+  mine.forEach(r=>{
+    let hrs='—';
+    if(r.checkIn&&r.checkOut){
+      const [h1,m1]=r.checkIn.time.split(':').map(Number), [h2,m2]=r.checkOut.time.split(':').map(Number);
+      const mins=(h2*60+m2)-(h1*60+m1); if(mins>=0) hrs=(mins/60).toFixed(1)+'h';
+    }
+    html+='<tr><td>'+new Date(r.date+'T00:00:00').toLocaleDateString('ro-RO',{day:'2-digit',month:'2-digit',year:'numeric'})+'</td>'+
+      '<td>'+(r.checkIn?r.checkIn.time+(r.checkIn.editedManually?' <span class="badge badge-amber">editat</span>':''):'—')+'</td>'+
+      '<td>'+(r.checkOut?r.checkOut.time+(r.checkOut.editedManually?' <span class="badge badge-amber">editat</span>':''):'—')+'</td>'+
+      '<td>'+hrs+'</td></tr>';
+  });
+  tbl.innerHTML=html+'</tbody>';
+}
+
+// ── TEAM TAB ──
+document.getElementById('teamDate').value=todayISO();
+document.getElementById('teamDate').addEventListener('input',renderTeam);
+function renderTeam(){
+  if(!isFullAccess()) return;
+  const date=document.getElementById('teamDate').value||todayISO();
+  const tbl=document.getElementById('teamTable');
+  const dayRecs=Object.values(records).filter(r=>r.date===date);
+  const rows=loginUsers.filter(u=>u.id!=='_admin').map(u=>{
+    const r=dayRecs.find(x=>x.userId===u.id);
+    return {u,r};
+  });
+  let html='<thead><tr><th>Coleg</th><th>Intrare</th><th>Locație</th><th>Ieșire</th><th>Locație</th><th>Status</th><th></th></tr></thead><tbody>';
+  rows.forEach(({u,r})=>{
+    const status = !r||!r.checkIn ? '<span class="badge badge-gray">Absent</span>' : !r.checkOut ? '<span class="badge badge-green">Prezent</span>' : '<span class="badge badge-gray">Program încheiat</span>';
+    const locIn = r&&r.checkIn&&r.checkIn.lat ? '<a href="https://www.openstreetmap.org/?mlat='+r.checkIn.lat+'&mlon='+r.checkIn.lng+'#map=16/'+r.checkIn.lat+'/'+r.checkIn.lng+'" target="_blank">hartă</a>' : '—';
+    const locOut = r&&r.checkOut&&r.checkOut.lat ? '<a href="https://www.openstreetmap.org/?mlat='+r.checkOut.lat+'&mlon='+r.checkOut.lng+'#map=16/'+r.checkOut.lat+'/'+r.checkOut.lng+'" target="_blank">hartă</a>' : '—';
+    html+='<tr><td style="display:flex;align-items:center;gap:8px;"><div style="width:20px;height:20px;border-radius:50%;background:'+(u.color||'#f59e0b')+';display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;">'+initials(u.name)+'</div>'+u.name+'</td>'+
+      '<td>'+(r&&r.checkIn?r.checkIn.time+(r.checkIn.editedManually?' <span class="badge badge-amber" title="'+(r.checkIn.editReason||'')+'">editat</span>':''):'—')+'</td>'+
+      '<td>'+locIn+'</td>'+
+      '<td>'+(r&&r.checkOut?r.checkOut.time+(r.checkOut.editedManually?' <span class="badge badge-amber" title="'+(r.checkOut.editReason||'')+'">editat</span>':''):'—')+'</td>'+
+      '<td>'+locOut+'</td>'+
+      '<td>'+status+'</td>'+
+      '<td><button class="btn btn-ghost btn-sm" data-edit-uid="'+u.id+'" data-edit-date="'+date+'">Corectează</button></td></tr>';
+  });
+  tbl.innerHTML=html+'</tbody>';
+  tbl.querySelectorAll('[data-edit-uid]').forEach(btn=>{
+    btn.addEventListener('click',()=>openEditModal(btn.dataset.editUid,btn.dataset.editDate));
+  });
+}
+
+// ── EDIT MODAL ──
+let editingCtx=null;
+function openEditModal(userId,date){
+  editingCtx={userId,date};
+  const rec=Object.values(records).find(r=>r.userId===userId&&r.date===date);
+  document.getElementById('editInTime').value=rec&&rec.checkIn?rec.checkIn.time:'';
+  document.getElementById('editOutTime').value=rec&&rec.checkOut?rec.checkOut.time:'';
+  document.getElementById('editReason').value='';
+  document.getElementById('editModal').classList.add('show');
+}
+document.getElementById('btnCancelEdit').addEventListener('click',()=>document.getElementById('editModal').classList.remove('show'));
+document.getElementById('btnSaveEdit').addEventListener('click',()=>{
+  const reason=document.getElementById('editReason').value.trim();
+  if(!reason){ alert('Motivul corectării este obligatoriu.'); return; }
+  const {userId,date}=editingCtx;
+  let rec=Object.values(records).find(r=>r.userId===userId&&r.date===date);
+  const u=getUserById(userId);
+  if(!rec) rec={id:uid(),userId,userName:u?u.name:'',date};
+  const inT=document.getElementById('editInTime').value;
+  const outT=document.getElementById('editOutTime').value;
+  if(inT) rec.checkIn={...(rec.checkIn||{}),time:inT,editedManually:true,editReason:reason};
+  if(outT) rec.checkOut={...(rec.checkOut||{}),time:outT,editedManually:true,editReason:reason};
+  saveRecord(rec);
+  document.getElementById('editModal').classList.remove('show');
+});
+document.getElementById('editModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});
+
+// ── MAP TAB ──
+function initMap(){
+  if(map) return;
+  map=L.map('mapView').setView([46.1866,21.3123],7);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+  renderMap();
+}
+function renderMap(){
+  if(!map) return;
+  mapMarkers.forEach(m=>map.removeLayer(m)); mapMarkers=[];
+  const date=todayISO();
+  const dayRecs=Object.values(records).filter(r=>r.date===date && (isFullAccess()||r.userId===currentUser.id));
+  const pts=[];
+  dayRecs.forEach(r=>{
+    const u=getUserById(r.userId);
+    const last = r.checkOut&&r.checkOut.lat ? r.checkOut : (r.checkIn&&r.checkIn.lat ? r.checkIn : null);
+    if(!last) return;
+    const marker=L.circleMarker([last.lat,last.lng],{radius:9,color:u?u.color:'#f59e0b',fillColor:u?u.color:'#f59e0b',fillOpacity:0.85,weight:2}).addTo(map);
+    marker.bindPopup('<strong>'+(u?u.name:r.userName)+'</strong><br>Intrare: '+(r.checkIn?r.checkIn.time:'—')+'<br>Ieșire: '+(r.checkOut?r.checkOut.time:'în teren')+'');
+    mapMarkers.push(marker);
+    pts.push([last.lat,last.lng]);
+  });
+  if(pts.length) map.fitBounds(pts,{padding:[40,40],maxZoom:14});
+}
+
+// ── EXPORT TAB ──
+function populateExportUsers(){
+  const sel=document.getElementById('exportUser'); if(!sel) return;
+  sel.innerHTML='';
+  loginUsers.filter(u=>u.id!=='_admin').forEach(u=>{ const o=document.createElement('option'); o.value=u.id; o.textContent=u.name; sel.appendChild(o); });
+}
+function initExportForm(){
+  const monthSel=document.getElementById('exportMonth');
+  monthSel.innerHTML=MONTH_NAMES.map((m,i)=>'<option value="'+i+'"'+(i===new Date().getMonth()?' selected':'')+'>'+m+'</option>').join('');
+  document.getElementById('exportYear').value=new Date().getFullYear();
+  if(currentUser) document.getElementById('exportUser').value=currentUser.id;
+}
+document.getElementById('btnExportCsv').addEventListener('click',()=>{
+  const month=parseInt(document.getElementById('exportMonth').value);
+  const year=parseInt(document.getElementById('exportYear').value);
+  const targetUserId = isFullAccess() ? document.getElementById('exportUser').value : currentUser.id;
+  const u=getUserById(targetUserId);
+  const monthStr=String(month+1).padStart(2,'0');
+  const mine=Object.values(records).filter(r=>r.userId===targetUserId && r.date.startsWith(year+'-'+monthStr));
+  mine.sort((a,b)=>a.date.localeCompare(b.date));
+  let csv='Data,Intrare,Ora intrare,Editat,Ieșire,Ora ieșire,Editat,Ore lucrate\n';
+  mine.forEach(r=>{
+    let hrs='';
+    if(r.checkIn&&r.checkOut){
+      const [h1,m1]=r.checkIn.time.split(':').map(Number), [h2,m2]=r.checkOut.time.split(':').map(Number);
+      const mins=(h2*60+m2)-(h1*60+m1); if(mins>=0) hrs=(mins/60).toFixed(2);
+    }
+    csv+=[r.date, r.checkIn?'Da':'Nu', r.checkIn?r.checkIn.time:'', r.checkIn&&r.checkIn.editedManually?'Da':'Nu', r.checkOut?'Da':'Nu', r.checkOut?r.checkOut.time:'', r.checkOut&&r.checkOut.editedManually?'Da':'Nu', hrs].join(',')+'\n';
+  });
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='Pontaj_'+(u?u.name.replace(/\s+/g,'_'):targetUserId)+'_'+MONTH_NAMES[month]+'_'+year+'.csv';
+  a.click();
+});
+
+// ── BOOT ──
+populateLoginUsers();
+loadFirebase();
+</script>
+</body>
+</html>
