@@ -375,13 +375,29 @@ function renderCurrentTab(){
 }
 
 // ── GPS ──
+// Ia mai multe citiri GPS pe scurt interval și o păstrează pe cea mai precisă
+// (evită poziționarea aproximativă prin IP/WiFi, care poate fi la sute de metri distanță)
 function getGPS(){
   return new Promise(resolve=>{
     if(!navigator.geolocation){ resolve(null); return; }
-    navigator.geolocation.getCurrentPosition(
-      pos=>resolve({lat:+pos.coords.latitude.toFixed(6), lng:+pos.coords.longitude.toFixed(6)}),
-      ()=>resolve(null),
-      {enableHighAccuracy:true, timeout:8000}
+    let best=null;
+    let watchId=null;
+    const finish=()=>{
+      if(watchId!==null) navigator.geolocation.clearWatch(watchId);
+      resolve(best);
+    };
+    const timer=setTimeout(finish, 7000);
+    watchId=navigator.geolocation.watchPosition(
+      pos=>{
+        const acc=pos.coords.accuracy||9999;
+        if(!best || acc<best.accuracy){
+          best={lat:+pos.coords.latitude.toFixed(6), lng:+pos.coords.longitude.toFixed(6), accuracy:Math.round(acc)};
+        }
+        // dacă precizia e deja bună (<25m), nu mai așteptăm restul timpului
+        if(acc<25){ clearTimeout(timer); finish(); }
+      },
+      ()=>{ clearTimeout(timer); finish(); },
+      {enableHighAccuracy:true, timeout:7000, maximumAge:0}
     );
   });
 }
@@ -430,7 +446,7 @@ async function doCheck(kind){
   const t=todayISO();
   let rec=myTodayRecord();
   if(!rec){ rec={id:uid(),userId:currentUser.id,userName:currentUser.name,date:t}; }
-  const entry={time:nowTime(), lat:gps?gps.lat:null, lng:gps?gps.lng:null, editedManually:false, device:getDeviceFingerprint()};
+  const entry={time:nowTime(), lat:gps?gps.lat:null, lng:gps?gps.lng:null, accuracy:gps?gps.accuracy:null, editedManually:false, device:getDeviceFingerprint()};
   if(kind==='in') rec.checkIn=entry; else rec.checkOut=entry;
   saveRecord(rec);
   btn.disabled=false;
@@ -560,8 +576,13 @@ function renderMap(){
     const u=getUserById(r.userId);
     const last = r.checkOut&&r.checkOut.lat ? r.checkOut : (r.checkIn&&r.checkIn.lat ? r.checkIn : null);
     if(!last) return;
+    // cerc de precizie GPS — arată raza de eroare reală a citirii (evită confuzia „pin greșit”)
+    if(last.accuracy){
+      const accCircle=L.circle([last.lat,last.lng],{radius:last.accuracy,color:u?u.color:'#f59e0b',weight:1,fillOpacity:0.08,dashArray:'3,4'}).addTo(map);
+      mapMarkers.push(accCircle);
+    }
     const marker=L.circleMarker([last.lat,last.lng],{radius:9,color:u?u.color:'#f59e0b',fillColor:u?u.color:'#f59e0b',fillOpacity:0.85,weight:2}).addTo(map);
-    marker.bindPopup('<strong>'+(u?u.name:r.userName)+'</strong><br>Intrare: '+(r.checkIn?r.checkIn.time:'—')+'<br>Ieșire: '+(r.checkOut?r.checkOut.time:'în teren')+'');
+    marker.bindPopup('<strong>'+(u?u.name:r.userName)+'</strong><br>Intrare: '+(r.checkIn?r.checkIn.time:'—')+'<br>Ieșire: '+(r.checkOut?r.checkOut.time:'în teren')+(last.accuracy?'<br><span style="color:#94a3b8;font-size:11px;">Precizie GPS: ±'+last.accuracy+'m</span>':''));
     mapMarkers.push(marker);
     pts.push([last.lat,last.lng]);
   });
@@ -647,6 +668,30 @@ function addTimeMask(id){
 }
 addDateMask('teamDate'); addDateMask('exportFrom'); addDateMask('exportTo');
 addTimeMask('editInTime'); addTimeMask('editOutTime');
+function addCalendarPicker(textId){
+  const textEl=document.getElementById(textId);
+  if(!textEl) return;
+  const wrap=document.createElement('span');
+  wrap.style.cssText='position:relative;display:inline-block;';
+  textEl.parentNode.insertBefore(wrap,textEl);
+  wrap.appendChild(textEl);
+  textEl.style.paddingRight='32px';
+  textEl.style.boxSizing='border-box';
+  const hidden=document.createElement('input');
+  hidden.type='date';
+  hidden.tabIndex=-1;
+  hidden.style.cssText='position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;';
+  wrap.appendChild(hidden);
+  const icon=document.createElement('span');
+  icon.textContent='📅';
+  icon.style.cssText='position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;';
+  wrap.appendChild(icon);
+  hidden.addEventListener('click',()=>{ const iso=dmyToIso(textEl.value); hidden.value=iso||''; });
+  hidden.addEventListener('input',()=>{
+    if(hidden.value){ textEl.value=isoToDmy(hidden.value); textEl.dispatchEvent(new Event('input',{bubbles:true})); }
+  });
+}
+addCalendarPicker('teamDate'); addCalendarPicker('exportFrom'); addCalendarPicker('exportTo');
 
 function startSidebarParticles(){
   const canvas=document.getElementById('sidebarParticleCanvas');

@@ -623,15 +623,27 @@ input,select,textarea,button{font-family:inherit;}
         </div>
         <div>
           <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Data contract</label>
-          <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ form.date_start_dmy }}" onChange="{{ onFormDateStart }}" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
+          <div style="position:relative;">
+            <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ form.date_start_dmy }}" onChange="{{ onFormDateStart }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
+            <input type="date" value="{{ form.date_start }}" onChange="{{ onFormDateStartPicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;">
+            <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;">📅</span>
+          </div>
         </div>
         <div>
           <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Data execuției</label>
-          <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ form.date_executie_dmy }}" onChange="{{ onFormDateExec }}" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
+          <div style="position:relative;">
+            <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ form.date_executie_dmy }}" onChange="{{ onFormDateExec }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
+            <input type="date" value="{{ form.date_executie }}" onChange="{{ onFormDateExecPicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;">
+            <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;">📅</span>
+          </div>
         </div>
         <div>
           <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Data finalizare</label>
-          <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ form.date_end_dmy }}" onChange="{{ onFormDateEnd }}" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
+          <div style="position:relative;">
+            <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ form.date_end_dmy }}" onChange="{{ onFormDateEnd }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
+            <input type="date" value="{{ form.date_end }}" onChange="{{ onFormDateEndPicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;">
+            <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;">📅</span>
+          </div>
         </div>
         <div style="grid-column:span 2;">
           <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Echipamente</label>
@@ -1863,6 +1875,9 @@ class Component extends DCLogic {
       onFormDateStart:e=>{ const v=maskDmy(this.state.form.date_start_dmy,e.target.value); this.setState(s=>({form:{...s.form,date_start_dmy:v,date_start:dmyToIso(v)}})); },
       onFormDateExec:e=>{ const v=maskDmy(this.state.form.date_executie_dmy,e.target.value); this.setState(s=>({form:{...s.form,date_executie_dmy:v,date_executie:dmyToIso(v)}})); },
       onFormDateEnd:e=>{ const v=maskDmy(this.state.form.date_end_dmy,e.target.value); this.setState(s=>({form:{...s.form,date_end_dmy:v,date_end:dmyToIso(v)}})); },
+      onFormDateStartPicker:e=>{ const iso=e.target.value; this.setState(s=>({form:{...s.form,date_start:iso,date_start_dmy:isoToDmy(iso)}})); },
+      onFormDateExecPicker:e=>{ const iso=e.target.value; this.setState(s=>({form:{...s.form,date_executie:iso,date_executie_dmy:isoToDmy(iso)}})); },
+      onFormDateEndPicker:e=>{ const iso=e.target.value; this.setState(s=>({form:{...s.form,date_end:iso,date_end_dmy:isoToDmy(iso)}})); },
       onFormEquipment:e=>this.setForm('equipment',e.target.value),
       onFormKwp:e=>this.setForm('kwp',e.target.value),onFormPanels:e=>this.setForm('panels',e.target.value),onFormBessKwh:e=>this.setForm('bessKwh',e.target.value),onFormCapexBESS:e=>this.setForm('capexBESS',e.target.value),onFormCapexSTS:e=>this.setForm('capexSTS',e.target.value),
       onFormMounting:e=>this.setForm('mounting',e.target.value),onFormProsumator:e=>this.setForm('prosumator',e.target.checked),

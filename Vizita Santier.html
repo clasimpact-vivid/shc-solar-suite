@@ -514,7 +514,7 @@ document.getElementById('btnSaveVisit').addEventListener('click',()=>{
   document.getElementById('visitTitleDisplay').textContent=v.address||v.client||'Vizită nouă';
   alert('Vizită salvată!');
 });
-function canDelete(){ return !!currentUser && (currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'); }
+function canDelete(){ return !!currentUser && (currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'||currentUser.role==='Manager'); }
 
 document.getElementById('btnDeleteVisit').addEventListener('click',()=>{
   if(!canDelete()){ alert('Doar Alexandru Chirila și Ionuț Nicoraș pot șterge vizite.'); return; }
@@ -795,7 +795,7 @@ function renderSketchTabs(){
   const wrap=document.getElementById('sketchTabs');
   let html=sketches.map((s,i)=>`<button class="btn ${i===activeSketchIdx?'btn-blue':'btn-ghost'} btn-sm" data-tabidx="${i}" style="padding:5px 12px;">${s.name}</button>`).join('');
   html+=`<button class="btn btn-ghost btn-sm" id="btnAddSketch" style="padding:5px 10px;">+ Schiță</button>`;
-  if(sketches.length>1) html+=`<button class="btn btn-ghost btn-sm" id="btnDelSketch" style="padding:5px 10px;color:#f87171;">✕ Șterge schița</button>`;
+  if(sketches.length>1 && canDelete()) html+=`<button class="btn btn-ghost btn-sm" id="btnDelSketch" style="padding:5px 10px;color:#f87171;">✕ Șterge schița</button>`;
   wrap.innerHTML=html;
   wrap.querySelectorAll('[data-tabidx]').forEach(btn=>{
     btn.addEventListener('click',()=>{
@@ -974,6 +974,31 @@ function addDateMask(id){
   });
 }
 addDateMask('fDate');
+function addCalendarPicker(textId){
+  const textEl=document.getElementById(textId);
+  if(!textEl) return;
+  const wrap=document.createElement('span');
+  wrap.style.cssText='position:relative;display:block;';
+  textEl.parentNode.insertBefore(wrap,textEl);
+  wrap.appendChild(textEl);
+  textEl.style.paddingRight='32px';
+  textEl.style.width='100%';
+  textEl.style.boxSizing='border-box';
+  const hidden=document.createElement('input');
+  hidden.type='date';
+  hidden.tabIndex=-1;
+  hidden.style.cssText='position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;';
+  wrap.appendChild(hidden);
+  const icon=document.createElement('span');
+  icon.textContent='📅';
+  icon.style.cssText='position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;';
+  wrap.appendChild(icon);
+  hidden.addEventListener('click',()=>{ const iso=dmyToIso(textEl.value); hidden.value=iso||''; });
+  hidden.addEventListener('input',()=>{
+    if(hidden.value){ textEl.value=isoToDmy(hidden.value); textEl.dispatchEvent(new Event('input',{bubbles:true})); }
+  });
+}
+addCalendarPicker('fDate');
 
 function startSidebarParticles(){
   const canvas=document.getElementById('sidebarParticleCanvas');
