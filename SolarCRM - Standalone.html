@@ -623,15 +623,15 @@ input,select,textarea,button{font-family:inherit;}
         </div>
         <div>
           <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Data contract</label>
-          <input type="date" value="{{ form.date_start }}" onChange="{{ onFormDateStart }}" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
+          <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ form.date_start_dmy }}" onChange="{{ onFormDateStart }}" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
         </div>
         <div>
           <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Data execuției</label>
-          <input type="date" value="{{ form.date_executie }}" onChange="{{ onFormDateExec }}" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
+          <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ form.date_executie_dmy }}" onChange="{{ onFormDateExec }}" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
         </div>
         <div>
           <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Data finalizare</label>
-          <input type="date" value="{{ form.date_end }}" onChange="{{ onFormDateEnd }}" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
+          <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ form.date_end_dmy }}" onChange="{{ onFormDateEnd }}" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
         </div>
         <div style="grid-column:span 2;">
           <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Echipamente</label>
@@ -1118,6 +1118,17 @@ const STAGE_TYPE_LABELS = {
 };
 const STATUS_STAGE_COLORS = { planificat:'#475569', in_lucru:'#f59e0b', finalizat:'#22c55e', intarziat:'#ef4444' };
 function fmtDateShort(s){ if(!s) return ''; const d=new Date(s+'T00:00:00'); if(isNaN(d)) return ''; return d.toLocaleDateString('ro-RO',{day:'2-digit',month:'short'}); }
+function isoToDmy(s){ if(!s) return ''; const p=s.split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:''; }
+function dmyToIso(s){ if(!s) return ''; const p=s.split('/'); return p.length===3&&p[2].length===4?p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0'):''; }
+function maskDmy(prev,cur){
+  let v=cur.replace(/[^0-9\/]/g,'');
+  if((prev||'').length<cur.length){
+    const digits=v.replace(/\//g,'');
+    v='';
+    for(let i=0;i<Math.min(digits.length,8);i++){ if(i===2||i===4) v+='/'; v+=digits[i]; }
+  }
+  return v.slice(0,10);
+}
 
 const DEFAULT_USERS = [
   {id:'u_nicoras', name:'Ionut Nicoras', role:'Administrator', password:'12345', color:'#d97706', isSuperAdmin:true, segmente:['PV','Inverter','Baterie','BESS']},
@@ -1158,7 +1169,8 @@ const STATUS_NEXT = {Lead:['Ofertă','Anulat'],Ofertă:['Contract','Anulat'],Con
 const STATUSES_LIST = ['Lead','Ofertă','Contract','Programat','În execuție','Finalizat','Service','Anulat'];
 const USER_COLORS = ['#2563eb','#16a34a','#7c3aed','#d97706','#0e7490','#9333ea','#c2410c','#0f766e','#b45309','#be185d'];
 const NAV_TYPES = [{key:'all',label:'Toate lucrările',dot:'#94a3b8'},{key:'PV',label:'PV (Fotovoltaic)',dot:'#f59e0b'},{key:'Inverter',label:'Inverter',dot:'#3b82f6'},{key:'Baterie',label:'Baterie',dot:'#8b5cf6'},{key:'BESS',label:'BESS',dot:'#22c55e'}];
-const EMPTY_FORM = {typePV:true,typeInverter:false,typeBaterie:false,typeBESS:false,status:'Lead',client:'',phone:'',email:'',address:'',value:'',responsabil:'',date_start:'',date_executie:'',date_end:'',equipment:'',kwp:'',panels:'',mounting:'acoperiș',prosumator:false,notes:'',bessKwh:'',capexBESS:'',capexSTS:''};
+const EMPTY_FORM_DMY_FIELDS = {date_start_dmy:'',date_executie_dmy:'',date_end_dmy:''};
+const EMPTY_FORM = {typePV:true,typeInverter:false,typeBaterie:false,typeBESS:false,status:'Lead',client:'',phone:'',email:'',address:'',value:'',responsabil:'',date_start:'',date_executie:'',date_end:'',date_start_dmy:'',date_executie_dmy:'',date_end_dmy:'',equipment:'',kwp:'',panels:'',mounting:'acoperiș',prosumator:false,notes:'',bessKwh:'',capexBESS:'',capexSTS:''};
 const APP_ROLE_TEMPLATES = {
   montator:{appCrm:false,appCalculator:false,appPlanificare:false,appVizita:false,appPontaj:true},
   sefechipa:{appCrm:false,appCalculator:false,appPlanificare:true,appVizita:true,appPontaj:true},
@@ -1788,7 +1800,7 @@ class Component extends DCLogic {
       tableViewBg:tv?'#fff':'transparent',tableViewColor:tv?'#0f172a':'#64748b',tableViewShadow:tv?'0 1px 3px rgba(0,0,0,.1)':'none',
       kanbanViewBg:kv?'#fff':'transparent',kanbanViewColor:kv?'#0f172a':'#64748b',kanbanViewShadow:kv?'0 1px 3px rgba(0,0,0,.1)':'none',
       exportExcel:()=>this.exportExcel(),
-      openAdd:()=>this.setState({showModal:true,editingId:null,form:{...EMPTY_FORM,date_start:new Date().toISOString().slice(0,10)}}),
+      openAdd:()=>{ const iso=new Date().toISOString().slice(0,10); this.setState({showModal:true,editingId:null,form:{...EMPTY_FORM,date_start:iso,date_start_dmy:isoToDmy(iso)}}); },
       isAdmin,
       openUserMgmt:()=>this.openUserMgmt(),
       userColor,userInitials:initials(userName),userName,
@@ -1829,7 +1841,7 @@ class Component extends DCLogic {
       openEdit:()=>{
         if(!selected)return;
         const types=selected.types||[selected.type||'PV'];
-        this.setState({showModal:true,editingId:selected.id,form:{typePV:types.includes('PV'),typeInverter:types.includes('Inverter'),typeBaterie:types.includes('Baterie'),typeBESS:types.includes('BESS'),status:selected.status||'Lead',client:selected.client||'',phone:selected.phone||'',email:selected.email||'',address:selected.address||'',value:selected.value!=null?String(selected.value):'',responsabil:selected.responsabil||'',date_start:selected.date_start||'',date_executie:selected.date_executie||'',date_end:selected.date_end||'',equipment:selected.equipment||'',kwp:selected.kwp!=null?String(selected.kwp):'',panels:selected.panels!=null?String(selected.panels):'',mounting:selected.mounting||'acoperiș',prosumator:!!selected.prosumator,notes:selected.notes||'',bessKwh:selected.bessKwh!=null?String(selected.bessKwh):'',capexBESS:selected.capexBESS!=null?String(selected.capexBESS):'',capexSTS:selected.capexSTS!=null?String(selected.capexSTS):''}});
+        this.setState({showModal:true,editingId:selected.id,form:{typePV:types.includes('PV'),typeInverter:types.includes('Inverter'),typeBaterie:types.includes('Baterie'),typeBESS:types.includes('BESS'),status:selected.status||'Lead',client:selected.client||'',phone:selected.phone||'',email:selected.email||'',address:selected.address||'',value:selected.value!=null?String(selected.value):'',responsabil:selected.responsabil||'',date_start:selected.date_start||'',date_executie:selected.date_executie||'',date_end:selected.date_end||'',date_start_dmy:isoToDmy(selected.date_start||''),date_executie_dmy:isoToDmy(selected.date_executie||''),date_end_dmy:isoToDmy(selected.date_end||''),equipment:selected.equipment||'',kwp:selected.kwp!=null?String(selected.kwp):'',panels:selected.panels!=null?String(selected.panels):'',mounting:selected.mounting||'acoperiș',prosumator:!!selected.prosumator,notes:selected.notes||'',bessKwh:selected.bessKwh!=null?String(selected.bessKwh):'',capexBESS:selected.capexBESS!=null?String(selected.capexBESS):'',capexSTS:selected.capexSTS!=null?String(selected.capexSTS):''}});
       },
       deleteSelected:()=>{
         if(!selected)return;
@@ -1848,8 +1860,10 @@ class Component extends DCLogic {
       onFormPhone:e=>this.setForm('phone',e.target.value),onFormEmail:e=>this.setForm('email',e.target.value),
       onFormAddress:e=>this.setForm('address',e.target.value),onFormValue:e=>this.setForm('value',e.target.value),
       onFormResponsabil:e=>this.setForm('responsabil',e.target.value),
-      onFormDateStart:e=>this.setForm('date_start',e.target.value),onFormDateExec:e=>this.setForm('date_executie',e.target.value),
-      onFormDateEnd:e=>this.setForm('date_end',e.target.value),onFormEquipment:e=>this.setForm('equipment',e.target.value),
+      onFormDateStart:e=>{ const v=maskDmy(this.state.form.date_start_dmy,e.target.value); this.setState(s=>({form:{...s.form,date_start_dmy:v,date_start:dmyToIso(v)}})); },
+      onFormDateExec:e=>{ const v=maskDmy(this.state.form.date_executie_dmy,e.target.value); this.setState(s=>({form:{...s.form,date_executie_dmy:v,date_executie:dmyToIso(v)}})); },
+      onFormDateEnd:e=>{ const v=maskDmy(this.state.form.date_end_dmy,e.target.value); this.setState(s=>({form:{...s.form,date_end_dmy:v,date_end:dmyToIso(v)}})); },
+      onFormEquipment:e=>this.setForm('equipment',e.target.value),
       onFormKwp:e=>this.setForm('kwp',e.target.value),onFormPanels:e=>this.setForm('panels',e.target.value),onFormBessKwh:e=>this.setForm('bessKwh',e.target.value),onFormCapexBESS:e=>this.setForm('capexBESS',e.target.value),onFormCapexSTS:e=>this.setForm('capexSTS',e.target.value),
       onFormMounting:e=>this.setForm('mounting',e.target.value),onFormProsumator:e=>this.setForm('prosumator',e.target.checked),
       onFormNotes:e=>this.setForm('notes',e.target.value),

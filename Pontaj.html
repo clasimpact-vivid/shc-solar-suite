@@ -171,7 +171,7 @@ a:hover{color:#fbbf24;}
       <div class="card">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
           <div class="section-title" style="margin:0;">Prezență echipă</div>
-          <input type="date" id="teamDate" class="form-input" style="width:auto;">
+          <input type="text" id="teamDate" class="form-input" style="width:auto;" placeholder="dd/mm/yyyy" maxlength="10">
           <button class="btn btn-ghost btn-sm" id="btnDeleteAllPontaj" style="color:#ef4444;border-color:#7f1d1d;margin-left:auto;">🗑 Șterge toate înregistrările</button>
         </div>
         <div style="overflow-x:auto"><table id="teamTable"></table></div>
@@ -196,11 +196,11 @@ a:hover{color:#fbbf24;}
         <div class="row2">
           <div class="field">
             <label>De la data</label>
-            <input type="date" id="exportFrom">
+            <input type="text" id="exportFrom" placeholder="dd/mm/yyyy" maxlength="10">
           </div>
           <div class="field">
             <label>Până la data</label>
-            <input type="date" id="exportTo">
+            <input type="text" id="exportTo" placeholder="dd/mm/yyyy" maxlength="10">
           </div>
         </div>
         <button class="btn" id="btnExportCsv" style="background:#f59e0b;color:#fff;width:100%;padding:10px;font-size:13px;">⬇ Descarcă CSV</button>
@@ -218,8 +218,8 @@ a:hover{color:#fbbf24;}
   <div class="modal-card">
     <div class="modal-title">Corectează manual</div>
     <div class="row2">
-      <div class="field"><label>Ora intrare</label><input type="time" id="editInTime"></div>
-      <div class="field"><label>Ora ieșire</label><input type="time" id="editOutTime"></div>
+      <div class="field"><label>Ora intrare</label><input type="text" id="editInTime" placeholder="HH:mm" maxlength="5"></div>
+      <div class="field"><label>Ora ieșire</label><input type="text" id="editOutTime" placeholder="HH:mm" maxlength="5"></div>
     </div>
     <div class="field"><label>Motiv corectare *</label><textarea id="editReason" rows="2" placeholder="ex: am uitat să apăs Intrare la ora 8"></textarea></div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;">
@@ -456,7 +456,7 @@ function renderMyHistory(){
 }
 
 // ── TEAM TAB ──
-document.getElementById('teamDate').value=todayISO();
+document.getElementById('teamDate').value=isoToDmy(todayISO());
 document.getElementById('teamDate').addEventListener('input',renderTeam);
 document.getElementById('btnDeleteAllPontaj').addEventListener('click',()=>{
   if(!isFullAccess()){ alert('Doar Alexandru Chirila sau Ionut Nicoras pot șterge toate înregistrările.'); return; }
@@ -468,7 +468,7 @@ document.getElementById('btnDeleteAllPontaj').addEventListener('click',()=>{
 });
 function renderTeam(){
   if(!isFullAccess()) return;
-  const date=document.getElementById('teamDate').value||todayISO();
+  const date=dmyToIso(document.getElementById('teamDate').value)||todayISO();
   const tbl=document.getElementById('teamTable');
   const dayRecs=Object.values(records).filter(r=>r.date===date);
   const rows=loginUsers.filter(u=>u.id!=='_admin').map(u=>{
@@ -577,13 +577,13 @@ function populateExportUsers(){
 function initExportForm(){
   const today=new Date();
   const first=new Date(today.getFullYear(),today.getMonth(),1);
-  document.getElementById('exportFrom').value=first.toISOString().slice(0,10);
-  document.getElementById('exportTo').value=today.toISOString().slice(0,10);
+  document.getElementById('exportFrom').value=isoToDmy(first.toISOString().slice(0,10));
+  document.getElementById('exportTo').value=isoToDmy(today.toISOString().slice(0,10));
   if(currentUser) document.getElementById('exportUser').value=currentUser.id;
 }
 document.getElementById('btnExportCsv').addEventListener('click',()=>{
-  const dateFrom=document.getElementById('exportFrom').value;
-  const dateTo=document.getElementById('exportTo').value;
+  const dateFrom=dmyToIso(document.getElementById('exportFrom').value);
+  const dateTo=dmyToIso(document.getElementById('exportTo').value);
   if(!dateFrom||!dateTo){ alert('Selectează ambele date (de la / până la).'); return; }
   const targetUserId = isFullAccess() ? document.getElementById('exportUser').value : currentUser.id;
   const u=getUserById(targetUserId);
@@ -606,6 +606,48 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
 });
 
 // ── BOOT ──
+// ── DATE/TIME HELPERS dd/mm/yyyy și HH:mm (24h) ──
+function isoToDmy(s){ if(!s) return ''; const p=s.split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:''; }
+function dmyToIso(s){ if(!s) return ''; const p=s.split('/'); return p.length===3&&p[2].length===4?p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0'):''; }
+function addDateMask(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('input',function(){
+    const prev=this._prev||''; const cur=this.value;
+    let v=cur.replace(/[^0-9\/]/g,'');
+    if(prev.length<cur.length){
+      const digits=v.replace(/\//g,'');
+      v='';
+      for(let i=0;i<Math.min(digits.length,8);i++){
+        if(i===2||i===4) v+='/';
+        v+=digits[i];
+      }
+    }
+    this.value=v.slice(0,10);
+    this._prev=this.value;
+  });
+}
+function addTimeMask(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('input',function(){
+    const prev=this._prev||''; const cur=this.value;
+    let v=cur.replace(/[^0-9:]/g,'');
+    if(prev.length<cur.length){
+      const digits=v.replace(/:/g,'');
+      v='';
+      for(let i=0;i<Math.min(digits.length,4);i++){
+        if(i===2) v+=':';
+        v+=digits[i];
+      }
+    }
+    this.value=v.slice(0,5);
+    this._prev=this.value;
+  });
+}
+addDateMask('teamDate'); addDateMask('exportFrom'); addDateMask('exportTo');
+addTimeMask('editInTime'); addTimeMask('editOutTime');
+
 function startSidebarParticles(){
   const canvas=document.getElementById('sidebarParticleCanvas');
   if(!canvas||canvas._started) return; canvas._started=true;

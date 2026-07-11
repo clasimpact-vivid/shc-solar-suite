@@ -216,7 +216,7 @@ a:hover{color:#93c5fd;}
     </div>
     <div class="field"><label>Adresă șantier</label><input type="text" id="pmAddress" placeholder="ex: Str. Exemplu 1, Arad"></div>
     <div class="row2">
-      <div class="field"><label>Data estimată start</label><input type="date" id="pmStart"></div>
+      <div class="field"><label>Data estimată start</label><input type="text" id="pmStart" placeholder="dd/mm/yyyy" maxlength="10"></div>
       <div class="field"><label>Culoare proiect</label>
         <select id="pmColor">
           <option value="#3b82f6">Albastru</option>
@@ -712,7 +712,7 @@ function openProjectModal(pid){
   document.getElementById('pmAddress').value=p?p.address:'';
   document.getElementById('pmKwp').value=p&&p.kwp?p.kwp:'';
   document.getElementById('pmColor').value=p?(p.color||'#3b82f6'):'#3b82f6';
-  document.getElementById('pmStart').value=p?p.startDate||'':'';
+  document.getElementById('pmStart').value=p?isoToDmy(p.startDate||''):'';
   document.getElementById('pmNotes').value=p?p.notes||'':'';
   document.getElementById('btnDeleteProject').style.display=p?'inline-block':'none';
   document.getElementById('projectModal').classList.add('show');
@@ -727,7 +727,7 @@ function saveProject(){
     address:document.getElementById('pmAddress').value.trim(),
     kwp:parseFloat(document.getElementById('pmKwp').value)||0,
     color:document.getElementById('pmColor').value,
-    startDate:document.getElementById('pmStart').value,
+    startDate:dmyToIso(document.getElementById('pmStart').value),
     notes:document.getElementById('pmNotes').value.trim(),
     stages:ex.stages||[],
     createdAt:ex.createdAt||Date.now()
@@ -898,6 +898,7 @@ function addDateMask(id){
 }
 addDateMask('smStart');
 addDateMask('smEnd');
+addDateMask('pmStart');
 
 // ── SIDEBAR PARTICLE ANIMATION ──
 (function(){
