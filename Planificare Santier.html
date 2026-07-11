@@ -301,9 +301,9 @@ const STATUS_COLORS = {
 
 const DEFAULT_USERS = [
   {id:'_admin',    name:'Administrator',    color:'#dc2626', password:'12345'},
+  {id:'u_nicoras', name:'Ionut Nicoras',    color:'#d97706', password:'12345'},
   {id:'u_chirila', name:'Alexandru Chirila',color:'#7c3aed', password:'12345'},
   {id:'u_dobre',   name:'Cristian Dobre',   color:'#16a34a', password:'12345'},
-  {id:'u_nicoras', name:'Ionut Nicoras',    color:'#d97706', password:'12345'},
   {id:'u_sirb',    name:'Beniamin Sirb',    color:'#0891b2', password:'12345'},
 ];
 
@@ -722,6 +722,7 @@ document.getElementById('btnNewProject').addEventListener('click',()=>openProjec
 document.getElementById('btnSaveProject').addEventListener('click',saveProject);
 document.getElementById('btnCancelProject').addEventListener('click',()=>document.getElementById('projectModal').classList.remove('show'));
 document.getElementById('btnDeleteProject').addEventListener('click',()=>{
+  if(!canEditStages()){ alert('Doar Alexandru Chirila și Ionuț Nicoraș pot șterge proiecte.'); return; }
   if(!confirm('Ștergi proiectul și toate etapele sale?')) return;
   deleteProjectFirebase(editingProjectId);
   document.getElementById('projectModal').classList.remove('show');
@@ -735,7 +736,7 @@ document.getElementById('btnDeleteProject').addEventListener('click',()=>{
   sel.innerHTML=STAGE_TYPES.map(t=>`<option value="${t.id}">${t.label}</option>`).join('');
 })();
 
-function canEditStages(){ return !!currentUser && (currentUser.id==='_admin'||currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'); }
+function canEditStages(){ return !!currentUser && (currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'); }
 
 function openStageModal(pid,si){
   if(!canEditStages()){

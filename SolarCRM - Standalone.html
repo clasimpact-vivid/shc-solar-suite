@@ -1054,9 +1054,9 @@ const STATUS_STAGE_COLORS = { planificat:'#475569', in_lucru:'#f59e0b', finaliza
 function fmtDateShort(s){ if(!s) return ''; const d=new Date(s+'T00:00:00'); if(isNaN(d)) return ''; return d.toLocaleDateString('ro-RO',{day:'2-digit',month:'short'}); }
 
 const DEFAULT_USERS = [
+  {id:'u_nicoras', name:'Ionut Nicoras', role:'Administrator', password:'12345', color:'#d97706', isSuperAdmin:true, segmente:['PV','Inverter','Baterie','BESS']},
   {id:'u_chirila', name:'Alexandru Chirila', role:'Manager', password:'12345', color:'#7c3aed', isSuperAdmin:true, segmente:['PV','Inverter','Baterie','BESS']},
   {id:'u_dobre', name:'Cristian Dobre', role:'Vânzări', password:'12345', color:'#16a34a', isSuperAdmin:false, segmente:['PV','Inverter','Baterie']},
-  {id:'u_nicoras', name:'Ionut Nicoras', role:'Administrator', password:'12345', color:'#d97706', isSuperAdmin:true, segmente:['PV','Inverter','Baterie','BESS']},
   {id:'u_sirb', name:'Beniamin Sirb', role:'Backoffice', password:'12345', color:'#0891b2', isSuperAdmin:false, segmente:['PV','Inverter','Baterie']},
 ];
 
@@ -1524,6 +1524,8 @@ class Component extends DCLogic {
   }
 
   umDeleteUser(userId){
+    const cu=this.state.currentUser;
+    if(!(cu&&(cu.id==='u_chirila'||cu.id==='u_nicoras'))){ window.alert('Doar Alexandru Chirila și Ionuț Nicoraș pot șterge utilizatori.'); return; }
     if(!window.confirm('Ștergi acest utilizator definitiv?'))return;
     const newUsers=this.state.users.filter(u=>u.id!==userId);
     this.setState({users:newUsers},()=>setTimeout(()=>this.persist(),0));
@@ -1714,6 +1716,7 @@ class Component extends DCLogic {
       },
       deleteSelected:()=>{
         if(!selected)return;
+        if(!(currentUser&&(currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'))){ window.alert('Doar Alexandru Chirila și Ionuț Nicoraș pot șterge lucrări.'); return; }
         if(!window.confirm('Ștergi lucrarea lui '+selected.client+'?'))return;
         const delId=selected.id;
         this._fbDeleteProject(delId);

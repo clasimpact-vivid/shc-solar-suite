@@ -28,11 +28,12 @@
   :root{
     --bg:#f0f2f5; --card:#ffffff; --border:#dde1e7;
     --text:#16191e; --text2:#5f6b7a; --text3:#9ba5b0;
-    --accent:#2563eb; --green:#16a34a; --amber:#d97706; --red:#dc2626;
+    --accent:#f59e0b; --green:#16a34a; --amber:#d97706; --red:#dc2626;
     --radius-sm:8px; --radius-md:12px; --radius-lg:16px;
     --shadow-sm:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
     --shadow-md:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
   }
+  input[type=range], input[type=checkbox] { accent-color: var(--accent); }
   *{box-sizing:border-box}
   body{
     margin:0;font-family:-apple-system,'Inter','Segoe UI',system-ui,sans-serif;
@@ -51,8 +52,8 @@
   }
   button:hover{background:#f4f6f9;border-color:#c8cdd4;box-shadow:var(--shadow-md);}
   button:active{transform:scale(.98);}
-  .primary{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 8px rgba(37,99,235,.25);}
-  .primary:hover{background:#1d4ed8;border-color:#1d4ed8;box-shadow:0 4px 14px rgba(37,99,235,.35);}
+  .primary{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 8px rgba(245,158,11,.25);}
+  .primary:hover{background:#d97706;border-color:#d97706;box-shadow:0 4px 14px rgba(245,158,11,.35);}
 
   .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:16px}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
@@ -169,7 +170,7 @@
         <div id="loginSelectedUser" style="display:flex;align-items:center;gap:12px;margin-bottom:24px;padding:12px 16px;background:#0f172a;border-radius:12px;border:1px solid #1e3a5f;"></div>
         <label style="font-size:10px;font-weight:700;color:#475569;display:block;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">Parolă</label>
         <input type="password" id="loginPassword" placeholder="••••••••" style="width:100%;padding:12px 14px;border:1.5px solid #334155;border-radius:10px;font-size:15px;font-family:inherit;box-sizing:border-box;background:#1e293b;color:#f1f5f9;outline:none;margin-bottom:16px;">
-        <button id="btnLogin" style="width:100%;padding:13px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:0;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">Intră în aplicație →</button>
+        <button id="btnLogin" style="width:100%;padding:13px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:0;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">Intră în aplicație →</button>
         <div id="loginError" style="color:#f87171;font-size:12px;text-align:center;margin-top:10px;min-height:18px"></div>
       </div>
       <!-- hidden select for compatibility -->
@@ -189,7 +190,7 @@
       <button id="btnReset">↺ Reset valori</button>
       <button id="btnSave">💾 Salvează config</button>
       <button id="btnLoad">📂 Încarcă config</button>
-      <button id="btnImportJson" style="background:#7c3aed;color:#fff;border-color:#7c3aed;">🔗 Import JSON</button>
+      <button id="btnImportJson" style="background:#f59e0b;color:#fff;border-color:#f59e0b;">🔗 Import JSON</button>
       <button id="btnPasteConfig">📋 Lipește config</button>
       <input type="file" id="fileLoad" accept=".json" style="display:none">
       <button id="btnOfertaPdf" class="primary">📄 Ofertă PDF</button>
@@ -206,7 +207,7 @@
     <input type="password" id="adminResetPwdInput" placeholder="••••••••" style="width:100%;padding:10px 12px;border:1.5px solid #334155;border-radius:8px;font-size:14px;background:#1e293b;color:#f1f5f9;box-sizing:border-box;outline:none;margin-bottom:18px;">
     <div style="display:flex;gap:10px;">
       <button id="adminResetCancel" style="flex:1;padding:9px;background:transparent;color:#94a3b8;border:1px solid #334155;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Anulează</button>
-      <button id="adminResetSave" style="flex:1;padding:9px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Salvează</button>
+      <button id="adminResetSave" style="flex:1;padding:9px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Salvează</button>
     </div>
   </div>
 </div>
@@ -230,7 +231,7 @@
     <div id="cpErr" style="font-size:12px;color:#f87171;min-height:18px;margin-bottom:12px;"></div>
     <div style="display:flex;gap:10px;">
       <button id="cpCancel" style="flex:1;padding:10px;background:transparent;color:#94a3b8;border:1px solid #334155;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Anulează</button>
-      <button id="cpSave" style="flex:1;padding:10px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Salvează</button>
+      <button id="cpSave" style="flex:1;padding:10px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Salvează</button>
     </div>
   </div>
 </div>
@@ -1652,8 +1653,8 @@ function render(){
       {
         label:'An selectat',
         data: r.rows.map(function(row,i){ return i===selectedYear ? Math.round(row.cumulative*cursR) : null; }),
-        borderColor:'#2563eb',
-        backgroundColor:'#2563eb',
+        borderColor:'#f59e0b',
+        backgroundColor:'#f59e0b',
         pointRadius:6, pointHoverRadius:7, showLine:false
       }
     ]},
@@ -1669,7 +1670,7 @@ function render(){
 
   var capexLabels = ['Sistem PV', 'Stocare BESS', 'TVA'];
   var capexData = [r.capexPv, r.capexBess, r.tvaAmount];
-  var capexColors = ['#2563eb','#16a34a','#9ca3af'];
+  var capexColors = ['#f59e0b','#16a34a','#9ca3af'];
 
   var totalCapex = capexData.reduce(function(a,b){return a+b;},0);
   document.getElementById('capexLegend').innerHTML = capexLabels.map(function(l,i){
@@ -1712,7 +1713,7 @@ function render(){
     data:{ labels: monthNames, datasets:[{
       label:'Producție lunară (kWh)',
       data: monthlyData,
-      backgroundColor:'#2563eb'
+      backgroundColor:'#f59e0b'
     }]},
     options:{
       responsive:true, maintainAspectRatio:false,
@@ -1765,10 +1766,10 @@ function render(){
     }
 
     var html='<div style="display:flex;align-items:stretch;gap:4px;flex-wrap:wrap;padding:14px;background:#f8fafc;border-radius:0 0 10px 10px;width:100%;box-sizing:border-box;">'+
-      box('☀️','Panouri PV',kwpStr+'<br><span style="font-size:10px;color:#64748b;">'+numStr+(prodStr?' · '+prodStr:'')+'</span>','#3b82f6')+
+      box('☀️','Panouri PV',kwpStr+'<br><span style="font-size:10px;color:#64748b;">'+numStr+(prodStr?' · '+prodStr:'')+'</span>','#f59e0b')+
       arr()+
       box('⚡','Invertor','C&I','#f97316')+
-      (bessOn?arr()+box('🔋','Stocare BESS',bKwh,'#22c55e'):'')+
+      (bessOn?arr()+box('🔋','Stocare BESS',bKwh,'#0f2850'):'')+
       (stsOn?arr()+box('🏭','STS','Inclus','#64748b'):'')+
     '</div>';
 
@@ -2102,7 +2103,7 @@ document.getElementById('btnPasteConfig').addEventListener('click', function(){
   btnRow.style = 'display:flex;gap:8px;margin-top:12px;justify-content:flex-end';
   var loadBtn = document.createElement('button');
   loadBtn.textContent = '✓ Încarcă';
-  loadBtn.style = 'padding:8px 16px;border-radius:8px;border:1px solid #2563eb;background:#2563eb;color:#fff;cursor:pointer;font-size:13px';
+  loadBtn.style = 'padding:8px 16px;border-radius:8px;border:1px solid #f59e0b;background:#f59e0b;color:#fff;cursor:pointer;font-size:13px';
   loadBtn.onclick = function(){
     try{
       applyConfig(JSON.parse(textarea.value));
@@ -2809,7 +2810,7 @@ function showPdfModal(pdfUrl, filename){
   downloadLink.href = pdfUrl;
   downloadLink.download = filename + '.pdf';
   downloadLink.textContent = '⬇ Descarcă PDF';
-  downloadLink.style = 'padding:8px 16px;border-radius:8px;border:1px solid #2563eb;background:#2563eb;color:#fff;cursor:pointer;font-size:13px;text-decoration:none;display:inline-block';
+  downloadLink.style = 'padding:8px 16px;border-radius:8px;border:1px solid #f59e0b;background:#f59e0b;color:#fff;cursor:pointer;font-size:13px;text-decoration:none;display:inline-block';
 
   var openLink = document.createElement('a');
   openLink.href = pdfUrl;
@@ -2930,9 +2931,9 @@ renderDeviz();
 
 var USERS = [
   {id:'u0', name:'Administrator', role:'admin', hash:'5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5', active:true},
+  {id:'u1782979436038', name:'Ionut Nicoras', role:'admin', hash:'5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5', active:true},
   {id:'u1', name:'Alexandru Chirila', role:'admin', hash:'5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5', active:true},
   {id:'u2', name:'Cristian Dobre', role:'agent', hash:'5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5', active:true},
-  {id:'u1782979436038', name:'Ionut Nicoras', role:'admin', hash:'5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5', active:true},
   {id:'u1783318898774', name:'Beniamin Sirb', role:'backoffice', hash:'5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5', active:true}
 ];
 window.SESSION = null;
@@ -3702,11 +3703,11 @@ function buildOfferHTML(r){
     '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px">'+
       kpiC('Putere instalată DC', r.kwp.toFixed(1)+' kWp', r.numPanouri+' panouri', '#f59e0b')+
       kpiC('Stocare BESS', bessStr2, bessSub2, '#16a34a')+
-      kpiC('Producție An 1', prodMWh2+' MWh', 'degradare inclusă', '#2563eb')+
+      kpiC('Producție An 1', prodMWh2+' MWh', 'degradare inclusă', '#f59e0b')+
       kpiC('Investiție totală', capexLei, capexEur, AC)+
     '</div>'+
     '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">'+
-      kpiC('IRR ('+durata+' ANI)', irrStr, 'rată internă de rentabilitate', '#7c3aed')+
+      kpiC('IRR ('+durata+' ANI)', irrStr, 'rată internă de rentabilitate', '#f59e0b')+
       kpiC('NPV (disc. '+Math.round((r.rataDiscontare||0.08)*100)+'%)', npvLei, npvEur, '#0e7490')+
       kpiC('PAYBACK SIMPLU', paybackStr, 'recuperare investiție', GOLD)+
       kpiC('PROFIT NET '+durata+' ANI', profitLei, profitEur, '#16a34a')+
@@ -3904,7 +3905,7 @@ render();
     +'<div id="jsonImportErr" style="font-size:12px;color:#dc2626;display:none"></div>'
     +'<div style="display:flex;gap:10px;justify-content:flex-end">'
     +'<button id="jsonImportCancel" style="padding:8px 16px;border:1px solid #e3e5e9;background:#fff;border-radius:8px;font-size:13px;cursor:pointer">Anulează</button>'
-    +'<button id="jsonImportConfirm" style="padding:8px 20px;background:#7c3aed;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">✓ Importă</button>'
+    +'<button id="jsonImportConfirm" style="padding:8px 20px;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">✓ Importă</button>'
     +'</div></div>';
   document.body.appendChild(overlay);
   document.getElementById('jsonImportArea').placeholder = '{ "oferta_proiect": { ... } }';

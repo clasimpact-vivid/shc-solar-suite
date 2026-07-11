@@ -276,9 +276,9 @@ const FB_CONFIG = {
 
 const DEFAULT_USERS = [
   {id:'_admin',    name:'Administrator',    color:'#dc2626', password:'12345'},
+  {id:'u_nicoras', name:'Ionut Nicoras',    color:'#d97706', password:'12345'},
   {id:'u_chirila', name:'Alexandru Chirila',color:'#7c3aed', password:'12345'},
   {id:'u_dobre',   name:'Cristian Dobre',   color:'#16a34a', password:'12345'},
-  {id:'u_nicoras', name:'Ionut Nicoras',    color:'#d97706', password:'12345'},
   {id:'u_sirb',    name:'Beniamin Sirb',    color:'#0891b2', password:'12345'},
 ];
 
@@ -491,7 +491,10 @@ document.getElementById('btnSaveVisit').addEventListener('click',()=>{
   document.getElementById('visitTitleDisplay').textContent=v.address||v.client||'Vizită nouă';
   alert('Vizită salvată!');
 });
+function canDelete(){ return !!currentUser && (currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'); }
+
 document.getElementById('btnDeleteVisit').addEventListener('click',()=>{
+  if(!canDelete()){ alert('Doar Alexandru Chirila și Ionuț Nicoraș pot șterge vizite.'); return; }
   if(!activeVisitId) return;
   if(!confirm('Ștergi această vizită definitiv?')) return;
   deleteFirebase(activeVisitId);
