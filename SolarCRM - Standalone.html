@@ -64,6 +64,24 @@ input,select,textarea,button{font-family:inherit;}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+// Diagnostic vizibil: dacă apare o eroare JS pe telefon (unde nu poți deschide consola),
+// afișăm un banner roșu în loc să înghețe ecranul fără niciun indiciu.
+(function(){
+  function showBootError(msg){
+    let el=document.getElementById('__bootErrBanner');
+    if(!el){
+      el=document.createElement('div');
+      el.id='__bootErrBanner';
+      el.style.cssText='position:fixed;top:0;left:0;right:0;z-index:999999;background:#dc2626;color:#fff;padding:10px 14px;font:11px/1.4 monospace;white-space:pre-wrap;max-height:45vh;overflow:auto;';
+      document.body.appendChild(el);
+    }
+    el.textContent += (el.textContent?'\n\n':'')+msg;
+  }
+  window.addEventListener('error',function(e){ showBootError('Eroare: '+(e.message||String(e.error||e))+' @ '+(e.filename||'')+':'+(e.lineno||'')); });
+  window.addEventListener('unhandledrejection',function(e){ showBootError('Promise respinsă: '+((e.reason&&e.reason.message)||e.reason)); });
+})();
+</script>
 <template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 56"><rect width="80" height="56" fill="#0f1729"/><rect x="8" y="8" width="20" height="40" rx="3" fill="#1e293b"/><path d="M18 18l2.5 6.5 7 1-5 4.8 1.4 7-5.9-3.2-5.9 3.2 1.4-7-5-4.8 7-1z" fill="#f59e0b"/><rect x="34" y="8" width="38" height="6" rx="2" fill="#1e293b"/><rect x="34" y="18" width="38" height="4" rx="1" fill="#1e293b"/><rect x="34" y="26" width="38" height="4" rx="1" fill="#1e293b"/><rect x="34" y="34" width="38" height="4" rx="1" fill="#1e293b"/><rect x="34" y="42" width="20" height="4" rx="1" fill="#1e293b"/></svg></template>
 </helmet>
 

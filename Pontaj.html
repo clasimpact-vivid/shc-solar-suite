@@ -30,6 +30,13 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',system-ui,sans-serif
   #tabBar{padding:0 10px!important;}
   #tabBar button{padding:10px 12px!important;font-size:12px!important;}
   .card{padding:16px!important;}
+  .row2{grid-template-columns:1fr!important;}
+  .pin-grid{grid-template-columns:repeat(3,64px)!important;}
+  .pin-key{width:64px!important;height:64px!important;}
+  #fieldWorkersList > div[style*="display:flex"]{flex-wrap:wrap;}
+  #plannerDaysView select[data-addmember]{width:100%!important;margin-top:6px;}
+  #plannerTable{font-size:11px!important;}
+  #plannerTable td, #plannerTable th{padding:6px!important;}
 }
 
 .btn{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;border:1px solid transparent;transition:opacity .15s;}
@@ -565,6 +572,10 @@ function populateLoginUsers(){
   loginUsers.forEach(u=>{ const o=document.createElement('option'); o.value=u.id; o.textContent=u.name; sel.appendChild(o); });
   if(cur) sel.value=cur;
 }
+function resetRestrictedTabs(){
+  ['tabTeamBtn','tabMapBtn','tabPlannerBtn','tabMyWeekBtn'].forEach(id=>{ document.getElementById(id).style.display='none'; });
+  document.getElementById('exportUserField').style.display='none';
+}
 function doLogin(){
   const uid2=document.getElementById('loginUser').value;
   const pw=document.getElementById('loginPassword').value;
@@ -581,6 +592,7 @@ function doLogin(){
   av.style.background=u.color||'#f59e0b'; av.textContent=initials(u.name);
   document.getElementById('userName').textContent=u.name;
   startSidebarParticles();
+  resetRestrictedTabs();
   if(isFullAccess()){
     document.getElementById('tabTeamBtn').style.display='';
     document.getElementById('tabMapBtn').style.display='';
@@ -603,8 +615,13 @@ document.getElementById('btnLogout').addEventListener('click',()=>{
   document.getElementById('loginError').textContent='';
   document.getElementById('app').style.display='none';
   document.getElementById('loginOverlay').style.display='flex';
-  document.getElementById('tabMyWeekBtn').style.display='none';
-  document.getElementById('tabPlannerBtn').style.display='none';
+  resetRestrictedTabs();
+  // reset to first tab so next login always starts on "Pontaj azi"
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.tab-btn[data-tab="today"]').classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p=>p.style.display='none');
+  document.getElementById('tab-today').style.display='block';
+  activeTab='today';
 });
 
 // ── PIN login (muncitori de teren) ──
@@ -651,6 +668,7 @@ function pinPress(k){
     av.style.background=currentUser.color; av.textContent=initials(currentUser.name);
     document.getElementById('userName').textContent=currentUser.name;
     startSidebarParticles();
+    resetRestrictedTabs();
     document.getElementById('tabMyWeekBtn').style.display='';
     populateExportUsers(); initExportForm();
     document.getElementById('todayDateLabel').textContent=new Date().toLocaleDateString('ro-RO',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
