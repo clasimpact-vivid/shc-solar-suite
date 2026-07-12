@@ -162,10 +162,75 @@ a:hover{color:#fbbf24;}
     <button class="tab-btn" data-tab="planner" id="tabPlannerBtn" style="display:none;">Planificator</button>
     <button class="tab-btn" data-tab="team" id="tabTeamBtn" style="display:none;">Listă echipă</button>
     <button class="tab-btn" data-tab="map" id="tabMapBtn" style="display:none;">Hartă live</button>
+    <button class="tab-btn" data-tab="cereri">Cereri</button>
+    <button class="tab-btn" data-tab="pv">Proces verbal</button>
     <button class="tab-btn" data-tab="export">Export</button>
   </div>
 
   <div id="main">
+
+    <!-- TAB: CERERI (concedii + probleme) -->
+    <div id="tab-cereri" class="tab-panel" style="display:none;">
+      <div class="card">
+        <div class="section-title">Concediu / învoire</div>
+        <div class="row2" style="margin-bottom:10px;">
+          <div class="field"><label>Tip</label>
+            <select id="leaveType" class="form-select">
+              <option value="CO">Concediu de odihnă</option>
+              <option value="CM">Concediu medical</option>
+              <option value="IV">Învoire / liber o zi</option>
+              <option value="LN">Liber neplătit</option>
+            </select>
+          </div>
+          <div></div>
+        </div>
+        <div class="row2" style="margin-bottom:10px;">
+          <div class="field"><label>De la data</label><input type="text" id="leaveFrom" class="form-input" placeholder="dd/mm/yyyy" maxlength="10"></div>
+          <div class="field"><label>Până la data</label><input type="text" id="leaveTo" class="form-input" placeholder="dd/mm/yyyy" maxlength="10"></div>
+        </div>
+        <div class="field" style="margin-bottom:10px;"><label>Motiv (opțional)</label><textarea id="leaveReason" class="form-input" rows="2" style="width:100%;"></textarea></div>
+        <button class="btn btn-sm" id="btnSubmitLeave" style="background:#f59e0b;color:#fff;">Trimite cererea</button>
+        <div style="margin-top:16px;overflow-x:auto"><table id="leaveTable"></table></div>
+      </div>
+      <div class="card">
+        <div class="section-title">Raportează o problemă de pe șantier</div>
+        <div class="row2" style="margin-bottom:10px;">
+          <div class="field"><label>Categorie</label>
+            <select id="probCat" class="form-select">
+              <option>Material lipsă</option><option>Sculă / utilaj defect</option><option>Mașină / transport</option>
+              <option>Siguranță în muncă</option><option>Beneficiar / acces</option><option>Altele</option>
+            </select>
+          </div>
+          <div class="field"><label>Poză (opțional)</label><input type="file" id="probPhoto" accept="image/*" class="form-input"></div>
+        </div>
+        <div class="field" style="margin-bottom:10px;"><label>Descriere</label><textarea id="probDesc" class="form-input" rows="2" style="width:100%;"></textarea></div>
+        <button class="btn btn-sm" id="btnSubmitProb" style="background:#f59e0b;color:#fff;">Trimite raportul</button>
+        <div style="margin-top:16px;" id="probList"></div>
+      </div>
+    </div>
+
+    <!-- TAB: PROCES VERBAL -->
+    <div id="tab-pv" class="tab-panel" style="display:none;">
+      <div class="card">
+        <div class="section-title">Proces verbal de lucrare</div>
+        <div class="row2" style="margin-bottom:10px;">
+          <div class="field"><label>Lucrare</label><select id="pvJob" class="form-select"></select></div>
+          <div class="field"><label>Client / beneficiar</label><input type="text" id="pvClient" class="form-input"></div>
+        </div>
+        <div class="field" style="margin-bottom:10px;"><label>Descriere lucrări executate</label><textarea id="pvDesc" class="form-input" rows="3" style="width:100%;"></textarea></div>
+        <div class="field" style="margin-bottom:10px;"><label>Poze (până la 3)</label><input type="file" id="pvPhotos" accept="image/*" multiple class="form-input"></div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>Semnătură client</label>
+          <canvas id="pvSignPad" width="500" height="150" style="width:100%;max-width:500px;height:150px;background:#1e293b;border:1.5px solid #334155;border-radius:8px;touch-action:none;cursor:crosshair;"></canvas>
+          <button class="btn btn-ghost btn-sm" id="btnClearSign" style="margin-top:6px;">Șterge semnătura</button>
+        </div>
+        <button class="btn btn-sm" id="btnSavePv" style="background:#f59e0b;color:#fff;">💾 Salvează proces verbal</button>
+      </div>
+      <div class="card">
+        <div class="section-title">Procese verbale salvate</div>
+        <div id="pvList"></div>
+      </div>
+    </div>
 
     <!-- TAB: TODAY -->
     <div id="tab-today" class="tab-panel">
@@ -423,6 +488,18 @@ function loadFirebase(){
     if(activeTab==='myweek') renderMyWeek();
     if(activeTab==='planner') renderPlanner();
   });
+  db.ref('solarcrm_v2/pontajLeave').on('value', snap=>{
+    const raw=snap.val()||{}; leaveReqs=Object.values(raw).filter(Boolean).sort((a,b)=>b.ts-a.ts);
+    if(activeTab==='cereri') renderCereri();
+  });
+  db.ref('solarcrm_v2/pontajProbs').on('value', snap=>{
+    const raw=snap.val()||{}; probReports=Object.values(raw).filter(Boolean).sort((a,b)=>b.ts-a.ts);
+    if(activeTab==='cereri') renderCereri();
+  });
+  db.ref('solarcrm_v2/pontajPv').on('value', snap=>{
+    const raw=snap.val()||{}; pvRecords=Object.values(raw).filter(Boolean).sort((a,b)=>b.ts-a.ts);
+    if(activeTab==='pv') renderPv();
+  });
 }
 function loadLS(){ try{ const r=localStorage.getItem('shc_pontaj'); if(r) records=JSON.parse(r); }catch(e){} renderCurrentTab(); }
 function saveRecord(r){
@@ -434,6 +511,28 @@ function saveFieldWorkers(){ if(db) db.ref('solarcrm_v2/config/fieldWorkers').se
 function saveJobs(){ if(db) db.ref('solarcrm_v2/config/jobs').set(jobs); }
 function savePlan(weekKey,plan){ if(db) db.ref('solarcrm_v2/pontajPlans/'+weekKey).set(plan); weekPlans[weekKey]=plan; }
 function isFieldWorker(){ return !!currentUser && currentUser.isField===true; }
+let leaveReqs=[], probReports=[];
+const LEAVE_LABELS={CO:'Concediu de odihnă',CM:'Concediu medical',IV:'Învoire / liber o zi',LN:'Liber neplătit'};
+function saveLeave(l){ if(db) db.ref('solarcrm_v2/pontajLeave/'+l.id).set(l); else { leaveReqs=[l,...leaveReqs.filter(x=>x.id!==l.id)]; renderCereri(); } }
+function saveProb(p){ if(db) db.ref('solarcrm_v2/pontajProbs/'+p.id).set(p); else { probReports=[p,...probReports.filter(x=>x.id!==p.id)]; renderCereri(); } }
+let pvRecords=[];
+function savePv(pv){ if(db) db.ref('solarcrm_v2/pontajPv/'+pv.id).set(pv); else { pvRecords=[pv,...pvRecords.filter(x=>x.id!==pv.id)]; renderPv(); } }
+function compressImg(file){
+  return new Promise((res)=>{
+    const rd=new FileReader();
+    rd.onload=()=>{
+      const img=new Image();
+      img.onload=()=>{
+        const M=900, s=Math.min(1,M/Math.max(img.width,img.height));
+        const c=document.createElement('canvas'); c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        res(c.toDataURL('image/jpeg',0.55));
+      };
+      img.onerror=()=>res(null); img.src=rd.result;
+    };
+    rd.onerror=()=>res(null); rd.readAsDataURL(file);
+  });
+}
 
 // ── Login ──
 function populateLoginUsers(){
@@ -564,6 +663,8 @@ function renderCurrentTab(){
   else if(activeTab==='map') renderMap();
   else if(activeTab==='myweek') renderMyWeek();
   else if(activeTab==='planner') renderPlanner();
+  else if(activeTab==='cereri') renderCereri();
+  else if(activeTab==='pv') renderPv();
 }
 
 // ── GPS ──
@@ -873,6 +974,142 @@ document.getElementById('btnPublishPlan').addEventListener('click',()=>{
   alert('Program publicat pentru săptămâna '+plannerWk+'.');
 });
 
+// ── CERERI TAB (concedii + probleme) ──
+function renderCereri(){
+  const admin=isFullAccess();
+  const tbl=document.getElementById('leaveTable');
+  const mine=admin?leaveReqs:leaveReqs.filter(l=>l.userId===currentUser.id);
+  if(!mine.length){ tbl.innerHTML='<tr><td style="color:#475569;padding:12px 0;">Nicio cerere.</td></tr>'; }
+  else{
+    let html='<thead><tr>'+(admin?'<th>Coleg</th>':'')+'<th>Tip</th><th>Perioadă</th><th>Motiv</th><th>Status</th>'+(admin?'<th></th>':'')+'</tr></thead><tbody>';
+    mine.forEach(l=>{
+      const st=l.status==='A'?'<span class="badge badge-green">Aprobat</span>':l.status==='R'?'<span class="badge badge-red">Respins</span>':'<span class="badge badge-amber">În așteptare</span>';
+      html+='<tr>'+(admin?'<td>'+(l.userName||'—')+'</td>':'')+'<td>'+(LEAVE_LABELS[l.type]||l.type)+'</td><td>'+isoToDmy(l.from)+' – '+isoToDmy(l.to)+'</td><td>'+(l.reason||'—')+'</td><td>'+st+'</td>';
+      if(admin&&l.status==='P'){
+        html+='<td style="white-space:nowrap;"><button class="btn btn-sm" data-approve="'+l.id+'" style="background:#16a34a;color:#fff;margin-right:4px;">✓</button><button class="btn btn-sm" data-reject="'+l.id+'" style="background:#dc2626;color:#fff;">✕</button></td>';
+      } else if(admin) html+='<td></td>';
+      html+='</tr>';
+    });
+    tbl.innerHTML=html+'</tbody>';
+    tbl.querySelectorAll('button[data-approve]').forEach(b=>b.addEventListener('click',()=>{
+      const l=leaveReqs.find(x=>x.id===b.dataset.approve); if(l){ l.status='A'; saveLeave(l); }
+    }));
+    tbl.querySelectorAll('button[data-reject]').forEach(b=>b.addEventListener('click',()=>{
+      const l=leaveReqs.find(x=>x.id===b.dataset.reject); if(l){ l.status='R'; saveLeave(l); }
+    }));
+  }
+  const probWrap=document.getElementById('probList');
+  const myProbs=admin?probReports:probReports.filter(p=>p.userId===currentUser.id);
+  if(!myProbs.length){ probWrap.innerHTML='<div style="color:#475569;font-size:12.5px;">Nicio problemă raportată.</div>'; return; }
+  let ph='';
+  myProbs.forEach(p=>{
+    const st=p.status==='rezolvat'?'<span class="badge badge-green">Rezolvat</span>':'<span class="badge badge-amber">Nou</span>';
+    ph+='<div style="background:#0d1b2e;border-radius:10px;padding:12px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start;">'+
+      (p.photo?'<img src="'+p.photo+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;flex-shrink:0;">':'')+
+      '<div style="flex:1;"><div style="font-size:12px;font-weight:700;color:#f1f5f9;">'+p.cat+' '+st+'</div>'+
+      '<div style="font-size:12px;color:#94a3b8;margin-top:3px;">'+(p.desc||'')+'</div>'+
+      '<div style="font-size:10.5px;color:#475569;margin-top:4px;">'+(p.userName||'')+' · '+new Date(p.ts).toLocaleDateString('ro-RO')+'</div></div>'+
+      (admin&&p.status!=='rezolvat'?'<button class="btn btn-sm" data-resolve="'+p.id+'" style="background:#16a34a;color:#fff;flex-shrink:0;">✓ Rezolvat</button>':'')+
+      '</div>';
+  });
+  probWrap.innerHTML=ph;
+  probWrap.querySelectorAll('button[data-resolve]').forEach(b=>b.addEventListener('click',()=>{
+    const p=probReports.find(x=>x.id===b.dataset.resolve); if(p){ p.status='rezolvat'; saveProb(p); }
+  }));
+}
+document.getElementById('btnSubmitLeave').addEventListener('click',()=>{
+  const type=document.getElementById('leaveType').value;
+  const from=dmyToIso(document.getElementById('leaveFrom').value);
+  const to=dmyToIso(document.getElementById('leaveTo').value);
+  const reason=document.getElementById('leaveReason').value.trim();
+  if(!from||!to){ alert('Completează perioada (de la / până la).'); return; }
+  const l={id:'lv_'+uid(),userId:currentUser.id,userName:currentUser.name,type,from,to,reason,status:'P',ts:Date.now()};
+  saveLeave(l);
+  document.getElementById('leaveFrom').value=''; document.getElementById('leaveTo').value=''; document.getElementById('leaveReason').value='';
+});
+document.getElementById('btnSubmitProb').addEventListener('click',async ()=>{
+  const cat=document.getElementById('probCat').value;
+  const desc=document.getElementById('probDesc').value.trim();
+  const fileInput=document.getElementById('probPhoto');
+  const btn=document.getElementById('btnSubmitProb'); btn.disabled=true; btn.textContent='Se trimite...';
+  let photo=null;
+  if(fileInput.files&&fileInput.files[0]){ photo=await compressImg(fileInput.files[0]); }
+  const p={id:'pb_'+uid(),userId:currentUser.id,userName:currentUser.name,cat,desc,photo,status:'nou',ts:Date.now()};
+  saveProb(p);
+  document.getElementById('probDesc').value=''; fileInput.value='';
+  btn.disabled=false; btn.textContent='Trimite raportul';
+});
+addDateMask('leaveFrom'); addDateMask('leaveTo');
+
+// ── PROCES VERBAL TAB ──
+let signCtx=null, signDrawing=false, signHasContent=false;
+function initSignPad(){
+  const c=document.getElementById('pvSignPad'); if(!c||c._init) return; c._init=true;
+  signCtx=c.getContext('2d'); signCtx.strokeStyle='#f1f5f9'; signCtx.lineWidth=2; signCtx.lineCap='round';
+  const pos=e=>{ const r=c.getBoundingClientRect(); const t=e.touches?e.touches[0]:e; return {x:(t.clientX-r.left)*(c.width/r.width), y:(t.clientY-r.top)*(c.height/r.height)}; };
+  const start=e=>{ e.preventDefault(); signDrawing=true; const p=pos(e); signCtx.beginPath(); signCtx.moveTo(p.x,p.y); };
+  const move=e=>{ if(!signDrawing) return; e.preventDefault(); const p=pos(e); signCtx.lineTo(p.x,p.y); signCtx.stroke(); signHasContent=true; };
+  const end=()=>{ signDrawing=false; };
+  c.addEventListener('mousedown',start); c.addEventListener('mousemove',move); window.addEventListener('mouseup',end);
+  c.addEventListener('touchstart',start); c.addEventListener('touchmove',move); c.addEventListener('touchend',end);
+}
+document.getElementById('btnClearSign').addEventListener('click',()=>{
+  const c=document.getElementById('pvSignPad'); if(signCtx) signCtx.clearRect(0,0,c.width,c.height); signHasContent=false;
+});
+function renderPv(){
+  initSignPad();
+  const sel=document.getElementById('pvJob');
+  sel.innerHTML='<option value="">— fără lucrare —</option>'+jobs.map(j=>'<option value="'+j.id+'">'+j.name+'</option>').join('');
+  const admin=isFullAccess();
+  const mine=admin?pvRecords:pvRecords.filter(p=>p.userId===currentUser.id);
+  const wrap=document.getElementById('pvList');
+  if(!mine.length){ wrap.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun proces verbal salvat.</div>'; return; }
+  let html='';
+  mine.forEach(pv=>{
+    html+='<div style="background:#0d1b2e;border-radius:10px;padding:12px;margin-bottom:8px;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">'+
+      '<div><div style="font-size:13px;font-weight:700;color:#f1f5f9;">'+(pv.jobName||'Fără lucrare')+' — '+(pv.client||'—')+'</div>'+
+      '<div style="font-size:11px;color:#64748b;">'+(pv.userName||'')+' · '+new Date(pv.ts).toLocaleDateString('ro-RO')+'</div></div>'+
+      '<button class="btn btn-sm" data-pv="'+pv.id+'" style="background:#f59e0b;color:#fff;">🖨 PDF</button></div></div>';
+  });
+  wrap.innerHTML=html;
+  wrap.querySelectorAll('button[data-pv]').forEach(b=>b.addEventListener('click',()=>exportPvPdf(pvRecords.find(x=>x.id===b.dataset.pv))));
+}
+document.getElementById('btnSavePv').addEventListener('click',async ()=>{
+  const jobId=document.getElementById('pvJob').value;
+  const job=jobId?jobs.find(j=>j.id===jobId):null;
+  const client=document.getElementById('pvClient').value.trim();
+  const desc=document.getElementById('pvDesc').value.trim();
+  const fileInput=document.getElementById('pvPhotos');
+  const btn=document.getElementById('btnSavePv'); btn.disabled=true; btn.textContent='Se salvează...';
+  const photos=[];
+  if(fileInput.files&&fileInput.files.length){
+    for(const f of Array.from(fileInput.files).slice(0,3)){ const c=await compressImg(f); if(c) photos.push(c); }
+  }
+  const signature=signHasContent?document.getElementById('pvSignPad').toDataURL('image/png'):null;
+  const pv={id:'pv_'+uid(),userId:currentUser.id,userName:currentUser.name,jobId:job?job.id:null,jobName:job?job.name:null,client,desc,photos,signature,ts:Date.now()};
+  savePv(pv);
+  document.getElementById('pvClient').value=''; document.getElementById('pvDesc').value=''; fileInput.value='';
+  if(signCtx){ signCtx.clearRect(0,0,500,150); signHasContent=false; }
+  btn.disabled=false; btn.textContent='💾 Salvează proces verbal';
+});
+function exportPvPdf(pv){
+  if(!pv) return;
+  const w=window.open('','_blank');
+  w.document.write('<html><head><title>Proces verbal</title><style>body{font-family:sans-serif;padding:32px;color:#0f172a;}h1{font-size:20px;}p{font-size:14px;}img{max-width:220px;margin:6px;border-radius:6px;}</style></head><body>'+
+    '<h1>Proces verbal de lucrare</h1>'+
+    '<p><strong>Lucrare:</strong> '+(pv.jobName||'—')+'</p>'+
+    '<p><strong>Client/beneficiar:</strong> '+(pv.client||'—')+'</p>'+
+    '<p><strong>Executant:</strong> '+(pv.userName||'—')+'</p>'+
+    '<p><strong>Data:</strong> '+new Date(pv.ts).toLocaleDateString('ro-RO')+'</p>'+
+    '<p><strong>Descriere lucrări:</strong><br>'+(pv.desc||'—')+'</p>'+
+    (pv.photos&&pv.photos.length?'<p><strong>Poze:</strong></p>'+pv.photos.map(p=>'<img src="'+p+'">').join(''):'')+
+    (pv.signature?'<p><strong>Semnătură client:</strong><br><img src="'+pv.signature+'" style="max-width:300px;background:#fff;"></p>':'')+
+    '</body></html>');
+  w.document.close();
+  setTimeout(()=>w.print(),400);
+}
+
 // ── MAP TAB ──
 function initMap(){
   if(map) return;
@@ -1006,6 +1243,7 @@ function addCalendarPicker(textId){
   });
 }
 addCalendarPicker('teamDate'); addCalendarPicker('exportFrom'); addCalendarPicker('exportTo');
+addCalendarPicker('leaveFrom'); addCalendarPicker('leaveTo');
 
 function startSidebarParticles(){
   if(window.innerWidth<=768) return;
