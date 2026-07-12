@@ -53,6 +53,19 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',system-ui,sans-serif
 .status-value{font-size:20px;font-weight:800;color:#f1f5f9;}
 .status-sub{font-size:11px;color:#64748b;margin-top:3px;}
 
+/* PIN keypad */
+#pinOverlay{position:fixed;inset:0;z-index:10000;background:#090f1c;display:none;align-items:center;justify-content:center;flex-direction:column;gap:20px;}
+.pin-dots{display:flex;gap:12px;}
+.pin-dot{width:15px;height:15px;border-radius:50%;border:2px solid #f59e0b;background:transparent;transition:background .15s;}
+.pin-dot.filled{background:#f59e0b;}
+.pin-dot.err{border-color:#ef4444;background:#ef4444;}
+.pin-grid{display:grid;grid-template-columns:repeat(3,72px);gap:12px;}
+.pin-key{width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:#1e293b;color:#f1f5f9;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;}
+.pin-key:active{background:#334155;}
+.job-chip{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:2px solid transparent;background:#1e293b;color:#e2e8f0;}
+.job-chip.active{border-color:#f59e0b;}
+.plan-cell select{width:100%;padding:5px 4px;font-size:11px;background:#0d1b2e;color:#e2e8f0;border:1px solid #1e293b;border-radius:6px;font-family:inherit;}
+
 table{width:100%;border-collapse:collapse;font-size:12.5px;}
 th{text-align:left;padding:9px 10px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #1e293b;}
 td{padding:10px;border-bottom:1px solid #1a2740;color:#cbd5e1;}
@@ -106,7 +119,22 @@ a:hover{color:#fbbf24;}
     </div>
     <button class="btn-login" id="btnLogin">Intră în aplicație →</button>
     <div id="loginError" style="color:#f87171;font-size:12px;text-align:center;margin-top:10px;min-height:16px;"></div>
+    <div style="text-align:center;margin-top:16px;padding-top:16px;border-top:1px solid #1e293b;">
+      <a href="#" id="btnOpenPin" style="font-size:12.5px;">🔢 Sunt muncitor de teren — intru cu cod PIN</a>
+    </div>
   </div>
+</div>
+
+<!-- PIN keypad overlay (field workers) -->
+<div id="pinOverlay">
+  <div style="text-align:center;">
+    <div style="font-weight:800;font-size:16px;color:#f1f5f9;">Cod acces personal</div>
+    <div style="font-size:12px;color:#64748b;margin-top:4px;">Introdu codul de 4 cifre primit de la birou</div>
+  </div>
+  <div class="pin-dots" id="pinDots"></div>
+  <div id="pinErr" style="color:#f87171;font-size:12.5px;font-weight:700;min-height:16px;"></div>
+  <div class="pin-grid" id="pinGrid"></div>
+  <a href="#" id="btnClosePin" style="font-size:12.5px;margin-top:6px;">← Înapoi</a>
 </div>
 
 <div id="app">
@@ -130,6 +158,8 @@ a:hover{color:#fbbf24;}
 
   <div id="tabBar">
     <button class="tab-btn active" data-tab="today">Pontaj azi</button>
+    <button class="tab-btn" data-tab="myweek" id="tabMyWeekBtn" style="display:none;">Programul meu</button>
+    <button class="tab-btn" data-tab="planner" id="tabPlannerBtn" style="display:none;">Planificator</button>
     <button class="tab-btn" data-tab="team" id="tabTeamBtn" style="display:none;">Listă echipă</button>
     <button class="tab-btn" data-tab="map" id="tabMapBtn" style="display:none;">Hartă live</button>
     <button class="tab-btn" data-tab="export">Export</button>
@@ -139,6 +169,10 @@ a:hover{color:#fbbf24;}
 
     <!-- TAB: TODAY -->
     <div id="tab-today" class="tab-panel">
+      <div class="card" id="jobPickerCard" style="display:none;">
+        <div class="section-title">Pe ce lucrare ești azi?</div>
+        <div id="jobChips" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+      </div>
       <div class="card">
         <div class="section-title" id="todayDateLabel">—</div>
         <button class="checkin-btn checkin-in" id="btnCheckAction">Se încarcă...</button>
@@ -163,6 +197,51 @@ a:hover{color:#fbbf24;}
       <div class="card">
         <div class="section-title">Istoricul meu (ultimele 14 zile)</div>
         <div style="overflow-x:auto"><table id="myHistoryTable"></table></div>
+      </div>
+    </div>
+
+    <!-- TAB: MY WEEK (field workers) -->
+    <div id="tab-myweek" class="tab-panel" style="display:none;">
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+          <div class="section-title" style="margin:0;">Programul tău</div>
+          <button class="btn btn-ghost btn-sm" id="btnMyWeekPrev">← Săpt. trecută</button>
+          <div id="myWeekLabel" style="font-size:12.5px;color:#94a3b8;font-weight:700;"></div>
+          <button class="btn btn-ghost btn-sm" id="btnMyWeekNext">Săpt. viitoare →</button>
+        </div>
+        <div id="myWeekGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;"></div>
+      </div>
+    </div>
+
+    <!-- TAB: PLANNER (Chirila/Nicoras only) -->
+    <div id="tab-planner" class="tab-panel" style="display:none;">
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+          <div class="section-title" style="margin:0;">Planificator săptămânal</div>
+          <button class="btn btn-ghost btn-sm" id="btnPlanPrev">← Săpt. trecută</button>
+          <div id="planWeekLabel" style="font-size:12.5px;color:#94a3b8;font-weight:700;"></div>
+          <button class="btn btn-ghost btn-sm" id="btnPlanNext">Săpt. viitoare →</button>
+          <button class="btn btn-sm" id="btnPublishPlan" style="background:#16a34a;color:#fff;margin-left:auto;">✓ Publică programul</button>
+        </div>
+        <div style="overflow-x:auto"><table id="plannerTable"></table></div>
+      </div>
+      <div class="card">
+        <div class="section-title">Lucrări (șantiere)</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;" id="jobsMgmtList"></div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="newJobName" class="form-input" placeholder="Nume lucrare nouă" style="flex:1;">
+          <button class="btn btn-sm" id="btnAddJob" style="background:#f59e0b;color:#fff;">+ Adaugă</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">Muncitori de teren</div>
+        <div style="overflow-x:auto"><table id="fieldWorkersTable"></table></div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+          <input type="text" id="newFwName" class="form-input" placeholder="Nume" style="flex:1;min-width:140px;">
+          <input type="text" id="newFwPin" class="form-input" placeholder="PIN (4 cifre)" maxlength="4" style="width:100px;">
+          <select id="newFwSec" class="form-select" style="width:150px;"><option value="E">Electricieni</option><option value="M">Montaj</option></select>
+          <button class="btn btn-sm" id="btnAddFw" style="background:#f59e0b;color:#fff;">+ Adaugă</button>
+        </div>
       </div>
     </div>
 
@@ -255,6 +334,38 @@ const DEFAULT_USERS = [
   {id:'u_sirb',    name:'Beniamin Sirb',    color:'#0891b2', password:'12345'},
 ];
 const MONTH_NAMES=['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'];
+const DOW_S=['Luni','Marți','Miercuri','Joi','Vineri','Sâmbătă'];
+const JOB_COLORS=['#f59e0b','#2563eb','#7c3aed','#db2777','#16a3a3','#16a34a','#ca8a04','#ea580c','#4b87b5','#64748b'];
+
+// ── Muncitori de teren (PIN) + Lucrări — seed inițial ──
+const SEED_FW = [
+  ["Adi","2481","E"],["Diaconu","7135","E"],["Doru","3862","E"],["Arabu","5247","E"],["Luci Piticu","8613","E"],
+  ["Denis","4926","E"],["Pumba","1758","E"],["Arnold","6342","E"],["Fibra","2907","E"],["Adi Nou","8174","E"],
+  ["Cosacu","5391","E"],["Bacea","7628","E"],["Cerasel","3049","E"],["Catalin","9156","E"],["Goodwee","4783","E"],
+  ["Grigore","6215","E"],["Sergiu","1934","E"],["Vasile","8467","E"],["Rares","2570","E"],["Nusca","7092","E"],
+  ["Mimi","6529","M"],["Mirel","3187","M"],["Iaro","8742","M"],["Soltez","2065","M"],["Stamate","9413","M"],
+  ["Leo","5678","M"],["Ruben","1290","M"],["Coroban","7854","M"],["Bulz","4321","M"],["Robi","6098","M"],
+  ["Crisan","2746","M"],["Vidra","8510","M"],["Luci","3925","M"],["Calin","7461","M"],["Peia","1683","M"],
+];
+const SEED_JOBS = ["I4 Baterii – PIF","I7 Oradea","Vâlcea","Liceul German","Casa Vladimirescu","Parc Aluniș","Căpâlnaș","Casa Ionuț","Clime","Birou","AFM"];
+function seedFieldWorkers(){ return SEED_FW.map(([name,pin,sec],i)=>({id:'fw'+(i+1),name,pin,sec})); }
+function seedJobs(){ return SEED_JOBS.map((name,i)=>({id:'job'+(i+1),name,color:JOB_COLORS[i%JOB_COLORS.length]})); }
+
+let fieldWorkers=[], jobs=[], weekPlans={}; // weekPlans[weekKey] = {workerId:{0:jobId,...5:jobId}}
+let myWeekOffset=0, planWeekOffset=0;
+function isoWeekMonday(offsetWeeks){
+  const d=new Date(); const day=(d.getDay()+6)%7;
+  d.setDate(d.getDate()-day+offsetWeeks*7); d.setHours(0,0,0,0); return d;
+}
+function weekKeyOf(monday){
+  const d=new Date(Date.UTC(monday.getFullYear(),monday.getMonth(),monday.getDate()));
+  const dayNum=(d.getUTCDay()+6)%7; d.setUTCDate(d.getUTCDate()-dayNum+3);
+  const firstThu=new Date(Date.UTC(d.getUTCFullYear(),0,4));
+  const fd=(firstThu.getUTCDay()+6)%7; firstThu.setUTCDate(firstThu.getUTCDate()-fd+3);
+  const week=1+Math.round((d-firstThu)/(7*864e5));
+  return d.getUTCFullYear()+'-W'+String(week).padStart(2,'0');
+}
+function fmtDayShort(d){ return d.getDate()+' '+MONTH_NAMES[d.getMonth()].slice(0,3).toLowerCase(); }
 
 let db=null, currentUser=null, loginUsers=[...DEFAULT_USERS], adminPw='12345';
 let records={}; // id -> record
@@ -300,8 +411,17 @@ function loadFirebase(){
       });
     }
     if(cfg.adminPw) adminPw=cfg.adminPw;
+    if(cfg.fieldWorkers&&Array.isArray(cfg.fieldWorkers)&&cfg.fieldWorkers.length){ fieldWorkers=cfg.fieldWorkers; }
+    else { fieldWorkers=seedFieldWorkers(); db.ref('solarcrm_v2/config/fieldWorkers').set(fieldWorkers); }
+    if(cfg.jobs&&Array.isArray(cfg.jobs)&&cfg.jobs.length){ jobs=cfg.jobs; }
+    else { jobs=seedJobs(); db.ref('solarcrm_v2/config/jobs').set(jobs); }
     populateLoginUsers();
     populateExportUsers();
+  });
+  db.ref('solarcrm_v2/pontajPlans').on('value', snap=>{
+    weekPlans=snap.val()||{};
+    if(activeTab==='myweek') renderMyWeek();
+    if(activeTab==='planner') renderPlanner();
   });
 }
 function loadLS(){ try{ const r=localStorage.getItem('shc_pontaj'); if(r) records=JSON.parse(r); }catch(e){} renderCurrentTab(); }
@@ -309,6 +429,11 @@ function saveRecord(r){
   if(!db){ records[r.id]=r; localStorage.setItem('shc_pontaj',JSON.stringify(records)); renderCurrentTab(); return; }
   db.ref('shc_pontaj/records/'+String(r.id)).set(r);
 }
+
+function saveFieldWorkers(){ if(db) db.ref('solarcrm_v2/config/fieldWorkers').set(fieldWorkers); }
+function saveJobs(){ if(db) db.ref('solarcrm_v2/config/jobs').set(jobs); }
+function savePlan(weekKey,plan){ if(db) db.ref('solarcrm_v2/pontajPlans/'+weekKey).set(plan); weekPlans[weekKey]=plan; }
+function isFieldWorker(){ return !!currentUser && currentUser.isField===true; }
 
 // ── Login ──
 function populateLoginUsers(){
@@ -336,7 +461,11 @@ function doLogin(){
   if(isFullAccess()){
     document.getElementById('tabTeamBtn').style.display='';
     document.getElementById('tabMapBtn').style.display='';
+    document.getElementById('tabPlannerBtn').style.display='';
     document.getElementById('exportUserField').style.display='';
+  }
+  if(isFieldWorker()){
+    document.getElementById('tabMyWeekBtn').style.display='';
   }
   populateExportUsers();
   initExportForm();
@@ -351,6 +480,67 @@ document.getElementById('btnLogout').addEventListener('click',()=>{
   document.getElementById('loginError').textContent='';
   document.getElementById('app').style.display='none';
   document.getElementById('loginOverlay').style.display='flex';
+  document.getElementById('tabMyWeekBtn').style.display='none';
+  document.getElementById('tabPlannerBtn').style.display='none';
+});
+
+// ── PIN login (muncitori de teren) ──
+let pinBuffer='';
+function renderPinDots(err){
+  const wrap=document.getElementById('pinDots'); wrap.innerHTML='';
+  for(let i=0;i<4;i++){
+    const d=document.createElement('div');
+    d.className='pin-dot'+(i<pinBuffer.length?(err?' err':' filled'):'');
+    wrap.appendChild(d);
+  }
+}
+function buildPinGrid(){
+  const grid=document.getElementById('pinGrid'); grid.innerHTML='';
+  ['1','2','3','4','5','6','7','8','9','','0','del'].forEach(k=>{
+    if(k===''){ grid.appendChild(document.createElement('div')); return; }
+    const b=document.createElement('button'); b.className='pin-key'; b.type='button';
+    b.textContent=k==='del'?'⌫':k;
+    b.addEventListener('click',()=>pinPress(k));
+    grid.appendChild(b);
+  });
+}
+function pinPress(k){
+  document.getElementById('pinErr').textContent='';
+  if(k==='del'){ pinBuffer=pinBuffer.slice(0,-1); renderPinDots(false); return; }
+  if(pinBuffer.length>=4) return;
+  pinBuffer+=k; renderPinDots(false);
+  if(pinBuffer.length===4){
+    const fw=fieldWorkers.find(f=>f.pin===pinBuffer);
+    if(!fw){
+      renderPinDots(true);
+      document.getElementById('pinErr').textContent='Cod greșit — încearcă din nou';
+      setTimeout(()=>{ pinBuffer=''; renderPinDots(false); },900);
+      return;
+    }
+    const colorPalette=['#f59e0b','#2563eb','#16a34a','#7c3aed','#db2777','#0891b2'];
+    const h=[...fw.name].reduce((a,c)=>a+c.charCodeAt(0),0);
+    currentUser={id:fw.id,name:fw.name,color:colorPalette[h%colorPalette.length],isField:true,sec:fw.sec};
+    pinBuffer='';
+    document.getElementById('pinOverlay').style.display='none';
+    document.getElementById('loginOverlay').style.display='none';
+    document.getElementById('app').style.display='flex';
+    const av=document.getElementById('userAvatar');
+    av.style.background=currentUser.color; av.textContent=initials(currentUser.name);
+    document.getElementById('userName').textContent=currentUser.name;
+    startSidebarParticles();
+    document.getElementById('tabMyWeekBtn').style.display='';
+    populateExportUsers(); initExportForm();
+    document.getElementById('todayDateLabel').textContent=new Date().toLocaleDateString('ro-RO',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+    renderCurrentTab();
+  }
+}
+buildPinGrid();
+document.getElementById('btnOpenPin').addEventListener('click',e=>{
+  e.preventDefault(); pinBuffer=''; renderPinDots(false); document.getElementById('pinErr').textContent='';
+  document.getElementById('pinOverlay').style.display='flex';
+});
+document.getElementById('btnClosePin').addEventListener('click',e=>{
+  e.preventDefault(); document.getElementById('pinOverlay').style.display='none';
 });
 
 // ── Tabs ──
@@ -372,6 +562,8 @@ function renderCurrentTab(){
   if(activeTab==='today') renderToday();
   else if(activeTab==='team') renderTeam();
   else if(activeTab==='map') renderMap();
+  else if(activeTab==='myweek') renderMyWeek();
+  else if(activeTab==='planner') renderPlanner();
 }
 
 // ── GPS ──
@@ -407,7 +599,25 @@ function myTodayRecord(){
   const t=todayISO();
   return Object.values(records).find(r=>r.userId===currentUser.id && r.date===t);
 }
+function selectedJobKey(){ return 'shc_job_'+todayISO()+'_'+currentUser.id; }
+function getSelectedJobId(){ try{ return localStorage.getItem(selectedJobKey())||''; }catch(e){ return ''; } }
+function setSelectedJobId(id){ try{ localStorage.setItem(selectedJobKey(),id); }catch(e){} renderJobChips(); }
+function renderJobChips(){
+  const card=document.getElementById('jobPickerCard'); const wrap=document.getElementById('jobChips');
+  if(!isFieldWorker()||!jobs.length){ card.style.display='none'; return; }
+  card.style.display='';
+  const sel=getSelectedJobId();
+  wrap.innerHTML='';
+  jobs.forEach(j=>{
+    const b=document.createElement('button'); b.type='button'; b.className='job-chip'+(sel===j.id?' active':'');
+    b.style.borderColor=sel===j.id?j.color:'transparent';
+    b.innerHTML='<span style="width:9px;height:9px;border-radius:2px;background:'+j.color+';display:inline-block;"></span>'+j.name;
+    b.addEventListener('click',()=>setSelectedJobId(j.id));
+    wrap.appendChild(b);
+  });
+}
 function renderToday(){
+  renderJobChips();
   const rec=myTodayRecord();
   const btn=document.getElementById('btnCheckAction');
   const gpsStatus=document.getElementById('gpsStatus');
@@ -446,7 +656,9 @@ async function doCheck(kind){
   const t=todayISO();
   let rec=myTodayRecord();
   if(!rec){ rec={id:uid(),userId:currentUser.id,userName:currentUser.name,date:t}; }
-  const entry={time:nowTime(), lat:gps?gps.lat:null, lng:gps?gps.lng:null, accuracy:gps?gps.accuracy:null, editedManually:false, device:getDeviceFingerprint()};
+  const jobId=isFieldWorker()?getSelectedJobId():'';
+  const job=jobId?jobs.find(j=>j.id===jobId):null;
+  const entry={time:nowTime(), lat:gps?gps.lat:null, lng:gps?gps.lng:null, accuracy:gps?gps.accuracy:null, editedManually:false, device:getDeviceFingerprint(), jobId:job?job.id:null, jobName:job?job.name:null};
   if(kind==='in') rec.checkIn=entry; else rec.checkOut=entry;
   saveRecord(rec);
   btn.disabled=false;
@@ -558,6 +770,108 @@ document.getElementById('btnSaveEdit').addEventListener('click',()=>{
   document.getElementById('editModal').classList.remove('show');
 });
 document.getElementById('editModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});
+
+// ── MY WEEK TAB (field workers) ──
+function renderMyWeek(){
+  if(!isFieldWorker()) return;
+  const monday=isoWeekMonday(myWeekOffset);
+  const wk=weekKeyOf(monday);
+  document.getElementById('myWeekLabel').textContent='Săptămâna '+fmtDayShort(monday)+' – '+fmtDayShort(new Date(monday.getTime()+5*864e5));
+  const plan=weekPlans[wk]||{};
+  const mine=plan[currentUser.id]||{};
+  const grid=document.getElementById('myWeekGrid'); grid.innerHTML='';
+  for(let d=0;d<6;d++){
+    const day=new Date(monday.getTime()+d*864e5);
+    const jobId=mine[d]; const job=jobId?jobs.find(j=>j.id===jobId):null;
+    const box=document.createElement('div');
+    box.style.cssText='background:#0d1b2e;border-radius:10px;padding:12px;border-left:4px solid '+(job?job.color:'#334155');
+    box.innerHTML='<div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">'+DOW_S[d]+' · '+fmtDayShort(day)+'</div>'+
+      '<div style="font-size:13px;font-weight:700;color:#f1f5f9;margin-top:6px;">'+(job?job.name:'—')+'</div>';
+    grid.appendChild(box);
+  }
+}
+document.getElementById('btnMyWeekPrev').addEventListener('click',()=>{ myWeekOffset--; renderMyWeek(); });
+document.getElementById('btnMyWeekNext').addEventListener('click',()=>{ myWeekOffset++; renderMyWeek(); });
+
+// ── PLANNER TAB (Chirila/Nicoras only) ──
+function renderJobsMgmt(){
+  const wrap=document.getElementById('jobsMgmtList'); wrap.innerHTML='';
+  jobs.forEach(j=>{
+    const chip=document.createElement('span');
+    chip.style.cssText='display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:8px;background:#0d1b2e;font-size:12px;color:#e2e8f0;';
+    chip.innerHTML='<span style="width:9px;height:9px;border-radius:2px;background:'+j.color+';display:inline-block;"></span>'+j.name+' <button style="background:none;border:none;color:#f87171;cursor:pointer;font-size:13px;" data-jid="'+j.id+'">✕</button>';
+    wrap.appendChild(chip);
+  });
+  wrap.querySelectorAll('button[data-jid]').forEach(b=>{
+    b.addEventListener('click',()=>{ jobs=jobs.filter(j=>j.id!==b.dataset.jid); saveJobs(); renderJobsMgmt(); renderPlanner(); renderJobChips(); });
+  });
+}
+document.getElementById('btnAddJob').addEventListener('click',()=>{
+  const nameEl=document.getElementById('newJobName'); const name=nameEl.value.trim();
+  if(!name) return;
+  jobs.push({id:'job_'+uid(),name,color:JOB_COLORS[jobs.length%JOB_COLORS.length]});
+  saveJobs(); nameEl.value=''; renderJobsMgmt(); renderPlanner();
+});
+function renderFieldWorkersTable(){
+  const tbl=document.getElementById('fieldWorkersTable');
+  let html='<thead><tr><th>Nume</th><th>PIN</th><th>Secție</th><th></th></tr></thead><tbody>';
+  fieldWorkers.forEach(f=>{
+    html+='<tr><td>'+f.name+'</td><td>'+f.pin+'</td><td>'+(f.sec==='E'?'Electricieni':'Montaj')+'</td><td><button data-fid="'+f.id+'" style="background:none;border:none;color:#f87171;cursor:pointer;font-size:13px;">✕</button></td></tr>';
+  });
+  tbl.innerHTML=html+'</tbody>';
+  tbl.querySelectorAll('button[data-fid]').forEach(b=>{
+    b.addEventListener('click',()=>{ fieldWorkers=fieldWorkers.filter(f=>f.id!==b.dataset.fid); saveFieldWorkers(); renderFieldWorkersTable(); renderPlanner(); });
+  });
+}
+document.getElementById('btnAddFw').addEventListener('click',()=>{
+  const name=document.getElementById('newFwName').value.trim();
+  const pin=document.getElementById('newFwPin').value.trim();
+  const sec=document.getElementById('newFwSec').value;
+  if(!name||!/^\d{4}$/.test(pin)){ alert('Completează numele și un PIN de 4 cifre.'); return; }
+  if(fieldWorkers.some(f=>f.pin===pin)){ alert('Acest PIN este deja folosit de alt coleg.'); return; }
+  fieldWorkers.push({id:'fw_'+uid(),name,pin,sec});
+  saveFieldWorkers();
+  document.getElementById('newFwName').value=''; document.getElementById('newFwPin').value='';
+  renderFieldWorkersTable(); renderPlanner();
+});
+let plannerDraft=null, plannerWk=null;
+function renderPlanner(){
+  if(!isFullAccess()) return;
+  renderJobsMgmt(); renderFieldWorkersTable();
+  const monday=isoWeekMonday(planWeekOffset);
+  const wk=weekKeyOf(monday); plannerWk=wk;
+  document.getElementById('planWeekLabel').textContent='Săptămâna '+fmtDayShort(monday)+' – '+fmtDayShort(new Date(monday.getTime()+5*864e5));
+  plannerDraft=JSON.parse(JSON.stringify(weekPlans[wk]||{}));
+  const tbl=document.getElementById('plannerTable');
+  let html='<thead><tr><th>Muncitor</th>';
+  for(let d=0;d<6;d++){ const day=new Date(monday.getTime()+d*864e5); html+='<th>'+DOW_S[d]+'<br>'+fmtDayShort(day)+'</th>'; }
+  html+='</tr></thead><tbody>';
+  fieldWorkers.forEach(f=>{
+    html+='<tr><td>'+f.name+' <span style="color:#475569;font-size:10px;">('+(f.sec==='E'?'E':'M')+')</span></td>';
+    for(let d=0;d<6;d++){
+      const cur=(plannerDraft[f.id]||{})[d]||'';
+      let opts='<option value="">— liber —</option>';
+      jobs.forEach(j=>{ opts+='<option value="'+j.id+'"'+(cur===j.id?' selected':'')+'>'+j.name+'</option>'; });
+      html+='<td class="plan-cell"><select data-fw="'+f.id+'" data-day="'+d+'">'+opts+'</select></td>';
+    }
+    html+='</tr>';
+  });
+  tbl.innerHTML=html+'</tbody>';
+  tbl.querySelectorAll('select[data-fw]').forEach(sel=>{
+    sel.addEventListener('change',()=>{
+      const fw=sel.dataset.fw, day=sel.dataset.day;
+      if(!plannerDraft[fw]) plannerDraft[fw]={};
+      plannerDraft[fw][day]=sel.value;
+    });
+  });
+}
+document.getElementById('btnPlanPrev').addEventListener('click',()=>{ planWeekOffset--; renderPlanner(); });
+document.getElementById('btnPlanNext').addEventListener('click',()=>{ planWeekOffset++; renderPlanner(); });
+document.getElementById('btnPublishPlan').addEventListener('click',()=>{
+  if(!plannerWk) return;
+  savePlan(plannerWk,plannerDraft);
+  alert('Program publicat pentru săptămâna '+plannerWk+'.');
+});
 
 // ── MAP TAB ──
 function initMap(){
