@@ -1363,8 +1363,14 @@ class Component extends DCLogic {
     this._startParticles();
     const db = getDb();
     if(!db){ this._loadFromLS(); return; }
+    // Fallback dacă Firebase nu răspunde în timp util (rețea mobilă lentă/blocată) —
+    // afișăm autentificarea din datele locale în loc să înghețe ecranul la nesfârșit
+    this._fbTimeout = setTimeout(()=>{
+      if(!this._initialized) this._loadFromLS();
+    }, 5000);
     this._fbRef = db.ref('solarcrm_v2');
     this._fbRef.on('value', snap => {
+      clearTimeout(this._fbTimeout);
       this._firebaseLoaded = true;
       const data = snap.val() || {};
       // Suporta atat structura noua (data.projects obiect, data.config) cat si veche (data.projects array, data.users)
@@ -1385,20 +1391,23 @@ class Component extends DCLogic {
       const companyInfo = ci ? {...COMPANY_INFO,...ci} : this.state.companyInfo;
       if(!this._initialized){
         this._initialized=true;
+        clearTimeout(this._fbTimeout);
         this.setState({projects,users,companyInfo},()=>this._initAuth());
       } else {
         this.setState({projects,users,companyInfo});
       }
-    }, ()=>this._loadFromLS());
+    }, ()=>{ clearTimeout(this._fbTimeout); this._loadFromLS(); });
   }
 
-  componentWillUnmount(){ if(this._fbRef) this._fbRef.off(); }
+  componentWillUnmount(){ if(this._fbRef) this._fbRef.off(); if(this._fbTimeout) clearTimeout(this._fbTimeout); }
 
   _initAuth(){
     this.setState({showUserModal:true,userModalMode:'login'});
   }
 
   _loadFromLS(){
+    if(this._initialized) return;
+    this._initialized=true;
     try {
       // Versiune date: daca e mai veche, sterge proiectele sample
       const DATA_VERSION = 3;
