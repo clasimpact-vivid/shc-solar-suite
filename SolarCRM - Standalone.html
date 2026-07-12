@@ -60,6 +60,14 @@ input,select,textarea,button{font-family:inherit;}
   .crm-reports-grid{grid-template-columns:1fr!important;}
   /* Filter bar */
   .crm-filter-bar{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  /* Table → carduri pe mobil */
+  .crm-table-desktop{display:none!important;}
+  .crm-mobile-cards{display:block!important;}
+  /* Topbar: compactăm etichetele text, păstrăm iconițele */
+  .crm-username-label, .crm-btn-label{display:none!important;}
+  .crm-new-icon{display:inline!important;}
+  .crm-topbar button{padding:7px 9px!important;}
+  .crm-topbar{padding:0 8px!important;gap:4px!important;}
 }
 /* iOS Safari: elementele clicabile (div-uri fără href/button) sunt tratate ca text selectabil,
    iar long-press deschide meniul Copy/Look Up în loc să declanșeze onClick. Dezactivăm explicit. */
@@ -69,6 +77,7 @@ input,select,textarea,button{font-family:inherit;}
   user-select: none;
   -webkit-tap-highlight-color: rgba(0,0,0,0.06);
 }
+.crm-mobile-cards{display:none;}
 [style*="cursor:pointer"]:active, [style*="cursor: pointer"]:active { filter:brightness(0.93); }
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -184,17 +193,17 @@ input,select,textarea,button{font-family:inherit;}
     <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
       <button onClick="{{ openUserMgmt }}" style="display:flex;align-items:center;gap:6px;padding:7px 13px;border:1px solid #fecaca;background:#fff5f5;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:#dc2626;white-space:nowrap;" style-hover="background:#fee2e2;">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-        Utilizatori
+        <span class="crm-btn-label">Utilizatori</span>
       </button>
     </sc-if>
     <!-- Change password button -->
     <button onClick="{{ openChangePw }}" style="padding:5px 10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;font-size:12px;cursor:pointer;color:#64748b;flex:none;" style-hover="background:#f8fafc;">🔑</button>
     <!-- Logout button -->
-    <button onClick="{{ doLogout }}" style="padding:5px 10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;font-size:12px;cursor:pointer;color:#64748b;flex:none;" style-hover="background:#f8fafc;">⏏ Deconectare</button>
+    <button onClick="{{ doLogout }}" style="padding:5px 10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;font-size:12px;cursor:pointer;color:#64748b;flex:none;" style-hover="background:#f8fafc;">⏏ <span class="crm-btn-label">Deconectare</span></button>
     <!-- User avatar -->
     <div onClick="{{ openUserSwitcher }}" style="display:flex;align-items:center;gap:8px;padding:5px 10px 5px 5px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;flex:none;" style-hover="background:#f8fafc;">
       <div style="width:28px;height:28px;border-radius:50%;background:{{ userColor }};display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;flex:none;">{{ userInitials }}</div>
-      <span style="font-size:12px;font-weight:600;color:#374151;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ userName }}</span>
+      <span class="crm-btn-label" style="font-size:12px;font-weight:600;color:#374151;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ userName }}</span>
     </div>
   </div>
 
@@ -215,7 +224,7 @@ input,select,textarea,button{font-family:inherit;}
 
     <!-- TABLE VIEW -->
     <sc-if value="{{ isTableView }}" hint-placeholder-val="{{ true }}">
-      <div class="crm-table-scroll">
+      <div class="crm-table-scroll crm-table-desktop">
         <div style="min-width:900px;display:grid;grid-template-columns:38px 150px 86px 132px 1fr 108px 88px 84px 90px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-bottom:2px solid #e2e8f0;border-radius:12px 12px 0 0;gap:10px;position:sticky;top:0;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,0.04);">
           <div style="font-size:11px;font-weight:700;color:#94a3b8;text-align:center;">#</div>
           <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Client</div>
@@ -249,6 +258,34 @@ input,select,textarea,button{font-family:inherit;}
           <div style="padding:9px 14px;background:#f8fafc;border-top:1px solid #e2e8f0;">
             <span style="font-size:12px;color:#94a3b8;">{{ filteredCount }} lucrări afișate</span>
           </div>
+        </div>
+      </div>
+
+      <!-- Mobile: listă de carduri, în loc de tabel cu scroll orizontal -->
+      <div class="crm-mobile-cards">
+        <sc-for list="{{ filtered }}" as="p" hint-placeholder-count="6">
+          <div onClick="{{ p.onClick }}" style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:13px 14px;margin-bottom:10px;cursor:pointer;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+              <div style="font-size:14px;font-weight:700;color:#0f172a;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.client }}</div>
+              <span style="background:{{ p.statusBg }};color:{{ p.statusColor }};font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap;flex:none;">{{ p.status }}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap;">
+              <span style="background:{{ p.typeBg }};color:{{ p.typeColor }};font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;">{{ p.typeLabel }}</span>
+              <span style="font-size:12px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.addressShort }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:9px;padding-top:9px;border-top:1px solid #f1f5f9;">
+              <span style="font-size:13.5px;font-weight:700;color:#0f172a;">{{ p.valueFormatted }}</span>
+              <span style="font-size:11.5px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px;">{{ p.responsabilShort }}</span>
+            </div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ isEmpty }}">
+          <div style="padding:40px 0;text-align:center;color:#94a3b8;">
+            <div style="font-size:14px;font-weight:600;color:#64748b;">Nicio lucrare găsită</div>
+          </div>
+        </sc-if>
+        <div style="text-align:center;padding:8px 0 20px;">
+          <span style="font-size:12px;color:#94a3b8;">{{ filteredCount }} lucrări afișate</span>
         </div>
       </div>
     </sc-if>
