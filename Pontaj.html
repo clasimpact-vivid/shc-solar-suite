@@ -171,7 +171,8 @@ a:hover{color:#fbbf24;}
     <button class="tab-btn" data-tab="map" id="tabMapBtn" style="display:none;">Hartă live</button>
     <button class="tab-btn" data-tab="cereri">Cereri</button>
     <button class="tab-btn" data-tab="pv">Proces verbal</button>
-    <button class="tab-btn" data-tab="export">Export</button>
+    <button class="tab-btn" data-tab="alerte" id="tabAlerteBtn" style="display:none;">🔔 Alerte<span id="alerteBadge" style="display:none;background:#dc2626;color:#fff;font-size:10px;font-weight:800;border-radius:999px;padding:1px 6px;margin-left:5px;"></span></button>
+    <button class="tab-btn" data-tab="export" id="tabExportBtn">Export</button>
   </div>
 
   <div id="main">
@@ -236,6 +237,14 @@ a:hover{color:#fbbf24;}
       <div class="card">
         <div class="section-title">Procese verbale salvate</div>
         <div id="pvList"></div>
+      </div>
+    </div>
+
+    <!-- TAB: ALERTE (muncitori de teren) -->
+    <div id="tab-alerte" class="tab-panel" style="display:none;">
+      <div class="card">
+        <div class="section-title">Alerte & anunțuri</div>
+        <div id="alerteList"></div>
       </div>
     </div>
 
@@ -468,7 +477,8 @@ function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(
 function initials(n){ return (n||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase(); }
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function nowTime(){ const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
-function isFullAccess(){ return !!currentUser && (currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'); }
+function isFullAccess(){ return !!currentUser && (currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'||currentUser.pontajPlanner===true); }
+function isSuperAdminPontaj(){ return !!currentUser && (currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'); }
 function getDeviceFingerprint(){
   try{
     let id=localStorage.getItem('shc_device_id');
@@ -530,6 +540,10 @@ function loadFirebase(){
     const raw=snap.val()||{}; pvRecords=Object.values(raw).filter(Boolean).sort((a,b)=>b.ts-a.ts);
     if(activeTab==='pv') renderPv();
   });
+  db.ref('solarcrm_v2/pontajNotifs').on('value', snap=>{
+    const raw=snap.val()||{}; notifs=Object.values(raw).filter(Boolean).sort((a,b)=>b.ts-a.ts);
+    if(activeTab==='alerte') renderAlerte(); else updateAlerteBadge();
+  });
 }
 function loadLS(){ try{ const r=localStorage.getItem('shc_pontaj'); if(r) records=JSON.parse(r); }catch(e){} renderCurrentTab(); }
 function saveRecord(r){
@@ -548,6 +562,33 @@ function saveLeave(l){ if(db) db.ref('solarcrm_v2/pontajLeave/'+l.id).set(l); el
 function saveProb(p){ if(db) db.ref('solarcrm_v2/pontajProbs/'+p.id).set(p); else { probReports=[p,...probReports.filter(x=>x.id!==p.id)]; renderCereri(); } }
 let pvRecords=[];
 function savePv(pv){ if(db) db.ref('solarcrm_v2/pontajPv/'+pv.id).set(pv); else { pvRecords=[pv,...pvRecords.filter(x=>x.id!==pv.id)]; renderPv(); } }
+let notifs=[];
+function saveNotif(n){ if(db) db.ref('solarcrm_v2/pontajNotifs/'+n.id).set(n); }
+function mySeenKey(){ return 'shc_seen_notif_'+currentUser.id; }
+function getSeenTs(){ try{ return parseInt(localStorage.getItem(mySeenKey())||'0'); }catch(e){ return 0; } }
+function setSeenNow(){ try{ localStorage.setItem(mySeenKey(),String(Date.now())); }catch(e){} updateAlerteBadge(); }
+function myTeam(){ return teams.find(t=>(t.memberIds||[]).includes(currentUser.id)); }
+function updateAlerteBadge(){
+  if(!isFieldWorker()) return;
+  const t=myTeam(); if(!t) return;
+  const seen=getSeenTs();
+  const count=notifs.filter(n=>(n.teamIds||[]).includes(t.id) && n.ts>seen).length;
+  const badge=document.getElementById('alerteBadge');
+  if(count>0){ badge.style.display='inline-block'; badge.textContent=count; } else { badge.style.display='none'; }
+}
+function renderAlerte(){
+  if(!isFieldWorker()) return;
+  const t=myTeam();
+  const wrap=document.getElementById('alerteList');
+  const mine=t?notifs.filter(n=>(n.teamIds||[]).includes(t.id)).sort((a,b)=>b.ts-a.ts):[];
+  if(!mine.length){ wrap.innerHTML='<div style="color:#475569;font-size:12.5px;">Nicio alertă momentan.</div>'; }
+  else{
+    wrap.innerHTML=mine.map(n=>'<div style="background:#0d1b2e;border-radius:10px;padding:12px;margin-bottom:8px;">'+
+      '<div style="font-size:13px;font-weight:700;color:#f1f5f9;">'+n.title+'</div>'+
+      '<div style="font-size:11px;color:#64748b;margin-top:4px;">'+new Date(n.ts).toLocaleString('ro-RO')+'</div></div>').join('');
+  }
+  setSeenNow();
+}
 function compressImg(file){
   return new Promise((res)=>{
     const rd=new FileReader();
@@ -573,8 +614,9 @@ function populateLoginUsers(){
   if(cur) sel.value=cur;
 }
 function resetRestrictedTabs(){
-  ['tabTeamBtn','tabMapBtn','tabPlannerBtn','tabMyWeekBtn'].forEach(id=>{ document.getElementById(id).style.display='none'; });
+  ['tabTeamBtn','tabMapBtn','tabPlannerBtn','tabMyWeekBtn','tabAlerteBtn'].forEach(id=>{ document.getElementById(id).style.display='none'; });
   document.getElementById('exportUserField').style.display='none';
+  document.getElementById('tabExportBtn').style.display='';
 }
 function doLogin(){
   const uid2=document.getElementById('loginUser').value;
@@ -599,6 +641,8 @@ function doLogin(){
     document.getElementById('tabPlannerBtn').style.display='';
     document.getElementById('exportUserField').style.display='';
   }
+  document.getElementById('btnDeleteAllPontaj').style.display=isSuperAdminPontaj()?'':'none';
+  document.getElementById('btnPublishPlan').style.display=isFullAccess()?'':'none';
   if(isFieldWorker()){
     document.getElementById('tabMyWeekBtn').style.display='';
   }
@@ -670,9 +714,13 @@ function pinPress(k){
     startSidebarParticles();
     resetRestrictedTabs();
     document.getElementById('tabMyWeekBtn').style.display='';
+    document.getElementById('tabMapBtn').style.display='';
+    document.getElementById('tabAlerteBtn').style.display='';
+    document.getElementById('tabExportBtn').style.display='none';
     populateExportUsers(); initExportForm();
     document.getElementById('todayDateLabel').textContent=new Date().toLocaleDateString('ro-RO',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
     renderCurrentTab();
+    updateAlerteBadge();
   }
 }
 buildPinGrid();
@@ -707,6 +755,7 @@ function renderCurrentTab(){
   else if(activeTab==='planner') renderPlanner();
   else if(activeTab==='cereri') renderCereri();
   else if(activeTab==='pv') renderPv();
+  else if(activeTab==='alerte') renderAlerte();
 }
 
 // ── GPS ──
@@ -830,7 +879,7 @@ function renderMyHistory(){
 document.getElementById('teamDate').value=isoToDmy(todayISO());
 document.getElementById('teamDate').addEventListener('input',renderTeam);
 document.getElementById('btnDeleteAllPontaj').addEventListener('click',()=>{
-  if(!isFullAccess()){ alert('Doar Alexandru Chirila sau Ionut Nicoras pot șterge toate înregistrările.'); return; }
+  if(!isSuperAdminPontaj()){ alert('Doar Alexandru Chirila sau Ionut Nicoras pot șterge toate înregistrările.'); return; }
   if(!confirm('Ștergi TOATE înregistrările de pontaj (inclusiv de test), pentru toți colegii? Această acțiune nu poate fi anulată.')) return;
   if(db){ db.ref('shc_pontaj/records').remove().catch(()=>{}); }
   records={};
@@ -1134,8 +1183,22 @@ document.getElementById('btnPlanPrev').addEventListener('click',()=>{ planWeekOf
 document.getElementById('btnPlanNext').addEventListener('click',()=>{ planWeekOffset++; renderPlanner(); });
 document.getElementById('btnPublishPlan').addEventListener('click',()=>{
   if(!plannerWk) return;
+  const oldPlan=weekPlans[plannerWk]||{};
+  const changedTeamIds=[];
+  Object.keys(plannerDraft).forEach(teamId=>{
+    const oldTeam=oldPlan[teamId]||{}; const newTeam=plannerDraft[teamId]||{};
+    for(let d=0;d<6;d++){
+      const a=JSON.stringify(oldTeam[d]||{}), b=JSON.stringify(newTeam[d]||{});
+      if(a!==b){ if(!changedTeamIds.includes(teamId)) changedTeamIds.push(teamId); }
+    }
+  });
   savePlan(plannerWk,plannerDraft);
-  alert('Program publicat pentru săptămâna '+plannerWk+'.');
+  if(changedTeamIds.length){
+    const monday=isoWeekMonday(planWeekOffset);
+    const {week:wnum}=(function(){ const p=plannerWk.split('-W'); return {week:p[1]}; })();
+    saveNotif({id:'nf_'+uid(),ts:Date.now(),title:'Program actualizat · Săptămâna '+wnum+' ('+fmtDayShort(monday)+' – '+fmtDayShort(new Date(monday.getTime()+5*864e5))+')',weekKey:plannerWk,teamIds:changedTeamIds});
+  }
+  alert('Program publicat pentru săptămâna '+plannerWk+(changedTeamIds.length?' · '+changedTeamIds.length+' echipe anunțate':'')+'.');
 });
 
 // ── CERERI TAB (concedii + probleme) ──

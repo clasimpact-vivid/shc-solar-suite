@@ -924,6 +924,9 @@ input,select,textarea,button{font-family:inherit;}
           </div>
           <div style="border-top:1px solid #f1f5f9;padding-top:12px;">
             <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:#0f172a;cursor:pointer;margin-bottom:10px;">
+              <input type="checkbox" checked="{{ umForm.pontajPlanner }}" onChange="{{ onUmPontajPlanner }}" style="width:16px;height:16px;accent-color:#f59e0b;"> 🗓️ Șef de șantier — acces Planificator în Pontaj (echipe, lucrări, program săptămânal)
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:#0f172a;cursor:pointer;margin-bottom:10px;">
               <input type="checkbox" checked="{{ umForm.isSuperAdmin }}" onChange="{{ onUmSuperAdmin }}" style="width:16px;height:16px;accent-color:#dc2626;"> Acces deplin (SuperAdmin) — vede toate lucrările
             </label>
             <sc-if value="{{ umNotSuperAdmin }}" hint-placeholder-val="{{ true }}">
@@ -992,6 +995,9 @@ input,select,textarea,button{font-family:inherit;}
             <input type="password" value="{{ umForm.password2 }}" onChange="{{ onUmPassword2 }}" placeholder="••••••••" style="width:100%;padding:9px 11px;border:1px solid {{ umForm.pw2Border }};border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
           </div>
           <div style="border-top:1px solid #f1f5f9;padding-top:12px;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:#0f172a;cursor:pointer;margin-bottom:10px;">
+              <input type="checkbox" checked="{{ umForm.pontajPlanner }}" onChange="{{ onUmPontajPlanner }}" style="width:16px;height:16px;accent-color:#f59e0b;"> 🗓️ Șef de șantier — acces Planificator în Pontaj (echipe, lucrări, program săptămânal)
+            </label>
             <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:#0f172a;cursor:pointer;margin-bottom:10px;">
               <input type="checkbox" checked="{{ umForm.isSuperAdmin }}" onChange="{{ onUmSuperAdmin }}" style="width:16px;height:16px;accent-color:#dc2626;"> Acces deplin (SuperAdmin) — vede toate lucrările
             </label>
@@ -1659,7 +1665,7 @@ class Component extends DCLogic {
   umGoAdd(){ this.setState({userMgmtMode:'add',editingUserId:null,umForm:{...EMPTY_UM_FORM}}); }
   umGoBack(){ this.setState({userMgmtMode:'list',umForm:{...EMPTY_UM_FORM}}); }
   umChangeAdminPw(){ this.setState({userMgmtMode:'changepw',umForm:{...EMPTY_UM_FORM}}); }
-  umStartEdit(userId){ const u=this.state.users.find(x=>x.id===userId); if(!u)return; const seg=u.segmente||['PV','Inverter','Baterie']; const nf=u.notif||{}; const ap=u.apps||{crm:true,calculator:true,planificare:true,vizita:true,pontaj:true}; this.setState({userMgmtMode:'edit',editingUserId:userId,umForm:{...EMPTY_UM_FORM,name:u.name,email:u.email||'',role:u.role,isSuperAdmin:!!u.isSuperAdmin,segPV:seg.includes('PV'),segInverter:seg.includes('Inverter'),segBaterie:seg.includes('Baterie'),segBESS:seg.includes('BESS'),notifSolarCRM:nf.solarcrm!==false,notifPlanificare:!!nf.planificare,notifVizita:!!nf.vizita,notifPontaj:!!nf.pontaj,appCrm:ap.crm!==false,appCalculator:ap.calculator!==false,appPlanificare:ap.planificare!==false,appVizita:ap.vizita!==false,appPontaj:ap.pontaj!==false}}); }
+  umStartEdit(userId){ const u=this.state.users.find(x=>x.id===userId); if(!u)return; const seg=u.segmente||['PV','Inverter','Baterie']; const nf=u.notif||{}; const ap=u.apps||{crm:true,calculator:true,planificare:true,vizita:true,pontaj:true}; this.setState({userMgmtMode:'edit',editingUserId:userId,umForm:{...EMPTY_UM_FORM,name:u.name,email:u.email||'',role:u.role,isSuperAdmin:!!u.isSuperAdmin,pontajPlanner:!!u.pontajPlanner,segPV:seg.includes('PV'),segInverter:seg.includes('Inverter'),segBaterie:seg.includes('Baterie'),segBESS:seg.includes('BESS'),notifSolarCRM:nf.solarcrm!==false,notifPlanificare:!!nf.planificare,notifVizita:!!nf.vizita,notifPontaj:!!nf.pontaj,appCrm:ap.crm!==false,appCalculator:ap.calculator!==false,appPlanificare:ap.planificare!==false,appVizita:ap.vizita!==false,appPontaj:ap.pontaj!==false}}); }
   setUmForm(k,v){ this.setState(s=>({umForm:{...s.umForm,[k]:v}})); }
 
   umSaveAdd(){
@@ -1671,7 +1677,7 @@ class Component extends DCLogic {
     const segmente=[umForm.segPV&&'PV',umForm.segInverter&&'Inverter',umForm.segBaterie&&'Baterie',umForm.segBESS&&'BESS'].filter(Boolean);
     const notif={solarcrm:!!umForm.notifSolarCRM,planificare:!!umForm.notifPlanificare,vizita:!!umForm.notifVizita,pontaj:!!umForm.notifPontaj};
     const apps={crm:!!umForm.appCrm,calculator:!!umForm.appCalculator,planificare:!!umForm.appPlanificare,vizita:!!umForm.appVizita,pontaj:!!umForm.appPontaj};
-    const user={id:'u'+Date.now(),name:umForm.name.trim(),email:umForm.email.trim(),role:umForm.role,color,password:umForm.password.trim(),isSuperAdmin:!!umForm.isSuperAdmin,segmente,notif,apps};
+    const user={id:'u'+Date.now(),name:umForm.name.trim(),email:umForm.email.trim(),role:umForm.role,color,password:umForm.password.trim(),isSuperAdmin:!!umForm.isSuperAdmin,pontajPlanner:!!umForm.pontajPlanner,segmente,notif,apps};
     const newUsers=[...users,user];
     this.setState({users:newUsers,userMgmtMode:'list',umForm:{...EMPTY_UM_FORM}},()=>setTimeout(()=>this.persist(),0));
   }
@@ -1686,7 +1692,7 @@ class Component extends DCLogic {
       const segmente=[umForm.segPV&&'PV',umForm.segInverter&&'Inverter',umForm.segBaterie&&'Baterie',umForm.segBESS&&'BESS'].filter(Boolean);
       const notif={solarcrm:!!umForm.notifSolarCRM,planificare:!!umForm.notifPlanificare,vizita:!!umForm.notifVizita,pontaj:!!umForm.notifPontaj};
       const apps={crm:!!umForm.appCrm,calculator:!!umForm.appCalculator,planificare:!!umForm.appPlanificare,vizita:!!umForm.appVizita,pontaj:!!umForm.appPontaj};
-      const updated={...u,name:umForm.name.trim(),email:umForm.email.trim(),role:umForm.role,isSuperAdmin:!!umForm.isSuperAdmin,segmente,notif,apps};
+      const updated={...u,name:umForm.name.trim(),email:umForm.email.trim(),role:umForm.role,isSuperAdmin:!!umForm.isSuperAdmin,pontajPlanner:!!umForm.pontajPlanner,segmente,notif,apps};
       if(umForm.password.trim())updated.password=umForm.password.trim();
       return updated;
     });
@@ -1966,6 +1972,7 @@ class Component extends DCLogic {
       onUmNotifViz:e=>this.setUmForm('notifVizita',e.target.checked),
       onUmNotifPontaj:e=>this.setUmForm('notifPontaj',e.target.checked),
       onUmSuperAdmin:e=>this.setUmForm('isSuperAdmin',e.target.checked),
+      onUmPontajPlanner:e=>this.setUmForm('pontajPlanner',e.target.checked),
       onUmRoleTemplate:e=>{ const t=APP_ROLE_TEMPLATES[e.target.value]; if(t) this.setState(s=>({umForm:{...s.umForm,roleTemplate:e.target.value,...t}})); },
       onUmAppCrm:e=>this.setUmForm('appCrm',e.target.checked),
       onUmAppCalculator:e=>this.setUmForm('appCalculator',e.target.checked),
