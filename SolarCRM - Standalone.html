@@ -61,6 +61,14 @@ input,select,textarea,button{font-family:inherit;}
   /* Filter bar */
   .crm-filter-bar{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 }
+/* iOS Safari: elementele clicabile (div-uri fără href/button) sunt tratate ca text selectabil,
+   iar long-press deschide meniul Copy/Look Up în loc să declanșeze onClick. Dezactivăm explicit. */
+[onclick], [style*="cursor:pointer"], [style*="cursor: pointer"] {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: rgba(0,0,0,0.06);
+}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
