@@ -79,6 +79,7 @@
     .deviz-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
     /* Topbar butoane wrap */
     #topBtns{flex-wrap:wrap!important;gap:6px!important;}
+    #adminContent [style*="grid-template-columns:1fr 1fr 1fr auto"]{grid-template-columns:1fr!important;}
     #topBtns button{flex:1 1 calc(50% - 6px);font-size:11px;padding:8px 6px;}
     /* Centralizator financiar tabele */
     .capex-tbl td{padding:4px 3px;font-size:11px;}
@@ -134,6 +135,7 @@
   .badge.hot{background:#fee2e2;color:#b91c1c}
   .badge.good{background:#dcfce7;color:#15803d}
   .badge.warn{background:#fef3c7;color:#b45309}
+  [style*="cursor:pointer"], [style*="cursor: pointer"] { -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:rgba(0,0,0,0.06); }
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -186,7 +188,7 @@
       <h1>Calculator oferte PV &amp; BESS</h1>
       <p class="sub">Draft editabil — modifică orice parametru, rezultatele se actualizează live</p>
     </div>
-    <div style="display:flex;gap:8px;align-items:center">
+    <div id="topBtns" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
       <span id="currentUserBadge" style="font-size:12px;color:var(--text2);padding:5px 10px;border:1px solid var(--border);border-radius:6px;display:none"></span>
       <button id="btnChangePw" style="display:none;font-size:12px;padding:5px 10px" title="Schimbă parola">🔑 Parolă</button>
       <button id="btnLogout" style="display:none;font-size:12px;padding:5px 10px">⎋ Ieși</button>
@@ -3086,7 +3088,7 @@ function fmtDT(iso){
 function renderAdminUsers(){
   var users=loadUsers();
   var html='<div style="margin-bottom:20px"><strong style="font-size:13px">Utilizatori activi</strong></div>';
-  html+='<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#f7f8fa"><th style="text-align:left;padding:9px 10px;border-bottom:1px solid var(--border)">Nume</th><th style="padding:9px 10px;border-bottom:1px solid var(--border)">Rol</th><th style="padding:9px 10px;border-bottom:1px solid var(--border)">Status</th><th style="padding:9px 10px;border-bottom:1px solid var(--border)">Acțiuni</th></tr></thead><tbody>';
+  html+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table style="width:100%;border-collapse:collapse;font-size:13px;min-width:560px"><thead><tr style="background:#f7f8fa"><th style="text-align:left;padding:9px 10px;border-bottom:1px solid var(--border)">Nume</th><th style="padding:9px 10px;border-bottom:1px solid var(--border)">Rol</th><th style="padding:9px 10px;border-bottom:1px solid var(--border)">Status</th><th style="padding:9px 10px;border-bottom:1px solid var(--border)">Acțiuni</th></tr></thead><tbody>';
   users.forEach(function(u){
     var isSelf=(SESSION&&u.id===SESSION.userId);
     html+='<tr style="border-bottom:1px solid var(--border)">'+
@@ -3099,7 +3101,7 @@ function renderAdminUsers(){
         '<button type="button" data-reset-uid="'+u.id+'" style="font-size:11px;padding:4px 8px">Reset parolă</button>')) +
       '</td></tr>';
   });
-  html+='</tbody></table>';
+  html+='</tbody></table></div>';
   html+='<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
     +'<button type="button" id="btnBakeUsers" style="font-size:12px;padding:6px 14px;background:#0f2850;color:#fff;border:none;border-radius:6px;cursor:pointer;">⬇ Descarcă HTML cu utilizatori salvați</button>'
     +'<span style="font-size:11px;color:var(--text2);">Generează un fișier gata de upload pe Netlify, cu utilizatorii curenți incluși.</span>'
