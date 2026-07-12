@@ -89,6 +89,23 @@ input,select,textarea,button{font-family:inherit;}
   }
   window.addEventListener('error',function(e){ showBootError('Eroare: '+(e.message||String(e.error||e))+' @ '+(e.filename||'')+':'+(e.lineno||'')); });
   window.addEventListener('unhandledrejection',function(e){ showBootError('Promise respinsă: '+((e.reason&&e.reason.message)||e.reason)); });
+  // Log vizibil de atingeri — temporar, ca să vedem exact ce evenimente ajung la pagină pe telefon
+  function touchLog(msg){
+    let el=document.getElementById('__touchLog');
+    if(!el){
+      el=document.createElement('div');
+      el.id='__touchLog';
+      el.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:999998;background:rgba(0,0,0,0.85);color:#4ade80;padding:6px 10px;font:10px/1.4 monospace;max-height:110px;overflow-y:auto;';
+      document.body.appendChild(el);
+    }
+    const line=document.createElement('div');
+    line.textContent=new Date().toLocaleTimeString('ro-RO')+' — '+msg;
+    el.appendChild(line);
+    while(el.children.length>12) el.removeChild(el.firstChild);
+    el.scrollTop=el.scrollHeight;
+  }
+  document.addEventListener('touchstart',function(e){ touchLog('touchstart pe <'+e.target.tagName+'> class='+(e.target.className||'').toString().slice(0,20)); }, true);
+  document.addEventListener('click',function(e){ touchLog('click pe <'+e.target.tagName+'>'); }, true);
 })();
 </script>
 <template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 56"><rect width="80" height="56" fill="#0f1729"/><rect x="8" y="8" width="20" height="40" rx="3" fill="#1e293b"/><path d="M18 18l2.5 6.5 7 1-5 4.8 1.4 7-5.9-3.2-5.9 3.2 1.4-7-5-4.8 7-1z" fill="#f59e0b"/><rect x="34" y="8" width="38" height="6" rx="2" fill="#1e293b"/><rect x="34" y="18" width="38" height="4" rx="1" fill="#1e293b"/><rect x="34" y="26" width="38" height="4" rx="1" fill="#1e293b"/><rect x="34" y="34" width="38" height="4" rx="1" fill="#1e293b"/><rect x="34" y="42" width="20" height="4" rx="1" fill="#1e293b"/></svg></template>
