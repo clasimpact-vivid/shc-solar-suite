@@ -281,14 +281,22 @@ a:hover{color:#fbbf24;}
     <!-- TAB: PLANNER (Chirila/Nicoras only) -->
     <div id="tab-planner" class="tab-panel" style="display:none;">
       <div class="card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+          <div style="display:flex;background:#0d1b2e;border-radius:9px;padding:3px;">
+            <button class="btn btn-sm" id="btnViewDays" style="background:#f59e0b;color:#fff;">Pe zile</button>
+            <button class="btn btn-sm btn-ghost" id="btnViewWeek">Toată săptămâna</button>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="btnCopyPrevWeek">⧉ Copiază S-1</button>
+          <button class="btn btn-sm" id="btnPublishPlan" style="background:#16a34a;color:#fff;margin-left:auto;">✓ Publică programul</button>
+        </div>
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
-          <div class="section-title" style="margin:0;">Planificator săptămânal</div>
           <button class="btn btn-ghost btn-sm" id="btnPlanPrev">← Săpt. trecută</button>
           <div id="planWeekLabel" style="font-size:12.5px;color:#94a3b8;font-weight:700;"></div>
           <button class="btn btn-ghost btn-sm" id="btnPlanNext">Săpt. viitoare →</button>
-          <button class="btn btn-sm" id="btnPublishPlan" style="background:#16a34a;color:#fff;margin-left:auto;">✓ Publică programul</button>
         </div>
-        <div style="overflow-x:auto"><table id="plannerTable"></table></div>
+        <div id="plannerDayTabs" style="display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap;"></div>
+        <div id="plannerDaysView"></div>
+        <div id="plannerWeekView" style="display:none;overflow-x:auto"><table id="plannerTable"></table></div>
       </div>
       <div class="card">
         <div class="section-title">Lucrări (șantiere)</div>
@@ -300,7 +308,8 @@ a:hover{color:#fbbf24;}
       </div>
       <div class="card">
         <div class="section-title">Muncitori de teren</div>
-        <div style="overflow-x:auto"><table id="fieldWorkersTable"></table></div>
+        <input type="text" id="fwSearch" class="form-input" placeholder="🔎 Caută după nume..." style="margin-bottom:14px;">
+        <div id="fieldWorkersList"></div>
         <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
           <input type="text" id="newFwName" class="form-input" placeholder="Nume" style="flex:1;min-width:140px;">
           <input type="text" id="newFwPin" class="form-input" placeholder="PIN (4 cifre)" maxlength="4" style="width:100px;">
@@ -415,6 +424,18 @@ const SEED_FW = [
 const SEED_JOBS = ["I4 Baterii – PIF","I7 Oradea","Vâlcea","Liceul German","Casa Vladimirescu","Parc Aluniș","Căpâlnaș","Casa Ionuț","Clime","Birou","AFM"];
 function seedFieldWorkers(){ return SEED_FW.map(([name,pin,sec],i)=>({id:'fw'+(i+1),name,pin,sec})); }
 function seedJobs(){ return SEED_JOBS.map((name,i)=>({id:'job'+(i+1),name,color:JOB_COLORS[i%JOB_COLORS.length]})); }
+const SEED_TEAM_DEF = [
+  ['E','Echipa E1',['Adi','Diaconu']],['E','Echipa E2',['Arabu','Denis']],['E','Echipa E3',['Pumba','Arnold']],
+  ['E','Echipa E4',['Bacea','Adi Nou']],['E','Echipa E5',['Fibra','Nusca']],['E','Echipa E6',['Sergiu','Catalin','Goodwee','Cerasel']],
+  ['E','Echipa E7',['Vasile','Cosacu']],['E','Echipa E8',[]],['E','Lucian · L1',[]],['E','Lucian · L2',[]],['E','Lucian · L3',[]],['E','Lucian · L4',['Grigore']],
+  ['M','Echipa M1',['Stamate','Leo','Ruben','Coroban']],['M','Echipa M2',['Bulz','Robi','Crisan','Vidra']],
+  ['M','Echipa M3',['Luci','Calin','Peia','Rares']],['M','Echipa M4',['Romica','Deloreanu']],['M','Echipa M5',[]],
+];
+function seedTeams(fws){
+  const idOf=n=>{ const f=fws.find(x=>x.name.toLowerCase()===n.toLowerCase()); return f?f.id:null; };
+  return SEED_TEAM_DEF.map(([sec,name,names],i)=>({id:'team'+(i+1),sec,name,memberIds:names.map(idOf).filter(Boolean)}));
+}
+let teams=[];
 
 let fieldWorkers=[], jobs=[], weekPlans={}; // weekPlans[weekKey] = {workerId:{0:jobId,...5:jobId}}
 let myWeekOffset=0, planWeekOffset=0;
@@ -480,6 +501,8 @@ function loadFirebase(){
     else { fieldWorkers=seedFieldWorkers(); db.ref('solarcrm_v2/config/fieldWorkers').set(fieldWorkers); }
     if(cfg.jobs&&Array.isArray(cfg.jobs)&&cfg.jobs.length){ jobs=cfg.jobs; }
     else { jobs=seedJobs(); db.ref('solarcrm_v2/config/jobs').set(jobs); }
+    if(cfg.teams&&Array.isArray(cfg.teams)&&cfg.teams.length){ teams=cfg.teams; }
+    else { teams=seedTeams(fieldWorkers); db.ref('solarcrm_v2/config/teams').set(teams); }
     populateLoginUsers();
     populateExportUsers();
   });
@@ -509,6 +532,7 @@ function saveRecord(r){
 
 function saveFieldWorkers(){ if(db) db.ref('solarcrm_v2/config/fieldWorkers').set(fieldWorkers); }
 function saveJobs(){ if(db) db.ref('solarcrm_v2/config/jobs').set(jobs); }
+function saveTeams(){ if(db) db.ref('solarcrm_v2/config/teams').set(teams); }
 function savePlan(weekKey,plan){ if(db) db.ref('solarcrm_v2/pontajPlans/'+weekKey).set(plan); weekPlans[weekKey]=plan; }
 function isFieldWorker(){ return !!currentUser && currentUser.isField===true; }
 let leaveReqs=[], probReports=[];
@@ -879,15 +903,18 @@ function renderMyWeek(){
   const wk=weekKeyOf(monday);
   document.getElementById('myWeekLabel').textContent='Săptămâna '+fmtDayShort(monday)+' – '+fmtDayShort(new Date(monday.getTime()+5*864e5));
   const plan=weekPlans[wk]||{};
-  const mine=plan[currentUser.id]||{};
+  const myTeam=teams.find(t=>(t.memberIds||[]).includes(currentUser.id));
   const grid=document.getElementById('myWeekGrid'); grid.innerHTML='';
+  if(!myTeam){ grid.innerHTML='<div style="color:#64748b;font-size:12.5px;">Nu ești încă alocat unei echipe — contactează biroul.</div>'; return; }
+  const mine=plan[myTeam.id]||{};
   for(let d=0;d<6;d++){
     const day=new Date(monday.getTime()+d*864e5);
-    const jobId=mine[d]; const job=jobId?jobs.find(j=>j.id===jobId):null;
+    const cell=mine[d]; const job=cell&&cell.jobId?jobs.find(j=>j.id===cell.jobId):null;
     const box=document.createElement('div');
     box.style.cssText='background:#0d1b2e;border-radius:10px;padding:12px;border-left:4px solid '+(job?job.color:'#334155');
     box.innerHTML='<div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">'+DOW_S[d]+' · '+fmtDayShort(day)+'</div>'+
-      '<div style="font-size:13px;font-weight:700;color:#f1f5f9;margin-top:6px;">'+(job?job.name:'—')+'</div>';
+      '<div style="font-size:13px;font-weight:700;color:#f1f5f9;margin-top:6px;">'+(job?job.name:'— liber —')+'</div>'+
+      (cell&&cell.note?'<div style="font-size:11px;color:#94a3b8;margin-top:3px;">'+cell.note+'</div>':'');
     grid.appendChild(box);
   }
 }
@@ -913,17 +940,45 @@ document.getElementById('btnAddJob').addEventListener('click',()=>{
   jobs.push({id:'job_'+uid(),name,color:JOB_COLORS[jobs.length%JOB_COLORS.length]});
   saveJobs(); nameEl.value=''; renderJobsMgmt(); renderPlanner();
 });
-function renderFieldWorkersTable(){
-  const tbl=document.getElementById('fieldWorkersTable');
-  let html='<thead><tr><th>Nume</th><th>PIN</th><th>Secție</th><th></th></tr></thead><tbody>';
-  fieldWorkers.forEach(f=>{
-    html+='<tr><td>'+f.name+'</td><td>'+f.pin+'</td><td>'+(f.sec==='E'?'Electricieni':'Montaj')+'</td><td><button data-fid="'+f.id+'" style="background:none;border:none;color:#f87171;cursor:pointer;font-size:13px;">✕</button></td></tr>';
+function fwAvatarColor(name){ const h=[...name].reduce((a,c)=>a+c.charCodeAt(0),0); return JOB_COLORS[h%JOB_COLORS.length]; }
+function genUniquePin(){ let p; do{ p=String(Math.floor(1000+Math.random()*9000)); }while(fieldWorkers.some(f=>f.pin===p)); return p; }
+function renderFieldWorkersList(){
+  const q=(document.getElementById('fwSearch').value||'').trim().toLowerCase();
+  const wrap=document.getElementById('fieldWorkersList'); wrap.innerHTML='';
+  ['E','M'].forEach(sec=>{
+    const list=fieldWorkers.filter(f=>f.sec===sec && f.name.toLowerCase().includes(q));
+    if(!list.length) return;
+    const header=document.createElement('div');
+    header.style.cssText='font-size:11px;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:.6px;margin:14px 0 8px;';
+    header.textContent=(sec==='E'?'⚡ Electricieni':'🔧 Montaj')+' · '+list.length;
+    wrap.appendChild(header);
+    list.forEach(f=>{
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #1a2740;';
+      row.innerHTML='<span style="width:28px;height:28px;border-radius:50%;background:'+fwAvatarColor(f.name)+'33;color:'+fwAvatarColor(f.name)+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;">'+initials(f.name)+'</span>'+
+        '<span style="flex:1;font-size:13px;color:#e2e8f0;font-weight:600;">'+f.name+'</span>'+
+        '<span style="background:#0d1b2e;color:#f59e0b;font-weight:800;font-size:13px;padding:4px 10px;border-radius:7px;letter-spacing:1px;">'+f.pin+'</span>'+
+        '<button data-regen="'+f.id+'" class="btn btn-ghost btn-sm" title="Regenerează codul">🔄</button>'+
+        '<button data-fid="'+f.id+'" style="background:none;border:none;color:#f87171;cursor:pointer;font-size:14px;">🗑</button>';
+      wrap.appendChild(row);
+    });
   });
-  tbl.innerHTML=html+'</tbody>';
-  tbl.querySelectorAll('button[data-fid]').forEach(b=>{
-    b.addEventListener('click',()=>{ fieldWorkers=fieldWorkers.filter(f=>f.id!==b.dataset.fid); saveFieldWorkers(); renderFieldWorkersTable(); renderPlanner(); });
+  wrap.querySelectorAll('button[data-fid]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      if(!confirm('Ștergi acest muncitor? Va fi scos automat din echipele din care face parte.')) return;
+      fieldWorkers=fieldWorkers.filter(f=>f.id!==b.dataset.fid);
+      teams.forEach(t=>{ t.memberIds=(t.memberIds||[]).filter(id=>id!==b.dataset.fid); });
+      saveFieldWorkers(); saveTeams(); renderFieldWorkersList(); renderPlanner();
+    });
+  });
+  wrap.querySelectorAll('button[data-regen]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const f=fieldWorkers.find(x=>x.id===b.dataset.regen); if(!f) return;
+      f.pin=genUniquePin(); saveFieldWorkers(); renderFieldWorkersList();
+    });
   });
 }
+document.getElementById('fwSearch').addEventListener('input',renderFieldWorkersList);
 document.getElementById('btnAddFw').addEventListener('click',()=>{
   const name=document.getElementById('newFwName').value.trim();
   const pin=document.getElementById('newFwPin').value.trim();
@@ -933,38 +988,129 @@ document.getElementById('btnAddFw').addEventListener('click',()=>{
   fieldWorkers.push({id:'fw_'+uid(),name,pin,sec});
   saveFieldWorkers();
   document.getElementById('newFwName').value=''; document.getElementById('newFwPin').value='';
-  renderFieldWorkersTable(); renderPlanner();
+  renderFieldWorkersList(); renderPlanner();
 });
-let plannerDraft=null, plannerWk=null;
+
+let plannerDraft=null, plannerWk=null, plannerView='days', plannerDay=0;
+function ensureCell(teamId,day){ if(!plannerDraft[teamId]) plannerDraft[teamId]={}; if(!plannerDraft[teamId][day]) plannerDraft[teamId][day]={jobId:'',note:''}; return plannerDraft[teamId][day]; }
+document.getElementById('btnViewDays').addEventListener('click',()=>{ plannerView='days'; renderPlanner(); });
+document.getElementById('btnViewWeek').addEventListener('click',()=>{ plannerView='week'; renderPlanner(); });
+document.getElementById('btnCopyPrevWeek').addEventListener('click',()=>{
+  const prevMonday=isoWeekMonday(planWeekOffset-1); const prevWk=weekKeyOf(prevMonday);
+  const prevPlan=weekPlans[prevWk];
+  if(!prevPlan){ alert('Săptămâna anterioară nu are program salvat.'); return; }
+  plannerDraft=JSON.parse(JSON.stringify(prevPlan));
+  renderPlannerBody();
+});
+function addTeam(sec){
+  const name=prompt('Nume echipă nouă:'); if(!name||!name.trim()) return;
+  teams.push({id:'team_'+uid(),sec,name:name.trim(),memberIds:[]});
+  saveTeams(); renderPlanner();
+}
+function renderPlannerBody(){
+  document.getElementById('plannerDayTabs').style.display=plannerView==='days'?'flex':'none';
+  document.getElementById('plannerDaysView').style.display=plannerView==='days'?'block':'none';
+  document.getElementById('plannerWeekView').style.display=plannerView==='week'?'block':'none';
+  document.getElementById('btnViewDays').className='btn btn-sm'+(plannerView==='days'?'':' btn-ghost');
+  document.getElementById('btnViewDays').style.background=plannerView==='days'?'#f59e0b':'';
+  document.getElementById('btnViewDays').style.color=plannerView==='days'?'#fff':'';
+  document.getElementById('btnViewWeek').className='btn btn-sm'+(plannerView==='week'?'':' btn-ghost');
+  document.getElementById('btnViewWeek').style.background=plannerView==='week'?'#f59e0b':'';
+  document.getElementById('btnViewWeek').style.color=plannerView==='week'?'#fff':'';
+  const monday=isoWeekMonday(planWeekOffset);
+
+  if(plannerView==='days'){
+    const dtabs=document.getElementById('plannerDayTabs'); dtabs.innerHTML='';
+    for(let d=0;d<6;d++){
+      const day=new Date(monday.getTime()+d*864e5);
+      const b=document.createElement('button'); b.className='btn btn-sm'+(d===plannerDay?'':' btn-ghost');
+      if(d===plannerDay){ b.style.background='#f59e0b'; b.style.color='#fff'; }
+      b.textContent=DOW_S[d].slice(0,3)+' '+fmtDayShort(day);
+      b.addEventListener('click',()=>{ plannerDay=d; renderPlannerBody(); });
+      dtabs.appendChild(b);
+    }
+    const view=document.getElementById('plannerDaysView'); view.innerHTML='';
+    ['E','M'].forEach(sec=>{
+      const secHeader=document.createElement('div');
+      secHeader.style.cssText='display:flex;align-items:center;gap:8px;margin:16px 0 8px;';
+      secHeader.innerHTML='<span style="font-size:11px;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:.6px;">'+(sec==='E'?'⚡ Electricieni':'🔧 Montaj')+'</span>'+
+        '<button class="btn btn-ghost btn-sm" data-addteam="'+sec+'" style="margin-left:auto;">+ Echipă</button>';
+      view.appendChild(secHeader);
+      teams.filter(t=>t.sec===sec).forEach(t=>{
+        const cell=ensureCell(t.id,plannerDay);
+        const job=cell.jobId?jobs.find(j=>j.id===cell.jobId):null;
+        const card=document.createElement('div');
+        card.style.cssText='background:#0d1b2e;border-radius:10px;padding:12px;margin-bottom:10px;border-left:4px solid '+(job?job.color:'#334155');
+        const memberChips=(t.memberIds||[]).map(id=>{
+          const f=fieldWorkers.find(x=>x.id===id); if(!f) return '';
+          return '<span style="display:inline-flex;align-items:center;gap:4px;background:#1e293b;padding:3px 8px;border-radius:7px;font-size:11.5px;color:#e2e8f0;margin:2px 4px 2px 0;">'+f.name+' <button data-rmmember="'+t.id+'|'+id+'" style="background:none;border:none;color:#f87171;cursor:pointer;font-size:11px;">✕</button></span>';
+        }).join('');
+        const availableToAdd=fieldWorkers.filter(f=>f.sec===sec && !(t.memberIds||[]).includes(f.id));
+        let addOpts='<option value="">+ Oameni</option>'+availableToAdd.map(f=>'<option value="'+f.id+'">'+f.name+'</option>').join('');
+        let jobOpts='<option value="">— liber —</option>'+jobs.map(j=>'<option value="'+j.id+'"'+(cell.jobId===j.id?' selected':'')+'>'+j.name+'</option>').join('');
+        card.innerHTML='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'+
+          '<div style="font-size:13.5px;font-weight:800;color:#f1f5f9;flex:1;">'+t.name+'</div>'+
+          '<button data-delteam="'+t.id+'" style="background:none;border:none;color:#f87171;cursor:pointer;font-size:14px;">🗑</button></div>'+
+          '<div style="margin-bottom:8px;">'+memberChips+'<select data-addmember="'+t.id+'" class="form-select" style="width:auto;display:inline-block;font-size:11.5px;padding:4px 8px;">'+addOpts+'</select></div>'+
+          '<div class="row2">'+
+          '<select data-cellsel="'+t.id+'" class="form-select" style="font-size:12.5px;">'+jobOpts+'</select>'+
+          '<input type="text" data-cellnote="'+t.id+'" class="form-input" placeholder="Detalii (opțional)" value="'+(cell.note||'').replace(/"/g,'&quot;')+'" style="font-size:12.5px;">'+
+          '</div>';
+        view.appendChild(card);
+      });
+    });
+    view.querySelectorAll('button[data-addteam]').forEach(b=>b.addEventListener('click',()=>addTeam(b.dataset.addteam)));
+    view.querySelectorAll('button[data-delteam]').forEach(b=>b.addEventListener('click',()=>{
+      if(!confirm('Ștergi această echipă?')) return;
+      teams=teams.filter(t=>t.id!==b.dataset.delteam); saveTeams(); renderPlanner();
+    }));
+    view.querySelectorAll('button[data-rmmember]').forEach(b=>b.addEventListener('click',()=>{
+      const [tid,fid]=b.dataset.rmmember.split('|'); const t=teams.find(x=>x.id===tid);
+      if(t){ t.memberIds=(t.memberIds||[]).filter(id=>id!==fid); saveTeams(); renderPlannerBody(); }
+    }));
+    view.querySelectorAll('select[data-addmember]').forEach(sel=>sel.addEventListener('change',()=>{
+      if(!sel.value) return;
+      const t=teams.find(x=>x.id===sel.dataset.addmember);
+      if(t){ t.memberIds=[...(t.memberIds||[]),sel.value]; saveTeams(); renderPlannerBody(); }
+    }));
+    view.querySelectorAll('select[data-cellsel]').forEach(sel=>sel.addEventListener('change',()=>{
+      ensureCell(sel.dataset.cellsel,plannerDay).jobId=sel.value;
+    }));
+    view.querySelectorAll('input[data-cellnote]').forEach(inp=>inp.addEventListener('input',()=>{
+      ensureCell(inp.dataset.cellnote,plannerDay).note=inp.value;
+    }));
+  } else {
+    const tbl=document.getElementById('plannerTable');
+    let html='<thead><tr><th>Echipa</th>';
+    for(let d=0;d<6;d++){ const day=new Date(monday.getTime()+d*864e5); html+='<th>'+DOW_S[d].slice(0,3)+'<br>'+fmtDayShort(day)+'</th>'; }
+    html+='</tr></thead><tbody>';
+    ['E','M'].forEach(sec=>{
+      teams.filter(t=>t.sec===sec).forEach(t=>{
+        html+='<tr><td style="white-space:nowrap;color:'+(sec==='E'?'#f59e0b':'#3b82f6')+';font-weight:700;">'+t.name+'</td>';
+        for(let d=0;d<6;d++){
+          const cell=(plannerDraft[t.id]||{})[d];
+          const job=cell&&cell.jobId?jobs.find(j=>j.id===cell.jobId):null;
+          const memberNames=(t.memberIds||[]).map(id=>{ const f=fieldWorkers.find(x=>x.id===id); return f?f.name:''; }).filter(Boolean).join(', ');
+          html+='<td style="background:'+(job?job.color+'1a':'transparent')+';min-width:130px;">'+
+            (job?'<div style="font-size:12px;font-weight:700;color:'+job.color+';">'+job.name+'</div>':'<span style="color:#475569;">liber</span>')+
+            (memberNames?'<div style="font-size:10.5px;color:#64748b;margin-top:2px;">'+memberNames+'</div>':'')+
+            (cell&&cell.note?'<div style="font-size:10px;color:#94a3b8;font-style:italic;">'+cell.note+'</div>':'')+
+            '</td>';
+        }
+        html+='</tr>';
+      });
+    });
+    tbl.innerHTML=html+'</tbody>';
+  }
+}
 function renderPlanner(){
   if(!isFullAccess()) return;
-  renderJobsMgmt(); renderFieldWorkersTable();
+  renderJobsMgmt(); renderFieldWorkersList();
   const monday=isoWeekMonday(planWeekOffset);
   const wk=weekKeyOf(monday); plannerWk=wk;
   document.getElementById('planWeekLabel').textContent='Săptămâna '+fmtDayShort(monday)+' – '+fmtDayShort(new Date(monday.getTime()+5*864e5));
   plannerDraft=JSON.parse(JSON.stringify(weekPlans[wk]||{}));
-  const tbl=document.getElementById('plannerTable');
-  let html='<thead><tr><th>Muncitor</th>';
-  for(let d=0;d<6;d++){ const day=new Date(monday.getTime()+d*864e5); html+='<th>'+DOW_S[d]+'<br>'+fmtDayShort(day)+'</th>'; }
-  html+='</tr></thead><tbody>';
-  fieldWorkers.forEach(f=>{
-    html+='<tr><td>'+f.name+' <span style="color:#475569;font-size:10px;">('+(f.sec==='E'?'E':'M')+')</span></td>';
-    for(let d=0;d<6;d++){
-      const cur=(plannerDraft[f.id]||{})[d]||'';
-      let opts='<option value="">— liber —</option>';
-      jobs.forEach(j=>{ opts+='<option value="'+j.id+'"'+(cur===j.id?' selected':'')+'>'+j.name+'</option>'; });
-      html+='<td class="plan-cell"><select data-fw="'+f.id+'" data-day="'+d+'">'+opts+'</select></td>';
-    }
-    html+='</tr>';
-  });
-  tbl.innerHTML=html+'</tbody>';
-  tbl.querySelectorAll('select[data-fw]').forEach(sel=>{
-    sel.addEventListener('change',()=>{
-      const fw=sel.dataset.fw, day=sel.dataset.day;
-      if(!plannerDraft[fw]) plannerDraft[fw]={};
-      plannerDraft[fw][day]=sel.value;
-    });
-  });
+  renderPlannerBody();
 }
 document.getElementById('btnPlanPrev').addEventListener('click',()=>{ planWeekOffset--; renderPlanner(); });
 document.getElementById('btnPlanNext').addEventListener('click',()=>{ planWeekOffset++; renderPlanner(); });
