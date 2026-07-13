@@ -859,10 +859,13 @@ input,select,textarea,button{font-family:inherit;}
 <!-- LOGIN MODAL -->
 <sc-if value="{{ showUserModal }}" hint-placeholder-val="{{ false }}">
   <div onClick="{{ userModalBgClick }}" style="position:fixed;inset:0;background:{{ loginBgStyle }};z-index:100;animation:fadeIn .18s;backdrop-filter:blur(2px);"></div>
-  <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:{{ loginModalWidth }};max-height:82vh;background:{{ loginModalBg }};border-radius:16px;z-index:110;display:flex;flex-direction:column;box-shadow:0 24px 72px rgba(0,0,0,.28);animation:scaleIn .18s cubic-bezier(0.16,1,0.3,1);overflow:hidden;border:{{ loginModalBorder }};">
+  <div style="position:fixed;inset:0;z-index:110;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;overflow-y:auto;padding:24px 0;pointer-events:none;">
+    <sc-if value="{{ isLoginMode }}" hint-placeholder-val="{{ false }}">
+      <a href="./index.html" style="flex:none;pointer-events:auto;font-size:11px;color:#94a3b8;text-decoration:none;padding:4px 10px;border:1px solid #334155;border-radius:6px;">← Suite</a>
+    </sc-if>
+    <div style="flex:none;pointer-events:auto;width:{{ loginModalWidth }};max-height:82vh;background:{{ loginModalBg }};border-radius:16px;display:flex;flex-direction:column;box-shadow:0 24px 72px rgba(0,0,0,.28);animation:scaleIn .18s cubic-bezier(0.16,1,0.3,1);overflow:hidden;border:{{ loginModalBorder }};">
     <div style="padding:20px 20px 16px;border-bottom:1px solid {{ loginDivider }};flex:none;">
       <sc-if value="{{ isLoginMode }}" hint-placeholder-val="{{ false }}">
-        <a href="./index.html" style="display:inline-block;margin-bottom:14px;font-size:11px;color:#94a3b8;text-decoration:none;padding:4px 10px;border:1px solid #334155;border-radius:6px;">← Suite</a>
         <div style="display:flex;align-items:center;gap:12px;">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:10px;display:flex;align-items:center;justify-content:center;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L14.09 8.26L21 9.27L16.5 13.64L17.82 20.52L12 17.27L6.18 20.52L7.5 13.64L3 9.27L9.91 8.26L12 2Z" fill="white"/></svg>
