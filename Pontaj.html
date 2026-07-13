@@ -410,6 +410,10 @@ a:hover{color:#fbbf24;}
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+if(window.emailjs) emailjs.init({publicKey:'2rsJRlc7YG1yT_wQI'});
+</script>
 <script>
 // ═══════════════════════════════════════════════════════════
 //  SHC PONTAJ
@@ -1244,8 +1248,30 @@ document.getElementById('btnPublishPlan').addEventListener('click',()=>{
 });
 
 // ── CERERI TAB (concedii + probleme) ──
+function canApproveLeave(){ return isFullAccess() || (!!currentUser && currentUser.pontajHR===true); }
+function sendLeaveEmail(l, decision){
+  if(!window.emailjs) return;
+  const requester = loginUsers.find(u=>u.id===l.userId);
+  const requesterEmail = requester && requester.email ? requester.email.trim() : '';
+  const fixed = ['nicorasionut@shc-group.ro','alexandru.chirila@shc-group.ro'];
+  let to;
+  if(requesterEmail){
+    to = [...fixed, 'office@shc-group.ro', requesterEmail];
+  } else {
+    const hrEmails = loginUsers.filter(u=>u.pontajHR===true && u.email).map(u=>u.email.trim());
+    to = [...fixed, ...hrEmails];
+  }
+  to = [...new Set(to.filter(Boolean))];
+  const decisionLabel = decision==='A' ? 'APROBATĂ' : 'RESPINSĂ';
+  const subject = 'Cerere '+(LEAVE_LABELS[l.type]||l.type)+' — '+decisionLabel+' ('+(l.userName||'—')+')';
+  const message = 'Cererea depusă de '+(l.userName||'—')+' pentru '+(LEAVE_LABELS[l.type]||l.type)+
+    ' ('+isoToDmy(l.from)+' – '+isoToDmy(l.to)+') a fost '+decisionLabel.toLowerCase()+'.'+
+    (l.reason?('\n\nMotiv cerere: '+l.reason):'')+
+    '\n\nSHC Solar Suite — Pontaj';
+  emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:to.join(','), subject, message}).catch(()=>{});
+}
 function renderCereri(){
-  const admin=isFullAccess();
+  const admin=canApproveLeave();
   const tbl=document.getElementById('leaveTable');
   const mine=admin?leaveReqs:leaveReqs.filter(l=>l.userId===currentUser.id);
   if(!mine.length){ tbl.innerHTML='<tr><td style="color:#475569;padding:12px 0;">Nicio cerere.</td></tr>'; }
@@ -1261,10 +1287,10 @@ function renderCereri(){
     });
     tbl.innerHTML=html+'</tbody>';
     tbl.querySelectorAll('button[data-approve]').forEach(b=>b.addEventListener('click',()=>{
-      const l=leaveReqs.find(x=>x.id===b.dataset.approve); if(l){ l.status='A'; saveLeave(l); }
+      const l=leaveReqs.find(x=>x.id===b.dataset.approve); if(l){ l.status='A'; saveLeave(l); sendLeaveEmail(l,'A'); }
     }));
     tbl.querySelectorAll('button[data-reject]').forEach(b=>b.addEventListener('click',()=>{
-      const l=leaveReqs.find(x=>x.id===b.dataset.reject); if(l){ l.status='R'; saveLeave(l); }
+      const l=leaveReqs.find(x=>x.id===b.dataset.reject); if(l){ l.status='R'; saveLeave(l); sendLeaveEmail(l,'R'); }
     }));
   }
   const probWrap=document.getElementById('probList');
