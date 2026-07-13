@@ -759,6 +759,16 @@ function renderCurrentTab(){
   else if(activeTab==='alerte') renderAlerte();
 }
 
+// ── Distanță față de sediu (Arad) — pentru deplasări >50km ──
+const HQ_LAT=46.1866, HQ_LNG=21.3123;
+function distFromHQ(lat,lng){
+  if(lat==null||lng==null) return null;
+  const R=6371, toRad=d=>d*Math.PI/180;
+  const dLat=toRad(lat-HQ_LAT), dLng=toRad(lng-HQ_LNG);
+  const a=Math.sin(dLat/2)**2+Math.cos(toRad(HQ_LAT))*Math.cos(toRad(lat))*Math.sin(dLng/2)**2;
+  return Math.round(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));
+}
+
 // ── GPS ──
 // Ia mai multe citiri GPS pe scurt interval și o păstrează pe cea mai precisă
 // (evită poziționarea aproximativă prin IP/WiFi, care poate fi la sute de metri distanță)
@@ -851,7 +861,8 @@ async function doCheck(kind){
   if(!rec){ rec={id:uid(),userId:currentUser.id,userName:currentUser.name,date:t}; }
   const jobId=isFieldWorker()?getSelectedJobId():'';
   const job=jobId?jobs.find(j=>j.id===jobId):null;
-  const entry={time:nowTime(), lat:gps?gps.lat:null, lng:gps?gps.lng:null, accuracy:gps?gps.accuracy:null, editedManually:false, device:getDeviceFingerprint(), jobId:job?job.id:null, jobName:job?job.name:null};
+  const distKm=gps?distFromHQ(gps.lat,gps.lng):null;
+  const entry={time:nowTime(), lat:gps?gps.lat:null, lng:gps?gps.lng:null, accuracy:gps?gps.accuracy:null, distKm, editedManually:false, device:getDeviceFingerprint(), jobId:job?job.id:null, jobName:job?job.name:null};
   if(kind==='in') rec.checkIn=entry; else rec.checkOut=entry;
   saveRecord(rec);
   btn.disabled=false;
@@ -911,12 +922,13 @@ function renderTeam(){
     const status = !r||!r.checkIn ? '<span class="badge badge-gray">Absent</span>' : !r.checkOut ? '<span class="badge badge-green">Prezent</span>' : '<span class="badge badge-gray">Program încheiat</span>';
     const locIn = r&&r.checkIn&&r.checkIn.lat ? '<a href="https://www.google.com/maps?q='+r.checkIn.lat+','+r.checkIn.lng+'" target="_blank">hartă</a>' : '—';
     const locOut = r&&r.checkOut&&r.checkOut.lat ? '<a href="https://www.google.com/maps?q='+r.checkOut.lat+','+r.checkOut.lng+'" target="_blank">hartă</a>' : '—';
+    const deplasare = r&&r.checkIn&&r.checkIn.distKm>50 ? ' <span class="badge badge-amber" title="Distanță față de Arad: '+r.checkIn.distKm+' km">🚗 Deplasare '+r.checkIn.distKm+'km</span>' : '';
     html+='<tr><td style="display:flex;align-items:center;gap:8px;"><div style="width:20px;height:20px;border-radius:50%;background:'+(u.color||'#f59e0b')+';display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;">'+initials(u.name)+'</div>'+u.name+deviceHint(u,r)+'</td>'+
       '<td>'+(r&&r.checkIn?r.checkIn.time+(r.checkIn.editedManually?' <span class="badge badge-amber" title="'+(r.checkIn.editReason||'')+'">editat</span>':''):'—')+'</td>'+
       '<td>'+locIn+'</td>'+
       '<td>'+(r&&r.checkOut?r.checkOut.time+(r.checkOut.editedManually?' <span class="badge badge-amber" title="'+(r.checkOut.editReason||'')+'">editat</span>':''):'—')+'</td>'+
       '<td>'+locOut+'</td>'+
-      '<td>'+status+'</td>'+
+      '<td>'+status+deplasare+'</td>'+
       '<td style="display:flex;gap:6px;"><button class="btn btn-ghost btn-sm" data-edit-uid="'+u.id+'" data-edit-date="'+date+'">Corectează</button>'+(r?'<button class="btn btn-ghost btn-sm" style="color:#ef4444;border-color:#7f1d1d;" data-del-record="'+r.id+'">Șterge</button>':'')+'</td></tr>';
   });
   tbl.innerHTML=html+'</tbody>';
@@ -1389,15 +1401,43 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
   const u=getUserById(targetUserId);
   const mine=Object.values(records).filter(r=>r.userId===targetUserId && r.date>=dateFrom && r.date<=dateTo);
   mine.sort((a,b)=>a.date.localeCompare(b.date));
-  let csv='Data,Intrare,Ora intrare,Editat,Ieșire,Ora ieșire,Editat,Ore lucrate\n';
+  // Cereri de concediu/învoire aprobate, pentru a marca zilele fără pontaj dar cu absență motivată
+  const approvedLeaves=leaveReqs.filter(l=>l.userId===targetUserId && l.status==='A');
+  function leaveTypeFor(dateIso){
+    const lv=approvedLeaves.find(l=>dateIso>=l.from && dateIso<=l.to);
+    return lv ? (LEAVE_LABELS[lv.type]||lv.type) : '';
+  }
+  let csv='Data,Tip zi,Intrare,Ora intrare,Editat,Ieșire,Ora ieșire,Editat,Ore lucrate,Deplasare (km)\n';
+  let workedDays=0, leaveDaysCount=0;
   mine.forEach(r=>{
     let hrs='';
     if(r.checkIn&&r.checkOut){
       const [h1,m1]=r.checkIn.time.split(':').map(Number), [h2,m2]=r.checkOut.time.split(':').map(Number);
       const mins=(h2*60+m2)-(h1*60+m1); if(mins>=0) hrs=(mins/60).toFixed(2);
     }
-    csv+=[r.date, r.checkIn?'Da':'Nu', r.checkIn?r.checkIn.time:'', r.checkIn&&r.checkIn.editedManually?'Da':'Nu', r.checkOut?'Da':'Nu', r.checkOut?r.checkOut.time:'', r.checkOut&&r.checkOut.editedManually?'Da':'Nu', hrs].join(',')+'\n';
+    const lvType=leaveTypeFor(r.date);
+    const tipZi = r.checkIn ? 'Lucrat' : (lvType || 'Absent');
+    if(r.checkIn) workedDays++; else if(lvType) leaveDaysCount++;
+    const dist = r.checkIn&&r.checkIn.distKm!=null ? r.checkIn.distKm : '';
+    csv+=[r.date, tipZi, r.checkIn?'Da':'Nu', r.checkIn?r.checkIn.time:'', r.checkIn&&r.checkIn.editedManually?'Da':'Nu', r.checkOut?'Da':'Nu', r.checkOut?r.checkOut.time:'', r.checkOut&&r.checkOut.editedManually?'Da':'Nu', hrs, dist].join(',')+'\n';
   });
+  // Zile de concediu aprobate care nu au niciun record de pontaj (ex: concediu întreaga zi, fără logare)
+  const recordedDates=new Set(mine.map(r=>r.date));
+  approvedLeaves.forEach(lv=>{
+    let d=new Date(lv.from);
+    const end=new Date(lv.to);
+    while(d<=end){
+      const iso=d.toISOString().slice(0,10);
+      if(iso>=dateFrom && iso<=dateTo && !recordedDates.has(iso)){
+        csv+=[iso, LEAVE_LABELS[lv.type]||lv.type, 'Nu','','Nu','Nu','','Nu','',''].join(',')+'\n';
+        leaveDaysCount++;
+      }
+      d.setDate(d.getDate()+1);
+    }
+  });
+  csv+='\nSumar pentru tichete de masă,,,,,,,,,\n';
+  csv+='Zile lucrate,'+workedDays+'\n';
+  csv+='Zile de concediu/învoire,'+leaveDaysCount+'\n';
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
