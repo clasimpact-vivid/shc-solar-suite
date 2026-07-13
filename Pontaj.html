@@ -1265,7 +1265,7 @@ function sendLeaveEmail(l, decision){
   const decisionLabel = decision==='A' ? 'APROBATĂ' : 'RESPINSĂ';
   const subject = 'Cerere '+(LEAVE_LABELS[l.type]||l.type)+' — '+decisionLabel+' ('+(l.userName||'—')+')';
   const message = 'Cererea depusă de '+(l.userName||'—')+' pentru '+(LEAVE_LABELS[l.type]||l.type)+
-    ' ('+isoToDmy(l.from)+' – '+isoToDmy(l.to)+') a fost '+decisionLabel.toLowerCase()+'.'+
+    ' ('+isoToDmy(l.from)+' – '+isoToDmy(l.to)+') a fost '+decisionLabel.toLowerCase()+' de '+(currentUser&&currentUser.name?currentUser.name:'—')+'.'+
     (l.reason?('\n\nMotiv cerere: '+l.reason):'')+
     '\n\nSHC Solar Suite — Pontaj';
   emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:to.join(','), subject, message}).catch(()=>{});
