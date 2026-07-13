@@ -3100,6 +3100,13 @@ function logout(){
   document.getElementById('loginPassword').value='';
   document.getElementById('loginError').textContent='';
   document.getElementById('loginOverlay').style.display='flex';
+  // reset la ecranul implicit (PIN) — altfel rămâne gol dacă ultimul login a fost cu parolă
+  document.getElementById('loginStep1').style.display='none';
+  document.getElementById('loginStep2').style.display='none';
+  document.getElementById('loginStep3').style.display='block';
+  if(typeof officePinBuffer!=='undefined') officePinBuffer='';
+  if(typeof renderOfficePinDots==='function') renderOfficePinDots(false);
+  var pinErr=document.getElementById('officePinErr'); if(pinErr) pinErr.textContent='';
 }
 
 // ── Admin panel ──
