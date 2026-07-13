@@ -1253,7 +1253,7 @@ function sendLeaveEmail(l, decision){
   if(!window.emailjs) return;
   const requester = loginUsers.find(u=>u.id===l.userId);
   const requesterEmail = requester && requester.email ? requester.email.trim() : '';
-  const fixed = ['nicorasionut@shc-group.ro','alexandru.chirila@shc-group.ro'];
+  const fixed = ['nicorasionut@shc-group.ro','alexandru.chirila@shc-group.ro','eszter.simon@shc-group.ro'];
   let to;
   if(requesterEmail){
     to = [...fixed, 'office@shc-group.ro', requesterEmail];
