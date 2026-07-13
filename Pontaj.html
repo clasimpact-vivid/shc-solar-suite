@@ -61,7 +61,7 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',system-ui,sans-serif
 .status-sub{font-size:11px;color:#64748b;margin-top:3px;}
 
 /* PIN keypad */
-#pinOverlay{position:fixed;inset:0;z-index:10000;background:#090f1c;display:none;align-items:center;justify-content:center;flex-direction:column;gap:20px;}
+#pinOverlay{position:fixed;inset:0;z-index:10000;background:#090f1c;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;}
 .pin-dots{display:flex;gap:12px;}
 .pin-dot{width:15px;height:15px;border-radius:50%;border:2px solid #f59e0b;background:transparent;transition:background .15s;}
 .pin-dot.filled{background:#f59e0b;}
@@ -133,20 +133,8 @@ a:hover{color:#fbbf24;}
   </div>
 </div>
 
-<!-- PIN keypad overlay (field workers) -->
+<!-- PIN keypad overlay (implicit — toți colegii, birou + teren) -->
 <div id="pinOverlay">
-  <div style="text-align:center;">
-    <div style="font-weight:800;font-size:16px;color:#f1f5f9;">Cod acces personal</div>
-    <div style="font-size:12px;color:#64748b;margin-top:4px;">Introdu codul de 4 cifre primit de la birou</div>
-  </div>
-  <div class="pin-dots" id="pinDots"></div>
-  <div id="pinErr" style="color:#f87171;font-size:12.5px;font-weight:700;min-height:16px;"></div>
-  <div class="pin-grid" id="pinGrid"></div>
-  <a href="#" id="btnClosePin" style="font-size:12.5px;margin-top:6px;">← Înapoi</a>
-</div>
-
-<!-- PIN keypad overlay (utilizatori birou, 5 cifre — implicit) -->
-<div id="officePinOverlay" style="position:fixed;inset:0;z-index:10000;background:#090f1c;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;">
   <div style="display:flex;align-items:center;gap:12px;">
     <div style="width:40px;height:40px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -157,16 +145,12 @@ a:hover{color:#fbbf24;}
     </div>
   </div>
   <div style="text-align:center;">
-    <div style="font-weight:800;font-size:16px;color:#f1f5f9;">Login rapid cu PIN</div>
-    <div style="font-size:12px;color:#64748b;margin-top:4px;">Introdu codul de 5 cifre</div>
+    <div style="font-weight:800;font-size:16px;color:#f1f5f9;">Introdu codul PIN (4 cifre)</div>
   </div>
-  <div class="pin-dots" id="officePinDots"></div>
-  <div id="officePinErr" style="color:#f87171;font-size:12.5px;font-weight:700;min-height:16px;"></div>
-  <div class="pin-grid" id="officePinGrid"></div>
-  <div style="display:flex;gap:16px;">
-    <a href="#" id="btnOpenPin" style="font-size:12.5px;color:#f59e0b;">🔧 Acces montatori/electricieni</a>
-    <a href="#" id="btnCloseOfficePin" style="font-size:12.5px;color:#64748b;">Administrator / Manager →</a>
-  </div>
+  <div class="pin-dots" id="pinDots"></div>
+  <div id="pinErr" style="color:#f87171;font-size:12.5px;font-weight:700;min-height:16px;"></div>
+  <div class="pin-grid" id="pinGrid"></div>
+  <a href="#" id="btnOpenPin" style="font-size:12.5px;color:#64748b;">Administrator / Manager — intră cu parolă →</a>
 </div>
 
 <div id="app">
@@ -494,7 +478,7 @@ function weekKeyOf(monday){
 }
 function fmtDayShort(d){ return d.getDate()+' '+MONTH_NAMES[d.getMonth()].slice(0,3).toLowerCase(); }
 
-let db=null, currentUser=null, loginUsers=[...DEFAULT_USERS], adminPw='12345', adminPin='10000';
+let db=null, currentUser=null, loginUsers=[...DEFAULT_USERS], adminPw='12345', adminPin='1000';
 let records={}; // id -> record
 let map=null, mapMarkers=[];
 
@@ -686,61 +670,25 @@ function completeLoginAsOffice(u){
 document.getElementById('btnLogin').addEventListener('click',doLogin);
 document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 
-// ── PIN rapid (utilizatori birou, 5 cifre — distinct de codul muncitorilor de teren) ──
-let officePinBuffer='';
-function renderOfficePinDots(err){
-  const wrap=document.getElementById('officePinDots'); wrap.innerHTML='';
-  for(let i=0;i<5;i++){
-    const d=document.createElement('div');
-    d.className='pin-dot'+(i<officePinBuffer.length?(err?' err':' filled'):'');
-    wrap.appendChild(d);
-  }
-}
-function buildOfficePinGrid(){
-  const grid=document.getElementById('officePinGrid'); grid.innerHTML='';
-  ['1','2','3','4','5','6','7','8','9','','0','del'].forEach(k=>{
-    if(k===''){ grid.appendChild(document.createElement('div')); return; }
-    const b=document.createElement('button'); b.className='pin-key'; b.type='button';
-    b.textContent=k==='del'?'⌫':k;
-    b.addEventListener('click',()=>officePinPress(k));
-    grid.appendChild(b);
-  });
-}
-function officePinPress(k){
-  document.getElementById('officePinErr').textContent='';
-  if(k==='del'){ officePinBuffer=officePinBuffer.slice(0,-1); renderOfficePinDots(false); return; }
-  if(officePinBuffer.length>=5) return;
-  officePinBuffer+=k; renderOfficePinDots(false);
-  if(officePinBuffer.length===5){
-    const u=loginUsers.find(x=>x.pin===officePinBuffer) || (adminPin&&adminPin===officePinBuffer?{id:'_admin',name:'Administrator',role:'Admin',color:'#dc2626'}:null);
-    if(!u){
-      renderOfficePinDots(true);
-      document.getElementById('officePinErr').textContent='Cod greșit — încearcă din nou';
-      setTimeout(()=>{ officePinBuffer=''; renderOfficePinDots(false); },900);
-      return;
-    }
-    officePinBuffer='';
-    document.getElementById('officePinOverlay').style.display='none';
-    completeLoginAsOffice(u);
-  }
-}
-buildOfficePinGrid();
-document.getElementById('btnOpenOfficePin').addEventListener('click',e=>{
+// ── Comută între dial PIN (implicit) și login cu parolă (Administrator/Manager) ──
+document.getElementById('btnOpenPin').addEventListener('click',e=>{
   e.preventDefault();
-  document.getElementById('officePinOverlay').style.display='none';
+  document.getElementById('pinOverlay').style.display='none';
   document.getElementById('loginOverlay').style.display='flex';
 });
-document.getElementById('btnCloseOfficePin').addEventListener('click',e=>{
-  e.preventDefault(); officePinBuffer=''; renderOfficePinDots(false); document.getElementById('officePinErr').textContent='';
+document.getElementById('btnOpenOfficePin').addEventListener('click',e=>{
+  e.preventDefault(); pinBuffer=''; renderPinDots(false); document.getElementById('pinErr').textContent='';
   document.getElementById('loginOverlay').style.display='none';
-  document.getElementById('officePinOverlay').style.display='flex';
+  document.getElementById('pinOverlay').style.display='flex';
 });
 document.getElementById('btnLogout').addEventListener('click',()=>{
   currentUser=null;
   document.getElementById('loginPassword').value='';
   document.getElementById('loginError').textContent='';
   document.getElementById('app').style.display='none';
-  document.getElementById('loginOverlay').style.display='flex';
+  document.getElementById('loginOverlay').style.display='none';
+  pinBuffer=''; renderPinDots(false); document.getElementById('pinErr').textContent='';
+  document.getElementById('pinOverlay').style.display='flex';
   resetRestrictedTabs();
   // reset to first tab so next login always starts on "Pontaj azi"
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
@@ -750,7 +698,7 @@ document.getElementById('btnLogout').addEventListener('click',()=>{
   activeTab='today';
 });
 
-// ── PIN login (muncitori de teren) ──
+// ── PIN login (toți colegii — birou și teren, cod de 4 cifre) ──
 let pinBuffer='';
 function renderPinDots(err){
   const wrap=document.getElementById('pinDots'); wrap.innerHTML='';
@@ -777,46 +725,42 @@ function pinPress(k){
   pinBuffer+=k; renderPinDots(false);
   if(pinBuffer.length===4){
     const fw=fieldWorkers.find(f=>f.pin===pinBuffer);
-    if(!fw){
+    if(fw){
+      const colorPalette=['#f59e0b','#2563eb','#16a34a','#7c3aed','#db2777','#0891b2'];
+      const h=[...fw.name].reduce((a,c)=>a+c.charCodeAt(0),0);
+      currentUser={id:fw.id,name:fw.name,color:colorPalette[h%colorPalette.length],isField:true,sec:fw.sec};
+      pinBuffer='';
+      document.getElementById('pinOverlay').style.display='none';
+      document.getElementById('loginOverlay').style.display='none';
+      document.getElementById('app').style.display='flex';
+      const av=document.getElementById('userAvatar');
+      av.style.background=currentUser.color; av.textContent=initials(currentUser.name);
+      document.getElementById('userName').textContent=currentUser.name;
+      startSidebarParticles();
+      resetRestrictedTabs();
+      document.getElementById('tabMyWeekBtn').style.display='';
+      document.getElementById('tabMapBtn').style.display='';
+      document.getElementById('tabAlerteBtn').style.display='';
+      document.getElementById('tabExportBtn').style.display='none';
+      populateExportUsers(); initExportForm();
+      document.getElementById('todayDateLabel').textContent=new Date().toLocaleDateString('ro-RO',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+      renderCurrentTab();
+      updateAlerteBadge();
+      return;
+    }
+    const u=loginUsers.find(x=>x.pin===pinBuffer) || (adminPin&&adminPin===pinBuffer?{id:'_admin',name:'Administrator',role:'Admin',color:'#dc2626'}:null);
+    if(!u){
       renderPinDots(true);
       document.getElementById('pinErr').textContent='Cod greșit — încearcă din nou';
       setTimeout(()=>{ pinBuffer=''; renderPinDots(false); },900);
       return;
     }
-    const colorPalette=['#f59e0b','#2563eb','#16a34a','#7c3aed','#db2777','#0891b2'];
-    const h=[...fw.name].reduce((a,c)=>a+c.charCodeAt(0),0);
-    currentUser={id:fw.id,name:fw.name,color:colorPalette[h%colorPalette.length],isField:true,sec:fw.sec};
     pinBuffer='';
     document.getElementById('pinOverlay').style.display='none';
-    document.getElementById('loginOverlay').style.display='none';
-    document.getElementById('app').style.display='flex';
-    const av=document.getElementById('userAvatar');
-    av.style.background=currentUser.color; av.textContent=initials(currentUser.name);
-    document.getElementById('userName').textContent=currentUser.name;
-    startSidebarParticles();
-    resetRestrictedTabs();
-    document.getElementById('tabMyWeekBtn').style.display='';
-    document.getElementById('tabMapBtn').style.display='';
-    document.getElementById('tabAlerteBtn').style.display='';
-    document.getElementById('tabExportBtn').style.display='none';
-    populateExportUsers(); initExportForm();
-    document.getElementById('todayDateLabel').textContent=new Date().toLocaleDateString('ro-RO',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
-    renderCurrentTab();
-    updateAlerteBadge();
+    completeLoginAsOffice(u);
   }
 }
 buildPinGrid();
-document.getElementById('btnOpenPin').addEventListener('click',e=>{
-  e.preventDefault(); pinBuffer=''; renderPinDots(false); document.getElementById('pinErr').textContent='';
-  document.getElementById('officePinOverlay').style.display='none';
-  document.getElementById('loginOverlay').style.display='none';
-  document.getElementById('pinOverlay').style.display='flex';
-});
-document.getElementById('btnClosePin').addEventListener('click',e=>{
-  e.preventDefault();
-  document.getElementById('pinOverlay').style.display='none';
-  document.getElementById('officePinOverlay').style.display='flex';
-});
 
 // ── Tabs ──
 let activeTab='today';

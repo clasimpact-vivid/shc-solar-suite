@@ -147,7 +147,7 @@ a:hover{color:#93c5fd;}
   </div>
   <div style="text-align:center;">
     <div style="font-weight:800;font-size:16px;color:#f1f5f9;">Login rapid cu PIN</div>
-    <div style="font-size:12px;color:#64748b;margin-top:4px;">Introdu codul de 5 cifre</div>
+    <div style="font-size:12px;color:#64748b;margin-top:4px;">Introdu codul de 4 cifre</div>
   </div>
   <div class="pin-dots" id="officePinDots" style="display:flex;gap:12px;"></div>
   <div id="officePinErr" style="color:#f87171;font-size:12.5px;font-weight:700;min-height:16px;"></div>
@@ -332,7 +332,7 @@ const DEFAULT_USERS = [
   {id:'u_sirb',    name:'Beniamin Sirb',    color:'#0891b2', password:'12345'},
 ];
 
-let db=null, currentUser=null, loginUsers=[...DEFAULT_USERS], adminPw='12345', adminPin='10000';
+let db=null, currentUser=null, loginUsers=[...DEFAULT_USERS], adminPw='12345', adminPin='1000';
 let visits={}; let crmProjects=[];
 let activeVisitId=null;
 let tool='pencil', drawColor='#3b82f6';
@@ -420,7 +420,7 @@ document.getElementById('btnLogin').addEventListener('click',doLogin);
 let officePinBuffer='';
 function renderOfficePinDots(err){
   const wrap=document.getElementById('officePinDots'); wrap.innerHTML='';
-  for(let i=0;i<5;i++){
+  for(let i=0;i<4;i++){
     const d=document.createElement('div');
     d.className='pin-dot'+(i<officePinBuffer.length?(err?' err':' filled'):'');
     wrap.appendChild(d);
@@ -439,9 +439,9 @@ function buildOfficePinGrid(){
 function officePinPress(k){
   document.getElementById('officePinErr').textContent='';
   if(k==='del'){ officePinBuffer=officePinBuffer.slice(0,-1); renderOfficePinDots(false); return; }
-  if(officePinBuffer.length>=5) return;
+  if(officePinBuffer.length>=4) return;
   officePinBuffer+=k; renderOfficePinDots(false);
-  if(officePinBuffer.length===5){
+  if(officePinBuffer.length===4){
     const u=loginUsers.find(x=>x.pin===officePinBuffer) || (adminPin&&adminPin===officePinBuffer?{id:'_admin',name:'Administrator',role:'Admin',color:'#dc2626'}:null);
     if(!u){
       renderOfficePinDots(true);

@@ -170,7 +170,7 @@
       </div>
       <!-- Step 3: PIN keypad (implicit) -->
       <div id="loginStep3" style="padding:20px 28px 28px;text-align:center;">
-        <div style="font-size:14px;font-weight:700;color:#f1f5f9;">Introdu codul PIN (5 cifre)</div>
+        <div style="font-size:14px;font-weight:700;color:#f1f5f9;">Introdu codul PIN (4 cifre)</div>
         <div id="officePinErr" style="color:#f87171;font-size:12.5px;font-weight:700;min-height:18px;margin-top:6px;"></div>
         <div id="officePinDots" style="display:flex;justify-content:center;gap:12px;margin:10px 0 20px;"></div>
         <div id="officePinGrid" style="display:grid;grid-template-columns:repeat(3,72px);gap:12px;justify-content:center;"></div>
@@ -3315,7 +3315,7 @@ window._crmSharedUsers = [];
   var officePinBuffer='';
   function renderOfficePinDots(isErr){
     var wrap=document.getElementById('officePinDots'); wrap.innerHTML='';
-    for(var i=0;i<5;i++){
+    for(var i=0;i<4;i++){
       var d=document.createElement('div');
       d.style.cssText='width:14px;height:14px;border-radius:50%;border:2px solid '+(isErr?'#ef4444':'#f59e0b')+';background:'+(i<officePinBuffer.length?(isErr?'#ef4444':'#f59e0b'):'transparent')+';transition:background .15s;';
       wrap.appendChild(d);
@@ -3335,9 +3335,9 @@ window._crmSharedUsers = [];
   function officePinPress(k){
     document.getElementById('officePinErr').textContent='';
     if(k==='del'){ officePinBuffer=officePinBuffer.slice(0,-1); renderOfficePinDots(false); return; }
-    if(officePinBuffer.length>=5) return;
+    if(officePinBuffer.length>=4) return;
     officePinBuffer+=k; renderOfficePinDots(false);
-    if(officePinBuffer.length===5){
+    if(officePinBuffer.length===4){
       var users=loadUsers();
       var user=users.find(function(u){return u.active && u.pin && u.pin===officePinBuffer;});
       if(!user){

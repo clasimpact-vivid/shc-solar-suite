@@ -155,7 +155,7 @@ a:hover{color:#93c5fd;}
     </div>
   </div>
   <div style="text-align:center;">
-    <div style="font-weight:800;font-size:15px;color:#f1f5f9;">Introdu codul PIN (5 cifre)</div>
+    <div style="font-weight:800;font-size:15px;color:#f1f5f9;">Introdu codul PIN (4 cifre)</div>
   </div>
   <div class="pin-dots" id="officePinDots" style="display:flex;gap:12px;"></div>
   <div id="officePinErr" style="color:#f87171;font-size:12.5px;font-weight:700;min-height:16px;"></div>
@@ -358,7 +358,7 @@ let db = null;
 let currentUser = null;
 let loginUsers = [...DEFAULT_USERS];
 let adminPw = '12345';
-let adminPin = '10000';
+let adminPin = '1000';
 let projects = {};
 let crmProjects = [];
 let expandedProjects = {};
@@ -490,7 +490,7 @@ function completeLoginAs(u){
 let officePinBuffer='';
 function renderOfficePinDots(err){
   const wrap=document.getElementById('officePinDots'); wrap.innerHTML='';
-  for(let i=0;i<5;i++){
+  for(let i=0;i<4;i++){
     const d=document.createElement('div');
     d.className='pin-dot'+(i<officePinBuffer.length?(err?' err':' filled'):'');
     wrap.appendChild(d);
@@ -509,9 +509,9 @@ function buildOfficePinGrid(){
 function officePinPress(k){
   document.getElementById('officePinErr').textContent='';
   if(k==='del'){ officePinBuffer=officePinBuffer.slice(0,-1); renderOfficePinDots(false); return; }
-  if(officePinBuffer.length>=5) return;
+  if(officePinBuffer.length>=4) return;
   officePinBuffer+=k; renderOfficePinDots(false);
-  if(officePinBuffer.length===5){
+  if(officePinBuffer.length===4){
     const u=loginUsers.find(x=>x.pin===officePinBuffer) || (adminPin&&adminPin===officePinBuffer?{id:'_admin',name:'Administrator',role:'Admin',color:'#dc2626'}:null);
     if(!u){
       renderOfficePinDots(true);
