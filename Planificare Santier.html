@@ -534,13 +534,14 @@ function officePinPress(k){
 buildOfficePinGrid();
 document.getElementById('btnOpenOfficePin').addEventListener('click',e=>{
   e.preventDefault();
-  document.getElementById('officePinOverlay').style.display='none';
-  document.getElementById('loginOverlay').style.display='flex';
+  document.getElementById('loginOverlay').style.display='none';
+  officePinBuffer=''; renderOfficePinDots(false); document.getElementById('officePinErr').textContent='';
+  document.getElementById('officePinOverlay').style.display='flex';
 });
 document.getElementById('btnCloseOfficePin').addEventListener('click',e=>{
   e.preventDefault(); officePinBuffer=''; renderOfficePinDots(false); document.getElementById('officePinErr').textContent='';
-  document.getElementById('loginOverlay').style.display='none';
-  document.getElementById('officePinOverlay').style.display='flex';
+  document.getElementById('officePinOverlay').style.display='none';
+  document.getElementById('loginOverlay').style.display='flex';
 });
 
 document.getElementById('btnLogin').addEventListener('click',doLogin);
@@ -550,7 +551,9 @@ document.getElementById('btnLogout').addEventListener('click',()=>{
   document.getElementById('loginPassword').value='';
   document.getElementById('loginError').textContent='';
   document.getElementById('app').style.display='none';
-  document.getElementById('loginOverlay').style.display='flex';
+  document.getElementById('loginOverlay').style.display='none';
+  officePinBuffer=''; renderOfficePinDots(false); document.getElementById('officePinErr').textContent='';
+  document.getElementById('officePinOverlay').style.display='flex';
 });
 
 function populateStageResponsabili(){

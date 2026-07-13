@@ -2085,7 +2085,7 @@ class Component extends DCLogic {
         if(!isPwUser){ window.alert('PIN-ul tău se schimbă din secțiunea Utilizatori (îl poate reseta Alexandru Chirila sau Ionuț Nicoraș).'); return; }
         this.setState({showChangePwModal:true,cpOld:'',cpNew:'',cpConfirm:'',cpErr:''});
       },
-      doLogout:()=>{try{sessionStorage.removeItem('solarcrm_uid_v3');}catch(e){}this.setState({currentUser:null,showUserModal:true,userModalMode:'login'});},
+      doLogout:()=>{try{sessionStorage.removeItem('solarcrm_uid_v3');}catch(e){}this.setState({currentUser:null,showUserModal:true,userModalMode:'login',pinMode:true,pinBuffer:'',pinErr:false});},
       showChangePwModal:this.state.showChangePwModal||false,
       cpOldVal:this.state.cpOld||'',cpNewVal:this.state.cpNew||'',cpConfirmVal:this.state.cpConfirm||'',cpErrMsg:this.state.cpErr||'',
       onCpOld:e=>this.setState({cpOld:e.target.value}),
