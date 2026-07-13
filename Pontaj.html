@@ -127,9 +127,8 @@ a:hover{color:#fbbf24;}
     </div>
     <button class="btn-login" id="btnLogin">Intră în aplicație →</button>
     <div id="loginError" style="color:#f87171;font-size:12px;text-align:center;margin-top:10px;min-height:16px;"></div>
-    <div style="text-align:center;margin-top:16px;padding-top:16px;border-top:1px solid #1e293b;display:flex;justify-content:center;gap:16px;">
+    <div style="text-align:center;margin-top:16px;padding-top:16px;border-top:1px solid #1e293b;">
       <a href="#" id="btnOpenOfficePin" style="font-size:12.5px;color:#64748b;">← Înapoi la login cu PIN</a>
-      <a href="#" id="btnOpenPin" style="font-size:12.5px;">🔢 Sunt muncitor de teren</a>
     </div>
   </div>
 </div>
@@ -164,7 +163,10 @@ a:hover{color:#fbbf24;}
   <div class="pin-dots" id="officePinDots"></div>
   <div id="officePinErr" style="color:#f87171;font-size:12.5px;font-weight:700;min-height:16px;"></div>
   <div class="pin-grid" id="officePinGrid"></div>
-  <a href="#" id="btnCloseOfficePin" style="font-size:12.5px;margin-top:6px;color:#64748b;">Administrator / Manager — intră cu parolă →</a>
+  <div style="display:flex;gap:16px;">
+    <a href="#" id="btnOpenPin" style="font-size:12.5px;color:#f59e0b;">🔢 Sunt muncitor de teren</a>
+    <a href="#" id="btnCloseOfficePin" style="font-size:12.5px;color:#64748b;">Administrator / Manager →</a>
+  </div>
 </div>
 
 <div id="app">
@@ -806,6 +808,7 @@ function pinPress(k){
 buildPinGrid();
 document.getElementById('btnOpenPin').addEventListener('click',e=>{
   e.preventDefault(); pinBuffer=''; renderPinDots(false); document.getElementById('pinErr').textContent='';
+  document.getElementById('officePinOverlay').style.display='none';
   document.getElementById('loginOverlay').style.display='none';
   document.getElementById('pinOverlay').style.display='flex';
 });
