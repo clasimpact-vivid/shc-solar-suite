@@ -3063,13 +3063,17 @@ function sha256hexAsync(str){
 function startSession(user){
   window.SESSION = {userId:user.id, userName:user.name, role:user.role, loginTime:new Date().toISOString()};
   SESSION = window.SESSION;
+  window.currentUserRef = user;
   sessionStorage.setItem('pvbessSession', JSON.stringify(SESSION));
   document.getElementById('loginOverlay').style.display='none';
   var badge=document.getElementById('currentUserBadge');
   badge.textContent=(user.role==='admin'?'★ ':'👤 ')+user.name;
   badge.style.display='inline-block';
   document.getElementById('btnLogout').style.display='inline-block';
-  document.getElementById('btnChangePw').style.display='inline-block';
+  var cpBtn=document.getElementById('btnChangePw');
+  cpBtn.style.display='inline-block';
+  cpBtn.textContent = user.fromCRM ? '🔑 PIN' : '🔑 Parolă';
+  cpBtn.title = user.fromCRM ? 'PIN-ul se gestionează din SolarCRM' : 'Schimbă parola';
   if(user.role==='admin'){
     document.getElementById('adminSection').style.display='block';
     renderAdminUsers();
@@ -3415,6 +3419,10 @@ window._crmSharedUsers = [];
 
   // Change password
   document.getElementById('btnChangePw').addEventListener('click',function(){
+    if(window.currentUserRef && window.currentUserRef.fromCRM){
+      alert('PIN-ul tău se schimbă din SolarCRM → Utilizatori (îl poate reseta Alexandru Chirila sau Ionuț Nicoraș).');
+      return;
+    }
     document.getElementById('cpCurrent').value='';
     document.getElementById('cpNew1').value='';
     document.getElementById('cpNew2').value='';
