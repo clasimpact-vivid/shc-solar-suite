@@ -914,7 +914,7 @@ input,select,textarea,button{font-family:inherit;}
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:240px;margin:0 auto 16px;">
           <sc-for list="{{ pinKeys }}" as="k" hint-placeholder-count="12">
             <sc-if value="{{ k.visible }}" hint-placeholder-val="{{ true }}">
-              <button onClick="{{ k.onClick }}" style="width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:#1e293b;color:#f1f5f9;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;">{{ k.label }}</button>
+              <button onClick="{{ k.onClick }}" style="width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:{{ k.bg }};color:#f1f5f9;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .25s;">{{ k.label }}</button>
             </sc-if>
             <sc-if value="{{ k.blank }}" hint-placeholder-val="{{ false }}">
               <div style="width:72px;height:72px;"></div>
@@ -1720,6 +1720,10 @@ class Component extends DCLogic {
   }
 
   pinPress(k){
+    this.setState({pinFlash:k});
+    clearTimeout(this._pinFlashT);
+    this._pinFlashT=setTimeout(()=>this.setState({pinFlash:null}),250);
+    if(k==='clear'){ this.setState({pinBuffer:'',pinErr:false}); return; }
     if(k==='del'){ this.setState({pinBuffer:this.state.pinBuffer.slice(0,-1),pinErr:false}); return; }
     if(this.state.pinBuffer.length>=4) return;
     const buf=this.state.pinBuffer+k;
@@ -2189,7 +2193,7 @@ class Component extends DCLogic {
       closePinMode:e=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({pinMode:false,pinBuffer:'',pinErr:false}); },
       pinErrMsg:this.state.pinErr?'Cod greșit — încearcă din nou':'Introdu codul primit de la administrator',
       pinDots:[0,1,2,3].map(i=>({color:this.state.pinErr?'#ef4444':'#f59e0b',bg:i<this.state.pinBuffer.length?(this.state.pinErr?'#ef4444':'#f59e0b'):'transparent'})),
-      pinKeys:['1','2','3','4','5','6','7','8','9','','0','del'].map(k=>({label:k==='del'?'⌫':k,visible:k!=='',blank:k==='',onClick:()=>this.pinPress(k)})),
+      pinKeys:['1','2','3','4','5','6','7','8','9','clear','0','del'].map(k=>({label:k==='del'?'⌫':(k==='clear'?'C':k),visible:true,blank:false,bg:this.state.pinFlash===k?'#7f1d1d':'#1e293b',onClick:()=>this.pinPress(k)})),
       pwStepUser:pwUser?pwUser.name:'',pwStepColor:pwUser?pwUser.color:'#94a3b8',pwStepInitials:pwUser?initials(pwUser.name):'?',
       pwInput,onPwInput:e=>this.setState({pwInput:e.target.value}),
       onPwKeyDown:e=>{ if(e.key==='Enter')this.confirmPassword(); },

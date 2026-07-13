@@ -26,8 +26,8 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',system-ui,sans-serif
 .pin-dot{width:15px;height:15px;border-radius:50%;border:2px solid #f59e0b;background:transparent;transition:background .15s;}
 .pin-dot.filled{background:#f59e0b;}
 .pin-dot.err{border-color:#ef4444;background:#ef4444;}
-.pin-key{width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:#1e293b;color:#f1f5f9;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;}
-.pin-key:active{background:#334155;}
+.pin-key{width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:#1e293b;color:#f1f5f9;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .25s;}
+.pin-key:active,.pin-key.pin-key-pressed{background:#7f1d1d;}
 .login-card{background:#111827;border:1px solid #1e3a5f;border-radius:16px;padding:36px 32px;width:380px;max-width:92vw;box-shadow:0 8px 40px rgba(0,0,0,.5);}
 .form-label{font-size:11px;font-weight:700;color:#475569;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
 .form-select,.form-input{width:100%;padding:10px 13px;border:1.5px solid #334155;border-radius:10px;font-size:14px;font-family:inherit;background:#1e293b;color:#f1f5f9;outline:none;}
@@ -429,17 +429,17 @@ function renderOfficePinDots(err){
 }
 function buildOfficePinGrid(){
   const grid=document.getElementById('officePinGrid'); grid.innerHTML='';
-  ['1','2','3','4','5','6','7','8','9','','0','del'].forEach(k=>{
-    if(k===''){ grid.appendChild(document.createElement('div')); return; }
+  ['1','2','3','4','5','6','7','8','9','clear','0','del'].forEach(k=>{
     const b=document.createElement('button'); b.className='pin-key'; b.type='button';
-    b.textContent=k==='del'?'⌫':k;
-    b.addEventListener('click',()=>officePinPress(k));
+    b.textContent=k==='del'?'⌫':(k==='clear'?'C':k);
+    b.addEventListener('click',()=>{ b.classList.add('pin-key-pressed'); setTimeout(()=>b.classList.remove('pin-key-pressed'),250); officePinPress(k); });
     grid.appendChild(b);
   });
 }
 function officePinPress(k){
   document.getElementById('officePinErr').textContent='';
   if(k==='del'){ officePinBuffer=officePinBuffer.slice(0,-1); renderOfficePinDots(false); return; }
+  if(k==='clear'){ officePinBuffer=''; renderOfficePinDots(false); return; }
   if(officePinBuffer.length>=4) return;
   officePinBuffer+=k; renderOfficePinDots(false);
   if(officePinBuffer.length===4){

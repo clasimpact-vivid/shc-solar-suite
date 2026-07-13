@@ -3342,18 +3342,25 @@ window._crmSharedUsers = [];
   }
   function buildOfficePinGrid(){
     var grid=document.getElementById('officePinGrid'); grid.innerHTML='';
-    ['1','2','3','4','5','6','7','8','9','','0','del'].forEach(function(k){
-      if(k===''){ grid.appendChild(document.createElement('div')); return; }
+    ['1','2','3','4','5','6','7','8','9','clear','0','del'].forEach(function(k){
       var b=document.createElement('button'); b.type='button';
-      b.style.cssText='width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:#1e293b;color:#f1f5f9;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;';
-      b.textContent=k==='del'?'⌫':k;
-      b.addEventListener('click',function(){ officePinPress(this.textContent==='⌫'?'del':this.textContent); });
+      b.dataset.key=k;
+      b.style.cssText='width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:#1e293b;color:#f1f5f9;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .25s;';
+      b.textContent=k==='del'?'⌫':(k==='clear'?'C':k);
+      b.addEventListener('click',function(){
+        var key=this.dataset.key;
+        this.style.background='#7f1d1d';
+        var self=this;
+        setTimeout(function(){ self.style.background='#1e293b'; },250);
+        officePinPress(key);
+      });
       grid.appendChild(b);
     });
   }
   function officePinPress(k){
     document.getElementById('officePinErr').textContent='';
     if(k==='del'){ officePinBuffer=officePinBuffer.slice(0,-1); renderOfficePinDots(false); return; }
+    if(k==='clear'){ officePinBuffer=''; renderOfficePinDots(false); return; }
     if(officePinBuffer.length>=4) return;
     officePinBuffer+=k; renderOfficePinDots(false);
     if(officePinBuffer.length===4){

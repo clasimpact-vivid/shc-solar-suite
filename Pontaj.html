@@ -67,8 +67,8 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',system-ui,sans-serif
 .pin-dot.filled{background:#f59e0b;}
 .pin-dot.err{border-color:#ef4444;background:#ef4444;}
 .pin-grid{display:grid;grid-template-columns:repeat(3,72px);gap:12px;}
-.pin-key{width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:#1e293b;color:#f1f5f9;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;}
-.pin-key:active{background:#334155;}
+.pin-key{width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:#1e293b;color:#f1f5f9;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .25s;}
+.pin-key:active,.pin-key.pin-key-pressed{background:#7f1d1d;}
 .job-chip{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:2px solid transparent;background:#1e293b;color:#e2e8f0;}
 .job-chip.active{border-color:#f59e0b;}
 .plan-cell select{width:100%;padding:5px 4px;font-size:11px;background:#0d1b2e;color:#e2e8f0;border:1px solid #1e293b;border-radius:6px;font-family:inherit;}
@@ -715,17 +715,17 @@ function renderPinDots(err){
 }
 function buildPinGrid(){
   const grid=document.getElementById('pinGrid'); grid.innerHTML='';
-  ['1','2','3','4','5','6','7','8','9','','0','del'].forEach(k=>{
-    if(k===''){ grid.appendChild(document.createElement('div')); return; }
+  ['1','2','3','4','5','6','7','8','9','clear','0','del'].forEach(k=>{
     const b=document.createElement('button'); b.className='pin-key'; b.type='button';
-    b.textContent=k==='del'?'⌫':k;
-    b.addEventListener('click',()=>pinPress(k));
+    b.textContent=k==='del'?'⌫':(k==='clear'?'C':k);
+    b.addEventListener('click',()=>{ b.classList.add('pin-key-pressed'); setTimeout(()=>b.classList.remove('pin-key-pressed'),250); pinPress(k); });
     grid.appendChild(b);
   });
 }
 function pinPress(k){
   document.getElementById('pinErr').textContent='';
   if(k==='del'){ pinBuffer=pinBuffer.slice(0,-1); renderPinDots(false); return; }
+  if(k==='clear'){ pinBuffer=''; renderPinDots(false); return; }
   if(pinBuffer.length>=4) return;
   pinBuffer+=k; renderPinDots(false);
   if(pinBuffer.length===4){
