@@ -197,7 +197,7 @@ input,select,textarea,button{font-family:inherit;}
       </button>
     </sc-if>
     <!-- Change password button -->
-    <button onClick="{{ openChangePw }}" style="padding:5px 10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;font-size:12px;cursor:pointer;color:#64748b;flex:none;" style-hover="background:#f8fafc;">🔑</button>
+    <button onClick="{{ openChangePw }}" title="{{ changePwTitle }}" style="padding:5px 10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;font-size:12px;cursor:pointer;color:#64748b;flex:none;" style-hover="background:#f8fafc;">🔑</button>
     <!-- Logout button -->
     <button onClick="{{ doLogout }}" style="padding:5px 10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;font-size:12px;cursor:pointer;color:#64748b;flex:none;" style-hover="background:#f8fafc;">⏏ <span class="crm-btn-label">Deconectare</span></button>
     <!-- User avatar -->
@@ -1984,7 +1984,12 @@ class Component extends DCLogic {
       openUserMgmt:()=>this.openUserMgmt(),
       userColor,userInitials:initials(userName),userName,
       openUserSwitcher:()=>this.setState({showUserModal:true,userModalMode:'switch',pwStep:null,pwInput:''}),
-      openChangePw:()=>this.setState({showChangePwModal:true,cpOld:'',cpNew:'',cpConfirm:'',cpErr:''}),
+      changePwTitle:(currentUser&&(currentUser.id==='_admin'||currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'))?'Schimbă parola':'PIN-ul se schimbă din SolarCRM → Utilizatori',
+      openChangePw:()=>{
+        const isPwUser=currentUser&&(currentUser.id==='_admin'||currentUser.id==='u_chirila'||currentUser.id==='u_nicoras');
+        if(!isPwUser){ window.alert('PIN-ul tău se schimbă din secțiunea Utilizatori (îl poate reseta Alexandru Chirila sau Ionuț Nicoraș).'); return; }
+        this.setState({showChangePwModal:true,cpOld:'',cpNew:'',cpConfirm:'',cpErr:''});
+      },
       doLogout:()=>{try{sessionStorage.removeItem('solarcrm_uid_v3');}catch(e){}this.setState({currentUser:null,showUserModal:true,userModalMode:'login'});},
       showChangePwModal:this.state.showChangePwModal||false,
       cpOldVal:this.state.cpOld||'',cpNewVal:this.state.cpNew||'',cpConfirmVal:this.state.cpConfirm||'',cpErrMsg:this.state.cpErr||'',
