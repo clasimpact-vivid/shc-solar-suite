@@ -854,6 +854,32 @@ input,select,textarea,button{font-family:inherit;}
         </div>
       </sc-if>
 
+      <!-- PIN QUICK LOGIN -->
+      <sc-if value="{{ showPinStep }}" hint-placeholder-val="{{ false }}">
+        <div style="text-align:center;padding:4px 0 18px;">
+          <div style="font-size:14px;font-weight:700;color:#f1f5f9;">Introdu codul PIN (5 cifre)</div>
+          <div style="font-size:12px;color:#64748b;margin-top:3px;">{{ pinErrMsg }}</div>
+        </div>
+        <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;">
+          <sc-for list="{{ pinDots }}" as="d" hint-placeholder-count="5">
+            <div style="width:14px;height:14px;border-radius:50%;border:2px solid {{ d.color }};background:{{ d.bg }};"></div>
+          </sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:240px;margin:0 auto 16px;">
+          <sc-for list="{{ pinKeys }}" as="k" hint-placeholder-count="12">
+            <sc-if value="{{ k.visible }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ k.onClick }}" style="width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:#1e293b;color:#f1f5f9;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;">{{ k.label }}</button>
+            </sc-if>
+            <sc-if value="{{ k.blank }}" hint-placeholder-val="{{ false }}">
+              <div style="width:72px;height:72px;"></div>
+            </sc-if>
+          </sc-for>
+        </div>
+        <div style="text-align:center;">
+          <a href="#" onClick="{{ closePinMode }}" style="font-size:12.5px;color:#f59e0b;">← Înapoi la lista de conturi</a>
+        </div>
+      </sc-if>
+
       <!-- USER LIST -->
       <sc-if value="{{ showNormalStep }}" hint-placeholder-val="{{ true }}">
         <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">{{ loginSelectLabel }}</div>
@@ -870,6 +896,11 @@ input,select,textarea,button{font-family:inherit;}
         </sc-for>
         <sc-if value="{{ noRegularUsers }}">
           <div style="text-align:center;padding:12px 0 4px;color:#94a3b8;font-size:12px;">Niciun alt utilizator creat.</div>
+        </sc-if>
+        <sc-if value="{{ isLoginMode }}">
+          <div style="text-align:center;margin-top:14px;padding-top:14px;border-top:1px solid {{ loginDivider }};">
+            <a href="#" onClick="{{ openPinMode }}" style="font-size:12.5px;color:#f59e0b;">🔢 Intră rapid cu PIN</a>
+          </div>
         </sc-if>
       </sc-if>
 
@@ -968,9 +999,19 @@ input,select,textarea,button{font-family:inherit;}
             <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Confirmă parola *</label>
             <input type="password" value="{{ umForm.password2 }}" onChange="{{ onUmPassword2 }}" placeholder="••••••••" style="width:100%;padding:9px 11px;border:1px solid {{ umForm.pw2Border }};border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
           </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">🔢 PIN acces rapid (5 cifre)</label>
+            <div style="display:flex;gap:8px;">
+              <input type="text" inputMode="numeric" maxlength="5" value="{{ umForm.pin }}" onChange="{{ onUmPin }}" placeholder="ex: 48213" style="flex:1;padding:9px 11px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;letter-spacing:2px;">
+              <button type="button" onClick="{{ onUmGenPin }}" style="white-space:nowrap;padding:9px 12px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">🔄 Generează</button>
+            </div>
+          </div>
           <div style="border-top:1px solid #f1f5f9;padding-top:12px;">
             <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:#0f172a;cursor:pointer;margin-bottom:10px;">
               <input type="checkbox" checked="{{ umForm.pontajPlanner }}" onChange="{{ onUmPontajPlanner }}" style="width:16px;height:16px;accent-color:#f59e0b;"> 🗓️ Șef de șantier — acces Planificator în Pontaj (echipe, lucrări, program săptămânal)
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:#0f172a;cursor:pointer;margin-bottom:10px;">
+              <input type="checkbox" checked="{{ umForm.pontajHR }}" onChange="{{ onUmPontajHR }}" style="width:16px;height:16px;accent-color:#f59e0b;"> 📋 Contabilitate — vizualizare Echipă + Hartă în Pontaj (fără drept de ștergere)
             </label>
             <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:#0f172a;cursor:pointer;margin-bottom:10px;">
               <input type="checkbox" checked="{{ umForm.isSuperAdmin }}" onChange="{{ onUmSuperAdmin }}" style="width:16px;height:16px;accent-color:#dc2626;"> Acces deplin (SuperAdmin) — vede toate lucrările
@@ -1040,9 +1081,19 @@ input,select,textarea,button{font-family:inherit;}
             <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Confirmă parola nouă</label>
             <input type="password" value="{{ umForm.password2 }}" onChange="{{ onUmPassword2 }}" placeholder="••••••••" style="width:100%;padding:9px 11px;border:1px solid {{ umForm.pw2Border }};border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
           </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">🔢 PIN acces rapid (5 cifre) <span style="font-weight:400;color:#94a3b8;text-transform:none;">— dacă l-a uitat, apasă Regenerează</span></label>
+            <div style="display:flex;gap:8px;">
+              <input type="text" inputMode="numeric" maxlength="5" value="{{ umForm.pin }}" onChange="{{ onUmPin }}" placeholder="ex: 48213" style="flex:1;padding:9px 11px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;letter-spacing:2px;">
+              <button type="button" onClick="{{ onUmGenPin }}" style="white-space:nowrap;padding:9px 12px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">🔄 Regenerează</button>
+            </div>
+          </div>
           <div style="border-top:1px solid #f1f5f9;padding-top:12px;">
             <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:#0f172a;cursor:pointer;margin-bottom:10px;">
               <input type="checkbox" checked="{{ umForm.pontajPlanner }}" onChange="{{ onUmPontajPlanner }}" style="width:16px;height:16px;accent-color:#f59e0b;"> 🗓️ Șef de șantier — acces Planificator în Pontaj (echipe, lucrări, program săptămânal)
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:#0f172a;cursor:pointer;margin-bottom:10px;">
+              <input type="checkbox" checked="{{ umForm.pontajHR }}" onChange="{{ onUmPontajHR }}" style="width:16px;height:16px;accent-color:#f59e0b;"> 📋 Contabilitate — vizualizare Echipă + Hartă în Pontaj (fără drept de ștergere)
             </label>
             <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:#0f172a;cursor:pointer;margin-bottom:10px;">
               <input type="checkbox" checked="{{ umForm.isSuperAdmin }}" onChange="{{ onUmSuperAdmin }}" style="width:16px;height:16px;accent-color:#dc2626;"> Acces deplin (SuperAdmin) — vede toate lucrările
@@ -1155,6 +1206,13 @@ input,select,textarea,button{font-family:inherit;}
             <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Confirmă parola nouă *</label>
             <input type="password" value="{{ umForm.password2 }}" onChange="{{ onUmPassword2 }}" placeholder="••••••••" style="width:100%;padding:9px 11px;border:1px solid {{ umForm.pw2Border }};border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
           </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">🔢 PIN acces rapid (5 cifre)</label>
+            <div style="display:flex;gap:8px;">
+              <input type="text" inputMode="numeric" maxlength="5" value="{{ umForm.pin }}" onChange="{{ onUmPin }}" placeholder="ex: 48213" style="flex:1;padding:9px 11px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;letter-spacing:2px;">
+              <button type="button" onClick="{{ onUmGenPin }}" style="white-space:nowrap;padding:9px 12px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">🔄 Regenerează</button>
+            </div>
+          </div>
           <button onClick="{{ umSaveAdminPw }}" style="padding:11px;background:#dc2626;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;" style-hover="background:#b91c1c;">Schimbă parola Admin</button>
         </div>
       </sc-if>
@@ -1213,10 +1271,10 @@ function maskDmy(prev,cur){
 }
 
 const DEFAULT_USERS = [
-  {id:'u_nicoras', name:'Ionut Nicoras', role:'Administrator', password:'12345', color:'#d97706', isSuperAdmin:true, segmente:['PV','Inverter','Baterie','BESS']},
-  {id:'u_chirila', name:'Alexandru Chirila', role:'Manager', password:'12345', color:'#7c3aed', isSuperAdmin:true, segmente:['PV','Inverter','Baterie','BESS']},
-  {id:'u_dobre', name:'Cristian Dobre', role:'Vânzări', password:'12345', color:'#16a34a', isSuperAdmin:false, segmente:['PV','Inverter','Baterie']},
-  {id:'u_sirb', name:'Beniamin Sirb', role:'Backoffice', password:'12345', color:'#0891b2', isSuperAdmin:false, segmente:['PV','Inverter','Baterie']},
+  {id:'u_nicoras', name:'Ionut Nicoras', role:'Administrator', password:'12345', pin:'10001', color:'#d97706', isSuperAdmin:true, segmente:['PV','Inverter','Baterie','BESS']},
+  {id:'u_chirila', name:'Alexandru Chirila', role:'Manager', password:'12345', pin:'10002', color:'#7c3aed', isSuperAdmin:true, segmente:['PV','Inverter','Baterie','BESS']},
+  {id:'u_dobre', name:'Cristian Dobre', role:'Vânzări', password:'12345', pin:'10003', color:'#16a34a', isSuperAdmin:false, segmente:['PV','Inverter','Baterie']},
+  {id:'u_sirb', name:'Beniamin Sirb', role:'Backoffice', password:'12345', pin:'10004', color:'#0891b2', isSuperAdmin:false, segmente:['PV','Inverter','Baterie']},
 ];
 
 const ADMIN_USER = {
@@ -1259,7 +1317,8 @@ const APP_ROLE_TEMPLATES = {
   agent:{appCrm:true,appCalculator:true,appPlanificare:false,appVizita:false,appPontaj:true},
   birou:{appCrm:true,appCalculator:true,appPlanificare:true,appVizita:true,appPontaj:true},
 };
-const EMPTY_UM_FORM = {name:'',email:'',role:'Tehnician',password:'',password2:'',oldPw:'',isSuperAdmin:false,segPV:true,segInverter:true,segBaterie:true,segBESS:false,notifSolarCRM:true,notifPlanificare:false,notifVizita:false,notifPontaj:false,roleTemplate:'birou',appCrm:true,appCalculator:true,appPlanificare:true,appVizita:true,appPontaj:true};
+const EMPTY_UM_FORM = {name:'',email:'',role:'Tehnician',password:'',password2:'',oldPw:'',pin:'',isSuperAdmin:false,segPV:true,segInverter:true,segBaterie:true,segBESS:false,notifSolarCRM:true,notifPlanificare:false,notifVizita:false,notifPontaj:false,roleTemplate:'birou',appCrm:true,appCalculator:true,appPlanificare:true,appVizita:true,appPontaj:true};
+function genUniquePin5(existingUsers){ let p; const used=new Set((existingUsers||[]).map(u=>u.pin).filter(Boolean)); do{ p=String(Math.floor(10000+Math.random()*90000)); }while(used.has(p)); return p; }
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 function initials(name){ return (name||'').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase()||'?'; }
@@ -1381,6 +1440,7 @@ class Component extends DCLogic {
     currentUser:null, users:[...DEFAULT_USERS],
     showUserModal:false, userModalMode:'login',
     pwStep:null, pwInput:'',
+    pinMode:false, pinBuffer:'', pinErr:false,
     statusModal:{show:false,projectId:null,newStatus:'',reason:''},
     showUserMgmt:false, userMgmtMode:'list', editingUserId:null,
     umForm:{...EMPTY_UM_FORM},
@@ -1388,6 +1448,7 @@ class Component extends DCLogic {
   };
 
   adminPassword = ADMIN_DEFAULT_PW;
+  adminPin = '10000';
 
   _startParticles(){
     // dezactivăm animația decorativă pe mobil — poate încărca inutil CPU-ul pe telefoane mai vechi
@@ -1457,6 +1518,8 @@ class Component extends DCLogic {
       const users = (cfg.users&&cfg.users.length)?cfg.users:(data.users&&data.users.length?data.users:DEFAULT_USERS);
       const adminPw = cfg.adminPw||data.adminPw||null;
       if(adminPw) this.adminPassword = adminPw;
+      const adminPin = cfg.adminPin||data.adminPin||null;
+      if(adminPin) this.adminPin = adminPin;
       const ci = cfg.companyInfo||data.companyInfo||null;
       const companyInfo = ci ? {...COMPANY_INFO,...ci} : this.state.companyInfo;
       if(!this._initialized){
@@ -1498,6 +1561,7 @@ class Component extends DCLogic {
         const projects=(data.projects||[]).map(migrate);
         const users=data.users&&data.users.length?data.users:DEFAULT_USERS;
         if(data.adminPw) this.adminPassword=data.adminPw;
+        if(data.adminPin) this.adminPin=data.adminPin;
         const companyInfo=data.companyInfo?{...COMPANY_INFO,...data.companyInfo}:this.state.companyInfo;
         this.setState({projects,users,companyInfo},()=>this._initAuth());
       } else { this.setState({projects:[],users:[...DEFAULT_USERS]},()=>this._initAuth()); }
@@ -1507,7 +1571,7 @@ class Component extends DCLogic {
   persist(){
     try {
       const {projects,users,companyInfo}=this.state;
-      localStorage.setItem('solarcrm_v3',JSON.stringify({projects,users,adminPw:this.adminPassword,companyInfo}));
+      localStorage.setItem('solarcrm_v3',JSON.stringify({projects,users,adminPw:this.adminPassword,adminPin:this.adminPin,companyInfo}));
       if(this._firebaseLoaded){
         const db=getDb(); if(!db) return;
         // Salveaza fiecare proiect individual — NU suprascrie proiectele colegilor
@@ -1515,7 +1579,7 @@ class Component extends DCLogic {
         projects.forEach(p=>{ updates[String(p.id)]=p; });
         db.ref('solarcrm_v2/projects').update(updates);
         // Config separat
-        db.ref('solarcrm_v2/config').set({users,adminPw:this.adminPassword,companyInfo});
+        db.ref('solarcrm_v2/config').set({users,adminPw:this.adminPassword,adminPin:this.adminPin,companyInfo});
       }
     } catch(e){}
   }
@@ -1592,6 +1656,26 @@ class Component extends DCLogic {
     });
   }
 
+  pinPress(k){
+    if(k==='del'){ this.setState({pinBuffer:this.state.pinBuffer.slice(0,-1),pinErr:false}); return; }
+    if(this.state.pinBuffer.length>=5) return;
+    const buf=this.state.pinBuffer+k;
+    this.setState({pinBuffer:buf,pinErr:false});
+    if(buf.length===5){
+      const users=this.state.users;
+      const allForLogin=[{...ADMIN_USER,password:this.adminPassword,pin:this.adminPin},...users];
+      const match=allForLogin.find(u=>u.pin && u.pin===buf);
+      if(!match){
+        this.setState({pinErr:true});
+        setTimeout(()=>this.setState({pinBuffer:'',pinErr:false}),900);
+        return;
+      }
+      setTimeout(()=>{
+        this.setState({pinMode:false,pinBuffer:''});
+        this.loginUser(match.id===ADMIN_ID?{...ADMIN_USER,password:this.adminPassword}:match);
+      },150);
+    }
+  }
   loginUser(user){
     try { sessionStorage.setItem('solarcrm_uid_v3',user.id); localStorage.removeItem('solarcrm_uid_v3'); } catch(e){}
     this.setState({currentUser:user,showUserModal:false,pwStep:null,pwInput:''});
@@ -1708,10 +1792,10 @@ class Component extends DCLogic {
   openUserMgmt(){ this.setState({showUserMgmt:true,userMgmtMode:'list',umForm:{...EMPTY_UM_FORM}}); }
   closeUserMgmt(){ this.setState({showUserMgmt:false}); }
 
-  umGoAdd(){ this.setState({userMgmtMode:'add',editingUserId:null,umForm:{...EMPTY_UM_FORM}}); }
+  umGoAdd(){ this.setState({userMgmtMode:'add',editingUserId:null,umForm:{...EMPTY_UM_FORM,pin:genUniquePin5(this.state.users)}}); }
   umGoBack(){ this.setState({userMgmtMode:'list',umForm:{...EMPTY_UM_FORM}}); }
-  umChangeAdminPw(){ this.setState({userMgmtMode:'changepw',umForm:{...EMPTY_UM_FORM}}); }
-  umStartEdit(userId){ const u=this.state.users.find(x=>x.id===userId); if(!u)return; const seg=u.segmente||['PV','Inverter','Baterie']; const nf=u.notif||{}; const ap=u.apps||{crm:true,calculator:true,planificare:true,vizita:true,pontaj:true}; this.setState({userMgmtMode:'edit',editingUserId:userId,umForm:{...EMPTY_UM_FORM,name:u.name,email:u.email||'',role:u.role,isSuperAdmin:!!u.isSuperAdmin,pontajPlanner:!!u.pontajPlanner,segPV:seg.includes('PV'),segInverter:seg.includes('Inverter'),segBaterie:seg.includes('Baterie'),segBESS:seg.includes('BESS'),notifSolarCRM:nf.solarcrm!==false,notifPlanificare:!!nf.planificare,notifVizita:!!nf.vizita,notifPontaj:!!nf.pontaj,appCrm:ap.crm!==false,appCalculator:ap.calculator!==false,appPlanificare:ap.planificare!==false,appVizita:ap.vizita!==false,appPontaj:ap.pontaj!==false}}); }
+  umChangeAdminPw(){ this.setState({userMgmtMode:'changepw',umForm:{...EMPTY_UM_FORM,pin:this.adminPin}}); }
+  umStartEdit(userId){ const u=this.state.users.find(x=>x.id===userId); if(!u)return; const seg=u.segmente||['PV','Inverter','Baterie']; const nf=u.notif||{}; const ap=u.apps||{crm:true,calculator:true,planificare:true,vizita:true,pontaj:true}; this.setState({userMgmtMode:'edit',editingUserId:userId,umForm:{...EMPTY_UM_FORM,name:u.name,email:u.email||'',role:u.role,isSuperAdmin:!!u.isSuperAdmin,pin:u.pin||'',pontajHR:!!u.pontajHR,pontajPlanner:!!u.pontajPlanner,segPV:seg.includes('PV'),segInverter:seg.includes('Inverter'),segBaterie:seg.includes('Baterie'),segBESS:seg.includes('BESS'),notifSolarCRM:nf.solarcrm!==false,notifPlanificare:!!nf.planificare,notifVizita:!!nf.vizita,notifPontaj:!!nf.pontaj,appCrm:ap.crm!==false,appCalculator:ap.calculator!==false,appPlanificare:ap.planificare!==false,appVizita:ap.vizita!==false,appPontaj:ap.pontaj!==false}}); }
   setUmForm(k,v){ this.setState(s=>({umForm:{...s.umForm,[k]:v}})); }
 
   umSaveAdd(){
@@ -1723,7 +1807,7 @@ class Component extends DCLogic {
     const segmente=[umForm.segPV&&'PV',umForm.segInverter&&'Inverter',umForm.segBaterie&&'Baterie',umForm.segBESS&&'BESS'].filter(Boolean);
     const notif={solarcrm:!!umForm.notifSolarCRM,planificare:!!umForm.notifPlanificare,vizita:!!umForm.notifVizita,pontaj:!!umForm.notifPontaj};
     const apps={crm:!!umForm.appCrm,calculator:!!umForm.appCalculator,planificare:!!umForm.appPlanificare,vizita:!!umForm.appVizita,pontaj:!!umForm.appPontaj};
-    const user={id:'u'+Date.now(),name:umForm.name.trim(),email:umForm.email.trim(),role:umForm.role,color,password:umForm.password.trim(),isSuperAdmin:!!umForm.isSuperAdmin,pontajPlanner:!!umForm.pontajPlanner,segmente,notif,apps};
+    const user={id:'u'+Date.now(),name:umForm.name.trim(),email:umForm.email.trim(),role:umForm.role,color,password:umForm.password.trim(),pin:umForm.pin.trim()||genUniquePin5(users),isSuperAdmin:!!umForm.isSuperAdmin,pontajHR:!!umForm.pontajHR,pontajPlanner:!!umForm.pontajPlanner,segmente,notif,apps};
     const newUsers=[...users,user];
     this.setState({users:newUsers,userMgmtMode:'list',umForm:{...EMPTY_UM_FORM}},()=>setTimeout(()=>this.persist(),0));
   }
@@ -1738,7 +1822,7 @@ class Component extends DCLogic {
       const segmente=[umForm.segPV&&'PV',umForm.segInverter&&'Inverter',umForm.segBaterie&&'Baterie',umForm.segBESS&&'BESS'].filter(Boolean);
       const notif={solarcrm:!!umForm.notifSolarCRM,planificare:!!umForm.notifPlanificare,vizita:!!umForm.notifVizita,pontaj:!!umForm.notifPontaj};
       const apps={crm:!!umForm.appCrm,calculator:!!umForm.appCalculator,planificare:!!umForm.appPlanificare,vizita:!!umForm.appVizita,pontaj:!!umForm.appPontaj};
-      const updated={...u,name:umForm.name.trim(),email:umForm.email.trim(),role:umForm.role,isSuperAdmin:!!umForm.isSuperAdmin,pontajPlanner:!!umForm.pontajPlanner,segmente,notif,apps};
+      const updated={...u,name:umForm.name.trim(),email:umForm.email.trim(),role:umForm.role,pin:umForm.pin.trim(),isSuperAdmin:!!umForm.isSuperAdmin,pontajHR:!!umForm.pontajHR,pontajPlanner:!!umForm.pontajPlanner,segmente,notif,apps};
       if(umForm.password.trim())updated.password=umForm.password.trim();
       return updated;
     });
@@ -1759,6 +1843,7 @@ class Component extends DCLogic {
     if(umForm.password.trim().length<4){window.alert('Parola nouă trebuie să aibă minim 4 caractere!');return;}
     if(umForm.password!==umForm.password2){window.alert('Parolele nu coincid!');return;}
     this.adminPassword=umForm.password.trim();
+    if(umForm.pin && umForm.pin.trim()) this.adminPin=umForm.pin.trim();
     this.setState({userMgmtMode:'list',umForm:{...EMPTY_UM_FORM}},()=>setTimeout(()=>this.persist(),0));
     window.alert('Parola Administrator a fost schimbată cu succes!');
   }
@@ -1981,7 +2066,13 @@ class Component extends DCLogic {
       userModalTitle:pwStep?'Autentificare':(userModalMode==='login'?'Bun venit în SolarCRM':'Schimbă contul'),
       userModalSubtitle:pwStep?'Contul este protejat prin parolă':'Toate conturile sunt protejate prin parolă',
       userModalBgClick:()=>{ if(userModalMode==='switch')this.setState({showUserModal:false,pwStep:null,pwInput:''}); },
-      showPwStep:pwStep!==null,showNormalStep:pwStep===null,
+      showPwStep:pwStep!==null && !this.state.pinMode,showNormalStep:pwStep===null && !this.state.pinMode,
+      showPinStep:this.state.pinMode===true,
+      openPinMode:e=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({pinMode:true,pinBuffer:'',pinErr:false}); },
+      closePinMode:e=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({pinMode:false,pinBuffer:'',pinErr:false}); },
+      pinErrMsg:this.state.pinErr?'Cod greșit — încearcă din nou':'Introdu codul primit de la administrator',
+      pinDots:[0,1,2,3,4].map(i=>({color:this.state.pinErr?'#ef4444':'#f59e0b',bg:i<this.state.pinBuffer.length?(this.state.pinErr?'#ef4444':'#f59e0b'):'transparent'})),
+      pinKeys:['1','2','3','4','5','6','7','8','9','','0','del'].map(k=>({label:k==='del'?'⌫':k,visible:k!=='',blank:k==='',onClick:()=>this.pinPress(k)})),
       pwStepUser:pwUser?pwUser.name:'',pwStepColor:pwUser?pwUser.color:'#94a3b8',pwStepInitials:pwUser?initials(pwUser.name):'?',
       pwInput,onPwInput:e=>this.setState({pwInput:e.target.value}),
       onPwKeyDown:e=>{ if(e.key==='Enter')this.confirmPassword(); },
@@ -2019,6 +2110,7 @@ class Component extends DCLogic {
       onUmNotifPontaj:e=>this.setUmForm('notifPontaj',e.target.checked),
       onUmSuperAdmin:e=>this.setUmForm('isSuperAdmin',e.target.checked),
       onUmPontajPlanner:e=>this.setUmForm('pontajPlanner',e.target.checked),
+      onUmPontajHR:e=>this.setUmForm('pontajHR',e.target.checked),
       onUmRoleTemplate:e=>{ const t=APP_ROLE_TEMPLATES[e.target.value]; if(t) this.setState(s=>({umForm:{...s.umForm,roleTemplate:e.target.value,...t}})); },
       onUmAppCrm:e=>this.setUmForm('appCrm',e.target.checked),
       onUmAppCalculator:e=>this.setUmForm('appCalculator',e.target.checked),
@@ -2032,6 +2124,8 @@ class Component extends DCLogic {
       umNotSuperAdmin:!umForm.isSuperAdmin,
       onUmPassword:e=>this.setUmForm('password',e.target.value),onUmPassword2:e=>this.setUmForm('password2',e.target.value),
       onUmOldPw:e=>this.setUmForm('oldPw',e.target.value),
+      onUmPin:e=>this.setUmForm('pin',e.target.value.replace(/\D/g,'').slice(0,5)),
+      onUmGenPin:()=>this.setUmForm('pin',genUniquePin5(this.state.users)),
     };
   }
 }

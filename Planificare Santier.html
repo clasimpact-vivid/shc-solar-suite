@@ -12,6 +12,11 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',system-ui,sans-serif
 
 /* ── Login ── */
 #loginOverlay{position:fixed;inset:0;z-index:9999;background:#090f1c;display:flex;align-items:center;justify-content:center;}
+.pin-dot{width:15px;height:15px;border-radius:50%;border:2px solid #f59e0b;background:transparent;transition:background .15s;}
+.pin-dot.filled{background:#f59e0b;}
+.pin-dot.err{border-color:#ef4444;background:#ef4444;}
+.pin-key{width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:#1e293b;color:#f1f5f9;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;}
+.pin-key:active{background:#334155;}
 .login-card{background:#111827;border:1px solid #1e3a5f;border-radius:16px;padding:36px 32px;width:380px;max-width:92vw;box-shadow:0 8px 40px rgba(0,0,0,.5);}
 .form-label{font-size:11px;font-weight:700;color:#475569;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
 .form-select,.form-input{width:100%;padding:10px 13px;border:1.5px solid #334155;border-radius:10px;font-size:14px;font-family:inherit;background:#1e293b;color:#f1f5f9;outline:none;}
@@ -132,7 +137,22 @@ a:hover{color:#93c5fd;}
     </div>
     <button class="btn-login" id="btnLogin">Intră în aplicație →</button>
     <div id="loginError" style="color:#f87171;font-size:12px;text-align:center;margin-top:10px;min-height:16px;"></div>
+    <div style="text-align:center;margin-top:16px;padding-top:16px;border-top:1px solid #1e293b;">
+      <a href="#" id="btnOpenOfficePin" style="font-size:12.5px;color:#f59e0b;">🔢 Intră rapid cu PIN</a>
+    </div>
   </div>
+</div>
+
+<!-- PIN keypad overlay (utilizatori birou) -->
+<div id="officePinOverlay" style="position:fixed;inset:0;z-index:10000;background:#090f1c;display:none;align-items:center;justify-content:center;flex-direction:column;gap:20px;">
+  <div style="text-align:center;">
+    <div style="font-weight:800;font-size:16px;color:#f1f5f9;">Login rapid cu PIN</div>
+    <div style="font-size:12px;color:#64748b;margin-top:4px;">Introdu codul de 5 cifre</div>
+  </div>
+  <div class="pin-dots" id="officePinDots" style="display:flex;gap:12px;"></div>
+  <div id="officePinErr" style="color:#f87171;font-size:12.5px;font-weight:700;min-height:16px;"></div>
+  <div class="pin-grid" id="officePinGrid" style="display:grid;grid-template-columns:repeat(3,72px);gap:12px;"></div>
+  <a href="#" id="btnCloseOfficePin" style="font-size:12.5px;margin-top:6px;color:#f59e0b;">← Înapoi</a>
 </div>
 
 <!-- ═══ APP ═══ -->
@@ -330,6 +350,7 @@ let db = null;
 let currentUser = null;
 let loginUsers = [...DEFAULT_USERS];
 let adminPw = '12345';
+let adminPin = '10000';
 let projects = {};
 let crmProjects = [];
 let expandedProjects = {};
@@ -385,6 +406,7 @@ function loadFirebase(){
       loginUsers=[{id:'_admin',name:'Administrator',color:'#dc2626',password:cfg.adminPw||'12345'},...cfg.users];
     }
     if(cfg.adminPw) adminPw=cfg.adminPw;
+    if(cfg.adminPin) adminPin=cfg.adminPin;
     populateLoginUsers();
     populateStageResponsabili();
   });
@@ -440,6 +462,9 @@ function doLogin(){
   const stored=u.id==='_admin'?adminPw:(u.password||'');
   if(stored&&pw!==stored){err.textContent='Parolă incorectă.';return;}
   if(u.apps && u.apps.planificare===false){ err.textContent='Nu ai acces la Planificare Șantier. Contactează administratorul.'; return; }
+  completeLoginAs(u);
+}
+function completeLoginAs(u){
   currentUser=u;
   document.getElementById('loginOverlay').style.display='none';
   document.getElementById('app').style.display='flex';
@@ -451,6 +476,59 @@ function doLogin(){
   if(window.startParticles) window.startParticles();
   renderAll();
 }
+
+// ── PIN rapid (utilizatori birou) ──
+let officePinBuffer='';
+function renderOfficePinDots(err){
+  const wrap=document.getElementById('officePinDots'); wrap.innerHTML='';
+  for(let i=0;i<5;i++){
+    const d=document.createElement('div');
+    d.className='pin-dot'+(i<officePinBuffer.length?(err?' err':' filled'):'');
+    wrap.appendChild(d);
+  }
+}
+function buildOfficePinGrid(){
+  const grid=document.getElementById('officePinGrid'); grid.innerHTML='';
+  ['1','2','3','4','5','6','7','8','9','','0','del'].forEach(k=>{
+    if(k===''){ grid.appendChild(document.createElement('div')); return; }
+    const b=document.createElement('button'); b.className='pin-key'; b.type='button';
+    b.textContent=k==='del'?'⌫':k;
+    b.addEventListener('click',()=>officePinPress(k));
+    grid.appendChild(b);
+  });
+}
+function officePinPress(k){
+  document.getElementById('officePinErr').textContent='';
+  if(k==='del'){ officePinBuffer=officePinBuffer.slice(0,-1); renderOfficePinDots(false); return; }
+  if(officePinBuffer.length>=5) return;
+  officePinBuffer+=k; renderOfficePinDots(false);
+  if(officePinBuffer.length===5){
+    const u=loginUsers.find(x=>x.pin===officePinBuffer) || (adminPin&&adminPin===officePinBuffer?{id:'_admin',name:'Administrator',role:'Admin',color:'#dc2626'}:null);
+    if(!u){
+      renderOfficePinDots(true);
+      document.getElementById('officePinErr').textContent='Cod greșit — încearcă din nou';
+      setTimeout(()=>{ officePinBuffer=''; renderOfficePinDots(false); },900);
+      return;
+    }
+    if(u.apps && u.apps.planificare===false){
+      renderOfficePinDots(true);
+      document.getElementById('officePinErr').textContent='Nu ai acces la Planificare Șantier.';
+      setTimeout(()=>{ officePinBuffer=''; renderOfficePinDots(false); },1200);
+      return;
+    }
+    officePinBuffer='';
+    document.getElementById('officePinOverlay').style.display='none';
+    completeLoginAs(u);
+  }
+}
+buildOfficePinGrid();
+document.getElementById('btnOpenOfficePin').addEventListener('click',e=>{
+  e.preventDefault(); officePinBuffer=''; renderOfficePinDots(false); document.getElementById('officePinErr').textContent='';
+  document.getElementById('officePinOverlay').style.display='flex';
+});
+document.getElementById('btnCloseOfficePin').addEventListener('click',e=>{
+  e.preventDefault(); document.getElementById('officePinOverlay').style.display='none';
+});
 
 document.getElementById('btnLogin').addEventListener('click',doLogin);
 document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});

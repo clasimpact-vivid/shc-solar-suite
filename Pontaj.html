@@ -127,7 +127,8 @@ a:hover{color:#fbbf24;}
     </div>
     <button class="btn-login" id="btnLogin">Intră în aplicație →</button>
     <div id="loginError" style="color:#f87171;font-size:12px;text-align:center;margin-top:10px;min-height:16px;"></div>
-    <div style="text-align:center;margin-top:16px;padding-top:16px;border-top:1px solid #1e293b;">
+    <div style="text-align:center;margin-top:16px;padding-top:16px;border-top:1px solid #1e293b;display:flex;justify-content:center;gap:16px;">
+      <a href="#" id="btnOpenOfficePin" style="font-size:12.5px;color:#f59e0b;">🔢 Login rapid cu PIN</a>
       <a href="#" id="btnOpenPin" style="font-size:12.5px;">🔢 Sunt muncitor de teren — intru cu cod PIN</a>
     </div>
   </div>
@@ -143,6 +144,18 @@ a:hover{color:#fbbf24;}
   <div id="pinErr" style="color:#f87171;font-size:12.5px;font-weight:700;min-height:16px;"></div>
   <div class="pin-grid" id="pinGrid"></div>
   <a href="#" id="btnClosePin" style="font-size:12.5px;margin-top:6px;">← Înapoi</a>
+</div>
+
+<!-- PIN keypad overlay (utilizatori birou, 5 cifre) -->
+<div id="officePinOverlay" style="position:fixed;inset:0;z-index:10000;background:#090f1c;display:none;align-items:center;justify-content:center;flex-direction:column;gap:20px;">
+  <div style="text-align:center;">
+    <div style="font-weight:800;font-size:16px;color:#f1f5f9;">Login rapid cu PIN</div>
+    <div style="font-size:12px;color:#64748b;margin-top:4px;">Introdu codul de 5 cifre</div>
+  </div>
+  <div class="pin-dots" id="officePinDots"></div>
+  <div id="officePinErr" style="color:#f87171;font-size:12.5px;font-weight:700;min-height:16px;"></div>
+  <div class="pin-grid" id="officePinGrid"></div>
+  <a href="#" id="btnCloseOfficePin" style="font-size:12.5px;margin-top:6px;color:#f59e0b;">← Înapoi</a>
 </div>
 
 <div id="app">
@@ -470,7 +483,7 @@ function weekKeyOf(monday){
 }
 function fmtDayShort(d){ return d.getDate()+' '+MONTH_NAMES[d.getMonth()].slice(0,3).toLowerCase(); }
 
-let db=null, currentUser=null, loginUsers=[...DEFAULT_USERS], adminPw='12345';
+let db=null, currentUser=null, loginUsers=[...DEFAULT_USERS], adminPw='12345', adminPin='10000';
 let records={}; // id -> record
 let map=null, mapMarkers=[];
 
@@ -480,6 +493,7 @@ function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.get
 function nowTime(){ const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
 function isFullAccess(){ return !!currentUser && (currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'||currentUser.pontajPlanner===true); }
 function isSuperAdminPontaj(){ return !!currentUser && (currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'); }
+function canViewTeam(){ return isFullAccess() || (!!currentUser && currentUser.pontajHR===true); }
 function getDeviceFingerprint(){
   try{
     let id=localStorage.getItem('shc_device_id');
@@ -515,6 +529,7 @@ function loadFirebase(){
       });
     }
     if(cfg.adminPw) adminPw=cfg.adminPw;
+    if(cfg.adminPin) adminPin=cfg.adminPin;
     if(cfg.fieldWorkers&&Array.isArray(cfg.fieldWorkers)&&cfg.fieldWorkers.length){ fieldWorkers=cfg.fieldWorkers; }
     else { fieldWorkers=seedFieldWorkers(); db.ref('solarcrm_v2/config/fieldWorkers').set(fieldWorkers); }
     if(cfg.jobs&&Array.isArray(cfg.jobs)&&cfg.jobs.length){ jobs=cfg.jobs; }
@@ -628,6 +643,9 @@ function doLogin(){
   if(!u){err.textContent='Utilizator negăsit.';return;}
   const stored=u.id==='_admin'?adminPw:(u.password||'');
   if(stored&&pw!==stored){err.textContent='Parolă incorectă.';return;}
+  completeLoginAsOffice(u);
+}
+function completeLoginAsOffice(u){
   currentUser=u;
   document.getElementById('loginOverlay').style.display='none';
   document.getElementById('app').style.display='flex';
@@ -636,11 +654,13 @@ function doLogin(){
   document.getElementById('userName').textContent=u.name;
   startSidebarParticles();
   resetRestrictedTabs();
-  if(isFullAccess()){
+  if(canViewTeam()){
     document.getElementById('tabTeamBtn').style.display='';
     document.getElementById('tabMapBtn').style.display='';
-    document.getElementById('tabPlannerBtn').style.display='';
     document.getElementById('exportUserField').style.display='';
+  }
+  if(isFullAccess()){
+    document.getElementById('tabPlannerBtn').style.display='';
   }
   document.getElementById('btnDeleteAllPontaj').style.display=isSuperAdminPontaj()?'':'none';
   document.getElementById('btnPublishPlan').style.display=isFullAccess()?'':'none';
@@ -654,6 +674,53 @@ function doLogin(){
 }
 document.getElementById('btnLogin').addEventListener('click',doLogin);
 document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+// ── PIN rapid (utilizatori birou, 5 cifre — distinct de codul muncitorilor de teren) ──
+let officePinBuffer='';
+function renderOfficePinDots(err){
+  const wrap=document.getElementById('officePinDots'); wrap.innerHTML='';
+  for(let i=0;i<5;i++){
+    const d=document.createElement('div');
+    d.className='pin-dot'+(i<officePinBuffer.length?(err?' err':' filled'):'');
+    wrap.appendChild(d);
+  }
+}
+function buildOfficePinGrid(){
+  const grid=document.getElementById('officePinGrid'); grid.innerHTML='';
+  ['1','2','3','4','5','6','7','8','9','','0','del'].forEach(k=>{
+    if(k===''){ grid.appendChild(document.createElement('div')); return; }
+    const b=document.createElement('button'); b.className='pin-key'; b.type='button';
+    b.textContent=k==='del'?'⌫':k;
+    b.addEventListener('click',()=>officePinPress(k));
+    grid.appendChild(b);
+  });
+}
+function officePinPress(k){
+  document.getElementById('officePinErr').textContent='';
+  if(k==='del'){ officePinBuffer=officePinBuffer.slice(0,-1); renderOfficePinDots(false); return; }
+  if(officePinBuffer.length>=5) return;
+  officePinBuffer+=k; renderOfficePinDots(false);
+  if(officePinBuffer.length===5){
+    const u=loginUsers.find(x=>x.pin===officePinBuffer) || (adminPin&&adminPin===officePinBuffer?{id:'_admin',name:'Administrator',role:'Admin',color:'#dc2626'}:null);
+    if(!u){
+      renderOfficePinDots(true);
+      document.getElementById('officePinErr').textContent='Cod greșit — încearcă din nou';
+      setTimeout(()=>{ officePinBuffer=''; renderOfficePinDots(false); },900);
+      return;
+    }
+    officePinBuffer='';
+    document.getElementById('officePinOverlay').style.display='none';
+    completeLoginAsOffice(u);
+  }
+}
+buildOfficePinGrid();
+document.getElementById('btnOpenOfficePin').addEventListener('click',e=>{
+  e.preventDefault(); officePinBuffer=''; renderOfficePinDots(false); document.getElementById('officePinErr').textContent='';
+  document.getElementById('officePinOverlay').style.display='flex';
+});
+document.getElementById('btnCloseOfficePin').addEventListener('click',e=>{
+  e.preventDefault(); document.getElementById('officePinOverlay').style.display='none';
+});
 document.getElementById('btnLogout').addEventListener('click',()=>{
   currentUser=null;
   document.getElementById('loginPassword').value='';
@@ -899,7 +966,7 @@ document.getElementById('btnDeleteAllPontaj').addEventListener('click',()=>{
   renderCurrentTab();
 });
 function renderTeam(){
-  if(!isFullAccess()) return;
+  if(!canViewTeam()) return;
   const date=dmyToIso(document.getElementById('teamDate').value)||todayISO();
   const tbl=document.getElementById('teamTable');
   const dayRecs=Object.values(records).filter(r=>r.date===date);
@@ -909,7 +976,7 @@ function renderTeam(){
   });
   // silent device-sharing hint (visible only to full-access users)
   function deviceHint(u,r){
-    if(!isFullAccess()) return '';
+    if(!canViewTeam()) return '';
     const dev=r&&r.checkIn&&r.checkIn.device;
     if(!dev) return '';
     const allRecent=Object.values(records).filter(x=>x.date===date && x.userId!==u.id && x.checkIn && x.checkIn.device===dev);
@@ -929,7 +996,7 @@ function renderTeam(){
       '<td>'+(r&&r.checkOut?r.checkOut.time+(r.checkOut.editedManually?' <span class="badge badge-amber" title="'+(r.checkOut.editReason||'')+'">editat</span>':''):'—')+'</td>'+
       '<td>'+locOut+'</td>'+
       '<td>'+status+deplasare+'</td>'+
-      '<td style="display:flex;gap:6px;"><button class="btn btn-ghost btn-sm" data-edit-uid="'+u.id+'" data-edit-date="'+date+'">Corectează</button>'+(r?'<button class="btn btn-ghost btn-sm" style="color:#ef4444;border-color:#7f1d1d;" data-del-record="'+r.id+'">Șterge</button>':'')+'</td></tr>';
+      '<td style="display:flex;gap:6px;">'+(isFullAccess()?('<button class="btn btn-ghost btn-sm" data-edit-uid="'+u.id+'" data-edit-date="'+date+'">Corectează</button>'+(r?'<button class="btn btn-ghost btn-sm" style="color:#ef4444;border-color:#7f1d1d;" data-del-record="'+r.id+'">Șterge</button>':'')):'')+'</td></tr>';
   });
   tbl.innerHTML=html+'</tbody>';
   tbl.querySelectorAll('[data-edit-uid]').forEach(btn=>{
@@ -1361,7 +1428,7 @@ function renderMap(){
   if(!map) return;
   mapMarkers.forEach(m=>map.removeLayer(m)); mapMarkers=[];
   const date=todayISO();
-  const dayRecs=Object.values(records).filter(r=>r.date===date && (isFullAccess()||r.userId===currentUser.id));
+  const dayRecs=Object.values(records).filter(r=>r.date===date && (canViewTeam()||r.userId===currentUser.id));
   const pts=[];
   dayRecs.forEach(r=>{
     const u=getUserById(r.userId);
@@ -1397,7 +1464,7 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
   const dateFrom=dmyToIso(document.getElementById('exportFrom').value);
   const dateTo=dmyToIso(document.getElementById('exportTo').value);
   if(!dateFrom||!dateTo){ alert('Selectează ambele date (de la / până la).'); return; }
-  const targetUserId = isFullAccess() ? document.getElementById('exportUser').value : currentUser.id;
+  const targetUserId = canViewTeam() ? document.getElementById('exportUser').value : currentUser.id;
   const u=getUserById(targetUserId);
   const mine=Object.values(records).filter(r=>r.userId===targetUserId && r.date>=dateFrom && r.date<=dateTo);
   mine.sort((a,b)=>a.date.localeCompare(b.date));

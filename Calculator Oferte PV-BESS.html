@@ -164,6 +164,20 @@
           <div style="font-size:10px;font-weight:700;color:#475569;letter-spacing:1px;text-transform:uppercase;">Selectează contul tău</div>
         </div>
         <div id="loginUserList" style="padding:8px 16px 20px;display:flex;flex-direction:column;gap:6px;"></div>
+        <div style="text-align:center;padding:0 16px 20px;">
+          <a href="#" id="btnOpenOfficePin" style="font-size:12.5px;color:#f59e0b;">🔢 Intră rapid cu PIN</a>
+        </div>
+      </div>
+      <!-- Step 3: PIN keypad -->
+      <div id="loginStep3" style="display:none;padding:20px 28px 28px;text-align:center;">
+        <button id="loginPinBack" style="display:flex;align-items:center;gap:6px;background:none;border:none;color:#64748b;font-size:13px;cursor:pointer;padding:0;margin-bottom:16px;font-family:inherit;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          Înapoi
+        </button>
+        <div style="font-size:14px;font-weight:700;color:#f1f5f9;">Introdu codul PIN (5 cifre)</div>
+        <div id="officePinErr" style="color:#f87171;font-size:12.5px;font-weight:700;min-height:18px;margin-top:6px;"></div>
+        <div id="officePinDots" style="display:flex;justify-content:center;gap:12px;margin:10px 0 20px;"></div>
+        <div id="officePinGrid" style="display:grid;grid-template-columns:repeat(3,72px);gap:12px;justify-content:center;"></div>
       </div>
       <!-- Step 2: Password -->
       <div id="loginStep2" style="display:none;padding:20px 28px 28px;">
@@ -2966,7 +2980,7 @@ function loadUsers(){
       var cuNameNorm=(cu.name||'').trim().toLowerCase();
       var dup=base.some(function(b){return b.id===cu.id || (b.name||'').trim().toLowerCase()===cuNameNorm;});
       if(dup) return;
-      base.push({id:cu.id, name:cu.name, role:(cu.id==='u_chirila'||cu.id==='u_nicoras')?'admin':'user', active:true, fromCRM:true, plainPassword:cu.password||'', apps:cu.apps||null});
+      base.push({id:cu.id, name:cu.name, role:(cu.id==='u_chirila'||cu.id==='u_nicoras')?'admin':'user', active:true, fromCRM:true, plainPassword:cu.password||'', pin:cu.pin||'', apps:cu.apps||null});
     });
   }
   return base;
@@ -3298,6 +3312,64 @@ window._crmSharedUsers = [];
     var hashed=await sha256hexAsync(pass);
     if(hashed!==user.hash){err.textContent='Parolă incorectă. Încearcă din nou.';return;}
     err.textContent=''; startSession(user);
+  });
+
+  // ── Login rapid cu PIN (5 cifre, utilizatori din SolarCRM) ──
+  var officePinBuffer='';
+  function renderOfficePinDots(isErr){
+    var wrap=document.getElementById('officePinDots'); wrap.innerHTML='';
+    for(var i=0;i<5;i++){
+      var d=document.createElement('div');
+      d.style.cssText='width:14px;height:14px;border-radius:50%;border:2px solid '+(isErr?'#ef4444':'#f59e0b')+';background:'+(i<officePinBuffer.length?(isErr?'#ef4444':'#f59e0b'):'transparent')+';transition:background .15s;';
+      wrap.appendChild(d);
+    }
+  }
+  function buildOfficePinGrid(){
+    var grid=document.getElementById('officePinGrid'); grid.innerHTML='';
+    ['1','2','3','4','5','6','7','8','9','','0','del'].forEach(function(k){
+      if(k===''){ grid.appendChild(document.createElement('div')); return; }
+      var b=document.createElement('button'); b.type='button';
+      b.style.cssText='width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:#1e293b;color:#f1f5f9;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;';
+      b.textContent=k==='del'?'⌫':k;
+      b.addEventListener('click',function(){ officePinPress(this.textContent==='⌫'?'del':this.textContent); });
+      grid.appendChild(b);
+    });
+  }
+  function officePinPress(k){
+    document.getElementById('officePinErr').textContent='';
+    if(k==='del'){ officePinBuffer=officePinBuffer.slice(0,-1); renderOfficePinDots(false); return; }
+    if(officePinBuffer.length>=5) return;
+    officePinBuffer+=k; renderOfficePinDots(false);
+    if(officePinBuffer.length===5){
+      var users=loadUsers();
+      var user=users.find(function(u){return u.active && u.pin && u.pin===officePinBuffer;});
+      if(!user){
+        renderOfficePinDots(true);
+        document.getElementById('officePinErr').textContent='Cod greșit — încearcă din nou';
+        setTimeout(function(){ officePinBuffer=''; renderOfficePinDots(false); },900);
+        return;
+      }
+      if(user.apps && user.apps.calculator===false){
+        renderOfficePinDots(true);
+        document.getElementById('officePinErr').textContent='Nu ai acces la Calculator.';
+        setTimeout(function(){ officePinBuffer=''; renderOfficePinDots(false); },1200);
+        return;
+      }
+      officePinBuffer='';
+      document.getElementById('loginStep3').style.display='none';
+      startSession(user);
+    }
+  }
+  buildOfficePinGrid();
+  document.getElementById('btnOpenOfficePin').addEventListener('click',function(e){
+    e.preventDefault();
+    officePinBuffer=''; renderOfficePinDots(false); document.getElementById('officePinErr').textContent='';
+    document.getElementById('loginStep1').style.display='none';
+    document.getElementById('loginStep3').style.display='block';
+  });
+  document.getElementById('loginPinBack').addEventListener('click',function(){
+    document.getElementById('loginStep3').style.display='none';
+    document.getElementById('loginStep1').style.display='block';
   });
 
   // Admin reset password modal
