@@ -107,7 +107,7 @@ input,select,textarea,button{font-family:inherit;}
 <div style="display:flex;height:100vh;overflow:hidden;">
 
 <!-- SIDEBAR -->
-<aside class="crm-sidebar {{ mobileSidebarClass }}" style="width:220px;flex:none;background:#0f1729;display:flex;flex-direction:column;overflow:hidden;">
+<aside class="crm-sidebar {{ mobileSidebarClass }}" style="width:220px;flex:none;background:#0f1729;display:flex;flex-direction:column;overflow:hidden;padding-bottom:32px;">
   <div style="padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,0.07);">
     <div style="display:flex;align-items:center;gap:10px;">
       <div style="width:34px;height:34px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:9px;display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 2px 8px rgba(249,115,22,0.4);">
@@ -219,13 +219,22 @@ input,select,textarea,button{font-family:inherit;}
     </div>
   </sc-if>
 
+  <!-- Follow-up alert banner -->
+  <sc-if value="{{ hasFollowUps }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ openFollowUpFilter }}" style="background:#fef2f2;border-bottom:1px solid #fecaca;padding:10px 20px;display:flex;align-items:center;gap:8px;cursor:pointer;flex:none;" style-hover="background:#fee2e2;">
+      <span style="font-size:14px;">⏰</span>
+      <span style="font-size:12.5px;font-weight:600;color:#b91c1c;">{{ followUpMsg }}</span>
+      <span style="font-size:11.5px;color:#b91c1c;text-decoration:underline;margin-left:auto;">Vezi lucrările →</span>
+    </div>
+  </sc-if>
+
   <!-- Content -->
   <div style="flex:1;overflow:auto;padding:20px;">
 
     <!-- TABLE VIEW -->
     <sc-if value="{{ isTableView }}" hint-placeholder-val="{{ true }}">
       <div class="crm-table-scroll crm-table-desktop">
-        <div style="min-width:900px;display:grid;grid-template-columns:38px 150px 86px 132px 1fr 108px 88px 84px 90px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-bottom:2px solid #e2e8f0;border-radius:12px 12px 0 0;gap:10px;position:sticky;top:0;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,0.04);">
+        <div style="min-width:980px;display:grid;grid-template-columns:38px 150px 86px 132px 150px 108px 88px 84px 90px 96px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-bottom:2px solid #e2e8f0;border-radius:12px 12px 0 0;gap:10px;position:sticky;top:0;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,0.04);">
           <div style="font-size:11px;font-weight:700;color:#94a3b8;text-align:center;">#</div>
           <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Client</div>
           <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Tip</div>
@@ -235,10 +244,11 @@ input,select,textarea,button{font-family:inherit;}
           <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Responsabil</div>
           <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Data exec.</div>
           <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Înreg. CRM</div>
+          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Follow-up</div>
         </div>
         <div style="background:#fff;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;overflow:hidden;">
           <sc-for list="{{ filtered }}" as="p" hint-placeholder-count="8">
-            <div onClick="{{ p.onClick }}" style="min-width:900px;display:grid;grid-template-columns:38px 150px 86px 132px 1fr 108px 88px 84px 90px;padding:11px 14px;border-bottom:1px solid #f1f5f9;cursor:pointer;gap:10px;align-items:center;" style-hover="background:#f8fafc;">
+            <div onClick="{{ p.onClick }}" style="min-width:980px;display:grid;grid-template-columns:38px 150px 86px 132px 150px 108px 88px 84px 90px 96px;padding:11px 14px;border-bottom:1px solid #f1f5f9;cursor:pointer;gap:10px;align-items:center;background:{{ p.rowBg }};" style-hover="background:#eff6ff;">
               <div style="font-size:12px;color:#cbd5e1;font-weight:700;text-align:center;">{{ p.rowNum }}</div>
               <div style="font-size:13px;font-weight:600;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.client }}</div>
               <div><span style="background:{{ p.typeBg }};color:{{ p.typeColor }};font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;white-space:nowrap;">{{ p.typeLabel }}</span></div>
@@ -248,6 +258,7 @@ input,select,textarea,button{font-family:inherit;}
               <div style="font-size:12px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.responsabilShort }}</div>
               <div style="font-size:12px;color:#64748b;white-space:nowrap;">{{ p.dateExec }}</div>
               <div style="font-size:12px;color:#64748b;white-space:nowrap;">{{ p.dateInserted }}</div>
+              <div style="font-size:12px;font-weight:600;white-space:nowrap;color:{{ p.fuColor }};">{{ p.fuDisplay }}</div>
             </div>
           </sc-for>
           <sc-if value="{{ isEmpty }}">
@@ -453,7 +464,7 @@ input,select,textarea,button{font-family:inherit;}
           <div><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">Email</div><div style="font-size:13px;color:#0f172a;overflow:hidden;text-overflow:ellipsis;">{{ sel.email }}</div></div>
           <div><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">Valoare</div><div style="font-size:18px;font-weight:700;color:#0f172a;">{{ sel.valueFormatted }}</div></div>
           <div><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">Responsabil</div><div style="font-size:14px;color:#0f172a;font-weight:500;">{{ sel.responsabil }}</div></div>
-          <div><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">Data contract</div><div style="font-size:14px;color:#0f172a;">{{ sel.date_start }}</div></div>
+          <div><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">Data contract / contact</div><div style="font-size:14px;color:#0f172a;">{{ sel.date_start }}</div></div>
           <div><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">Data execuției</div><div style="font-size:14px;color:#0f172a;font-weight:600;">{{ sel.date_executie }}</div></div>
           <div style="grid-column:span 2;"><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">Data finalizare</div><div style="font-size:14px;color:#0f172a;">{{ sel.date_end }}</div></div>
         </div>
@@ -505,6 +516,37 @@ input,select,textarea,button{font-family:inherit;}
             </button>
           </div>
         </sc-if>
+        <!-- Follow-up -->
+        <div style="border-top:1px solid #f1f5f9;padding-top:18px;margin-top:18px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;">Follow-up client</div>
+          </div>
+          <sc-if value="{{ sel.hasFollowUp }}" hint-placeholder-val="{{ false }}">
+            <div style="background:{{ sel.fuBg }};border:1px solid {{ sel.fuBorder }};border-radius:8px;padding:10px 12px;margin-bottom:10px;">
+              <div style="font-size:12.5px;font-weight:700;color:{{ sel.fuColor }};">{{ sel.fuStatusLabel }} {{ sel.fuDateFmt }}</div>
+              <sc-if value="{{ sel.fuNote }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:12px;color:#475569;margin-top:4px;">„{{ sel.fuNote }}"</div>
+              </sc-if>
+            </div>
+          </sc-if>
+          <sc-if value="{{ !showFollowUpForm }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ openFollowUpForm }}" style="width:100%;padding:8px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12.5px;font-weight:600;color:#334155;cursor:pointer;" style-hover="background:#f8fafc;">📞 Notează contact / follow-up</button>
+          </sc-if>
+          <sc-if value="{{ showFollowUpForm }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <textarea value="{{ fuNoteInput }}" onChange="{{ onFuNote }}" placeholder="ex: nu poate vorbi acum, revin..." rows="2" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12.5px;font-family:inherit;resize:vertical;"></textarea>
+              <div style="position:relative;">
+                <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ fuDateInputDmy }}" onChange="{{ onFuDateDmy }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12.5px;box-sizing:border-box;">
+                <input type="date" value="{{ fuDateInput }}" onChange="{{ onFuDatePicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;">
+                <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;">📅</span>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button onClick="{{ cancelFollowUpForm }}" style="flex:1;padding:8px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12.5px;font-weight:600;color:#64748b;cursor:pointer;">Anulează</button>
+                <button onClick="{{ saveFollowUp }}" style="flex:1;padding:8px;border:none;background:#2563eb;color:#fff;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;">Salvează</button>
+              </div>
+            </div>
+          </sc-if>
+        </div>
         <!-- Etape șantier -->
         <div style="border-top:1px solid #f1f5f9;padding-top:18px;margin-top:18px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -663,7 +705,7 @@ input,select,textarea,button{font-family:inherit;}
         </div>
         <div>
           <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Responsabil</label>
-          <input value="{{ form.responsabil }}" onChange="{{ onFormResponsabil }}" placeholder="Mihai D." style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
+          <input value="{{ form.responsabil }}" readOnly="{{ true }}" disabled="{{ true }}" title="Setat automat la crearea lucrării — nu poate fi modificat" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;background:#f8fafc;color:#64748b;cursor:not-allowed;outline:none;">
         </div>
         <div style="grid-column:span 2;">
           <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Nume client *</label>
@@ -686,7 +728,7 @@ input,select,textarea,button{font-family:inherit;}
           <input type="number" value="{{ form.value }}" onChange="{{ onFormValue }}" placeholder="25000" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
         </div>
         <div>
-          <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Data contract</label>
+          <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Data contract / contact</label>
           <div style="position:relative;">
             <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ form.date_start_dmy }}" onChange="{{ onFormDateStart }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
             <input type="date" value="{{ form.date_start }}" onChange="{{ onFormDateStartPicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;">
@@ -829,6 +871,7 @@ input,select,textarea,button{font-family:inherit;}
             <div style="font-size:11px;color:#64748b;">Smart House Color · Autentificare necesară</div>
           </div>
         </div>
+        <a href="./index.html" style="display:inline-block;margin-bottom:14px;font-size:11px;color:#94a3b8;text-decoration:none;padding:4px 10px;border:1px solid #334155;border-radius:6px;">← Suite</a>
       </sc-if>
       <sc-if value="{{ !isLoginMode }}" hint-placeholder-val="{{ true }}">
         <div style="font-size:16px;font-weight:700;color:{{ loginTitleColor }};">{{ userModalTitle }}</div>
@@ -1445,6 +1488,8 @@ class Component extends DCLogic {
     showUserMgmt:false, userMgmtMode:'list', editingUserId:null,
     umForm:{...EMPTY_UM_FORM},
     companyInfo:{...COMPANY_INFO},
+    showFollowUpForm:false, fuNoteInput:'', fuDateInput:'', fuDateInputDmy:'',
+    followUpFilterOn:false,
   };
 
   adminPassword = ADMIN_DEFAULT_PW;
@@ -1606,7 +1651,22 @@ class Component extends DCLogic {
       return true;
     });
   }
-  getFiltered(){ const {filterStatus}=this.state; const pre=this.getPreFiltered(); return filterStatus==='all'?pre:pre.filter(p=>p.status===filterStatus); }
+  getFiltered(){
+    const {filterStatus,followUpFilterOn,currentUser}=this.state;
+    const pre=this.getPreFiltered();
+    let res=filterStatus==='all'?pre:pre.filter(p=>p.status===filterStatus);
+    if(followUpFilterOn){
+      const isFullAccess=!!(currentUser&&(currentUser.isAdmin||currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'));
+      const today0=new Date(); today0.setHours(0,0,0,0);
+      res=res.filter(p=>{
+        if(!p.nextFollowUp)return false;
+        if(!['Lead','Ofertă','Contract'].includes(p.status))return false;
+        if(!isFullAccess && currentUser && (p.responsabil||'').trim().toLowerCase()!==(currentUser.name||'').trim().toLowerCase())return false;
+        return new Date(p.nextFollowUp+'T00:00:00')<today0;
+      });
+    }
+    return res;
+  }
 
   fmt(p){
     const tf=fmtTypes(p.types||[p.type]);
@@ -1865,20 +1925,37 @@ class Component extends DCLogic {
     const filtered=this.getFiltered();
     const selected=selectedId!=null?projects.find(p=>p.id===selectedId):null;
     const isAdmin=!!(currentUser&&(currentUser.isAdmin||currentUser.role==='Admin'||currentUser.role==='Administrator'));
+    const isFullAccess=!!(currentUser&&(currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'||isAdmin));
+
+    // Follow-up restante
+    const today0=new Date(); today0.setHours(0,0,0,0);
+    const followUpEligible=projects.filter(p=>{
+      if(!p.nextFollowUp)return false;
+      if(!['Lead','Ofertă','Contract'].includes(p.status))return false;
+      if(!isFullAccess && currentUser && (p.responsabil||'').trim().toLowerCase()!==(currentUser.name||'').trim().toLowerCase())return false;
+      return new Date(p.nextFollowUp+'T00:00:00')<today0;
+    });
+    const hasFollowUps=followUpEligible.length>0;
+    const followUpMsg=followUpEligible.length===1?'1 lucrare are follow-up restant':(followUpEligible.length+' lucrări au follow-up restant');
+
 
     // Nav
     const navItems=NAV_TYPES.map(n=>{
       const active=filterType===n.key;
       const count=n.key==='all'?projects.length:projects.filter(p=>(p.types||[]).includes(n.key)).length;
-      return {key:n.key,label:n.label,dot:n.dot,count,bg:active?'rgba(59,130,246,0.14)':'transparent',color:active?'#93c5fd':'#94a3b8',countBg:active?'#1d4ed8':'rgba(255,255,255,0.07)',countColor:active?'#fff':'#64748b',onClick:()=>this.setState({filterType:n.key,selectedId:null,view:view==='reports'?'table':view,mobileSidebarOpen:false})};
+      return {key:n.key,label:n.label,dot:n.dot,count,bg:active?'rgba(59,130,246,0.14)':'transparent',color:active?'#93c5fd':'#94a3b8',countBg:active?'#1d4ed8':'rgba(255,255,255,0.07)',countColor:active?'#fff':'#64748b',onClick:()=>this.setState({filterType:n.key,selectedId:null,view:view==='reports'?'table':view,mobileSidebarOpen:false,followUpFilterOn:false})};
     });
     const reportsActive=view==='reports';
     const statusTabs=['all',...STATUSES_LIST].map(s=>{
       const active=filterStatus===s; const cnt=s==='all'?preFiltered.length:preFiltered.filter(p=>p.status===s).length;
-      return {key:s,label:s==='all'?'Toate':s,count:cnt,borderColor:active?'#2563eb':'transparent',color:active?'#2563eb':'#64748b',fontWeight:active?'700':'500',badgeBg:active?'#dbeafe':'#f1f5f9',badgeColor:active?'#1e40af':'#64748b',onClick:()=>this.setState({filterStatus:s})};
+      return {key:s,label:s==='all'?'Toate':s,count:cnt,borderColor:active?'#2563eb':'transparent',color:active?'#2563eb':'#64748b',fontWeight:active?'700':'500',badgeBg:active?'#dbeafe':'#f1f5f9',badgeColor:active?'#1e40af':'#64748b',onClick:()=>this.setState({filterStatus:s,followUpFilterOn:false})};
     });
 
-    const filteredRows=filtered.map((p,i)=>({...p,...this.fmt(p),rowNum:i+1,dateInserted:fmtDate(p.date_inserted||p.date_start||'')}));
+    const today0f=new Date(); today0f.setHours(0,0,0,0);
+    const filteredRows=filtered.map((p,i)=>({...p,...this.fmt(p),rowNum:i+1,dateInserted:fmtDate(p.date_inserted||p.date_start||''),rowBg:i%2===0?'#fff':'#f8fafc',
+      fuDisplay:p.nextFollowUp?(fmtDateShort(p.nextFollowUp)+(new Date(p.nextFollowUp+'T00:00:00')<today0f?' ⏰':'')):'—',
+      fuColor:p.nextFollowUp&&new Date(p.nextFollowUp+'T00:00:00')<today0f?'#dc2626':'#64748b'
+    }));
     const kanbanCols=STATUSES_LIST.map(s=>{
       const sc=STATUS_COLORS[s]||STATUS_COLORS.Lead;
       const cards=filtered.filter(p=>p.status===s).map(p=>({...p,...this.fmt(p)}));
@@ -1910,6 +1987,23 @@ class Component extends DCLogic {
     if(selected){
       const f=this.fmt(selected); const sc=STATUS_COLORS[selected.status]||STATUS_COLORS.Lead;
       sel={...selected,...f,phone:selected.phone||'—',email:selected.email||'—',responsabil:selected.responsabil||'—',date_start:fmtDate(selected.date_start)||'—',date_executie:fmtDate(selected.date_executie)||'—',date_end:fmtDate(selected.date_end)||'—',statusBg:sc.statusBg,statusColor:sc.statusColor,isPV:(selected.types||[]).includes('PV'),hasEquipment:!!(selected.equipment&&selected.equipment.trim()),hasNotes:!!(selected.notes&&selected.notes.trim()),prosumatorText:selected.prosumator?'Da ✓':'Nu',kwp:selected.kwp!=null?String(selected.kwp):'—',panels:selected.panels!=null?String(selected.panels):'—',mounting:selected.mounting||'—',typeBadges:(selected.types||[]).map(t=>({label:t,bg:(TYPE_COLORS[t]||{}).bg||'#f1f5f9',color:(TYPE_COLORS[t]||{}).color||'#475569'})),canContract:CONTRACT_STATUSES.includes(selected.status),hasBESS:(selected.types||[]).includes('BESS'),bessKwhDisplay:selected.bessKwh!=null?String(selected.bessKwh)+' kWh':'—',hasStages:!!(selected.stages&&selected.stages.length),stagesSummary:(selected.stages||[]).map(s=>({label:STAGE_TYPE_LABELS[s.type]||s.type,color:STATUS_STAGE_COLORS[s.status]||'#475569',dateRange:(s.startDate&&s.endDate)?(fmtDateShort(s.startDate)+' – '+fmtDateShort(s.endDate)):''}))};
+      // Follow-up
+      if(selected.nextFollowUp){
+        const today0=new Date(); today0.setHours(0,0,0,0);
+        const fuD=new Date(selected.nextFollowUp+'T00:00:00');
+        const overdue=fuD<today0;
+        const baseDate=selected.fuLastContactAt?new Date(selected.fuLastContactAt):(selected.date_start?new Date(selected.date_start+'T00:00:00'):null);
+        const daysSinceContact=baseDate?Math.round((today0-baseDate)/86400000):null;
+        sel.hasFollowUp=true;
+        sel.fuBg=overdue?'#fef2f2':'#eff6ff';
+        sel.fuBorder=overdue?'#fecaca':'#dbeafe';
+        sel.fuColor=overdue?'#b91c1c':'#1e40af';
+        sel.fuStatusLabel=overdue?'⏰ Follow-up restant —':'📅 Follow-up programat —';
+        sel.fuDateFmt=fmtDate(selected.nextFollowUp)+(daysSinceContact!=null?(' ('+daysSinceContact+' zile de la ultimul contact)'):'');
+        sel.fuNote=selected.fuNote||'';
+      } else {
+        sel.hasFollowUp=false; sel.fuNote='';
+      }
       (STATUS_NEXT[selected.status]||[]).forEach(ns=>{const sid=selected.id;statusButtons.push({label:'→ '+ns,onClick:()=>this.openStatusModal(sid,ns)});});
       auditEntries=[...(selected.auditLog||[])].reverse().slice(0,30).map(e=>({...e,userInitials:initials(e.userName||'?'),userColor:e.userColor||'#94a3b8',hasReason:!!(e.reason&&e.reason.trim()),timeAgo:timeAgo(e.timestamp)}));
       hasAuditEntries=auditEntries.length>0; noAuditEntries=!hasAuditEntries;
@@ -1979,8 +2073,9 @@ class Component extends DCLogic {
       tableViewBg:tv?'#fff':'transparent',tableViewColor:tv?'#0f172a':'#64748b',tableViewShadow:tv?'0 1px 3px rgba(0,0,0,.1)':'none',
       kanbanViewBg:kv?'#fff':'transparent',kanbanViewColor:kv?'#0f172a':'#64748b',kanbanViewShadow:kv?'0 1px 3px rgba(0,0,0,.1)':'none',
       exportExcel:()=>this.exportExcel(),
-      openAdd:()=>{ const iso=new Date().toISOString().slice(0,10); this.setState({showModal:true,editingId:null,form:{...EMPTY_FORM,date_start:iso,date_start_dmy:isoToDmy(iso)}}); },
+      openAdd:()=>{ const iso=new Date().toISOString().slice(0,10); const respName=currentUser?currentUser.name:''; this.setState({showModal:true,editingId:null,form:{...EMPTY_FORM,date_start:iso,date_start_dmy:isoToDmy(iso),responsabil:respName}}); },
       isAdmin,
+      hasFollowUps,followUpMsg,openFollowUpFilter:()=>this.setState({view:'table',followUpFilterOn:true,filterType:'all',filterStatus:'all'}),
       openUserMgmt:()=>this.openUserMgmt(),
       userColor,userInitials:initials(userName),userName,
       openUserSwitcher:()=>this.setState({showUserModal:true,userModalMode:'switch',pwStep:null,pwInput:''}),
@@ -2044,6 +2139,19 @@ class Component extends DCLogic {
       onFormPhone:e=>this.setForm('phone',e.target.value),onFormEmail:e=>this.setForm('email',e.target.value),
       onFormAddress:e=>this.setForm('address',e.target.value),onFormValue:e=>this.setForm('value',e.target.value),
       onFormResponsabil:e=>this.setForm('responsabil',e.target.value),
+      openFollowUpForm:()=>{ const def=new Date(); def.setDate(def.getDate()+10); const defIso=def.toISOString().slice(0,10); this.setState({showFollowUpForm:true,fuNoteInput:'',fuDateInput:defIso,fuDateInputDmy:isoToDmy(defIso)}); },
+      cancelFollowUpForm:()=>this.setState({showFollowUpForm:false}),
+      onFuNote:e=>this.setState({fuNoteInput:e.target.value}),
+      onFuDateDmy:e=>{ const v=maskDmy(this.state.fuDateInputDmy,e.target.value); this.setState({fuDateInputDmy:v,fuDateInput:dmyToIso(v)}); },
+      onFuDatePicker:e=>{ const iso=e.target.value; this.setState({fuDateInput:iso,fuDateInputDmy:isoToDmy(iso)}); },
+      saveFollowUp:()=>{
+        const {selectedId,fuNoteInput,fuDateInput,currentUser}=this.state;
+        if(!selectedId||!fuDateInput)return;
+        this.setState(s=>{
+          const projects=s.projects.map(p=>p.id===selectedId?{...p,nextFollowUp:fuDateInput,fuNote:fuNoteInput.trim(),fuLastContactBy:currentUser?currentUser.name:null,fuLastContactAt:new Date().toISOString()}:p);
+          return {projects,showFollowUpForm:false};
+        },()=>setTimeout(()=>this.persist(),0));
+      },
       onFormDateStart:e=>{ const v=maskDmy(this.state.form.date_start_dmy,e.target.value); this.setState(s=>({form:{...s.form,date_start_dmy:v,date_start:dmyToIso(v)}})); },
       onFormDateExec:e=>{ const v=maskDmy(this.state.form.date_executie_dmy,e.target.value); this.setState(s=>({form:{...s.form,date_executie_dmy:v,date_executie:dmyToIso(v)}})); },
       onFormDateEnd:e=>{ const v=maskDmy(this.state.form.date_end_dmy,e.target.value); this.setState(s=>({form:{...s.form,date_end_dmy:v,date_end:dmyToIso(v)}})); },
