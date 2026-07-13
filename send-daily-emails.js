@@ -11,7 +11,7 @@
 
 const FIREBASE_BASE = 'https://solarcrm-ba919-default-rtdb.firebaseio.com';
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const FROM_EMAIL = process.env.FROM_EMAIL || 'SHC Solar Suite <notificari@shc-group.ro>';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'SHC Solar Suite <office@shc-group.ro>';
 const FULL_ACCESS_IDS = ['u_chirila', 'u_nicoras'];
 
 if (!RESEND_API_KEY) {
