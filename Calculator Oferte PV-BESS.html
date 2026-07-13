@@ -2975,8 +2975,15 @@ function loadUsers(){
   if(window._crmSharedUsers&&window._crmSharedUsers.length){
     window._crmSharedUsers.forEach(function(cu){
       var cuNameNorm=(cu.name||'').trim().toLowerCase();
-      var dup=base.some(function(b){return b.id===cu.id || (b.name||'').trim().toLowerCase()===cuNameNorm;});
-      if(dup) return;
+      var existing=base.find(function(b){return b.id===cu.id || (b.name||'').trim().toLowerCase()===cuNameNorm;});
+      if(existing){
+        // actualizează mereu datele venite din SolarCRM (PIN, parolă, acces), fără a atinge conturile pur locale
+        existing.pin = cu.pin || existing.pin || '';
+        existing.plainPassword = cu.password || existing.plainPassword || '';
+        existing.apps = cu.apps || existing.apps || null;
+        existing.fromCRM = true;
+        return;
+      }
       base.push({id:cu.id, name:cu.name, role:(cu.id==='u_chirila'||cu.id==='u_nicoras')?'admin':'user', active:true, fromCRM:true, plainPassword:cu.password||'', pin:cu.pin||'', apps:cu.apps||null});
     });
   }
