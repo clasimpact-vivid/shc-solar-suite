@@ -11,7 +11,7 @@
 
 const FIREBASE_BASE = 'https://solarcrm-ba919-default-rtdb.firebaseio.com';
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const FROM_EMAIL = process.env.FROM_EMAIL || 'SHC Solar Suite <onboarding@resend.dev>';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'SHC Solar Suite <office@shc-group.ro>';
 const FULL_ACCESS_IDS = ['u_chirila', 'u_nicoras'];
 
 if (!RESEND_API_KEY) {
@@ -109,9 +109,32 @@ async function main() {
     const activeUsers = users.filter(u => u.id !== '_admin');
     const todayRecs = pontajRecords.filter(r => r.date === todayISO);
     const absent = activeUsers.filter(u => !todayRecs.some(r => r.userId === u.id && r.checkIn));
-    if (!absent.length) return '';
-    const rows = absent.map(u => `<li>${u.name}</li>`).join('');
-    return `<h3 style="color:#f59e0b;margin:18px 0 8px;">🕐 Pontaj — fără check-in azi</h3><ul style="margin:0;padding-left:20px;">${rows}</ul>`;
+    let html = '';
+    if (absent.length) {
+      const rows = absent.map(u => `<li>${u.name}</li>`).join('');
+      html += `<h3 style="color:#f59e0b;margin:18px 0 8px;">🕐 Pontaj — fără check-in azi</h3><ul style="margin:0;padding-left:20px;">${rows}</ul>`;
+    }
+    return html;
+  }
+
+  // ── Pontaj: deplasări >50km de Arad azi (pentru ordin de deplasare + diurnă) ──
+  const HQ_LAT = 46.1866, HQ_LNG = 21.3123;
+  function distFromHQ(lat, lng) {
+    const R = 6371, toRad = d => d * Math.PI / 180;
+    const dLat = toRad(lat - HQ_LAT), dLng = toRad(lng - HQ_LNG);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(HQ_LAT)) * Math.cos(toRad(lat)) * Math.sin(dLng / 2) ** 2;
+    return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+  }
+  function deplasariSectionFor(user, isFull) {
+    const wantsPontaj = isFull || (user.notif && user.notif.pontaj);
+    if (!wantsPontaj) return '';
+    const todayRecs = pontajRecords.filter(r => r.date === todayISO && r.checkIn && r.checkIn.lat != null);
+    const deplasari = todayRecs
+      .map(r => ({ name: r.userName || '?', km: r.checkIn.distKm != null ? r.checkIn.distKm : distFromHQ(r.checkIn.lat, r.checkIn.lng) }))
+      .filter(d => d.km > 50);
+    if (!deplasari.length) return '';
+    const rows = deplasari.map(d => `<li><strong>${d.name}</strong> — ${d.km} km de Arad</li>`).join('');
+    return `<h3 style="color:#f59e0b;margin:18px 0 8px;">🚗 Pontaj — deplasări peste 50km azi</h3><ul style="margin:0;padding-left:20px;">${rows}</ul>`;
   }
 
   // ── Compune și trimite câte un email per destinatar ──
@@ -126,6 +149,7 @@ async function main() {
     if (isFull || notif.planificare) body += planningSectionFor(user, isFull);
     if (isFull || notif.vizita) body += visitsSectionFor(isFull);
     if (isFull || notif.pontaj) body += pontajSectionFor(isFull);
+    body += deplasariSectionFor(user, isFull);
 
     if (!body.trim()) { console.log(`Fără noutăți pentru ${user.name}, nu trimit.`); continue; }
 
