@@ -854,10 +854,10 @@ input,select,textarea,button{font-family:inherit;}
         </div>
       </sc-if>
 
-      <!-- PIN QUICK LOGIN -->
-      <sc-if value="{{ showPinStep }}" hint-placeholder-val="{{ false }}">
+      <!-- PIN QUICK LOGIN (implicit) -->
+      <sc-if value="{{ showPinStep }}" hint-placeholder-val="{{ true }}">
         <div style="text-align:center;padding:4px 0 18px;">
-          <div style="font-size:14px;font-weight:700;color:#f1f5f9;">Introdu codul PIN (5 cifre)</div>
+          <div style="font-size:15px;font-weight:800;color:#f1f5f9;">Introdu codul PIN (5 cifre)</div>
           <div style="font-size:12px;color:#64748b;margin-top:3px;">{{ pinErrMsg }}</div>
         </div>
         <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;">
@@ -875,8 +875,8 @@ input,select,textarea,button{font-family:inherit;}
             </sc-if>
           </sc-for>
         </div>
-        <div style="text-align:center;">
-          <a href="#" onClick="{{ closePinMode }}" style="font-size:12.5px;color:#f59e0b;">← Înapoi la lista de conturi</a>
+        <div style="text-align:center;padding-top:6px;border-top:1px solid #1e293b;">
+          <a href="#" onClick="{{ closePinMode }}" style="font-size:12.5px;color:#64748b;">Administrator / Manager — intră cu parolă →</a>
         </div>
       </sc-if>
 
@@ -899,7 +899,7 @@ input,select,textarea,button{font-family:inherit;}
         </sc-if>
         <sc-if value="{{ isLoginMode }}">
           <div style="text-align:center;margin-top:14px;padding-top:14px;border-top:1px solid {{ loginDivider }};">
-            <a href="#" onClick="{{ openPinMode }}" style="font-size:12.5px;color:#f59e0b;">🔢 Intră rapid cu PIN</a>
+            <a href="#" onClick="{{ openPinMode }}" style="font-size:12.5px;color:#64748b;">← Înapoi la login cu PIN</a>
           </div>
         </sc-if>
       </sc-if>
@@ -1440,7 +1440,7 @@ class Component extends DCLogic {
     currentUser:null, users:[...DEFAULT_USERS],
     showUserModal:false, userModalMode:'login',
     pwStep:null, pwInput:'',
-    pinMode:false, pinBuffer:'', pinErr:false,
+    pinMode:true, pinBuffer:'', pinErr:false,
     statusModal:{show:false,projectId:null,newStatus:'',reason:''},
     showUserMgmt:false, userMgmtMode:'list', editingUserId:null,
     umForm:{...EMPTY_UM_FORM},
@@ -1938,11 +1938,12 @@ class Component extends DCLogic {
 
     // Login modal
     const allUsersForLogin=[{...ADMIN_USER,password:this.adminPassword},{...users.map(u=>({...u}))}];
+    // Doar Administrator, Chirila și Nicoraș se pot loga cu parolă — restul folosesc PIN rapid
     const allUsersList=[
       {id:ADMIN_ID,name:'Administrator',role:'Admin',color:'#dc2626',initials:'A',borderColor:'#fecaca',rowBg:'#fff5f5',onClick:()=>this.tryLogin({...ADMIN_USER,password:this.adminPassword})},
-      ...users.map(u=>({...u,initials:initials(u.name),borderColor:'#e2e8f0',rowBg:'#fff',onClick:()=>this.tryLogin(u)}))
+      ...users.filter(u=>u.id==='u_chirila'||u.id==='u_nicoras').map(u=>({...u,initials:initials(u.name),borderColor:'#e2e8f0',rowBg:'#fff',onClick:()=>this.tryLogin(u)}))
     ];
-    const noRegularUsers=users.length===0;
+    const noRegularUsers=allUsersList.length<=1;
 
     const pwStepAll=[{...ADMIN_USER,password:this.adminPassword},...users];
     const pwUser=pwStep?pwStepAll.find(u=>u.id===pwStep):null;

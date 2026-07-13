@@ -117,8 +117,8 @@ a:hover{color:#93c5fd;}
 </head>
 <body>
 
-<!-- ═══ LOGIN ═══ -->
-<div id="loginOverlay">
+<!-- ═══ LOGIN (parolă — Administrator/Manager) ═══ -->
+<div id="loginOverlay" style="display:none;">
   <div class="login-card">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:26px;">
       <div style="width:40px;height:40px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -138,21 +138,29 @@ a:hover{color:#93c5fd;}
     <button class="btn-login" id="btnLogin">Intră în aplicație →</button>
     <div id="loginError" style="color:#f87171;font-size:12px;text-align:center;margin-top:10px;min-height:16px;"></div>
     <div style="text-align:center;margin-top:16px;padding-top:16px;border-top:1px solid #1e293b;">
-      <a href="#" id="btnOpenOfficePin" style="font-size:12.5px;color:#f59e0b;">🔢 Intră rapid cu PIN</a>
+      <a href="#" id="btnOpenOfficePin" style="font-size:12.5px;color:#64748b;">← Înapoi la login cu PIN</a>
     </div>
   </div>
 </div>
 
-<!-- PIN keypad overlay (utilizatori birou) -->
-<div id="officePinOverlay" style="position:fixed;inset:0;z-index:10000;background:#090f1c;display:none;align-items:center;justify-content:center;flex-direction:column;gap:20px;">
+<!-- PIN keypad overlay (implicit — toți colegii) -->
+<div id="officePinOverlay" style="position:fixed;inset:0;z-index:10000;background:#090f1c;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div style="width:40px;height:40px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    </div>
+    <div>
+      <div style="font-weight:800;font-size:16px;color:#f1f5f9;">Planificare Șantier</div>
+      <div style="font-size:11px;color:#64748b;">Smart House Color · SHC Solar Suite</div>
+    </div>
+  </div>
   <div style="text-align:center;">
-    <div style="font-weight:800;font-size:16px;color:#f1f5f9;">Login rapid cu PIN</div>
-    <div style="font-size:12px;color:#64748b;margin-top:4px;">Introdu codul de 5 cifre</div>
+    <div style="font-weight:800;font-size:15px;color:#f1f5f9;">Introdu codul PIN (5 cifre)</div>
   </div>
   <div class="pin-dots" id="officePinDots" style="display:flex;gap:12px;"></div>
   <div id="officePinErr" style="color:#f87171;font-size:12.5px;font-weight:700;min-height:16px;"></div>
   <div class="pin-grid" id="officePinGrid" style="display:grid;grid-template-columns:repeat(3,72px);gap:12px;"></div>
-  <a href="#" id="btnCloseOfficePin" style="font-size:12.5px;margin-top:6px;color:#f59e0b;">← Înapoi</a>
+  <a href="#" id="btnCloseOfficePin" style="font-size:12.5px;margin-top:6px;color:#64748b;">Administrator / Manager — intră cu parolă →</a>
 </div>
 
 <!-- ═══ APP ═══ -->
@@ -444,7 +452,8 @@ function populateLoginUsers(){
   const sel=document.getElementById('loginUser');
   const cur=sel.value;
   sel.innerHTML='<option value="">— Selectează utilizatorul —</option>';
-  loginUsers.forEach(u=>{
+  // Doar Administrator, Chirila și Nicoraș se pot loga cu parolă — restul folosesc PIN rapid
+  loginUsers.filter(u=>u.id==='_admin'||u.id==='u_chirila'||u.id==='u_nicoras').forEach(u=>{
     const o=document.createElement('option');
     o.value=u.id; o.textContent=u.name+(u.role?' — '+u.role:'');
     sel.appendChild(o);
@@ -523,11 +532,14 @@ function officePinPress(k){
 }
 buildOfficePinGrid();
 document.getElementById('btnOpenOfficePin').addEventListener('click',e=>{
-  e.preventDefault(); officePinBuffer=''; renderOfficePinDots(false); document.getElementById('officePinErr').textContent='';
-  document.getElementById('officePinOverlay').style.display='flex';
+  e.preventDefault();
+  document.getElementById('officePinOverlay').style.display='none';
+  document.getElementById('loginOverlay').style.display='flex';
 });
 document.getElementById('btnCloseOfficePin').addEventListener('click',e=>{
-  e.preventDefault(); document.getElementById('officePinOverlay').style.display='none';
+  e.preventDefault(); officePinBuffer=''; renderOfficePinDots(false); document.getElementById('officePinErr').textContent='';
+  document.getElementById('loginOverlay').style.display='none';
+  document.getElementById('officePinOverlay').style.display='flex';
 });
 
 document.getElementById('btnLogin').addEventListener('click',doLogin);
