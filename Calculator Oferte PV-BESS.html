@@ -3357,7 +3357,45 @@ window._crmSharedUsers = [];
       grid.appendChild(b);
     });
   }
+  // ── Securitate: blocare după încercări greșite, jurnal audit, deconectare automată ──
+  function shcGetLock(){try{return JSON.parse(localStorage.getItem('shc_lock_calculator')||'{"fails":0,"until":0}');}catch(e){return{fails:0,until:0};}}
+  function shcSetLock(s){localStorage.setItem('shc_lock_calculator',JSON.stringify(s));}
+  function shcIsLocked(){return shcGetLock().until>Date.now();}
+  function shcLockSecondsLeft(){return Math.max(0,Math.ceil((shcGetLock().until-Date.now())/1000));}
+  function shcRegisterFail(){var s=shcGetLock();s.fails=(s.fails||0)+1;if(s.fails>=5){s.until=Date.now()+30000;s.fails=0;}shcSetLock(s);}
+  function shcRegisterSuccess(){shcSetLock({fails:0,until:0});}
+  var shcLockInterval=null;
+  function shcShowLockCountdown(){
+    var errEl=document.getElementById('officePinErr');
+    var grid=document.getElementById('officePinGrid');
+    if(grid) grid.querySelectorAll('button').forEach(function(b){b.disabled=true;});
+    clearInterval(shcLockInterval);
+    shcLockInterval=setInterval(function(){
+      var left=shcLockSecondsLeft();
+      if(left<=0){ clearInterval(shcLockInterval); if(errEl) errEl.textContent=''; if(grid) grid.querySelectorAll('button').forEach(function(b){b.disabled=false;}); return; }
+      if(errEl) errEl.textContent='Prea multe încercări greșite — blocat '+left+'s';
+    },500);
+  }
+  function shcAudit(user,role){
+    try{
+      var log=JSON.parse(localStorage.getItem('shc_audit_log')||'[]');
+      log.push({t:Date.now(),app:'Calculator Oferte',user:user,role:role||''});
+      while(log.length>300) log.shift();
+      localStorage.setItem('shc_audit_log',JSON.stringify(log));
+    }catch(e){}
+  }
+  var shcIdleTimer=null;
+  function shcResetIdle(){
+    clearTimeout(shcIdleTimer);
+    shcIdleTimer=setTimeout(function(){
+      if(typeof SESSION!=='undefined' && SESSION){ var b=document.getElementById('btnLogout'); if(b) b.click(); }
+    },20*60*1000);
+  }
+  ['click','keydown','mousemove','touchstart','scroll'].forEach(function(ev){document.addEventListener(ev,shcResetIdle,{passive:true});});
+  shcResetIdle();
+
   function officePinPress(k){
+    if(shcIsLocked()){ shcShowLockCountdown(); return; }
     document.getElementById('officePinErr').textContent='';
     if(k==='del'){ officePinBuffer=officePinBuffer.slice(0,-1); renderOfficePinDots(false); return; }
     if(k==='clear'){ officePinBuffer=''; renderOfficePinDots(false); return; }
@@ -3367,7 +3405,9 @@ window._crmSharedUsers = [];
       var users=loadUsers();
       var user=users.find(function(u){return u.active && u.pin && u.pin===officePinBuffer;});
       if(!user){
+        shcRegisterFail();
         renderOfficePinDots(true);
+        if(shcIsLocked()){ officePinBuffer=''; renderOfficePinDots(false); shcShowLockCountdown(); return; }
         document.getElementById('officePinErr').textContent='Cod greșit — încearcă din nou';
         setTimeout(function(){ officePinBuffer=''; renderOfficePinDots(false); },900);
         return;
@@ -3378,6 +3418,7 @@ window._crmSharedUsers = [];
         setTimeout(function(){ officePinBuffer=''; renderOfficePinDots(false); },1200);
         return;
       }
+      shcRegisterSuccess(); shcAudit(user.name,user.role||'');
       officePinBuffer='';
       document.getElementById('loginStep3').style.display='none';
       startSession(user);

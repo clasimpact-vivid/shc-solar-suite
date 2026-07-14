@@ -1540,6 +1540,8 @@ class Component extends DCLogic {
 
   componentDidMount(){
     this._startParticles();
+    this.shcResetIdle();
+    ['click','keydown','mousemove','touchstart','scroll'].forEach(ev=>document.addEventListener(ev,()=>this.shcResetIdle(),{passive:true}));
     const db = getDb();
     if(!db){ this._loadFromLS(); return; }
     // Fallback dacă Firebase nu răspunde în timp util (rețea mobilă lentă/blocată) —
@@ -1719,7 +1721,36 @@ class Component extends DCLogic {
     });
   }
 
+  shcGetLock(){try{return JSON.parse(localStorage.getItem('shc_lock_solarcrm')||'{"fails":0,"until":0}');}catch(e){return{fails:0,until:0};}}
+  shcSetLock(s){localStorage.setItem('shc_lock_solarcrm',JSON.stringify(s));}
+  shcIsLocked(){return this.shcGetLock().until>Date.now();}
+  shcLockSecondsLeft(){return Math.max(0,Math.ceil((this.shcGetLock().until-Date.now())/1000));}
+  shcRegisterFail(){const s=this.shcGetLock();s.fails=(s.fails||0)+1;if(s.fails>=5){s.until=Date.now()+30000;s.fails=0;}this.shcSetLock(s);}
+  shcRegisterSuccess(){this.shcSetLock({fails:0,until:0});}
+  shcAudit(user,role){
+    try{
+      const log=JSON.parse(localStorage.getItem('shc_audit_log')||'[]');
+      log.push({t:Date.now(),app:'SolarCRM',user:user,role:role||''});
+      while(log.length>300) log.shift();
+      localStorage.setItem('shc_audit_log',JSON.stringify(log));
+    }catch(e){}
+  }
+  shcStartLockCountdown(){
+    clearInterval(this._shcLockInterval);
+    this._shcLockInterval=setInterval(()=>{
+      const left=this.shcLockSecondsLeft();
+      if(left<=0){ clearInterval(this._shcLockInterval); this.setState({pinLockMsg:null}); return; }
+      this.setState({pinLockMsg:'Prea multe încercări greșite — blocat '+left+'s'});
+    },500);
+  }
+  shcResetIdle(){
+    clearTimeout(this._shcIdleTimer);
+    this._shcIdleTimer=setTimeout(()=>{
+      if(this.state.currentUser){ try { sessionStorage.removeItem('solarcrm_uid_v3'); } catch(e){} this.setState({currentUser:null,showUserModal:true,userModalMode:'login',pinMode:true,pinBuffer:'',pinErr:false}); }
+    },20*60*1000);
+  }
   pinPress(k){
+    if(this.shcIsLocked()){ this.shcStartLockCountdown(); return; }
     this.setState({pinFlash:k});
     clearTimeout(this._pinFlashT);
     this._pinFlashT=setTimeout(()=>this.setState({pinFlash:null}),250);
@@ -1733,10 +1764,13 @@ class Component extends DCLogic {
       const allForLogin=[{...ADMIN_USER,password:this.adminPassword,pin:this.adminPin},...users];
       const match=allForLogin.find(u=>u.pin && u.pin===buf);
       if(!match){
+        this.shcRegisterFail();
         this.setState({pinErr:true});
+        if(this.shcIsLocked()){ this.setState({pinBuffer:''}); this.shcStartLockCountdown(); return; }
         setTimeout(()=>this.setState({pinBuffer:'',pinErr:false}),900);
         return;
       }
+      this.shcRegisterSuccess();
       setTimeout(()=>{
         this.setState({pinMode:false,pinBuffer:''});
         this.loginUser(match.id===ADMIN_ID?{...ADMIN_USER,password:this.adminPassword}:match);
@@ -1745,6 +1779,7 @@ class Component extends DCLogic {
   }
   loginUser(user){
     try { sessionStorage.setItem('solarcrm_uid_v3',user.id); localStorage.removeItem('solarcrm_uid_v3'); } catch(e){}
+    this.shcAudit(user.name,user.role||'');
     this.setState({currentUser:user,showUserModal:false,pwStep:null,pwInput:''});
   }
   tryLogin(user){
@@ -2191,7 +2226,7 @@ class Component extends DCLogic {
       showPinStep:this.state.pinMode===true,
       openPinMode:e=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({pinMode:true,pinBuffer:'',pinErr:false}); },
       closePinMode:e=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({pinMode:false,pinBuffer:'',pinErr:false}); },
-      pinErrMsg:this.state.pinErr?'Cod greșit — încearcă din nou':'Introdu codul primit de la administrator',
+      pinErrMsg:this.state.pinLockMsg?this.state.pinLockMsg:(this.state.pinErr?'Cod greșit — încearcă din nou':'Introdu codul primit de la administrator'),
       pinDots:[0,1,2,3].map(i=>({color:this.state.pinErr?'#ef4444':'#f59e0b',bg:i<this.state.pinBuffer.length?(this.state.pinErr?'#ef4444':'#f59e0b'):'transparent'})),
       pinKeys:['1','2','3','4','5','6','7','8','9','clear','0','del'].map(k=>({label:k==='del'?'⌫':(k==='clear'?'C':k),visible:true,blank:false,bg:this.state.pinFlash===k?'#7f1d1d':'#1e293b',onClick:()=>this.pinPress(k)})),
       pwStepUser:pwUser?pwUser.name:'',pwStepColor:pwUser?pwUser.color:'#94a3b8',pwStepInitials:pwUser?initials(pwUser.name):'?',

@@ -489,6 +489,43 @@ function completeLoginAs(u){
 
 // ── PIN rapid (utilizatori birou) ──
 let officePinBuffer='';
+
+// ── Securitate: blocare după încercări greșite, jurnal audit, deconectare automată ──
+function shcGetLock(){try{return JSON.parse(localStorage.getItem('shc_lock_planificare')||'{"fails":0,"until":0}');}catch(e){return{fails:0,until:0};}}
+function shcSetLock(s){localStorage.setItem('shc_lock_planificare',JSON.stringify(s));}
+function shcIsLocked(){return shcGetLock().until>Date.now();}
+function shcLockSecondsLeft(){return Math.max(0,Math.ceil((shcGetLock().until-Date.now())/1000));}
+function shcRegisterFail(){const s=shcGetLock();s.fails=(s.fails||0)+1;if(s.fails>=5){s.until=Date.now()+30000;s.fails=0;}shcSetLock(s);}
+function shcRegisterSuccess(){shcSetLock({fails:0,until:0});}
+let shcLockInterval=null;
+function shcShowLockCountdown(){
+  const errEl=document.getElementById('officePinErr');
+  const grid=document.getElementById('officePinGrid');
+  if(grid) grid.querySelectorAll('button').forEach(b=>b.disabled=true);
+  clearInterval(shcLockInterval);
+  shcLockInterval=setInterval(()=>{
+    const left=shcLockSecondsLeft();
+    if(left<=0){ clearInterval(shcLockInterval); if(errEl) errEl.textContent=''; if(grid) grid.querySelectorAll('button').forEach(b=>b.disabled=false); return; }
+    if(errEl) errEl.textContent='Prea multe încercări greșite — blocat '+left+'s';
+  },500);
+}
+function shcAudit(user,role){
+  try{
+    const log=JSON.parse(localStorage.getItem('shc_audit_log')||'[]');
+    log.push({t:Date.now(),app:'Planificare Șantier',user:user,role:role||''});
+    while(log.length>300) log.shift();
+    localStorage.setItem('shc_audit_log',JSON.stringify(log));
+  }catch(e){}
+}
+let shcIdleTimer=null;
+function shcResetIdle(){
+  clearTimeout(shcIdleTimer);
+  shcIdleTimer=setTimeout(()=>{
+    if(typeof currentUser!=='undefined' && currentUser){ const b=document.getElementById('btnLogout'); if(b) b.click(); }
+  },20*60*1000);
+}
+['click','keydown','mousemove','touchstart','scroll'].forEach(ev=>document.addEventListener(ev,shcResetIdle,{passive:true}));
+shcResetIdle();
 function renderOfficePinDots(err){
   const wrap=document.getElementById('officePinDots'); wrap.innerHTML='';
   for(let i=0;i<4;i++){
@@ -507,6 +544,7 @@ function buildOfficePinGrid(){
   });
 }
 function officePinPress(k){
+  if(shcIsLocked()){ shcShowLockCountdown(); return; }
   document.getElementById('officePinErr').textContent='';
   if(k==='del'){ officePinBuffer=officePinBuffer.slice(0,-1); renderOfficePinDots(false); return; }
   if(k==='clear'){ officePinBuffer=''; renderOfficePinDots(false); return; }
@@ -515,7 +553,9 @@ function officePinPress(k){
   if(officePinBuffer.length===4){
     const u=loginUsers.find(x=>x.pin===officePinBuffer) || (adminPin&&adminPin===officePinBuffer?{id:'_admin',name:'Administrator',role:'Admin',color:'#dc2626'}:null);
     if(!u){
+      shcRegisterFail();
       renderOfficePinDots(true);
+      if(shcIsLocked()){ officePinBuffer=''; renderOfficePinDots(false); shcShowLockCountdown(); return; }
       document.getElementById('officePinErr').textContent='Cod greșit — încearcă din nou';
       setTimeout(()=>{ officePinBuffer=''; renderOfficePinDots(false); },900);
       return;
@@ -526,6 +566,7 @@ function officePinPress(k){
       setTimeout(()=>{ officePinBuffer=''; renderOfficePinDots(false); },1200);
       return;
     }
+    shcRegisterSuccess(); shcAudit(u.name,u.role||'');
     officePinBuffer='';
     document.getElementById('officePinOverlay').style.display='none';
     completeLoginAs(u);
