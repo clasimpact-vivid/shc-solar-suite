@@ -1018,6 +1018,47 @@ input,select,textarea,button{font-family:inherit;}
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"></path></svg>
           Adaugă utilizator nou
         </button>
+        <button onClick="{{ umGoBulk }}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px;border:1.5px solid #cbd5e1;background:#fff;border-radius:10px;margin-top:10px;font-size:13px;color:#334155;" style-hover="background:#f1f5f9;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-8H7v8M7 3v5h8"></path><path d="M21 21V7l-4-4H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2z"></path></svg>
+          Import angajați în bloc
+        </button>
+      </sc-if>
+
+      <!-- BULK IMPORT MODE -->
+      <sc-if value="{{ umIsBulk }}">
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div style="font-size:12.5px;color:#64748b;line-height:1.6;">
+            Lipește lista, câte un angajat pe rând, cu <strong>Tab</strong> între coloane: <code>Nume&nbsp;&nbsp;Prenume&nbsp;&nbsp;Funcție</code>.
+            Fiecare angajat primește automat un <strong>PIN de 4 cifre</strong> unic. Acces: Montator/Electrician/Gestionar/Tehnician → doar Pontaj · Inginer → Planificare+Vizită+Pontaj · restul → toate aplicațiile.
+          </div>
+          <textarea value="{{ bulkText }}" onChange="{{ onBulkText }}" placeholder="APOSTOL	ROMICA	Montator&#10;AVRAMUT	SORIN-ILIE	Electrician" style="width:100%;min-height:220px;font-family:monospace;font-size:12px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;"></textarea>
+          <button onClick="{{ umSubmitBulk }}" style="padding:10px;border:0;background:#2563eb;color:#fff;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;">Importă și generează PIN-uri</button>
+
+          <sc-if value="{{ hasBulkResult }}" hint-placeholder-val="{{ false }}">
+            <div style="border-top:1px solid #e2e8f0;padding-top:14px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <strong style="font-size:13px;">Rezultat import</strong>
+                <button onClick="{{ umExportBulkCSV }}" style="font-size:11.5px;padding:5px 10px;border:1px solid #e2e8f0;border-radius:6px;background:#fff;">⬇ Export CSV</button>
+              </div>
+              <div style="max-height:320px;overflow-y:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:12px;">
+                  <thead><tr style="background:#f7f8fa;"><th style="text-align:left;padding:6px 8px;">Nume</th><th style="text-align:left;padding:6px 8px;">Funcție</th><th style="text-align:left;padding:6px 8px;">PIN</th><th style="text-align:left;padding:6px 8px;">Acces</th><th style="text-align:left;padding:6px 8px;">Status</th></tr></thead>
+                  <tbody>
+                    <sc-for list="{{ bulkResult }}" as="e" hint-placeholder-count="4">
+                      <tr style="border-bottom:1px solid #f0f0f0;">
+                        <td style="padding:6px 8px;font-weight:600;">{{ e.name }}</td>
+                        <td style="padding:6px 8px;color:#64748b;">{{ e.functie }}</td>
+                        <td style="padding:6px 8px;font-weight:700;">{{ e.pin }}</td>
+                        <td style="padding:6px 8px;color:#64748b;">{{ e.acces }}</td>
+                        <td style="padding:6px 8px;">{{ e.status }}</td>
+                      </tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </sc-if>
+        </div>
       </sc-if>
 
       <!-- ADD MODE -->
@@ -1897,6 +1938,46 @@ class Component extends DCLogic {
 
   umGoAdd(){ this.setState({userMgmtMode:'add',editingUserId:null,umForm:{...EMPTY_UM_FORM,pin:genUniquePin5(this.state.users)}}); }
   umGoBack(){ this.setState({userMgmtMode:'list',umForm:{...EMPTY_UM_FORM}}); }
+  umGoBulk(){ this.setState({userMgmtMode:'bulk',bulkText:'',bulkResult:null}); }
+  setBulkText(v){ this.setState({bulkText:v}); }
+  mapFunctieToRoleTemplate(fn){
+    const f=(fn||'').toLowerCase();
+    if(!f) return 'montator';
+    if(f.indexOf('montator')>=0||f.indexOf('electrician')>=0||f.indexOf('gestionar')>=0||f.indexOf('technician')>=0||f.indexOf('tehnician')>=0) return 'montator';
+    if(f.indexOf('inginer')>=0) return 'sefechipa';
+    return 'birou';
+  }
+  umSubmitBulk(){
+    const lines=(this.state.bulkText||'').split('\n').map(l=>l.trim()).filter(Boolean);
+    let users=[...this.state.users];
+    const existingNamesLower=new Set(users.map(u=>u.name.toLowerCase()));
+    const result=[];
+    lines.forEach(line=>{
+      const parts=line.split('\t').map(p=>p.trim()).filter((p,i)=>i<3?true:false);
+      if(!parts.length || /^nume/i.test(parts[0])) return; // skip header row
+      const nume=parts[0]||''; const prenume=parts[1]||''; const functie=(parts[2]||'').trim();
+      const fullName=(nume+' '+prenume).trim().replace(/\s+/g,' ');
+      if(!fullName) return;
+      if(existingNamesLower.has(fullName.toLowerCase())){ result.push({name:fullName,functie,status:'există deja — omis'}); return; }
+      const bucket=this.mapFunctieToRoleTemplate(functie);
+      const apps=APP_ROLE_TEMPLATES[bucket];
+      const pin=genUniquePin5(users);
+      const color=USER_COLORS[users.length%USER_COLORS.length];
+      const user={id:'u'+Date.now()+Math.random().toString(36).slice(2,7),name:fullName,email:'',role:functie||'Angajat',color,password:'',pin,isSuperAdmin:false,
+        segmente:['PV','Inverter','Baterie'],notif:{},apps};
+      users=[...users,user];
+      existingNamesLower.add(fullName.toLowerCase());
+      result.push({name:fullName,functie:functie||'—',pin,acces:bucket,status:'creat'});
+    });
+    this.setState({users,bulkResult:result},()=>setTimeout(()=>this.persist(),0));
+  }
+  umExportBulkCSV(){
+    const r=this.state.bulkResult||[];
+    let csv='Nume,Functie,PIN,Acces,Status\n';
+    r.forEach(e=>{ csv+='"'+e.name+'","'+(e.functie||'')+'","'+(e.pin||'')+'","'+(e.acces||'')+'","'+e.status+'"\n'; });
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='pinuri-angajati.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }
   umChangeAdminPw(){ this.setState({userMgmtMode:'changepw',umForm:{...EMPTY_UM_FORM,pin:this.adminPin}}); }
   umStartEdit(userId){ const u=this.state.users.find(x=>x.id===userId); if(!u)return; const seg=u.segmente||['PV','Inverter','Baterie']; const nf=u.notif||{}; const ap=u.apps||{crm:true,calculator:true,planificare:true,vizita:true,pontaj:true}; this.setState({userMgmtMode:'edit',editingUserId:userId,umForm:{...EMPTY_UM_FORM,name:u.name,email:u.email||'',role:u.role,isSuperAdmin:!!u.isSuperAdmin,pin:u.pin||'',pontajHR:!!u.pontajHR,pontajPlanner:!!u.pontajPlanner,segPV:seg.includes('PV'),segInverter:seg.includes('Inverter'),segBaterie:seg.includes('Baterie'),segBESS:seg.includes('BESS'),notifSolarCRM:nf.solarcrm!==false,notifPlanificare:!!nf.planificare,notifVizita:!!nf.vizita,notifPontaj:!!nf.pontaj,appCrm:ap.crm!==false,appCalculator:ap.calculator!==false,appPlanificare:ap.planificare!==false,appVizita:ap.vizita!==false,appPontaj:ap.pontaj!==false}}); }
   setUmForm(k,v){ this.setState(s=>({umForm:{...s.umForm,[k]:v}})); }
@@ -2090,8 +2171,8 @@ class Component extends DCLogic {
     const formExp={...form,typePV:fPV,typeInverter:fInv,typeBaterie:fBat,typeBESS:fBESS,isPV:fPV,isBESS:fBESS,prosumator:!!form.prosumator,typePVBorder:fPV?'#f59e0b':'#e2e8f0',typePVBg:fPV?'#fef9ee':'#fff',typePVColor:fPV?'#92400e':'#64748b',typeInverterBorder:fInv?'#3b82f6':'#e2e8f0',typeInverterBg:fInv?'#eff6ff':'#fff',typeInverterColor:fInv?'#1e40af':'#64748b',typeBaterieBorder:fBat?'#8b5cf6':'#e2e8f0',typeBaterieBg:fBat?'#f5f3ff':'#fff',typeBaterieColor:fBat?'#5b21b6':'#64748b',typeBESSBorder:fBESS?'#22c55e':'#e2e8f0',typeBESSBg:fBESS?'#f0fdf4':'#fff',typeBESSColor:fBESS?'#14532d':'#64748b'};
 
     // User management
-    const umIsList=userMgmtMode==='list',umIsAdd=userMgmtMode==='add',umIsEdit=userMgmtMode==='edit',umIsChangePw=userMgmtMode==='changepw',umIsCompany=userMgmtMode==='company';
-    const umTitles={list:'Gestionare Utilizatori',add:'Utilizator nou',edit:'Editare utilizator',changepw:'Schimbă parola Admin',company:'Setări Firmă'};
+    const umIsList=userMgmtMode==='list',umIsAdd=userMgmtMode==='add',umIsEdit=userMgmtMode==='edit',umIsChangePw=userMgmtMode==='changepw',umIsCompany=userMgmtMode==='company',umIsBulk=userMgmtMode==='bulk';
+    const umTitles={list:'Gestionare Utilizatori',add:'Utilizator nou',edit:'Editare utilizator',changepw:'Schimbă parola Admin',company:'Setări Firmă',bulk:'Import angajați în bloc'};
     const umSubs={list:'Admin · gestiune conturi echipă',add:'Completați toate câmpurile',edit:'Modificați datele utilizatorului',changepw:'Introduceți parola curentă și cea nouă',company:'Date firmă folosite la generarea contractelor'};
     const umUsersList=users.map(u=>({...u,initials:initials(u.name),onEdit:()=>this.umStartEdit(u.id),onDelete:()=>this.umDeleteUser(u.id)}));
     const pw2Match=!umForm.password||!umForm.password2||umForm.password===umForm.password2;
@@ -2238,7 +2319,14 @@ class Component extends DCLogic {
       showUserMgmt,
       umTitle:umTitles[userMgmtMode]||'Utilizatori',umSubtitle:umSubs[userMgmtMode]||'',
       umShowBack:userMgmtMode!=='list',umGoBack:()=>this.umGoBack(),
-      umIsList,umIsAdd,umIsEdit,umIsChangePw,umIsCompany,
+      umIsList,umIsAdd,umIsEdit,umIsChangePw,umIsCompany,umIsBulk,
+      umGoBulk:()=>this.umGoBulk(),
+      bulkText:this.state.bulkText||'',
+      onBulkText:e=>this.setBulkText(e.target.value),
+      umSubmitBulk:()=>this.umSubmitBulk(),
+      bulkResult:this.state.bulkResult||null,
+      hasBulkResult:!!(this.state.bulkResult&&this.state.bulkResult.length),
+      umExportBulkCSV:()=>this.umExportBulkCSV(),
       umGoCompany:()=>this.setState({userMgmtMode:'company'}),
       umCo:this.state.companyInfo,
       onUmCoName:e=>this.setState(s=>({companyInfo:{...s.companyInfo,name:e.target.value}})),

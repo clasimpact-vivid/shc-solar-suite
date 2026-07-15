@@ -3186,6 +3186,29 @@ function startSession(user){
     var ft=document.getElementById('firmaTa');
     if(ft){ft.readOnly=true;ft.style.background='#f7f8fa';ft.style.color='var(--text2)';}
   }
+  applyCrmPrefill();
+}
+
+function applyCrmPrefill(){
+  var raw;
+  try{ raw = localStorage.getItem('shc_offer_prefill'); }catch(e){ raw=null; }
+  if(!raw) return;
+  var p;
+  try{ p = JSON.parse(raw); }catch(e){ return; }
+  if(!p || !p.fromCRM) return;
+  try{
+    if(p.client){ var elC=document.getElementById('numeClient'); if(elC) elC.value = p.client; }
+    if(p.nrOferta){ var elN=document.getElementById('nrOfertaSuffix'); if(elN) elN.value = p.nrOferta.replace(/^SHC-/,''); }
+    if(p.dataOferta){ var elD=document.getElementById('dataOferta'); if(elD) elD.value = p.dataOferta; }
+    if(p.kwp){ var elK=document.getElementById('targetKwp'); if(elK){ elK.value = p.kwp; var sm=document.getElementById('sizingMode'); if(sm){ sm.value='target'; sm.dispatchEvent(new Event('change')); } } }
+    if(p.panels){ var elP=document.getElementById('numPanouri'); if(elP) elP.value = p.panels; }
+    if(p.hasBESS){ var bm=document.getElementById('bessMode'); if(bm){ bm.value='included'; bm.dispatchEvent(new Event('change')); } }
+    if(p.bessKwh){ var elBk=document.getElementById('bessKwh'); if(elBk) elBk.value = p.bessKwh; }
+    if(p.capexBESS){ var elCb=document.getElementById('capexBess'); if(elCb) elCb.value = p.capexBESS; }
+    if(p.capexSTS){ var stsM=document.getElementById('stsMode'); if(stsM){ stsM.value='included'; stsM.dispatchEvent(new Event('change')); } var elCs=document.getElementById('capexSTS'); if(elCs) elCs.value = p.capexSTS; }
+    if(typeof render==='function') render();
+  }catch(e){ console.warn('CRM prefill:', e); }
+  try{ localStorage.removeItem('shc_offer_prefill'); }catch(e){}
 }
 
 function logout(){
