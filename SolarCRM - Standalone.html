@@ -158,7 +158,9 @@ input,select,textarea,button{font-family:inherit;}
 </aside>
 
 <!-- Mobile sidebar backdrop -->
-<div class="crm-sidebar-backdrop {{ mobileSidebarClass }}" onClick="{{ closeMobileSidebar }}" style="display:none;position:fixed;inset:0;background:rgba(15,23,41,0.5);z-index:299;"></div>
+<sc-if value="{{ mobileSidebarOpen }}" hint-placeholder-val="{{ false }}">
+  <div class="crm-sidebar-backdrop open" onClick="{{ closeMobileSidebar }}" style="position:fixed;inset:0;background:rgba(15,23,41,0.5);z-index:299;"></div>
+</sc-if>
 
 <!-- Particle footer -->
 <div style="position:fixed;bottom:0;left:0;right:0;height:32px;background:#0a1628;border-top:1px solid rgba(255,255,255,0.07);z-index:150;pointer-events:none;overflow:hidden;">
