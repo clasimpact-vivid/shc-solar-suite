@@ -1139,6 +1139,9 @@ input,select,textarea,button{font-family:inherit;}
               <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#334155;cursor:pointer;"><input type="checkbox" checked="{{ umForm.notifPontaj }}" onChange="{{ onUmNotifPontaj }}" style="width:15px;height:15px;accent-color:#f59e0b;"> Pontaj</label>
             </div>
           </div>
+          <sc-if value="{{ hasUmErr }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:10px 12px;background:#fef2f2;border:1px solid #fecaca;color:#dc2626;border-radius:8px;font-size:12.5px;font-weight:600;">{{ umErrMsg }}</div>
+          </sc-if>
           <button onClick="{{ umSaveAdd }}" style="padding:11px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;" style-hover="background:#1d4ed8;">Creează utilizatorul</button>
         </div>
       </sc-if>
@@ -1221,6 +1224,9 @@ input,select,textarea,button{font-family:inherit;}
               <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#334155;cursor:pointer;"><input type="checkbox" checked="{{ umForm.notifPontaj }}" onChange="{{ onUmNotifPontaj }}" style="width:15px;height:15px;accent-color:#f59e0b;"> Pontaj</label>
             </div>
           </div>
+          <sc-if value="{{ hasUmErr }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:10px 12px;background:#fef2f2;border:1px solid #fecaca;color:#dc2626;border-radius:8px;font-size:12.5px;font-weight:600;">{{ umErrMsg }}</div>
+          </sc-if>
           <button onClick="{{ umSaveEdit }}" style="padding:11px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;" style-hover="background:#1d4ed8;">Salvează modificările</button>
         </div>
       </sc-if>
@@ -1300,6 +1306,9 @@ input,select,textarea,button{font-family:inherit;}
               <button type="button" onClick="{{ onUmGenPin }}" style="white-space:nowrap;padding:9px 12px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">🔄 Regenerează</button>
             </div>
           </div>
+          <sc-if value="{{ hasUmErr }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:10px 12px;background:#fef2f2;border:1px solid #fecaca;color:#dc2626;border-radius:8px;font-size:12.5px;font-weight:600;">{{ umErrMsg }}</div>
+          </sc-if>
           <button onClick="{{ umSaveAdminPw }}" style="padding:11px;background:#dc2626;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;" style-hover="background:#b91c1c;">Schimbă parola Admin</button>
         </div>
       </sc-if>
@@ -1936,9 +1945,9 @@ class Component extends DCLogic {
   openUserMgmt(){ this.setState({showUserMgmt:true,userMgmtMode:'list',umForm:{...EMPTY_UM_FORM}}); }
   closeUserMgmt(){ this.setState({showUserMgmt:false}); }
 
-  umGoAdd(){ this.setState({userMgmtMode:'add',editingUserId:null,umForm:{...EMPTY_UM_FORM,pin:genUniquePin5(this.state.users)}}); }
-  umGoBack(){ this.setState({userMgmtMode:'list',umForm:{...EMPTY_UM_FORM}}); }
-  umGoBulk(){ this.setState({userMgmtMode:'bulk',bulkText:'',bulkResult:null}); }
+  umGoAdd(){ this.setState({userMgmtMode:'add',editingUserId:null,umErrMsg:'',umForm:{...EMPTY_UM_FORM,pin:genUniquePin5(this.state.users)}}); }
+  umGoBack(){ this.setState({userMgmtMode:'list',umErrMsg:'',umForm:{...EMPTY_UM_FORM}}); }
+  umGoBulk(){ this.setState({userMgmtMode:'bulk',bulkText:'',bulkResult:null,umErrMsg:''}); }
   setBulkText(v){ this.setState({bulkText:v}); }
   mapFunctieToRoleTemplate(fn){
     const f=(fn||'').toLowerCase();
@@ -1979,14 +1988,15 @@ class Component extends DCLogic {
     const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='pinuri-angajati.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
   }
   umChangeAdminPw(){ this.setState({userMgmtMode:'changepw',umForm:{...EMPTY_UM_FORM,pin:this.adminPin}}); }
-  umStartEdit(userId){ const u=this.state.users.find(x=>x.id===userId); if(!u)return; const seg=u.segmente||['PV','Inverter','Baterie']; const nf=u.notif||{}; const ap=u.apps||{crm:true,calculator:true,planificare:true,vizita:true,pontaj:true}; this.setState({userMgmtMode:'edit',editingUserId:userId,umForm:{...EMPTY_UM_FORM,name:u.name,email:u.email||'',role:u.role,isSuperAdmin:!!u.isSuperAdmin,pin:u.pin||'',pontajHR:!!u.pontajHR,pontajPlanner:!!u.pontajPlanner,segPV:seg.includes('PV'),segInverter:seg.includes('Inverter'),segBaterie:seg.includes('Baterie'),segBESS:seg.includes('BESS'),notifSolarCRM:nf.solarcrm!==false,notifPlanificare:!!nf.planificare,notifVizita:!!nf.vizita,notifPontaj:!!nf.pontaj,appCrm:ap.crm!==false,appCalculator:ap.calculator!==false,appPlanificare:ap.planificare!==false,appVizita:ap.vizita!==false,appPontaj:ap.pontaj!==false}}); }
+  umStartEdit(userId){ const u=this.state.users.find(x=>x.id===userId); if(!u)return; const seg=u.segmente||['PV','Inverter','Baterie']; const nf=u.notif||{}; const ap=u.apps||{crm:true,calculator:true,planificare:true,vizita:true,pontaj:true}; this.setState({userMgmtMode:'edit',editingUserId:userId,umErrMsg:'',umForm:{...EMPTY_UM_FORM,name:u.name,email:u.email||'',role:u.role,isSuperAdmin:!!u.isSuperAdmin,pin:u.pin||'',pontajHR:!!u.pontajHR,pontajPlanner:!!u.pontajPlanner,segPV:seg.includes('PV'),segInverter:seg.includes('Inverter'),segBaterie:seg.includes('Baterie'),segBESS:seg.includes('BESS'),notifSolarCRM:nf.solarcrm!==false,notifPlanificare:!!nf.planificare,notifVizita:!!nf.vizita,notifPontaj:!!nf.pontaj,appCrm:ap.crm!==false,appCalculator:ap.calculator!==false,appPlanificare:ap.planificare!==false,appVizita:ap.vizita!==false,appPontaj:ap.pontaj!==false}}); }
   setUmForm(k,v){ this.setState(s=>({umForm:{...s.umForm,[k]:v}})); }
 
   umSaveAdd(){
     const {umForm,users}=this.state;
-    if(!umForm.name.trim()){window.alert('Numele este obligatoriu!');return;}
-    if(umForm.password.trim().length<4){window.alert('Parola trebuie să aibă minim 4 caractere!');return;}
-    if(umForm.password!==umForm.password2){window.alert('Parolele nu coincid!');return;}
+    if(!umForm.name.trim()){this.setState({umErrMsg:'Numele este obligatoriu!'});return;}
+    if(umForm.password.trim().length<4){this.setState({umErrMsg:'Parola trebuie să aibă minim 4 caractere!'});return;}
+    if(umForm.password!==umForm.password2){this.setState({umErrMsg:'Parolele nu coincid!'});return;}
+    this.setState({umErrMsg:''});
     const color=USER_COLORS[users.length%USER_COLORS.length];
     const segmente=[umForm.segPV&&'PV',umForm.segInverter&&'Inverter',umForm.segBaterie&&'Baterie',umForm.segBESS&&'BESS'].filter(Boolean);
     const notif={solarcrm:!!umForm.notifSolarCRM,planificare:!!umForm.notifPlanificare,vizita:!!umForm.notifVizita,pontaj:!!umForm.notifPontaj};
@@ -1998,9 +2008,10 @@ class Component extends DCLogic {
 
   umSaveEdit(){
     const {umForm,editingUserId,users}=this.state; if(!editingUserId)return;
-    if(!umForm.name.trim()){window.alert('Numele este obligatoriu!');return;}
-    if(umForm.password&&umForm.password!==umForm.password2){window.alert('Parolele nu coincid!');return;}
-    if(umForm.password&&umForm.password.trim().length<4){window.alert('Parola trebuie să aibă minim 4 caractere!');return;}
+    if(!umForm.name.trim()){this.setState({umErrMsg:'Numele este obligatoriu!'});return;}
+    if(umForm.password&&umForm.password!==umForm.password2){this.setState({umErrMsg:'Parolele nu coincid!'});return;}
+    if(umForm.password&&umForm.password.trim().length<4){this.setState({umErrMsg:'Parola trebuie să aibă minim 4 caractere!'});return;}
+    this.setState({umErrMsg:''});
     const newUsers=users.map(u=>{
       if(u.id!==editingUserId)return u;
       const segmente=[umForm.segPV&&'PV',umForm.segInverter&&'Inverter',umForm.segBaterie&&'Baterie',umForm.segBESS&&'BESS'].filter(Boolean);
@@ -2023,13 +2034,12 @@ class Component extends DCLogic {
 
   umSaveAdminPw(){
     const {umForm}=this.state;
-    if(umForm.oldPw!==this.adminPassword){window.alert('Parola curentă este incorectă!');return;}
-    if(umForm.password.trim().length<4){window.alert('Parola nouă trebuie să aibă minim 4 caractere!');return;}
-    if(umForm.password!==umForm.password2){window.alert('Parolele nu coincid!');return;}
+    if(umForm.oldPw!==this.adminPassword){this.setState({umErrMsg:'Parola curentă este incorectă!'});return;}
+    if(umForm.password.trim().length<4){this.setState({umErrMsg:'Parola nouă trebuie să aibă minim 4 caractere!'});return;}
+    if(umForm.password!==umForm.password2){this.setState({umErrMsg:'Parolele nu coincid!'});return;}
     this.adminPassword=umForm.password.trim();
     if(umForm.pin && umForm.pin.trim()) this.adminPin=umForm.pin.trim();
-    this.setState({userMgmtMode:'list',umForm:{...EMPTY_UM_FORM}},()=>setTimeout(()=>this.persist(),0));
-    window.alert('Parola Administrator a fost schimbată cu succes!');
+    this.setState({userMgmtMode:'list',umForm:{...EMPTY_UM_FORM},umErrMsg:''},()=>setTimeout(()=>this.persist(),0));
   }
 
   // ─── RENDER ────────────────────────────────────────────────────────────────
@@ -2341,6 +2351,7 @@ class Component extends DCLogic {
       onUmCoRepRole:e=>this.setState(s=>({companyInfo:{...s.companyInfo,repRole:e.target.value}})),
       umSaveCompany:()=>{setTimeout(()=>this.persist(),0);this.setState({userMgmtMode:'list'});},
       umHasUsers:users.length>0,umNoUsers:users.length===0,
+      umErrMsg:this.state.umErrMsg||'',hasUmErr:!!this.state.umErrMsg,
       umUsersList,
       umForm:umFormExp,
       closeUserMgmt:()=>this.closeUserMgmt(),
