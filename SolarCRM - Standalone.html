@@ -1734,6 +1734,7 @@ class Component extends DCLogic {
       while(log.length>300) log.shift();
       localStorage.setItem('shc_audit_log',JSON.stringify(log));
     }catch(e){}
+    try{ const db=getDb(); if(db) db.ref('solarcrm_v2/audit_log').push({t:Date.now(),app:'SolarCRM',user:user,role:role||''}); }catch(e){}
   }
   shcStartLockCountdown(){
     clearInterval(this._shcLockInterval);

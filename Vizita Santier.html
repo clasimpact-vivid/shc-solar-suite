@@ -446,6 +446,7 @@ function shcAudit(user,role){
     while(log.length>300) log.shift();
     localStorage.setItem('shc_audit_log',JSON.stringify(log));
   }catch(e){}
+  try{ if(db) db.ref('solarcrm_v2/audit_log').push({t:Date.now(),app:'Vizită Șantier',user:user,role:role||''}); }catch(e){}
 }
 let shcIdleTimer=null;
 function shcResetIdle(){

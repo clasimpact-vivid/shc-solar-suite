@@ -342,6 +342,25 @@
     <div class="card">
       <h2 class="section">☀️ Sistem fotovoltaic</h2>
 
+      <details style="margin-bottom:14px;border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
+        <summary style="font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;letter-spacing:.3px;text-transform:uppercase;user-select:none;">🏗️ Instalație existentă (opțional — client are deja panouri)</summary>
+        <div class="row2" style="margin-top:10px;">
+          <div class="field">
+            <label>Putere PV existentă (kWp)</label>
+            <input type="number" id="existingKwp" value="0" step="0.1" placeholder="ex: 50">
+          </div>
+          <div class="field">
+            <label>Marcă/tip invertor existent</label>
+            <input type="text" id="existingInvertor" placeholder="ex: Huawei SUN2000-50KTL">
+          </div>
+          <div class="field">
+            <label>Producție anuală măsurată (kWh, opțional)</label>
+            <input type="number" id="existingProductie" value="0" step="1" placeholder="ex: 62000">
+          </div>
+        </div>
+        <p style="font-size:11px;color:var(--text3);margin:8px 0 0">Dacă nu introduci producția măsurată, o estimăm din puterea existentă cu aceeași productivitate specifică de mai jos.</p>
+      </details>
+
       <!-- 1. Mod calcul -->
       <div class="field">
         <label>Mod calcul</label>
@@ -561,6 +580,7 @@
 
     <div class="card">
       <h2 class="section">🔋 Stocare BESS (opțional)</h2>
+      <div id="bessRecoBox" style="display:none;background:#f0f7ff;border:1px solid #cfe3ff;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12.5px;color:#0f2850;line-height:1.6;"></div>
       <!-- 1. Stocare BESS mod -->
       <div class="field">
         <label>Stocare BESS</label>
@@ -1059,6 +1079,7 @@ document.addEventListener('keydown', function(e){
 var fmtEur = new Intl.NumberFormat('ro-RO', {minimumFractionDigits:2, maximumFractionDigits:2});
 var fmtEur2 = new Intl.NumberFormat('ro-RO', {minimumFractionDigits:2, maximumFractionDigits:2});
 var fmtInt = new Intl.NumberFormat('ro-RO', {maximumFractionDigits:0});
+function fmt0(n){ return fmtInt.format(Math.round(n||0)); }
 
 var defaults = {
   numPanouri: 0, panelBrand: 'custom', customPower: 0, customPanelBrand: '',
@@ -1083,10 +1104,11 @@ var defaults = {
   pretPerPanou: 0, pretMontajPerKw: 0,
   secondArrayEnabled: false, numPanouriB: 0, customPowerB: 0, orientationPresetB: '88', correctionPctCustomB: 88,
   equipmentList: '',
+  existingKwp: 0, existingInvertor: '', existingProductie: 0,
   firmaTa: 'SC Smart House Color SRL', numeClient: '', nrOfertaSuffix: '', valabilitate: 30, curs: 5.2, notesArea: ''
 };
 
-var ids = ['numPanouri','customPower','customPanelBrand','garantiePanouri','panelLength','panelWidth','spacingFactor','capexPv','yieldZilnic','zileFunctionare','pretEnergie','pretInjectie','autoconsum','capexBess','autoconsumBess','tva','degradare','escaladare','om','durata','curs','valabilitate','dataOferta','putereContractata','atrValue','capexInvertor','costAlteElemente','costMontaj','costComisionare','alteCheltuieliPct','puterInvertor','garantieInvertor','invertorMarcaCustom','targetKwp','correctionPctCustom','financingPct','financingRate','financingYears','avansPct','transa2Pct','pretPerPanou','pretMontajPerKw','numPanouriB','customPowerB','correctionPctCustomB','consumZilnic','capacitateBaterie','loanComision','leasingAvans','leasingLuni','leasingRate','leasingRezidual','euGrantPct','euProgram','euDurataImpl','mixedGrantPct','mixedLoanPct','mixedRate','mixedYears','bessKwh','capexSTS','marjaComercial','bessCicluriAn','bessArbitrajSpread','bessDegrade1','rataDiscontare'];
+var ids = ['numPanouri','customPower','customPanelBrand','garantiePanouri','panelLength','panelWidth','spacingFactor','capexPv','yieldZilnic','zileFunctionare','pretEnergie','pretInjectie','autoconsum','capexBess','autoconsumBess','tva','degradare','escaladare','om','durata','curs','valabilitate','dataOferta','putereContractata','atrValue','capexInvertor','costAlteElemente','costMontaj','costComisionare','alteCheltuieliPct','puterInvertor','garantieInvertor','invertorMarcaCustom','targetKwp','correctionPctCustom','financingPct','financingRate','financingYears','avansPct','transa2Pct','pretPerPanou','pretMontajPerKw','numPanouriB','customPowerB','correctionPctCustomB','consumZilnic','capacitateBaterie','loanComision','leasingAvans','leasingLuni','leasingRate','leasingRezidual','euGrantPct','euProgram','euDurataImpl','mixedGrantPct','mixedLoanPct','mixedRate','mixedYears','bessKwh','capexSTS','marjaComercial','bessCicluriAn','bessArbitrajSpread','bessDegrade1','rataDiscontare','existingKwp','existingInvertor','existingProductie'];
 
 function getVal(id){
   var el = document.getElementById(id);
@@ -1104,6 +1126,9 @@ var panelBrandDefaults = {
 };
 
 function compute(){
+  var existingKwp = getVal('existingKwp')||0;
+  var existingInvertor = (document.getElementById('existingInvertor').value||'').trim();
+  var existingProductie = getVal('existingProductie')||0;
   var panelPower = getPanelPower();
   var sizingMode = document.getElementById('sizingMode').value;
   var numPanouri;
@@ -1239,7 +1264,12 @@ function compute(){
 
   var puterInvertor = getVal('puterInvertor');
 
+  var prodExistentaAn1 = existingProductie>0 ? existingProductie : (existingKwp>0 ? existingKwp*yieldSpec : 0);
+  var kwpTotalSistem = kwp + existingKwp;
+
   return {
+    existingKwp: existingKwp, existingInvertor: existingInvertor,
+    existingProductie: prodExistentaAn1, kwpTotalSistem: kwpTotalSistem,
     capexTotal: capexTotal, capexTotalTva: capexTotalTva, capexPv: capexPv,
     capexBess: bessActive ? capexBess : 0,
     capexBessMode: bessMode,
@@ -1293,6 +1323,25 @@ function render(){
   function L(eur){ return fmtEur2.format((eur||0)*cursR) + ' lei'; }
   function L0(eur){ return fmtEur.format(Math.round((eur||0)*cursR)) + ' lei'; }
   function LE(eur){ return L(eur) + ' (€' + fmtEur2.format(eur||0) + ')'; }
+
+  // Recomandare capacitate BESS — combină consum zilnic + surplus PV
+  (function(){
+    var box = document.getElementById('bessRecoBox');
+    var consumZ = getVal('consumZilnic')||0;
+    var dailyProd = r.kwp>0 ? (r.prodAn1/365) : 0;
+    if(consumZ<=0 && dailyProd<=0){ box.style.display='none'; return; }
+    var recViaConsum = consumZ>0 ? consumZ*0.4 : 0;
+    var surplusZilnic = dailyProd>0 ? Math.max(0, dailyProd - (consumZ>0?consumZ*0.6:dailyProd*0.35)) : 0;
+    var recViaSurplus = surplusZilnic;
+    var vals = [recViaConsum, recViaSurplus].filter(function(v){return v>0;});
+    if(!vals.length){ box.style.display='none'; return; }
+    var avg = vals.reduce(function(a,b){return a+b;},0)/vals.length;
+    var lo = Math.max(2.5, Math.round((avg*0.8)/2.5)*2.5);
+    var hi = Math.max(lo+2.5, Math.round((avg*1.25)/2.5)*2.5);
+    box.style.display = 'block';
+    box.innerHTML = '🔋 <strong>Recomandare capacitate BESS: ' + lo + '–' + hi + ' kWh</strong><br>' +
+      'Bazat pe consum zilnic (' + (consumZ>0?consumZ.toFixed(1)+' kWh/zi':'neintrodus') + ') și surplus PV estimat (' + surplusZilnic.toFixed(1) + ' kWh/zi).';
+  })();
 
   // Orientation/correction display
   document.getElementById('correctionOut').textContent = r.correctionPct + '%';
@@ -3431,6 +3480,7 @@ window._crmSharedUsers = [];
       while(log.length>300) log.shift();
       localStorage.setItem('shc_audit_log',JSON.stringify(log));
     }catch(e){}
+    try{ if(window._pvbessFbDb) window._pvbessFbDb.ref('solarcrm_v2/audit_log').push({t:Date.now(),app:'Calculator Oferte',user:user,role:role||''}); }catch(e){}
   }
   var shcIdleTimer=null;
   function shcResetIdle(){
@@ -3975,12 +4025,24 @@ function buildOfferHTML(r){
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">'+
       '<table style="width:100%;border-collapse:collapse;border:1px solid '+LINE+';border-radius:8px;overflow:hidden"><tbody>'+
         specR('Beneficiar', esc(client||'—'))+
-        specR('Putere instalată DC', r.kwp.toFixed(1)+' kWp')+
+        (r.existingKwp>0?specR('Instalație PV existentă', fmt(r.existingKwp,1)+' kWp'+(r.existingInvertor?' · '+esc(r.existingInvertor):'')+(r.existingProductie>0?' · '+fmt0(r.existingProductie)+' kWh/an':'')):'')+
+        specR(r.existingKwp>0?'Extindere propusă (nou)':'Putere instalată DC', r.kwp.toFixed(1)+' kWp')+
+        (r.existingKwp>0?specR('Putere totală sistem (existent + nou)', fmt(r.kwpTotalSistem,1)+' kWp'):'')+
         specR('Număr panouri', r.numPanouri+' buc.')+
         specR('Tip panou', panelStr)+
         specR('Tip invertor', esc(invStr2))+
         specR('Nr. invertoare', document.getElementById('invertorMarca')?'—':'—')+
-        specR('Stocare BESS totală', bessKwhV>0?fmt0(bessKwhV)+' kWh':'—')+
+        specR('Stocare BESS totală', bessKwhV>0?fmt0(bessKwhV)+' kWh':(function(){
+          var consumZ=getVal('consumZilnic')||0, dailyProd=r.kwp>0?(r.prodAn1/365):0;
+          if(consumZ<=0&&dailyProd<=0) return '—';
+          var recViaConsum=consumZ>0?consumZ*0.4:0;
+          var surplusZilnic=dailyProd>0?Math.max(0,dailyProd-(consumZ>0?consumZ*0.6:dailyProd*0.35)):0;
+          var vals=[recViaConsum,surplusZilnic].filter(function(v){return v>0;});
+          if(!vals.length) return '—';
+          var avg=vals.reduce(function(a,b){return a+b;},0)/vals.length;
+          var lo=Math.max(2.5,Math.round((avg*0.8)/2.5)*2.5), hi=Math.max(lo+2.5,Math.round((avg*1.25)/2.5)*2.5);
+          return lo+'–'+hi+' kWh (recomandat)';
+        })())+
         specR('Suprafață estimată', surfStr)+
         specR('Tip montaj', (r.kwpA>0&&r.kwpB===0?'1 orient.':'2 orient.')+' '+(r.kwp>0?r.kwp.toFixed(1)+' kWp':''))+
         specR('Garanție invertoare', getVal('garantieInvertor')+' ani')+
