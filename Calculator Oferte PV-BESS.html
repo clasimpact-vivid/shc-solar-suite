@@ -2929,11 +2929,16 @@ var defaultDeviz = [
   {capitol:'Montaj, testare și punere în funcțiune', um:'serviciu', cant:1, pret:90000}
 ];
 var devizRows = [
-  {grup:'',capitol:'',um:'',cant:'',pret:'',inCapex:false},
-  {grup:'',capitol:'',um:'',cant:'',pret:'',inCapex:false},
-  {capitol:'',um:'',cant:'',pret:'',inCapex:false},
-  {capitol:'',um:'',cant:'',pret:'',inCapex:false},
-  {capitol:'',um:'',cant:'',pret:'',inCapex:false}
+  {grup:'Locația 1',capitol:'Sistem stocare AC-coupled — baterie 120 kWh',um:'set',cant:1,pret:210000,inCapex:true},
+  {grup:'Locația 1',capitol:'Invertor hibrid AC-coupled 60 kW',um:'buc',cant:1,pret:48000,inCapex:true},
+  {grup:'Locația 1',capitol:'Releu limitare export / zero-export (ATR 65 kW)',um:'set',cant:1,pret:9500,inCapex:true},
+  {grup:'Locația 1',capitol:'Protecții AC, tablou și cablare locală',um:'set',cant:1,pret:18500,inCapex:true},
+  {grup:'Locația 1',capitol:'Manoperă montaj și punere în funcțiune',um:'set',cant:1,pret:14000,inCapex:true},
+  {grup:'Locația 2',capitol:'Sistem stocare AC-coupled — baterie 85 kWh',um:'set',cant:1,pret:155000,inCapex:true},
+  {grup:'Locația 2',capitol:'Invertor hibrid AC-coupled 45 kW',um:'buc',cant:1,pret:38000,inCapex:true},
+  {grup:'Locația 2',capitol:'Releu limitare export / zero-export (ATR 50 kW)',um:'set',cant:1,pret:9500,inCapex:true},
+  {grup:'Locația 2',capitol:'Protecții AC, tablou și cablare locală',um:'set',cant:1,pret:15500,inCapex:true},
+  {grup:'Locația 2',capitol:'Manoperă montaj și punere în funcțiune',um:'set',cant:1,pret:11000,inCapex:true}
 ];
 function devizNum(s){ var n=parseFloat(String(s==null?'':s).replace(',','.')); return isNaN(n)?0:n; }
 function devizSubtotal(){ var s=0; devizRows.forEach(function(r){ s+=devizNum(r.cant)*devizNum(r.pret); }); return s; }
@@ -2957,7 +2962,7 @@ function renderDeviz(){
     var rbg=i%2===0?'#ffffff':'#f7f9fb';
     return '<tr style="background:'+rbg+'">'+
       '<td style="text-align:center;color:var(--text3);padding:5px 6px">'+(i+1)+'</td>'+
-      '<td style="padding:5px 6px"><select data-di="'+i+'" data-df="grup" style="width:100%;'+ic+'">'+['','A. Sistem PV','B. Stocare BESS','C. Alte lucrări'].map(function(g){return '<option value="'+g+'" '+(row.grup===g?'selected':'')+'>'+(g||'—')+'</option>';}).join('')+'</select></td>'+
+      '<td style="padding:5px 6px"><select data-di="'+i+'" data-df="grup" style="width:100%;'+ic+'">'+['','A. Sistem PV','B. Stocare BESS','C. Alte lucrări','Locația 1','Locația 2'].map(function(g){return '<option value="'+g+'" '+(row.grup===g?'selected':'')+'>'+(g||'—')+'</option>';}).join('')+'</select></td>'+
       '<td style="padding:5px 6px"><input type="text" data-di="'+i+'" data-df="capitol" value="'+String(row.capitol||'').replace(/"/g,'&quot;')+'" style="width:100%;'+ic+'"></td>'+
       '<td style="padding:5px 6px"><input type="text" data-di="'+i+'" data-df="um" value="'+String(row.um||'').replace(/"/g,'&quot;')+'" style="width:100%;'+ic+'"></td>'+
       '<td style="padding:5px 6px"><input type="number" step="any" data-di="'+i+'" data-df="cant" value="'+((row.cant!==''&&row.cant!=null)?row.cant:'')+'" style="width:100%;text-align:right;'+ic+'"></td>'+
