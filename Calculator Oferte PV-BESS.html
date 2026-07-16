@@ -599,6 +599,7 @@
       <div class="field">
         <label>Capacitate stocare BESS (kWh)</label>
         <input type="number" id="bessKwh" value="0" step="0.5" placeholder="ex: 10">
+        <div id="bessKwhWarn" style="display:none;color:#dc2626;font-size:11.5px;margin-top:4px;font-weight:600">⚠ Capacitate 0 kWh — completează, altfel economiile și payback-ul BESS ies 0.</div>
       </div>
       <!-- 3. CAPEX -->
       <div class="field">
@@ -1206,6 +1207,11 @@ function compute(){
   }
   var prodAn1 = prodA + prodB;
 
+  // producția PV existentă (deja deținută de client) — autoconsumată/facturată la fel ca producția nouă, NU se vinde separat
+  var existingKwpEarly = getVal('existingKwp')||0;
+  var existingProductieEarly = getVal('existingProductie')||0;
+  var prodExistentaAn1Early = existingProductieEarly>0 ? existingProductieEarly : (existingKwpEarly>0 ? existingKwpEarly*yieldSpec : 0);
+
   var rows = [];
   var cumulative = -capexTotal;
   rows.push({an:0, cumulative: cumulative, economii:0, venPV:0, venBESS:0, prod:0});
@@ -1221,16 +1227,18 @@ function compute(){
 
   for(var an=1; an<=durata; an++){
     var prod = prodAn1 * Math.pow(1-degradare, an-1);
+    var prodExist = prodExistentaAn1Early * Math.pow(1-degradare, an-1);
+    var prodTotal = prod + prodExist;
     var pretAn = pretEnergie * Math.pow(1+escaladare, an-1);
     var pretInjAn = pretInjectie * Math.pow(1+escaladare, an-1);
-    var consumat = prod * effAutoconsum;
-    var injectat = prod * (1-effAutoconsum);
+    var consumat = prodTotal * effAutoconsum;
+    var injectat = prodTotal * (1-effAutoconsum);
     var venPV = consumat*pretAn + injectat*pretInjAn;
     var venBESS = bessCapKwh>0&&bessCicluriAn>0 ? bessCapKwh*bessCicluriAn*bessSpread*Math.pow(1-bessDegrade1Pct,an-1) : 0;
     var economii = venPV + venBESS - om;
-    if(an===1){ economiiAn1=venPV; bessRevAn1=venBESS; }
+    if(an===1){ economiiAn1=venPV+venBESS; bessRevAn1=venBESS; }
     cumulative += economii;
-    rows.push({an:an, cumulative: cumulative, economii: economii, venPV: venPV, venBESS: venBESS, prod: prod});
+    rows.push({an:an, cumulative: cumulative, economii: economii, venPV: venPV, venBESS: venBESS, prod: prodTotal});
   }
 
   var paybackYear = null;
@@ -1794,6 +1802,8 @@ function render(){
 
   // BESS comparison
   var bessMode = document.getElementById('bessMode').value;
+  var bessKwhWarn = document.getElementById('bessKwhWarn');
+  if(bessKwhWarn) bessKwhWarn.style.display = (bessMode!=='none' && (getVal('bessKwh')||0)<=0) ? 'block' : 'none';
   if(bessMode === 'none'){
     document.getElementById('bessCompare').innerHTML =
       '<p style="font-size:13px;color:var(--text2)">Selectează "Opțional" sau "Inclus" la Stocare BESS pentru a vedea comparația.</p>';
@@ -3944,7 +3954,7 @@ function buildOfferHTML(r){
           : '<div style="background:'+SOFT+';border:1px solid '+LINE+';border-top:3px solid '+GOLD+';border-radius:8px;padding:15px 14px"><div style="font-size:8.5px;letter-spacing:1.3px;color:'+MUT+';font-weight:700;text-transform:uppercase">Capacitate stocare</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:23px;color:'+AC+';margin-top:8px">'+fmt0(getVal('bessKwh'))+'<span style="font-size:13px;font-weight:600"> kWh</span></div><div style="font-size:10px;color:'+MUT+';margin-top:5px">baterie BESS</div></div>')+
         (r.kwp>0
           ? '<div style="background:'+SOFT+';border:1px solid '+LINE+';border-top:3px solid '+GOLD+';border-radius:8px;padding:15px 14px"><div style="font-size:8.5px;letter-spacing:1.3px;color:'+MUT+';font-weight:700;text-transform:uppercase">Producție An 1</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:23px;color:'+AC+';margin-top:8px">'+fmt0(r.prodAn1)+'<span style="font-size:13px;font-weight:600"> kWh</span></div><div style="font-size:10px;color:'+MUT+';margin-top:5px">yield '+fmt0(r.yieldSpec)+' kWh/kWp/an</div></div>'
-          : '<div style="background:'+SOFT+';border:1px solid '+LINE+';border-top:3px solid '+GOLD+';border-radius:8px;padding:15px 14px"><div style="font-size:8.5px;letter-spacing:1.3px;color:'+MUT+';font-weight:700;text-transform:uppercase">Reducere factură</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:23px;color:'+AC+';margin-top:8px">'+fmt0(r.economiiAn1)+'<span style="font-size:13px;font-weight:600"> lei/an</span></div><div style="font-size:10px;color:'+MUT+';margin-top:5px">estimat an 1</div></div>')+
+          : '<div style="background:'+SOFT+';border:1px solid '+LINE+';border-top:3px solid '+GOLD+';border-radius:8px;padding:15px 14px"><div style="font-size:8.5px;letter-spacing:1.3px;color:'+MUT+';font-weight:700;text-transform:uppercase">Reducere factură</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:23px;color:'+AC+';margin-top:8px">'+fmt0(r.economiiAn1+r.bessRevAn1)+'<span style="font-size:13px;font-weight:600"> lei/an</span></div><div style="font-size:10px;color:'+MUT+';margin-top:5px">estimat an 1</div></div>')+
         '<div style="background:'+SOFT+';border:1px solid '+LINE+';border-top:3px solid '+GOLD+';border-radius:8px;padding:15px 14px"><div style="font-size:8.5px;letter-spacing:1.3px;color:'+MUT+';font-weight:700;text-transform:uppercase">CAPEX (fără TVA)</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:17px;color:'+AC+';margin-top:9px">'+(ronShow?fmt0(capexTotal*curs)+' lei':'€ '+fmt(capexTotal))+'</div><div style="font-size:10px;color:'+MUT+';margin-top:5px">€ '+fmt(capexTotal)+' fără TVA</div></div>'+
         '<div style="background:'+AC+';border-top:3px solid '+GOLD+';border-radius:8px;padding:15px 14px"><div style="font-size:8.5px;letter-spacing:1.3px;color:rgba(255,255,255,.55);font-weight:700;text-transform:uppercase">Payback simplu</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:23px;color:#fff;margin-top:8px">'+paybackStr+'</div><div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:5px">ROI '+fmt0(r.roiPct)+'% în '+durata+' ani</div></div>'+
       '</div>'+
