@@ -276,6 +276,14 @@
         <input type="text" id="numeClient" value="">
       </div>
       <div class="field">
+        <label>CUI / Reg. Com. client (opțional)</label>
+        <input type="text" id="clientCUI" value="" placeholder="ex: RO1234567 · J.../...">
+      </div>
+      <div class="field">
+        <label>Adresă client (opțional)</label>
+        <input type="text" id="clientAdresa" value="" placeholder="Str., nr., localitate">
+      </div>
+      <div class="field">
         <label>Nr. ofertă</label>
         <div style="display:flex;align-items:center;gap:6px">
           <span style="font-size:14px;color:var(--text2);white-space:nowrap">SHC-</span>
@@ -1516,7 +1524,7 @@ function render(){
 
   document.getElementById('alteOut').textContent = getVal('alteCheltuieliPct') + '%';
   // Persist config
-  try { var st={}; ['numPanouri','panelBrand','sizingMode','customPower','customPanelBrand','kwpA','kwpB','capexPv','capexInvertor','bessMode','bessKwh','capexBess','stsMode','capexSTS','costMontaj','costComisionare','alteCheltuieliPct','om','pretEnergie','pretInjectie','autoconsum','escaladare','degradare','durata','tva','curs','marjaComercial','bessCicluriAn','bessArbitrajSpread','bessDegrade1','rataDiscontare','numeClient','nrOfertaSuffix','dataOferta','valabilitate','firmaTa','firmaCUI','firmaRegCom','firmaAdresa','firmaTelefon','firmaEmail','firmaRepLegal'].forEach(function(k){var el=document.getElementById(k);if(el)st[k]=el.value;}); localStorage.setItem('shc_calc_state',JSON.stringify(st)); } catch(e) {}
+  try { var st={}; ['numPanouri','panelBrand','sizingMode','customPower','customPanelBrand','kwpA','kwpB','capexPv','capexInvertor','bessMode','bessKwh','capexBess','stsMode','capexSTS','costMontaj','costComisionare','alteCheltuieliPct','om','pretEnergie','pretInjectie','autoconsum','escaladare','degradare','durata','tva','curs','marjaComercial','bessCicluriAn','bessArbitrajSpread','bessDegrade1','rataDiscontare','numeClient','clientCUI','clientAdresa','nrOfertaSuffix','dataOferta','valabilitate','firmaTa','firmaCUI','firmaRegCom','firmaAdresa','firmaTelefon','firmaEmail','firmaRepLegal'].forEach(function(k){var el=document.getElementById(k);if(el)st[k]=el.value;}); localStorage.setItem('shc_calc_state',JSON.stringify(st)); } catch(e) {}
   document.getElementById('marjaOut').textContent = Math.round(getVal('marjaComercial')) + '%';
   if(document.getElementById('marjaCalc')) document.getElementById('marjaCalc').textContent = r.marjaComercial>0 ? 'Cost: '+LE(r.capexTotal)+'  →  Preț client: '+LE(r.pretVanzare) : '';
   document.getElementById('alteVal').textContent =
@@ -2044,7 +2052,7 @@ document.getElementById('btnSave').addEventListener('click', function(){
     var el = document.getElementById(id);
     if(el) config[id] = el.type==='checkbox' ? el.checked : el.value;
   });
-  ['panelBrand','bessMode','stsMode','stsTip','firmaTa','firmaCUI','firmaRegCom','firmaAdresa','firmaTelefon','firmaEmail','firmaRepLegal','numeClient','notesArea','sizingMode','nrOfertaSuffix','dataOferta','valabilitate'].forEach(function(id){
+  ['panelBrand','bessMode','stsMode','stsTip','firmaTa','firmaCUI','firmaRegCom','firmaAdresa','firmaTelefon','firmaEmail','firmaRepLegal','numeClient','clientCUI','clientAdresa','notesArea','sizingMode','nrOfertaSuffix','dataOferta','valabilitate'].forEach(function(id){
     var el = document.getElementById(id);
     if(el) config[id] = el.value;
   });
@@ -3937,189 +3945,252 @@ function buildOfferHTML(r){
   var watermark = genBy ? esc(genBy)+' · '+genAt : genAt;
   var foot=function(p){return '<div style="flex:1"></div><div style="border-top:1px solid '+LINE+';padding-top:12px;display:flex;justify-content:space-between;font-size:9px;color:'+MUT+'"><span>'+esc(nrOferta)+' · '+esc(clientDisp)+'</span><span style="color:'+MUT+'">'+watermark+'</span><span>Pag. '+p+'</span></div>';};
 
-  // ───────────── PAGES ─────────────
-  var p1='<div class="page" style="display:flex;flex-direction:column">'+
+  // ───────────── PAGES · structura „Ofertă tehnico-economică SHC" ─────────────
+  var irrStr=r.irrVal!=null?(r.irrVal*100).toFixed(1)+' %':'—';
+  var rataDisc=Math.round((r.rataDiscontare||0.08)*100);
+  var lei0=function(v){return ronShow?fmt0(v*curs)+' RON':'€ '+fmt0(v);};
+  var eurA=function(v){return ronShow?'≈ '+fmt0(v)+' €':'';};
+  var bessKwhV=getVal('bessKwh')||0;
+  var brutTotal1=(r.economiiAn1||0)+(r.bessRevAn1||0);
+  var netTotal1=brutTotal1-om;
+  var clientCUI=((document.getElementById('clientCUI')||{value:''}).value||'').trim();
+  var clientAdresa=((document.getElementById('clientAdresa')||{value:''}).value||'').trim();
+  var invStrOf=(document.getElementById('invertorMarcaCustom')&&document.getElementById('invertorMarcaCustom').value)?document.getElementById('invertorMarcaCustom').value:((document.getElementById('invertorMarca')||{value:''}).value||'');
+  var panelStrOf=((document.getElementById('customPanelBrand')&&document.getElementById('customPanelBrand').value)?document.getElementById('customPanelBrand').value+' · ':'')+(getVal('customPower')?fmt0(getVal('customPower'))+' Wp':'');
+  var hasPV=r.kwp>0, isRetrofit=(r.existingKwp>0&&!hasPV);
+  var enMutata=bessKwhV>0?bessKwhV*(getVal('bessCicluriAn')||300)*0.9*0.88:0;
+
+  // ── helperi vizuali ──
+  var secHead=function(num,title,sub){return '<div style="display:flex;align-items:flex-start;gap:14px;border-bottom:2px solid '+AC+';padding-bottom:11px"><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:27px;color:'+GOLD+';line-height:1">'+num+'</div><div><h2 style="font-family:Archivo,sans-serif;font-weight:800;font-size:19px;color:'+AC+';margin:0;letter-spacing:-.2px">'+title+'</h2><div style="font-size:11px;color:'+MUT+';margin-top:3px">'+sub+'</div></div></div>';};
+  var stat=function(big,l1,l2,dark){return '<div style="'+(dark?('background:'+AC+';'):('background:'+SOFT+';border:1px solid '+LINE+';'))+'border-top:3px solid '+GOLD+';border-radius:8px;padding:14px 13px"><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:19px;color:'+(dark?'#fff':AC)+';line-height:1.15">'+big+'</div><div style="font-size:8.5px;letter-spacing:1.1px;font-weight:700;text-transform:uppercase;color:'+(dark?'rgba(255,255,255,.6)':MUT)+';margin-top:7px">'+l1+'</div>'+(l2?'<div style="font-size:9.5px;color:'+(dark?'rgba(255,255,255,.75)':MUT)+';margin-top:3px">'+l2+'</div>':'')+'</div>';};
+  var kpi=function(big,l1,sub){return '<div style="border:1px solid '+LINE+';border-top:3px solid '+GOLD+';border-radius:8px;padding:14px 13px;background:#fff"><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:18px;color:'+AC+';line-height:1.15">'+big+'</div><div style="font-size:8.5px;letter-spacing:1.1px;font-weight:700;text-transform:uppercase;color:'+MUT+';margin-top:7px">'+l1+'</div>'+(sub?'<div style="font-size:9.5px;color:'+MUT+';margin-top:3px">'+sub+'</div>':'')+'</div>';};
+  var partyBox=function(lbl,name,l2,l3){return '<div style="flex:1;border:1px solid '+LINE+';border-radius:9px;padding:15px 16px"><div style="font-size:8.5px;letter-spacing:1.4px;font-weight:700;color:'+GOLD+';text-transform:uppercase">'+lbl+'</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:14px;color:'+INK+';margin-top:7px">'+name+'</div>'+(l2?'<div style="font-size:10px;color:'+MUT+';margin-top:4px;line-height:1.5">'+l2+'</div>':'')+(l3?'<div style="font-size:10px;color:'+MUT+';line-height:1.5">'+l3+'</div>':'')+'</div>';};
+
+  // ── COPERTĂ ──
+  var kicker=hasPV?(bessIncl?'Ofertă tehnico-economică · Sistem fotovoltaic cu stocare (PV + BESS)':'Ofertă tehnico-economică · Sistem fotovoltaic'):'Ofertă tehnico-economică · Sistem de stocare a energiei (BESS)';
+  var descParts=[];
+  if(hasPV) descParts.push('sistem fotovoltaic nou de '+fmt(r.kwp,2)+' kWp ('+r.numPanouri+' module'+(panelStrOf?' · '+esc(panelStrOf):'')+')');
+  if(bessIncl&&bessKwhV>0) descParts.push((hasPV?'stocare':'sistem de stocare')+' în baterii LFP de '+fmt0(bessKwhV)+' kWh');
+  if(r.existingKwp>0) descParts.push('integrare cu instalația fotovoltaică existentă de '+fmt(r.existingKwp,1)+' kWp, fără modificarea acesteia');
+  var coverDesc=(descParts.length?(descParts.join(' · ').charAt(0).toUpperCase()+descParts.join(' · ').slice(1)+'. '):'')+'Soluție EPC completă „la cheie": proiectare, furnizare echipamente, montaj, testare și punere în funcțiune.';
+  var chips=[];
+  if(isRetrofit) chips.push('AC-coupled · retrofit fără modificare PV');
+  if(hasPV) chips.push('EPC „la cheie" · proiectare → montaj → PIF');
+  if(bessIncl) chips.push('Baterii LFP · siguranță ridicată');
+  if(stsIncl) chips.push('Backup STS · alimentare de rezervă');
+  chips.push('Monitorizare & management centralizat');
+  chips=chips.slice(0,3);
+  var chipsHTML=chips.map(function(c){return '<span style="display:inline-flex;align-items:center;gap:8px;border:1px solid '+LINE+';background:'+SOFT+';border-radius:999px;padding:8px 16px;font-size:11px;font-weight:600;color:'+AC+'"><span style="width:7px;height:7px;border-radius:50%;background:'+GOLD+'"></span>'+esc(c)+'</span>';}).join('');
+  var heroStats=
+    (hasPV?stat(fmt(r.kwp,2)+' kWp','Putere instalată',r.numPanouri+' panouri'+(r.existingKwp>0?' · +'+fmt(r.existingKwp,1)+' kWp existent':'')):stat(fmt0(bessKwhV)+' kWh','Stocare totală','baterii LFP'))+
+    (hasPV?stat(fmt0(r.prodAn1)+' kWh','Producție an 1',fmt0(r.yieldSpec)+' kWh/kWp/an'):stat(lei0(brutTotal1),'Reducere factură · an 1',eurA(brutTotal1)))+
+    stat(lei0(capexTotal),'Fără TVA',eurA(capexTotal)+' · cu TVA: '+lei0(capexTotalTva))+
+    stat(paybackStr,'Perioadă de amortizare','ROI '+fmt0(r.roiPct)+'% în '+durata+' ani',true);
+  var cover='<div class="page" style="display:flex;flex-direction:column">'+
     '<div style="background:'+AC+';color:#fff;padding:22px 18mm 18px;display:flex;justify-content:space-between;align-items:flex-start">'+
-      '<div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:21px;letter-spacing:.5px;line-height:1">'+esc(firma.toUpperCase())+'</div><div style="font-size:9.5px;letter-spacing:2.5px;color:rgba(255,255,255,.62);margin-top:7px;font-weight:500">EPC CONTRACTOR · ENERGIE REGENERABILĂ</div></div>'+
-      '<div style="text-align:right;font-size:10px;color:rgba(255,255,255,.78);line-height:1.7"><div>Nr. ofertă: <strong style="color:#fff">'+esc(nrOferta)+'</strong></div>'+(dataOferta?'<div>Data: '+esc(dataOferta)+'</div>':'')+(validUntil?'<div>Valabilă până la: '+esc(validUntil)+'</div>':'')+'</div>'+
+      '<div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:21px;letter-spacing:.5px;line-height:1">'+esc(firma.toUpperCase())+'</div><div style="font-size:9.5px;letter-spacing:2.2px;color:rgba(255,255,255,.62);margin-top:7px;font-weight:500">EPC · FOTOVOLTAIC · STOCARE · ANRE A3/E1/E2</div></div>'+
+      '<div style="text-align:right;font-size:10px;color:rgba(255,255,255,.78);line-height:1.8"><div style="letter-spacing:1.2px;font-weight:600">ISO 9001 · 14001 · 45001 · 27001</div><div>Nr. ofertă: <strong style="color:#fff">'+esc(nrOferta)+'</strong></div></div>'+
     '</div><div style="height:3px;background:'+GOLD+'"></div>'+
     '<div style="padding:0 18mm;flex:1;display:flex;flex-direction:column">'+
-      '<div style="margin-top:26px"><span style="font-size:11px;color:'+MUT+'">Document orientativ — valori supuse confirmării în oferta finală</span></div>'+
-      '<div style="margin-top:30px;border-left:3px solid '+GOLD+';padding-left:16px"><div style="font-size:11px;letter-spacing:2px;color:'+MUT+';font-weight:600;text-transform:uppercase">Ofertă tehnico-economică pentru</div><div style="font-family:Archivo,sans-serif;font-weight:700;font-size:24px;color:'+INK+';margin-top:5px">'+esc(clientDisp)+'</div></div>'+
-      '<h1 style="font-family:Archivo,sans-serif;font-weight:800;font-size:33px;line-height:1.12;color:'+AC+';margin:30px 0 8px;letter-spacing:-.5px">'+esc(sysTitle)+'</h1>'+
-      '<p style="font-size:13px;color:'+MUT+';margin:0;max-width:150mm;line-height:1.55">Soluție EPC completă „la cheie": proiectare, aprovizionare echipamente, instalare, testare și punere în funcțiune.</p>'+
-      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:30px">'+
-        (r.kwp>0
-          ? '<div style="background:'+SOFT+';border:1px solid '+LINE+';border-top:3px solid '+GOLD+';border-radius:8px;padding:15px 14px"><div style="font-size:8.5px;letter-spacing:1.3px;color:'+MUT+';font-weight:700;text-transform:uppercase">Putere instalată</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:23px;color:'+AC+';margin-top:8px">'+fmt(r.kwp,2)+'<span style="font-size:13px;font-weight:600"> kWp</span></div><div style="font-size:10px;color:'+MUT+';margin-top:5px">'+r.numPanouri+' panouri</div></div>'
-          : '<div style="background:'+SOFT+';border:1px solid '+LINE+';border-top:3px solid '+GOLD+';border-radius:8px;padding:15px 14px"><div style="font-size:8.5px;letter-spacing:1.3px;color:'+MUT+';font-weight:700;text-transform:uppercase">Capacitate stocare</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:23px;color:'+AC+';margin-top:8px">'+fmt0(getVal('bessKwh'))+'<span style="font-size:13px;font-weight:600"> kWh</span></div><div style="font-size:10px;color:'+MUT+';margin-top:5px">baterie BESS</div></div>')+
-        (r.kwp>0
-          ? '<div style="background:'+SOFT+';border:1px solid '+LINE+';border-top:3px solid '+GOLD+';border-radius:8px;padding:15px 14px"><div style="font-size:8.5px;letter-spacing:1.3px;color:'+MUT+';font-weight:700;text-transform:uppercase">Producție An 1</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:23px;color:'+AC+';margin-top:8px">'+fmt0(r.prodAn1)+'<span style="font-size:13px;font-weight:600"> kWh</span></div><div style="font-size:10px;color:'+MUT+';margin-top:5px">yield '+fmt0(r.yieldSpec)+' kWh/kWp/an</div></div>'
-          : '<div style="background:'+SOFT+';border:1px solid '+LINE+';border-top:3px solid '+GOLD+';border-radius:8px;padding:15px 14px"><div style="font-size:8.5px;letter-spacing:1.3px;color:'+MUT+';font-weight:700;text-transform:uppercase">Reducere factură</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:23px;color:'+AC+';margin-top:8px">'+fmt0(r.economiiAn1+r.bessRevAn1)+'<span style="font-size:13px;font-weight:600"> lei/an</span></div><div style="font-size:10px;color:'+MUT+';margin-top:5px">estimat an 1</div></div>')+
-        '<div style="background:'+SOFT+';border:1px solid '+LINE+';border-top:3px solid '+GOLD+';border-radius:8px;padding:15px 14px"><div style="font-size:8.5px;letter-spacing:1.3px;color:'+MUT+';font-weight:700;text-transform:uppercase">CAPEX (fără TVA)</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:17px;color:'+AC+';margin-top:9px">'+(ronShow?fmt0(capexTotal*curs)+' lei':'€ '+fmt(capexTotal))+'</div><div style="font-size:10px;color:'+MUT+';margin-top:5px">€ '+fmt(capexTotal)+' fără TVA</div></div>'+
-        '<div style="background:'+AC+';border-top:3px solid '+GOLD+';border-radius:8px;padding:15px 14px"><div style="font-size:8.5px;letter-spacing:1.3px;color:rgba(255,255,255,.55);font-weight:700;text-transform:uppercase">Payback simplu</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:23px;color:#fff;margin-top:8px">'+paybackStr+'</div><div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:5px">ROI '+fmt0(r.roiPct)+'% în '+durata+' ani</div></div>'+
+      '<div style="margin-top:26px;font-size:10.5px;letter-spacing:1.8px;font-weight:700;color:'+MUT+';text-transform:uppercase;border-left:3px solid '+GOLD+';padding-left:12px">'+kicker+'</div>'+
+      '<h1 style="font-family:Archivo,sans-serif;font-weight:800;font-size:33px;line-height:1.12;color:'+AC+';margin:22px 0 10px;letter-spacing:-.5px">'+esc(sysTitle)+'</h1>'+
+      '<p style="font-size:12.5px;color:'+MUT+';margin:0;max-width:158mm;line-height:1.6">'+coverDesc+'</p>'+
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px">'+chipsHTML+'</div>'+
+      '<div style="display:flex;gap:14px;margin-top:24px">'+
+        partyBox('Beneficiar',esc(clientDisp),esc(clientCUI),esc(clientAdresa))+
+        partyBox('Furnizor / Executant EPC',esc(firma),esc([firmaCUI?('CUI '+firmaCUI):'',firmaRegCom].filter(Boolean).join(' · ')),esc(firmaAdresa))+
       '</div>'+
-      '<div style="display:flex;margin-top:22px;border:1px solid '+LINE+';border-radius:9px;overflow:hidden">'+
-        '<div style="flex:1;padding:18px 22px;border-right:1px solid '+LINE+'"><div style="font-size:10px;letter-spacing:1px;color:'+MUT+';font-weight:600;text-transform:uppercase">Valoare ofertă · fără TVA</div><div style="font-family:Archivo,sans-serif;font-weight:700;font-size:20px;color:'+INK+';margin-top:6px">'+(ronShow?fmt(capexTotal*curs)+' lei':'€ '+fmt(capexTotal))+'</div><div style="font-size:11px;color:'+MUT+';margin-top:2px">€ '+fmt(capexTotal)+'</div></div>'+
-        '<div style="flex:1;padding:18px 22px;background:'+SOFT+'"><div style="font-size:10px;letter-spacing:1px;color:'+AC+';font-weight:700;text-transform:uppercase">Valoare totală · cu TVA</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:22px;color:'+AC+';margin-top:6px">'+(ronShow?fmt(capexTotalTva*curs)+' lei':'€ '+fmt(capexTotalTva))+'</div><div style="font-size:11px;color:'+MUT+';margin-top:2px">€ '+fmt(capexTotalTva)+(ronShow?' · curs '+fmt(curs,4)+' RON/EUR':'')+'</div></div>'+
-      '</div>'+
+      '<div style="margin-top:16px;background:'+SOFT+';border:1px solid '+LINE+';border-radius:8px;padding:11px 16px;text-align:center;font-size:10.5px;letter-spacing:1px;font-weight:700;color:'+AC+';text-transform:uppercase">Data ofertei: '+esc(dataOferta||'—')+' &nbsp;·&nbsp; Valabilitate: '+fmt0(getVal('valabilitate')||30)+' zile'+(validUntil?' (până la '+esc(validUntil)+')':'')+'</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px">'+heroStats+'</div>'+
       foot(1)+'</div></div>';
 
-  var p2='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
-    '<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid '+AC+';padding-bottom:9px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+AC+';margin:0">Centralizator valoric</h2><span style="font-size:10px;color:'+MUT+'">'+(ronShow?'EUR și RON · curs '+fmt(curs,4):'Valori în EUR')+'</span></div>'+
-    '<table style="width:100%;border-collapse:collapse;margin-top:18px;font-size:11.5px"><thead><tr style="color:'+MUT+';font-size:9px;letter-spacing:1px;text-transform:uppercase"><th style="text-align:left;padding:0 0 8px;font-weight:700">Descriere</th><th style="text-align:right;padding:0 0 8px;font-weight:700">RON (fără TVA)</th><th style="text-align:right;padding:0 0 8px;font-weight:700">EUR (fără TVA)</th></tr></thead><tbody>'+costRowsHTML+
-      '<tr style="background:'+SOFT+'"><td style="padding:11px 8px;font-weight:700;color:'+AC+'">TVA ('+fmt0(getVal("tva"))+'%)</td><td style="padding:11px 0;text-align:right;font-weight:700;color:'+AC+'">'+ronTxt(tvaAmount)+'</td><td style="padding:11px 8px;text-align:right;color:'+MUT+'">€ '+fmt(tvaAmount)+'</td></tr>'+
-      '<tr style="background:'+AC+';color:#fff"><td style="padding:14px 8px;font-family:Archivo,sans-serif;font-weight:700;font-size:13px">TOTAL GENERAL CU TVA</td><td style="padding:14px 0;text-align:right;font-family:Archivo,sans-serif;font-weight:800;font-size:15px">'+(ronShow?fmt(capexTotalTva*curs)+' lei':'€ '+fmt(capexTotalTva))+'</td><td style="padding:14px 8px;text-align:right;font-weight:600;color:rgba(255,255,255,.8)">€ '+fmt(capexTotalTva)+'</td></tr>'+
-    '</tbody></table>'+
-    '<h3 style="font-family:Archivo,sans-serif;font-weight:700;font-size:13px;color:'+INK+';margin:34px 0 14px">Distribuția investiției</h3>'+
-    '<div style="display:flex;height:34px;border-radius:6px;overflow:hidden;border:1px solid '+LINE+'">'+segBar+'</div>'+
-    '<div style="display:flex;flex-wrap:wrap;gap:18px;margin-top:14px">'+segLeg+'</div>'+
-    '<h3 style="font-family:Archivo,sans-serif;font-weight:700;font-size:13px;color:'+INK+';margin:34px 0 14px">Grafic de plăți (raportat la total cu TVA)</h3>'+
-    '<div style="display:flex;gap:10px">'+transeHTML+'</div>'+
+  // ── 01 · REZUMAT EXECUTIV ──
+  var energyKpi=hasPV?kpi(fmt0(r.prodAn1/1000)+' MWh','Producție PV · an 1',fmt0(r.yieldSpec)+' kWh/kWp/an'):kpi('~'+fmt(enMutata/1000,1)+' MWh','Energie mutată în autoconsum · an 1',fmt0(getVal('bessCicluriAn')||300)+' cicluri/an');
+  var howTxt=bessIncl
+    ?((r.existingKwp>0?'Centrala existentă de '+fmt(r.existingKwp,1)+' kWp':'Sistemul fotovoltaic')+' produce cel mai mult la mijlocul zilei — adesea peste consumul instantaneu. Surplusul este astăzi injectat în rețea la preț mic. Bateriile preiau acest surplus și îl restituie seara și în vârfurile de consum, când energia din rețea este scumpă. Fiecare kWh mutat din injecție în autoconsum aduce diferența de preț direct în factura dvs. — motorul economic al investiției.')
+    :'Sistemul fotovoltaic produce energie exact în intervalul orar cu cel mai mare consum. Fiecare kWh produs și consumat local înlocuiește un kWh cumpărat din rețea la preț întreg, iar surplusul este valorificat prin injecție — factura scade din prima lună de funcționare.';
+  var flowNodes=[];
+  if(r.existingKwp>0) flowNodes.push('PV existent<br>'+fmt(r.existingKwp,1)+' kWp');
+  if(hasPV) flowNodes.push('PV nou<br>'+fmt(r.kwp,2)+' kWp');
+  if(!flowNodes.length) flowNodes.push('Rețea / PV');
+  flowNodes.push(bessIncl?'Invertoare<br>hibride':'Invertoare');
+  if(bessIncl&&bessKwhV>0) flowNodes.push('Baterii LFP<br>'+fmt0(bessKwhV)+' kWh');
+  flowNodes.push('Consumatori');
+  var flowHTML=flowNodes.map(function(n,i){return (i?'<div style="color:'+GOLD+';font-weight:800;font-size:15px">→</div>':'')+'<div style="flex:1;border:1px solid '+LINE+';background:'+SOFT+';border-radius:8px;padding:10px 5px;text-align:center;font-size:9.5px;font-weight:700;color:'+AC+';line-height:1.4">'+n+'</div>';}).join('');
+  var adv=[];
+  if(bessIncl) adv.push(['Autoconsum maximizat','Surplusul PV din mijlocul zilei este stocat și consumat seara — factură redusă, injecție minimă.']);
+  if(isRetrofit) adv.push(['Retrofit AC-coupled','Se montează pe instalația existentă, fără reproiectare sau întreruperea producției.']);
+  if(hasPV) adv.push(['Soluție EPC „la cheie"','Proiectare, echipamente, montaj și PIF — un singur partener responsabil, un singur contract.']);
+  adv.push(['Management & monitorizare','Strategie de autoconsum'+(bessIncl?' + peak-shaving':'')+', monitorizare locală și cloud, rapoarte de energie.']);
+  adv=adv.slice(0,3);
+  var advHTML=adv.map(function(a){return '<div style="margin-top:14px;background:#fff;border:1px solid '+LINE+';border-radius:8px;padding:12px 14px"><div style="font-size:11.5px;font-weight:800;color:'+AC+'">'+a[0]+'</div><div style="font-size:10px;color:'+MUT+';line-height:1.55;margin-top:4px">'+a[1]+'</div></div>';}).join('');
+  var s01='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
+    secHead('01','Rezumat executiv','Investiția, energia valorificată și randamentul dintr-o privire')+
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-top:16px">'+
+      kpi(lei0(capexTotal),'Investiție fără TVA',eurA(capexTotal)+' · cu TVA: '+lei0(capexTotalTva))+
+      energyKpi+
+      kpi(lei0(netTotal1),'Economie netă · an 1',(ronShow?eurA(netTotal1)+' / an':'după O&M'))+
+      kpi(lei0(r.finalValue),'Beneficiu net cumulat · '+durata+' ani',eurA(r.finalValue))+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:1.15fr 1fr;gap:16px;margin-top:20px;flex:1">'+
+      '<div style="border:1px solid '+LINE+';border-radius:10px;padding:16px 18px;display:flex;flex-direction:column">'+
+        '<div style="font-family:Archivo,sans-serif;font-weight:800;font-size:13px;color:'+AC+'">Cum lucrează sistemul pentru dvs.</div>'+
+        '<p style="font-size:11.5px;color:'+INK+';line-height:1.65;margin:10px 0 0">'+howTxt+'</p>'+
+        '<div style="flex:1"></div>'+
+        '<div style="display:flex;align-items:center;gap:7px;margin-top:16px">'+flowHTML+'</div>'+
+        '<div style="text-align:center;font-size:9px;letter-spacing:1.6px;font-weight:800;color:'+GOLD+';margin-top:10px">'+(bessIncl?'AUTOCONSUM MAXIMIZAT':'ENERGIE PROPRIE · FACTURĂ REDUSĂ')+'</div>'+
+      '</div>'+
+      '<div style="border:1px solid '+LINE+';border-radius:10px;padding:16px 18px;background:'+SOFT+'">'+
+        '<div style="font-family:Archivo,sans-serif;font-weight:800;font-size:13px;color:'+AC+'">Avantaje decisive</div>'+advHTML+
+      '</div>'+
+    '</div>'+
     foot(2)+'</div>';
 
-  var p3='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
-    '<div style="border-bottom:2px solid '+AC+';padding-bottom:9px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+AC+';margin:0">Analiză financiară</h2></div>'+
-    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px">'+
-      '<div style="border:1px solid '+LINE+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Economii anuale (An 1)</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:21px;color:'+AC+';margin-top:8px">'+(ronShow?fmt0(r.economiiAn1*curs)+' lei':'€ '+fmt(r.economiiAn1))+'</div><div style="font-size:10px;color:'+MUT+';margin-top:4px">'+(ronShow?'€ '+fmt(r.economiiAn1)+' /an · brut':'brut, înainte de O&M')+'</div></div>'+
-      '<div style="border:1px solid '+LINE+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Autoconsumție</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:21px;color:'+AC+';margin-top:8px">'+Math.round(r.effAutoconsum*100)+'%</div><div style="font-size:10px;color:'+MUT+';margin-top:4px">'+(bessIncl?'cu stocare BESS':'fără stocare')+'</div></div>'+
-      '<div style="border:1px solid '+LINE+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Payback simplu</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:21px;color:'+AC+';margin-top:8px">'+paybackStr+'</div><div style="font-size:10px;color:'+MUT+';margin-top:4px">recuperare investiție</div></div>'+
-      '<div style="border:1px solid '+LINE+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">ROI total ('+durata+' ani)</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:21px;color:'+AC+';margin-top:8px">'+fmt0(r.roiPct)+'%</div><div style="font-size:10px;color:'+MUT+';margin-top:4px">randament total</div></div>'+
-      '<div style="border:1px solid '+LINE+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">O&M anual</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:21px;color:'+AC+';margin-top:8px">'+(ronShow?fmt0(om*curs)+' lei':'€ '+fmt0(om))+'</div><div style="font-size:10px;color:'+MUT+';margin-top:4px">mentenanță / an</div></div>'+
-      '<div style="border:1px solid '+AC+';background:'+SOFT+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+AC+';font-weight:700;text-transform:uppercase">Valoare netă · '+durata+' ani</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:21px;color:'+AC+';margin-top:8px">'+(ronShow?fmt0(r.finalValue*curs)+' lei':'€ '+fmt(r.finalValue))+'</div><div style="font-size:10px;color:'+MUT+';margin-top:4px">€ '+fmt(r.finalValue)+'</div></div>'+
+  // ── 02 · SISTEMUL PROPUS ──
+  var chip2=function(big,sub){return '<div style="border:1px solid '+LINE+';border-radius:8px;padding:12px;background:#fff"><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:16px;color:'+AC+';line-height:1.15">'+big+'</div><div style="font-size:8.5px;letter-spacing:1px;font-weight:700;text-transform:uppercase;color:'+MUT+';margin-top:5px">'+sub+'</div></div>';};
+  var s02chipsArr=[];
+  if(hasPV){ s02chipsArr.push([fmt(r.kwp,2)+' kWp','Putere instalată DC']); s02chipsArr.push([r.numPanouri+' buc','Module fotovoltaice']); }
+  if(bessIncl&&bessKwhV>0){ s02chipsArr.push([fmt0(bessKwhV)+' kWh','Capacitate stocare']); s02chipsArr.push(['LFP','Chimie LiFePO₄ · sigură']); }
+  if(invStrOf) s02chipsArr.push([esc(invStrOf),'Invertor'+(bessIncl?' hibrid':'')]);
+  s02chipsArr.push([fmt0(getVal('garantiePanouri')||0)+' / '+fmt0(getVal('garantieInvertor')||0)+' ani','Garanții panouri / invertoare']);
+  var s02chips=s02chipsArr.slice(0,4).map(function(c){return chip2(c[0],c[1]);}).join('');
+  var cfgRows=[];
+  if(hasPV) cfgRows.push(['Module fotovoltaice'+(panelStrOf?' · '+panelStrOf:''),r.numPanouri+' buc · '+fmt(r.kwp,2)+' kWp']);
+  if(r.existingKwp>0) cfgRows.push(['Instalație PV existentă'+(r.existingInvertor?' · '+r.existingInvertor:''),fmt(r.existingKwp,1)+' kWp'+(r.existingProductie>0?' · '+fmt0(r.existingProductie)+' kWh/an':'')]);
+  cfgRows.push(['Invertor'+(bessIncl?' hibrid':' trifazic')+(invStrOf?' · '+invStrOf:''),'inclus']);
+  if(bessIncl&&bessKwhV>0) cfgRows.push(['Baterie LFP (LiFePO₄)',fmt0(bessKwhV)+' kWh']);
+  if(stsIncl) cfgRows.push(['Stație Transformare & Siguranță (STS)','inclusă']);
+  cfgRows.push(['Protecții AC · tablou · cablare','incluse']);
+  cfgRows.push(['Montaj & punere în funcțiune','inclus']);
+  cfgRows.push(['Monitorizare locală & cloud','inclusă']);
+  var cfgHTML=cfgRows.map(function(rw){return '<tr style="border-bottom:1px solid '+LINE+'"><td style="padding:9px 10px;font-size:11px;color:'+INK+';font-weight:500">'+esc(rw[0])+'</td><td style="padding:9px 10px;text-align:right;font-size:11px;font-weight:700;color:'+AC+';white-space:nowrap">'+esc(rw[1])+'</td></tr>';}).join('');
+  var feat=bessIncl?[
+    ['Management energetic (EMS)','Decide automat când se încarcă și se descarcă bateriile, după producție, consum și tarife.'],
+    ['Strategie autoconsum + peak-shaving','Reduce vârfurile de putere absorbită din rețea și maximizează consumul propriei energii.'],
+    ['Monitorizare locală & cloud','Vizualizare în timp real, alarme și rapoarte de energie.'],
+    ['Siguranță prin construcție','Chimie LFP stabilă termic, fără cobalt, protecții dedicate conform normativelor în vigoare.']
+  ]:[
+    ['Proiectare & inginerie','Dimensionare, scheme electrice și documentație tehnică completă.'],
+    ['Montaj profesional','Echipe proprii, structuri certificate și execuție conform normativelor în vigoare.'],
+    ['Punere în funcțiune & teste','Verificări, măsurători PIF și instruirea beneficiarului.'],
+    ['Monitorizare & suport','Platformă de monitorizare, alarme și rapoarte de producție.']
+  ];
+  var featHTML=feat.map(function(f){return '<div style="margin-top:12px"><div style="font-size:11px;font-weight:800;color:'+AC+'">'+f[0]+'</div><div style="font-size:10px;color:'+MUT+';line-height:1.55;margin-top:3px">'+f[1]+'</div></div>';}).join('');
+  var safeTxt=bessIncl
+    ?'Siguranță prin construcție: baterii cu chimie LFP (LiFePO₄) — stabilă termic, fără cobalt — plus protecții AC dedicate, tablou și cablare locală, dimensionate conform normativelor în vigoare.'
+    :'Calitate prin construcție: echipamente de la producători consacrați, protecții dedicate, tablou și cablare dimensionate conform normativelor în vigoare, execuție cu echipe proprii atestate.';
+  var s02Title=hasPV?('Sistemul fotovoltaic propus'+(bessIncl?' + stocare':'')):'Sistemul de stocare AC-coupled';
+  var s02Sub=bessIncl?'Baterii LFP · invertoare hibride · protecții dedicate · montaj și PIF incluse':'Echipamente premium · protecții dedicate · montaj și PIF incluse';
+  var s02='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
+    secHead('02',s02Title,s02Sub)+
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-top:16px">'+s02chips+'</div>'+
+    '<div style="margin-top:14px;background:'+SOFT+';border:1px solid '+LINE+';border-left:4px solid '+GOLD+';border-radius:8px;padding:12px 16px;font-size:10.5px;color:'+INK+';line-height:1.6">'+safeTxt+'</div>'+
+    '<div style="display:grid;grid-template-columns:1.1fr 1fr;gap:16px;margin-top:18px;flex:1;align-items:start">'+
+      '<div style="border:1px solid '+LINE+';border-radius:10px;padding:14px 16px"><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:13px;color:'+AC+';margin-bottom:6px">Configurația sistemului</div><table style="width:100%;border-collapse:collapse"><tbody>'+cfgHTML+'</tbody></table></div>'+
+      '<div style="border:1px solid '+LINE+';border-radius:10px;padding:14px 16px;background:'+SOFT+'"><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:13px;color:'+AC+'">'+(bessIncl?'Management & control':'Soluția EPC include')+'</div>'+featHTML+'</div>'+
     '</div>'+
-    '<h3 style="font-family:Archivo,sans-serif;font-weight:700;font-size:13px;color:'+INK+';margin:30px 0 6px">Ipoteze de calcul</h3>'+
-    '<table style="width:100%;border-collapse:collapse;font-size:11.5px"><tbody>'+ipotezeHTML+'</tbody></table>'+
     foot(3)+'</div>';
 
-  var p4='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
-    '<div style="border-bottom:2px solid '+AC+';padding-bottom:9px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+AC+';margin:0">Proiecție cash-flow cumulat — '+durata+' ani</h2></div>'+
-    '<p style="font-size:12px;color:'+MUT+';margin:14px 0 0;line-height:1.55">Evoluția cash-flow-ului cumulat: de la investiția inițială (CAPEX negativ) până la valoarea netă finală. Linia depășește pragul zero în punctul de payback.</p>'+
-    '<div style="margin-top:22px;border:1px solid '+LINE+';border-radius:9px;padding:18px 16px 10px;background:#fcfcfd"><svg viewBox="0 0 1000 320" style="width:100%;height:auto" preserveAspectRatio="xMidYMid meet">'+cfGrid+'<path d="'+cfArea+'" fill="'+AC+'" fill-opacity="0.08"></path><line x1="60" y1="'+cfZeroY+'" x2="980" y2="'+cfZeroY+'" stroke="#c0392b" stroke-width="1.4" stroke-dasharray="5 4"></line>'+cfPay+'<polyline points="'+cfPoints+'" fill="none" stroke="'+AC+'" stroke-width="2.6" stroke-linejoin="round"></polyline>'+cfXlab+cfYlab+'</svg></div>'+
-    '<div style="display:flex;gap:24px;margin-top:18px"><div style="display:flex;align-items:center;gap:8px"><span style="width:18px;height:3px;background:'+AC+';border-radius:2px"></span><span style="font-size:11px;color:'+MUT+'">Cash-flow cumulat</span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:18px;border-top:2px dashed #c0392b"></span><span style="font-size:11px;color:'+MUT+'">Prag recuperare investiție</span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:11px;height:11px;border-radius:50%;background:'+GOLD+'"></span><span style="font-size:11px;color:'+MUT+'">Punct payback · '+paybackStr+'</span></div></div>'+
-    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:26px">'+
-      '<div style="background:'+SOFT+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Investiție inițială</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:19px;color:'+AC+';margin-top:7px">€ '+fmt(capexTotal)+'</div></div>'+
-      '<div style="background:'+SOFT+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Recuperare la</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:19px;color:'+AC+';margin-top:7px">'+paybackStr+'</div></div>'+
-      '<div style="background:'+SOFT+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Valoare netă finală</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:19px;color:'+AC+';margin-top:7px">€ '+fmt(r.finalValue)+'</div></div>'+
-    '</div>'+foot(4)+'</div>';
+  // ── 03 · DEVIZ — CAPITOLE DE LUCRĂRI ──
+  var s03th=function(t,align){return '<th style="text-align:'+(align||'left')+';padding:10px 10px;font-weight:700;font-size:9px;letter-spacing:1px;text-transform:uppercase">'+t+'</th>';};
+  var s03rows='', devTotal=0;
+  if(dvRows.length){
+    var lastG='',gSub=0;
+    var subRow=function(){ if(lastG){ s03rows+='<tr style="background:#f3f6fb"><td colspan="3" style="padding:8px 10px;font-weight:800;font-size:10px;color:'+AC+'">Subtotal '+esc(lastG)+'</td><td style="padding:8px 10px;text-align:right;font-weight:800;font-size:10.5px;color:'+AC+'">'+fmt0(gSub)+'</td><td style="padding:8px 10px;text-align:right;font-weight:600;font-size:10px;color:'+MUT+'">'+(curs>0?fmt0(gSub/curs):'—')+'</td></tr>'; } };
+    dvRows.forEach(function(x){
+      var val=devizNum(x.cant)*devizNum(x.pret);
+      if(x.grup&&x.grup!==lastG){ subRow(); lastG=x.grup; gSub=0; s03rows+='<tr><td colspan="5" style="padding:12px 10px 6px;font-weight:800;font-size:10px;letter-spacing:.6px;color:'+GOLD+';text-transform:uppercase">'+esc(x.grup)+'</td></tr>'; }
+      gSub+=val; devTotal+=val;
+      s03rows+='<tr style="border-bottom:1px solid '+LINE+'"><td style="padding:8px 10px;font-size:10.5px;color:'+INK+'">'+esc(x.capitol||'')+'</td><td style="padding:8px 6px;text-align:center;font-size:10px;color:'+MUT+'">'+esc(x.um||'—')+'</td><td style="padding:8px 6px;text-align:right;font-size:10px;color:'+MUT+'">'+((x.cant!==''&&x.cant!=null)?esc(String(x.cant)):'—')+'</td><td style="padding:8px 10px;text-align:right;font-size:10.5px;font-weight:700;color:'+INK+'">'+(val?fmt0(val):'—')+'</td><td style="padding:8px 10px;text-align:right;font-size:10px;color:'+MUT+'">'+(val&&curs>0?fmt0(val/curs):'—')+'</td></tr>';
+    });
+    subRow();
+  } else {
+    costDefs.filter(function(c){return c[1]>0;}).forEach(function(c){
+      var valR=c[1]*(curs||1); devTotal+=valR;
+      s03rows+='<tr style="border-bottom:1px solid '+LINE+'"><td style="padding:9px 10px;font-size:10.5px;color:'+INK+'">'+esc(c[0])+'</td><td style="padding:9px 6px;text-align:center;font-size:10px;color:'+MUT+'">set</td><td style="padding:9px 6px;text-align:right;font-size:10px;color:'+MUT+'">1</td><td style="padding:9px 10px;text-align:right;font-size:10.5px;font-weight:700;color:'+INK+'">'+(ronShow?fmt0(valR):'—')+'</td><td style="padding:9px 10px;text-align:right;font-size:10px;color:'+MUT+'">'+fmt0(c[1])+'</td></tr>';
+    });
+  }
+  var devTvaV=devTotal*(getVal('tva')||0)/100, devTotTva=devTotal+devTvaV;
+  var s03totals='<tr style="background:'+SOFT+'"><td colspan="3" style="padding:11px 10px;font-weight:800;font-size:11px;color:'+AC+'">TOTAL fără TVA</td><td style="padding:11px 10px;text-align:right;font-weight:800;font-size:12px;color:'+AC+'">'+fmt0(devTotal)+'</td><td style="padding:11px 10px;text-align:right;font-weight:700;font-size:10.5px;color:'+MUT+'">'+(curs>0?'≈ '+fmt0(devTotal/curs)+' €':'—')+'</td></tr>'+
+    '<tr style="border-bottom:1px solid '+LINE+'"><td colspan="3" style="padding:9px 10px;font-weight:600;font-size:10.5px;color:'+MUT+'">TVA '+fmt0(getVal('tva'))+'%</td><td style="padding:9px 10px;text-align:right;font-weight:700;font-size:10.5px;color:'+INK+'">'+fmt0(devTvaV)+'</td><td style="padding:9px 10px;text-align:right;font-size:10px;color:'+MUT+'">'+(curs>0?'≈ '+fmt0(devTvaV/curs)+' €':'—')+'</td></tr>'+
+    '<tr style="background:'+AC+';color:#fff"><td colspan="3" style="padding:13px 10px;font-family:Archivo,sans-serif;font-weight:800;font-size:12px">TOTAL GENERAL cu TVA</td><td style="padding:13px 10px;text-align:right;font-family:Archivo,sans-serif;font-weight:800;font-size:14px;color:'+GOLD+'">'+fmt0(devTotTva)+' RON</td><td style="padding:13px 10px;text-align:right;font-weight:700;font-size:10.5px;color:rgba(255,255,255,.8)">'+(curs>0?'≈ '+fmt0(devTotTva/curs)+' €':'—')+'</td></tr>';
+  var garanTxt=(hasPV?('panouri '+fmt0(getVal('garantiePanouri')||0)+' ani · '):'')+'invertoare '+fmt0(getVal('garantieInvertor')||0)+' ani'+(bessIncl?' · baterii conform specificației producătorului':'')+' · lucrări de montaj 24 luni';
+  var s03note='* Valorile pe capitole sunt exprimate în RON, fără TVA'+(curs>0?', la curs de referință 1 € = '+fmt(curs,4)+' RON':'')+'. Condiții de plată: '+fmt0(avansPct)+'% avans · '+fmt0(transa2Pct)+'% la livrare · '+fmt0(transa3Pct)+'% la PIF. Garanții: '+garanTxt+'. Termenul de execuție se confirmă la contractare. Nu include lucrări civile neprevăzute sau taxe/avize ale operatorului de distribuție.';
+  var s03='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
+    secHead('03','Deviz — capitole de lucrări','Soluție completă „la cheie" — furnizare, montaj și punere în funcțiune')+
+    '<table style="width:100%;border-collapse:collapse;margin-top:14px"><thead><tr style="background:'+AC+';color:#fff">'+s03th('Capitol de lucrări')+s03th('UM','center')+s03th('Cant.','right')+s03th('Valoare (RON)','right')+s03th('≈ EUR','right')+'</tr></thead><tbody>'+s03rows+s03totals+'</tbody></table>'+
+    '<p style="font-size:9.5px;color:'+MUT+';line-height:1.6;margin-top:12px">'+s03note+'</p>'+
+    foot(4)+'</div>';
 
-  var p5hdr='<tr style="background:'+AC+';color:#fff"><th style="text-align:left;padding:7px 6px;font-weight:600;font-size:9px">An</th><th style="text-align:right;padding:7px 6px;font-weight:600;font-size:9px">Prod. MWh</th><th style="text-align:right;padding:7px 6px;font-weight:600;font-size:9px">Ven. PV €</th>'+(bessHasArb?'<th style="text-align:right;padding:7px 6px;font-weight:600;font-size:9px">Ven. BESS €</th>':'')+'<th style="text-align:right;padding:7px 6px;font-weight:600;font-size:9px">Total € </th><th style="text-align:right;padding:7px 6px;font-weight:600;font-size:9px">O&M €</th><th style="text-align:right;padding:7px 6px;font-weight:600;font-size:9px">Net €</th><th style="text-align:right;padding:7px 6px;font-weight:600;font-size:9px">Cumulat €</th></tr>';
-  var p5='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
-    '<div style="border-bottom:2px solid '+AC+';padding-bottom:9px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+AC+';margin:0">Proiecție Financiară Anuală — '+durata+' Ani</h2></div>'+
-    '<table style="width:100%;border-collapse:collapse;margin-top:12px;font-size:9.5px"><thead>'+p5hdr+'</thead><tbody>'+amortHTML+'</tbody></table>'+
-    '<div style="display:flex;gap:20px;margin-top:14px;font-size:10px;color:'+MUT+'"><span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:#fff6e6;border:1px solid #ecd9a8"></span>An payback</span><span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:#f1f8f3"></span>Cumulat pozitiv</span></div>'+
+  // ── 04 · ANALIZĂ FINANCIARĂ ──
+  var ecoRows2=r.rows.filter(function(x){return x.an>=1;});
+  var ecoV=ecoRows2.map(function(x){return Math.max(0,x.economii)*(ronShow?curs:1);});
+  var ecoMax=Math.max.apply(null,ecoV.concat([1]));
+  var eBars='',eSlot=920/Math.max(1,ecoRows2.length);
+  ecoRows2.forEach(function(x,i){
+    var h=(ecoV[i]/ecoMax)*180, bx=60+eSlot*i+eSlot*0.18, bw=eSlot*0.64;
+    eBars+='<rect x="'+bx.toFixed(1)+'" y="'+(230-h).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(1,h).toFixed(1)+'" rx="2" fill="'+AC+'"></rect>';
+    if(x.an===1||x.an%5===0||x.an===durata) eBars+='<text x="'+(bx+bw/2).toFixed(1)+'" y="252" text-anchor="middle" font-size="12" fill="#8a94a3">'+x.an+'</text>';
+  });
+  var eY='';[ecoMax,ecoMax/2].forEach(function(v){var y=230-(v/ecoMax)*180;eY+='<line x1="60" y1="'+y.toFixed(1)+'" x2="980" y2="'+y.toFixed(1)+'" stroke="#e8ebf0" stroke-width="1"></line><text x="54" y="'+(y+4).toFixed(1)+'" text-anchor="end" font-size="12" fill="#8a94a3">'+fmt0(v/1000)+'k</text>';});
+  var s04note='Economia netă în anul 1 este estimată la '+lei0(netTotal1)+(ronShow?' ('+eurA(netTotal1)+')':'')+', după costurile anuale de operare de '+lei0(om)+'. '+(bessIncl?'Motorul economic: fiecare kWh mutat din injecție în autoconsum valorifică diferența dintre prețul energiei cumpărate și cel al injecției.':'Motorul economic: fiecare kWh produs și consumat local înlocuiește energie cumpărată din rețea la preț întreg.');
+  var ipotezeTxt=ipoteze.map(function(p){return p[0]+': '+p[1];}).join(' · ');
+  var s04='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
+    secHead('04','Analiză financiară & rentabilitate','Model pe '+durata+' ani · escaladare '+fmt(getVal('escaladare'),1)+'%/an · rată de actualizare '+rataDisc+'%')+
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-top:16px">'+
+      stat(paybackStr,'Amortizare (payback)','recuperare investiție',true)+
+      kpi(irrStr,'IRR · rată internă de rentabilitate','orizont '+durata+' ani')+
+      kpi(r.npvCalc!=null?lei0(r.npvCalc):'—','VAN (NPV) la '+rataDisc+'%',r.npvCalc!=null?eurA(r.npvCalc):'')+
+      kpi(lei0(r.finalValue),'Beneficiu net · '+durata+' ani',eurA(r.finalValue))+
+    '</div>'+
+    '<div style="margin-top:16px;background:'+SOFT+';border:1px solid '+LINE+';border-left:4px solid '+GOLD+';border-radius:8px;padding:13px 16px;font-size:11px;color:'+INK+';line-height:1.6">'+s04note+'</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px">'+
+      '<div style="border:1px solid '+LINE+';border-radius:9px;padding:14px 12px 6px;background:#fcfcfd"><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:12px;color:'+AC+';margin-bottom:2px">Economii anuale nete'+(ronShow?' (RON)':' (€)')+'</div><div style="font-size:9.5px;color:'+MUT+';margin-bottom:8px">Beneficiul net pe orizontul de '+durata+' ani.</div><svg viewBox="0 0 1000 270" style="width:100%;height:auto" preserveAspectRatio="xMidYMid meet">'+eY+eBars+'</svg></div>'+
+      '<div style="border:1px solid '+LINE+';border-radius:9px;padding:14px 12px 6px;background:#fcfcfd"><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:12px;color:'+AC+';margin-bottom:2px">Flux de numerar cumulat</div><div style="font-size:9.5px;color:'+MUT+';margin-bottom:8px">'+(payback!==null?'Investiția este recuperată în jurul anului '+fmt(payback,1)+'.':'Evoluția pe orizontul analizat.')+'</div><svg viewBox="0 0 1000 320" style="width:100%;height:auto" preserveAspectRatio="xMidYMid meet">'+cfGrid+'<path d="'+cfArea+'" fill="'+AC+'" fill-opacity="0.08"></path><line x1="60" y1="'+cfZeroY+'" x2="980" y2="'+cfZeroY+'" stroke="#c0392b" stroke-width="1.4" stroke-dasharray="5 4"></line>'+cfPay+'<polyline points="'+cfPoints+'" fill="none" stroke="'+AC+'" stroke-width="2.6" stroke-linejoin="round"></polyline>'+cfXlab+cfYlab+'</svg></div>'+
+    '</div>'+
+    '<p style="font-size:9px;color:'+MUT+';line-height:1.6;margin-top:12px">* Ipoteze de calcul (ajustabile): '+ipotezeTxt+(curs>0?' · curs de referință 1 € = '+fmt(curs,4)+' RON':'')+'.</p>'+
     foot(5)+'</div>';
 
-  var p6='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
-    '<div style="border-bottom:2px solid '+AC+';padding-bottom:9px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+AC+';margin:0">Producție lunară estimată (An 1)</h2></div>'+
-    '<p style="font-size:12px;color:'+MUT+';margin:14px 0 0">Distribuție sezonală tipică pentru România — producție maximă vara, minimă iarna.</p>'+
-    '<div style="margin-top:18px;border:1px solid '+LINE+';border-radius:9px;padding:18px 16px 8px;background:#fcfcfd"><svg viewBox="0 0 1000 280" style="width:100%;height:auto" preserveAspectRatio="xMidYMid meet"><line x1="60" y1="230" x2="980" y2="230" stroke="#d8dde4" stroke-width="1"></line>'+monthsHTML+'</svg></div>'+
-    '<div style="border-bottom:2px solid '+AC+';padding-bottom:9px;margin-top:30px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+AC+';margin:0">Impact de mediu · CO₂ evitat</h2></div>'+
-    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px">'+
-      '<div style="border:1px solid '+LINE+';border-top:3px solid '+GRN+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">CO₂ evitat / an</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:20px;color:#1f7a47;margin-top:8px">'+fmt0(co2AnnualKg/1000)+' tone</div><div style="font-size:9.5px;color:'+MUT+';margin-top:5px">factor rețea RO ~0,3 kg/kWh</div></div>'+
-      '<div style="border:1px solid '+LINE+';border-top:3px solid '+GRN+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">CO₂ pe '+durata+' ani</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:20px;color:#1f7a47;margin-top:8px">'+fmt0(co2TotalT)+' tone</div><div style="font-size:9.5px;color:'+MUT+';margin-top:5px">cu degradare inclusă</div></div>'+
-      '<div style="border:1px solid '+LINE+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Echiv. copaci</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:20px;color:'+INK+';margin-top:8px">'+fmt0(co2AnnualKg/21)+' /an</div><div style="font-size:9.5px;color:'+MUT+';margin-top:5px">~21 kg CO₂/copac/an</div></div>'+
-      '<div style="border:1px solid '+LINE+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Echiv. km auto</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:20px;color:'+INK+';margin-top:8px">'+fmt0(co2AnnualKg/0.12)+' /an</div><div style="font-size:9.5px;color:'+MUT+';margin-top:5px">~0,12 kg CO₂/km</div></div>'+
-    '</div>'+foot(6)+'</div>';
+  // ── 05 · DE CE NOI & PAȘII URMĂTORI ──
+  var cred=[
+    ['Contractant EPC atestat','ANRE A3, E1, E2 · execuție integrală: proiectare, montaj, punere în funcțiune.'],
+    ['Portofoliu de proiecte','Parcuri PV și sisteme comerciale & industriale executate în vestul României.'],
+    ['Sistem certificat integral','ISO 9001 / 14001 / 45001 / 27001 · echipă proprie de specialiști.'],
+    ['Suport dosar & finanțare','Dosar prosumator, ATR, consultanță pentru scheme de finanțare.']
+  ];
+  var credHTML=cred.map(function(c){return '<div style="border:1px solid '+LINE+';border-top:3px solid '+GOLD+';border-radius:8px;padding:14px 13px"><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:12px;color:'+AC+'">'+c[0]+'</div><div style="font-size:10px;color:'+MUT+';line-height:1.55;margin-top:6px">'+c[1]+'</div></div>';}).join('');
+  var ctaContact=[firmaEmail,firmaTelefon].filter(Boolean).join(' · ');
+  var eqKey=costDefs.filter(function(c){return c[1]>0;}).slice(0,6).map(function(c){return '<div style="font-size:9.5px;color:rgba(255,255,255,.85);line-height:1.8">· '+esc(c[0])+'</div>';}).join('');
+  var navL=function(t){return '<div style="font-size:8.5px;letter-spacing:1.2px;font-weight:700;color:'+GOLD+';text-transform:uppercase;margin-bottom:8px">'+t+'</div>';};
+  var s05='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
+    secHead('05','De ce '+esc(firma)+' & pașii următori','Execuție integrală: proiectare · montaj · punere în funcțiune')+
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-top:16px">'+credHTML+'</div>'+
+    '<div style="margin-top:20px;background:'+SOFT+';border:1px solid '+LINE+';border-left:4px solid '+GOLD+';border-radius:10px;padding:18px 20px">'+
+      '<div style="font-family:Archivo,sans-serif;font-weight:800;font-size:15px;color:'+AC+'">Sunteți gata să treceți la implementare?</div>'+
+      '<div style="font-size:11.5px;color:'+INK+';margin-top:6px;line-height:1.6">Confirmăm oferta, agreăm graficul tranșelor ('+fmt0(avansPct)+'% avans · '+fmt0(transa2Pct)+'% la livrare · '+fmt0(transa3Pct)+'% la PIF) și demarăm implementarea.</div>'+
+      (ctaContact?'<div style="font-size:12.5px;font-weight:800;color:'+AC+';margin-top:10px">'+esc(ctaContact)+'</div>':'')+
+    '</div>'+
+    '<div style="flex:1"></div>'+
+    '<div style="margin-top:18px;background:'+AC+';border-radius:10px;padding:18px 20px;display:grid;grid-template-columns:1fr 1.25fr 1fr;gap:18px;color:#fff">'+
+      '<div>'+navL('Emitent')+
+        '<div style="font-size:11px;font-weight:700">'+esc(firma)+'</div>'+
+        (firmaCUI?'<div style="font-size:9.5px;color:rgba(255,255,255,.75);margin-top:3px">CUI '+esc(firmaCUI)+(firmaRegCom?' · '+esc(firmaRegCom):'')+'</div>':'')+
+        (firmaAdresa?'<div style="font-size:9.5px;color:rgba(255,255,255,.75)">'+esc(firmaAdresa)+'</div>':'')+
+        (firmaRepLegal?'<div style="font-size:9.5px;color:rgba(255,255,255,.75);margin-top:5px">Administrator: '+esc(firmaRepLegal)+'</div>':'')+
+        '<div style="font-size:9.5px;color:rgba(255,255,255,.75);margin-top:5px">Atestate ANRE: A3 · E1 · E2<br>ISO 9001 · 14001 · 45001 · 27001</div>'+
+      '</div>'+
+      '<div>'+navL('Ofertă')+
+        '<div style="font-size:9.5px;color:rgba(255,255,255,.85);line-height:1.8">Beneficiar: <strong style="color:#fff">'+esc(clientDisp)+'</strong>'+(clientCUI?'<br>'+esc(clientCUI):'')+(clientAdresa?'<br>'+esc(clientAdresa):'')+
+        '<br>Obiect: '+esc(sysTitle)+
+        '<br>Valoare: '+lei0(capexTotal)+' fără TVA'+(ronShow?' ('+eurA(capexTotal)+')':'')+
+        '<br>Cu TVA '+fmt0(getVal('tva'))+'%: '+lei0(capexTotalTva)+
+        '<br>Emisă: '+esc(dataOferta||'—')+' · valabilă '+fmt0(getVal('valabilitate')||30)+' zile</div>'+
+      '</div>'+
+      '<div>'+navL('Echipamente cheie')+eqKey+'</div>'+
+    '</div>'+
+    '<p style="font-size:8.8px;color:'+MUT+';line-height:1.6;margin-top:14px">Document tehnico-economic cu caracter informativ. Valorile financiare sunt estimări bazate pe ipotezele menționate în secțiunea 04 și pot varia în funcție de profilul real de consum, producția PV și evoluția prețului energiei. Prezenta ofertă nu constituie ofertă fermă în sensul art. 1188 Cod civil până la confirmarea scrisă a părților.</p>'+
+    foot(6)+'</div>';
 
-
-  // ─── SUMAR EXECUTIV ───────────────────────────────────────────────────────
-  var irrStr=r.irrVal!=null?(r.irrVal*100).toFixed(1)+'%':'—';
-  var npvLei=r.npvCalc!=null?fmt0(r.npvCalc*curs)+' lei':'—';
-  var npvEur=r.npvCalc!=null?'€ '+fmt(r.npvCalc):'—';
-  var profitLei=r.finalValue>=1e6?fmt0(r.finalValue/1e6*curs)+' M lei':fmt0(r.finalValue*curs)+' lei';
-  var profitEur=r.finalValue>=1e6?'€'+(r.finalValue/1e6).toFixed(2)+'M':'€ '+fmt(r.finalValue);
-  var capexLei=r.capexTotal>=1e6?fmt0(r.capexTotal/1e6*curs)+' M lei':fmt0(r.capexTotal*curs)+' lei';
-  var capexEur='€ '+fmt(r.capexTotal)+' fără TVA';
-  var bessKwhV=getVal('bessKwh')||0, bessCicV=getVal('bessCicluriAn')||0;
-  var bessStr2=bessKwhV>0?(bessKwhV>=1000?(bessKwhV/1000).toFixed(2)+' MWh':fmt0(bessKwhV)+' kWh'):'Fără stocare';
-  var bessSub2=bessKwhV>0?bessCicV+' cicluri/an':'—';
-  var prodMWh2=(r.prodAn1/1000).toFixed(0);
-  var kpiC=function(lbl,val,sub,col,bg){col=col||AC;bg=bg||'#fff';
-    return '<div style="background:'+bg+';border:1px solid '+LINE+';border-top:3px solid '+col+';border-radius:8px;padding:14px 12px">'+
-      '<div style="font-size:8px;letter-spacing:1.2px;color:'+MUT+';font-weight:700;text-transform:uppercase">'+lbl+'</div>'+
-      '<div style="font-family:Archivo,sans-serif;font-weight:800;font-size:18px;color:'+col+';margin-top:7px;line-height:1.1">'+val+'</div>'+
-      '<div style="font-size:9.5px;color:'+MUT+';margin-top:5px;opacity:0.85">'+sub+'</div></div>';
-  };
-  var pSumar='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
-    '<h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:16px;color:'+AC+';margin:0 0 3px">1. Sumar Executiv – Indicatori Cheie</h2>'+
-    '<p style="font-size:11px;color:'+MUT+';margin:0 0 14px;border-bottom:2px solid '+AC+';padding-bottom:8px">Parametri tehnici și financiari principali ai proiectului</p>'+
-    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px">'+
-      kpiC('Putere instalată DC', r.kwp.toFixed(1)+' kWp', r.numPanouri+' panouri', '#f59e0b')+
-      kpiC('Stocare BESS', bessStr2, bessSub2, '#16a34a')+
-      kpiC('Producție An 1', prodMWh2+' MWh', 'degradare inclusă', '#f59e0b')+
-      kpiC('Investiție totală', capexLei, capexEur, AC)+
-    '</div>'+
-    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">'+
-      kpiC('IRR ('+durata+' ANI)', irrStr, 'rată internă de rentabilitate', '#f59e0b')+
-      kpiC('NPV (disc. '+Math.round((r.rataDiscontare||0.08)*100)+'%)', npvLei, npvEur, '#0e7490')+
-      kpiC('PAYBACK SIMPLU', paybackStr, 'recuperare investiție', GOLD)+
-      kpiC('PROFIT NET '+durata+' ANI', profitLei, profitEur, '#16a34a')+
-    '</div>'+
-    '<div style="text-align:center;font-weight:700;font-size:12px;color:'+INK+';margin-bottom:8px">Flux de Numerar Cumulat – '+durata+' Ani</div>'+
-    '<div style="border:1px solid '+LINE+';border-radius:8px;padding:14px 12px 6px;background:#fcfcfd;flex:1">'+
-      '<svg viewBox="0 0 1000 260" style="width:100%;height:auto" preserveAspectRatio="xMidYMid meet">'+
-        cfGrid+
-        '<path d="'+cfArea+'" fill="'+AC+'" fill-opacity="0.08"></path>'+
-        '<line x1="60" y1="'+cfZeroY+'" x2="980" y2="'+cfZeroY+'" stroke="#c0392b" stroke-width="1.4" stroke-dasharray="5 4"></line>'+
-        cfPay+
-        '<polyline points="'+cfPoints+'" fill="none" stroke="'+AC+'" stroke-width="2.6" stroke-linejoin="round"></polyline>'+
-        cfXlab+cfYlab+
-      '</svg>'+
-    '</div>'+
-    foot(2)+'</div>';
-
-  // ─── SPECIFICAȚII TEHNICE ─────────────────────────────────────────────────
-  var panelBrandStr=(document.getElementById('customPanelBrand')&&document.getElementById('customPanelBrand').value)||getVal('customPower')?getVal('customPower')+' Wp personalizat':'—';
-  var panelStr=document.getElementById('customPanelBrand')&&document.getElementById('customPanelBrand').value?document.getElementById('customPanelBrand').value+' '+getVal('customPower')+'Wp':getVal('customPower')?getVal('customPower')+' Wp':'—';
-  var invStr2=document.getElementById('invertorMarcaCustom')&&document.getElementById('invertorMarcaCustom').value?document.getElementById('invertorMarcaCustom').value:document.getElementById('invertorMarca').value||'—';
-  var surfStr=r.areaNeeded>0?'~'+fmt0(r.areaNeeded)+' m²':'—';
-  var specR=function(lbl,val,muted){return '<tr style="border-bottom:1px solid '+LINE+'"><td style="padding:7px 10px;font-size:11px;color:'+MUT+';font-weight:600;width:45%">'+lbl+'</td><td style="padding:7px 10px;font-size:11px;color:'+(muted?MUT:INK)+';font-weight:700">'+val+'</td></tr>';};
-  var pSpecs='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
-    '<h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:16px;color:'+AC+';margin:0 0 3px">2. Specificații Tehnice</h2>'+
-    '<p style="font-size:11px;color:'+MUT+';margin:0 0 14px;border-bottom:2px solid '+AC+';padding-bottom:8px">Date tehnice detaliate ale sistemului fotovoltaic și de stocare</p>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">'+
-      '<table style="width:100%;border-collapse:collapse;border:1px solid '+LINE+';border-radius:8px;overflow:hidden"><tbody>'+
-        specR('Beneficiar', esc(client||'—'))+
-        (r.existingKwp>0?specR('Instalație PV existentă', fmt(r.existingKwp,1)+' kWp'+(r.existingInvertor?' · '+esc(r.existingInvertor):'')+(r.existingProductie>0?' · '+fmt0(r.existingProductie)+' kWh/an':'')):'')+
-        specR(r.existingKwp>0?'Extindere propusă (nou)':'Putere instalată DC', r.kwp.toFixed(1)+' kWp')+
-        (r.existingKwp>0?specR('Putere totală sistem (existent + nou)', fmt(r.kwpTotalSistem,1)+' kWp'):'')+
-        specR('Număr panouri', r.numPanouri+' buc.')+
-        specR('Tip panou', panelStr)+
-        specR('Tip invertor', esc(invStr2))+
-        specR('Nr. invertoare', document.getElementById('invertorMarca')?'—':'—')+
-        specR('Stocare BESS totală', bessKwhV>0?fmt0(bessKwhV)+' kWh':(function(){
-          var consumZ=getVal('consumZilnic')||0, dailyProd=r.kwp>0?(r.prodAn1/365):0;
-          if(consumZ<=0&&dailyProd<=0) return '—';
-          var recViaConsum=consumZ>0?consumZ*0.4:0;
-          var surplusZilnic=dailyProd>0?Math.max(0,dailyProd-(consumZ>0?consumZ*0.6:dailyProd*0.35)):0;
-          var vals=[recViaConsum,surplusZilnic].filter(function(v){return v>0;});
-          if(!vals.length) return '—';
-          var avg=vals.reduce(function(a,b){return a+b;},0)/vals.length;
-          var lo=Math.max(2.5,Math.round((avg*0.8)/2.5)*2.5), hi=Math.max(lo+2.5,Math.round((avg*1.25)/2.5)*2.5);
-          return lo+'–'+hi+' kWh (recomandat)';
-        })())+
-        specR('Suprafață estimată', surfStr)+
-        specR('Tip montaj', (r.kwpA>0&&r.kwpB===0?'1 orient.':'2 orient.')+' '+(r.kwp>0?r.kwp.toFixed(1)+' kWp':''))+
-        specR('Garanție invertoare', getVal('garantieInvertor')+' ani')+
-        specR('Garanție panouri', getVal('garantiePanouri')+' ani')+
-        specR('Garanție execuție', '36 luni de la recepția finală')+
-      '</tbody></table>'+
-      '<table style="width:100%;border-collapse:collapse;border:1px solid '+LINE+';border-radius:8px;overflow:hidden"><tbody>'+
-        specR('Iradiere specifică', fmt0(r.yieldSpec)+' kWh/kWp/an')+
-        specR('Producție An 1 (netă)', fmt0(r.prodAn1)+' kWh/an')+
-        specR('Producție totală '+durata+' ani', fmt0(r.rows.filter(function(x){return x.an>0;}).reduce(function(s,x){return s+(x.prod||0);},0))+' kWh')+
-        specR('Degradare anuală', getVal('degradare')+'%/an')+
-        specR('Eficiență sistem (PR)', '~80%',true)+
-        specR('Autoconsumție', Math.round(r.effAutoconsum*100)+'%'+(bessKwhV>0?' (cu BESS)':''))+
-        (bessKwhV>0?specR('BESS cicluri/an', fmt0(bessCicV)):'')+
-        (bessKwhV>0?specR('BESS spread arbitraj', getVal('bessArbitrajSpread')+' €/kWh'):'')+
-        specR('Preț energie An 1', fmt(pretEnergie)+' €/kWh')+
-        specR('Escaladare preț', getVal('escaladare')+'%/an')+
-        specR('CO₂ evitat/an', fmt0(r.prodAn1*0.0003)+' tone CO₂e')+
-        specR('Echivalent gospodării', fmt0(r.prodAn1/3500)+'/an',true)+
-      '</tbody></table>'+
-    '</div>'+
-    foot(3)+'</div>';
 
   // ─── TERMENI & CONDIȚII ───────────────────────────────────────────────────
   var tcR=function(lbl,val){return '<tr style="border-bottom:1px solid '+LINE+'"><td style="padding:7px 10px;font-size:11px;color:'+MUT+';font-weight:600;width:44%">'+lbl+'</td><td style="padding:7px 10px;font-size:11px;color:'+INK+';font-weight:600">'+val+'</td></tr>';};
@@ -4172,7 +4243,7 @@ function buildOfferHTML(r){
         '<div style="font-size:10px;color:'+MUT+'">Semnătură și ştampilă</div>'+
       '</div>'+
     '</div>'+
-  foot(9)+'</div>';
+  foot(8)+'</div>';
   var doc='<!DOCTYPE html><html lang="ro"><head><meta charset="UTF-8"><title>Ofertă '+esc(nrOferta)+(client?(' · '+esc(client)):'')+'</title>'+
     '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'+
     '<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">'+
@@ -4183,7 +4254,7 @@ function buildOfferHTML(r){
     '.page{width:210mm;min-height:297mm;background:#fff;box-shadow:0 4px 24px rgba(20,30,50,.12);display:flex;flex-direction:column}'+
     '@page{size:A4;margin:0}@media print{body{background:#fff}.bar{display:none}.pages{padding:0;gap:0}.page{box-shadow:none;page-break-after:always;break-after:page}.page:last-child{page-break-after:auto}}</style></head>'+
     '<body><div class="bar"><span>Ofertă '+esc(nrOferta)+' — previzualizare. Apasă „Printează" și alege „Salvează ca PDF".</span><button onclick="window.print()">🖨 Printează / Salvează PDF</button></div>'+
-    '<div class="pages">'+p1+pSumar+pSpecs+p2+p3+p4+p5+p6+equipPage+echipPage+pTermeni+legendPage+'</div>'+
+    '<div class="pages">'+cover+s01+s02+s03+s04+s05+echipPage+pTermeni+legendPage+'</div>'+
     '<script>window.addEventListener(\'load\',function(){var go=function(){setTimeout(function(){try{window.print();}catch(e){}},400);};if(document.fonts&&document.fonts.ready){document.fonts.ready.then(go);}else{go();}});<\/script>'+
     '</body></html>';
   return doc;
