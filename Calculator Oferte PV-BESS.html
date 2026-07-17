@@ -324,7 +324,7 @@
         </div>
         <div class="field">
           <label>Email</label>
-          <input type="text" id="firmaEmail" placeholder="ex: office@firma.ro" value="nicorasionut@shc-group.ro">
+          <input type="text" id="firmaEmail" placeholder="ex: office@firma.ro" value="office@shc-group.ro">
         </div>
         <div class="field">
           <label>Reprezentant legal</label>
@@ -1826,12 +1826,12 @@ function render(){
   (function(){
     var bessOn=(r.capexBessMode==='included');
     var stsOn=(r.stsMode!=='none');
-    var kwpStr=r.kwp>0?r.kwp.toFixed(2)+' kWp':'—';
+    var kwpStr=r.kwp>0?r.kwp.toFixed(2)+' kWp':'';
     var numStr=r.numPanouri>0?r.numPanouri+' panouri':'';
-    var bKwh=bessOn&&getVal('bessKwh')>0?getVal('bessKwh')+' kWh':'—';
+    var bKwh=bessOn&&getVal('bessKwh')>0?getVal('bessKwh')+' kWh':'';
 
     var nodes=[{icon:'☀️',label:'Panouri PV',val:kwpStr,sub:numStr,color:'#f59e0b'},
-               {icon:'⚡',label:'Invertor',val:'C&I',sub:'',color:'#f97316'}];
+               {icon:'⚡',label:'Invertor',val:'',sub:'',color:'#f97316'}];
     if(bessOn) nodes.push({icon:'🔋',label:'Stocare BESS',val:bKwh,sub:'',color:'#0f2850'});
     if(stsOn) nodes.push({icon:'🏭',label:'STS',val:'Inclus',sub:'',color:'#64748b'});
 
@@ -1862,14 +1862,14 @@ function render(){
         '</circle>'+
         '<text x="'+cx+'" y="'+(cy+9)+'" text-anchor="middle" font-size="'+(rad*0.62)+'">'+node.icon+'</text>'+
         '<text x="'+cx+'" y="'+(cy+rad+22)+'" text-anchor="middle" font-size="15" font-weight="800" fill="'+node.color+'" letter-spacing="0.3" style="text-transform:uppercase">'+node.label+'</text>'+
-        '<text x="'+cx+'" y="'+(cy+rad+40)+'" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">'+node.val+'</text>'+
+        (node.val?'<text x="'+cx+'" y="'+(cy+rad+40)+'" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">'+node.val+'</text>':'')+
         (node.sub?'<text x="'+cx+'" y="'+(cy-rad-14)+'" text-anchor="middle" font-size="13" fill="#64748b">'+node.sub+'</text>':'')+
       '</g>';
     });
     svg+='</svg>';
 
     var diag=document.getElementById('systemDiagram');
-    diag.style.padding='16px 10px';diag.style.background='#f8fafc';diag.style.borderRadius='0 0 10px 10px';diag.style.overflow='hidden';diag.style.width='100%';diag.style.height='260px';diag.style.boxSizing='border-box';diag.style.marginBottom='0';
+    diag.style.padding='16px 10px';diag.style.background='#fff';diag.style.borderRadius='0 0 10px 10px';diag.style.overflow='hidden';diag.style.width='100%';diag.style.height='260px';diag.style.boxSizing='border-box';diag.style.marginBottom='0';diag.style.display='flex';diag.style.alignItems='center';diag.style.justifyContent='center';
     diag.innerHTML=svg;
   })();
 
@@ -4258,6 +4258,20 @@ var dd = String(today.getDate()).padStart(2,'0');
 var mm = String(today.getMonth()+1).padStart(2,'0');
 var yyyy = today.getFullYear();
 document.getElementById('dataOferta').value = dd + '.' + mm + '.' + yyyy;
+
+// Restore last saved state (client name, offer nr, company info, etc.) on reload
+try {
+  var savedSt = localStorage.getItem('shc_calc_state');
+  if(savedSt){
+    var st = JSON.parse(savedSt);
+    Object.keys(st).forEach(function(k){
+      var el = document.getElementById(k);
+      if(el && st[k]!==undefined && st[k]!==null) el.value = st[k];
+    });
+    var emailEl = document.getElementById('firmaEmail');
+    if(emailEl && emailEl.value==='nicorasionut@shc-group.ro') emailEl.value = 'office@shc-group.ro';
+  }
+} catch(e) {}
 
 render();
 })();
