@@ -2244,7 +2244,12 @@ document.getElementById('btnPdf').addEventListener('click', function(){
   var nrSuf=document.getElementById('nrOfertaSuffix').value||'';
   var nrOferta='SHC-'+(nrSuf||'');
   var client=(document.getElementById('numeClient').value||'').trim();
-  logOffer('export_clasic', nrOferta, client, Math.round(r.capexTotalTva*(getVal('curs')||5.2)));
+  logOffer('export_clasic', nrOferta, client, Math.round(r.capexTotalTva*(getVal('curs')||5.2)), {
+    kwp: r.kwp ? r.kwp.toFixed(2) : null,
+    capexTotalEur: Math.round(r.capexTotalTva),
+    payback: r.paybackYear!==null ? r.paybackYear.toFixed(1)+' ani' : '> '+r.durata+' ani',
+    irr: r.irrVal!=null ? (r.irrVal*100).toFixed(1)+'%' : '—'
+  });
   var jsPDF = window.jspdf.jsPDF;
   var doc = new jsPDF({unit:'mm', format:'a4'});
   // Protecție: ignoră liniile cu coordonate invalide (NaN/Infinity) ca să nu crape exportul
@@ -3083,12 +3088,15 @@ function saveUsers(arr){ try{ localStorage.setItem(USERS_KEY, JSON.stringify(arr
 function getJournal(){ try{ return JSON.parse(localStorage.getItem(JOURNAL_KEY)||'[]'); }catch(e){ return []; } }
 function saveJournal(arr){ try{ localStorage.setItem(JOURNAL_KEY, JSON.stringify(arr)); }catch(e){} }
 
-function logOffer(action, nrOferta, client, valoareLei){
+function logOffer(action, nrOferta, client, valoareLei, extra){
   var S = window.SESSION || SESSION;
   if(!S) return;
-  var entry={userId:S.userId, userName:S.userName, role:S.role,
+  extra = extra || {};
+  var entry={userId:S.userId, userName:S.userName, role:S.role, userEmail:S.email||'',
     timestamp:new Date().toISOString(), action:action,
-    nrOferta:nrOferta||'—', client:client||'—', valoareLei:valoareLei||0};
+    nrOferta:nrOferta||'—', client:client||'—', valoareLei:valoareLei||0,
+    kwp:extra.kwp||null, capexTotalEur:extra.capexTotalEur||null,
+    payback:extra.payback||'—', irr:extra.irr||'—'};
   var j=getJournal();
   j.unshift(entry);
   if(j.length>1000) j=j.slice(0,1000);
@@ -4212,7 +4220,12 @@ document.getElementById('btnOfertaPdf').addEventListener('click', function(){
   var nrSuf=document.getElementById('nrOfertaSuffix').value||'';
   var nrOferta='SHC-'+(nrSuf||'');
   var client=(document.getElementById('numeClient').value||'').trim();
-  logOffer('oferta_pdf', nrOferta, client, Math.round(r.capexTotalTva*(getVal('curs')||5.2)));
+  logOffer('oferta_pdf', nrOferta, client, Math.round(r.capexTotalTva*(getVal('curs')||5.2)), {
+    kwp: r.kwp ? r.kwp.toFixed(2) : null,
+    capexTotalEur: Math.round(r.capexTotalTva),
+    payback: r.paybackYear!==null ? r.paybackYear.toFixed(1)+' ani' : '> '+r.durata+' ani',
+    irr: r.irrVal!=null ? (r.irrVal*100).toFixed(1)+'%' : '—'
+  });
   var html = buildOfferHTML(r);
   var blob = new Blob([html], {type:'text/html'});
   var url = URL.createObjectURL(blob);
