@@ -896,8 +896,8 @@
     <div class="card" style="display:flex;flex-direction:column;align-self:start;">
       <h2 class="section">🔋 Configurație sistem</h2>
       <div id="systemDiagram" style="margin:0 -22px 0 -22px;"></div>
-      <div class="legend" id="capexLegend" style="margin-top:14px"></div>
       <div style="display:none">
+        <div class="legend" id="capexLegend"></div>
         <canvas id="capexChart"></canvas>
       </div>
     </div>
@@ -1827,7 +1827,7 @@ function render(){
     var bessOn=(r.capexBessMode==='included');
     var stsOn=(r.stsMode!=='none');
     var kwpStr=r.kwp>0?r.kwp.toFixed(2)+' kWp':'—';
-    var numStr=r.numPanouri>0?r.numPanouri+' panouri':'—';
+    var numStr=r.numPanouri>0?r.numPanouri+' panouri':'';
     var bKwh=bessOn&&getVal('bessKwh')>0?getVal('bessKwh')+' kWh':'—';
 
     var nodes=[{icon:'☀️',label:'Panouri PV',val:kwpStr,sub:numStr,color:'#f59e0b'},
