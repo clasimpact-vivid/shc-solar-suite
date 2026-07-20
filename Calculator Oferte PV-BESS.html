@@ -4047,15 +4047,38 @@ function buildOfferHTML(r){
       foot()+'</div>';
   }
 
-  // ═════════ P9 · ECHIPAMENTE ═════════
-  var eqCard=function(title,src){
-    return '<div class="card" style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;height:230px;display:flex;align-items:center;justify-content:center;background:'+SOFT+';border-radius:8px;overflow:hidden">'+(src?'<img src="'+src+'" style="max-width:100%;max-height:100%;object-fit:contain">':'<span class="mono" style="font-size:9px;color:'+MUT+'">IMAGINE</span>')+'</div><div style="font-family:Poppins;font-weight:700;font-size:12px;color:'+INK+';margin-top:12px">'+title+'</div></div>';
-  };
-  var eqCards=[];
-  if(hasPV){eqCards.push(eqCard('Panou fotovoltaic',EQ_IMG.panou));eqCards.push(eqCard('Invertor',EQ_IMG.invertor));}
-  if(bessIncl||!hasPV) eqCards.push(eqCard('Stocare BESS',EQ_IMG.bess));
-  var echipPage=eqCards.length?'<div class="page">'+secHead('Echipamente propuse','Imagini orientative ale echipamentelor principale incluse în ofertă')+
-    '<div style="display:flex;gap:14px">'+eqCards.join('')+'</div>'+foot()+'</div>':'';
+  // ═════════ P9 · AVANTAJE & DEZAVANTAJE ═════════
+  var hasBess=bessIncl||bessKwhV>0||!hasPV;
+  var prosList=[];
+  if(hasPV){
+    prosList.push(['Factura scade de la prima zi','Energia produsă pe acoperiș înlocuiește direct energia cumpărată din rețea, la cost zero de producție.']);
+    prosList.push(['Protecție la scumpirea energiei','Prețul energiei proprii rămâne fix 25 de ani; fiecare scumpire din piață mărește economia dvs.']);
+  }
+  if(hasBess){
+    prosList.push(['Surplusul nu se mai vinde ieftin','Energia produsă ziua se stochează și se consumă seara — în loc să o vindeți la preț mic și să o răscumpărați scump.']);
+    prosList.push(['Backup la căderea rețelei','Consumatorii esențiali rămân alimentați din baterie (port Backup, comutare în milisecunde) — fără întreruperi de activitate.']);
+    prosList.push(['Peak-shaving','Bateria taie vârfurile de putere absorbită din rețea — costuri de distribuție mai mici și protecție la depășiri de putere contractată.']);
+  }
+  prosList.push(['Modular & extensibil','Capacitatea se poate mări ulterior'+(hasPV?'; sistemul e pregătit pentru extindere':' fără modificarea instalației PV existente')+'.']);
+  prosList.push(['Imagine & raportare ESG','Energie verde măsurabilă — argument pentru clienți, licitații și finanțări.']);
+  var consList=[
+    ['Investiție inițială','Costul se plătește acum, economiile vin în timp — recuperarea estimată este prezentată transparent în analiza financiară.'],
+    ['Bateria are durată de viață finită','~6.000 de cicluri / 10 ani garanție; capacitatea scade gradual (~2–3%/an la utilizare normală). Este un consumabil premium, nu o instalație eternă.'],
+    ['Backup-ul are limite','Puterea de backup e limitată de invertor, iar autonomia de energia stocată — alimentează consumatorii critici, nu întregul obiectiv pe termen nelimitat.'],
+    ['Pierderi de conversie','~10–12% din energia stocată se pierde pe ciclul încărcare-descărcare (eficiență inclusă deja în calculele noastre).'],
+    ['Cerințe de amplasare','Bateria are nevoie de spațiu tehnic ventilat, ferit de îngheț și căldură extremă, plus verificări periodice.'],
+  ];
+  if(!hasBess) consList.splice(1,3,['Fără stocare, surplusul se vinde ieftin','Diferența dintre prețul de injecție și cel de cumpărare rămâne un cost — bateria poate fi adăugată ulterior (sistem pregătit).']);
+  var pcItem=function(t,d,col){return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #EFF2F7"><span style="flex:none;width:7px;height:7px;border-radius:50%;background:'+col+';margin-top:5px"></span><div><div style="font-family:Poppins;font-weight:700;font-size:9.6px;color:'+INK+'">'+t+'</div><div style="font-size:8.6px;color:'+MUT+';line-height:1.5;margin-top:2px">'+d+'</div></div></div>';};
+  var echipPage='<div class="page">'+secHead('Avantaje & dezavantaje','Ce înseamnă, concret, '+(hasBess?'să ai baterie și backup':'această investiție')+' — transparent, în ambele direcții')+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">'+
+      '<div class="card" style="border-top:3px solid '+TEAL+'"><div class="ctag" style="background:'+MINT+';color:#0E7A67">De ce merită</div>'+prosList.map(function(p){return pcItem(p[0],p[1],TEAL);}).join('')+'</div>'+
+      '<div class="card" style="border-top:3px solid '+ORG+'"><div class="ctag" style="background:'+CREAM+';color:'+ORGD+'">De luat în calcul</div>'+consList.map(function(p){return pcItem(p[0],p[1],ORG);}).join('')+'</div>'+
+    '</div>'+
+    '<div class="callout" style="margin-top:16px"><b>Concluzia noastră:</b> '+(hasBess
+      ?'pentru un profil cu surplus PV ziua și consum seara, avantajele depășesc clar costurile — recuperarea investiției în '+(payback!==null?'~'+fmt(payback,1)+' ani':'sub durata de garanție')+', dintr-un sistem garantat 10 ani. Dezavantajele de mai sus sunt limitări de planificare, nu riscuri ascunse.'
+      :'sistemul PV se recuperează în '+(payback!==null?'~'+fmt(payback,1)+' ani':'câțiva ani')+' și poate fi completat oricând cu stocare, pe măsură ce profilul de consum o justifică.')+'</div>'+
+    foot()+'</div>';
 
   // ═════════ P10 · TERMENI + EMITENT + SEMNĂTURI + NOTE ═════════
   var notes=(document.getElementById('notesArea').value||'').trim()||'Ofertă generată din calculatorul SHC Group. Valorile sunt orientative și se confirmă în oferta finală după releveul tehnic. Prețurile nu includ eventuale lucrări de consolidare structurală sau extinderi de rețea solicitate de operatorul de distribuție.';
@@ -4167,6 +4190,8 @@ function buildOfferHTML(r){
     '</body></html>';
   return doc;
 }
+
+
 
 
 
