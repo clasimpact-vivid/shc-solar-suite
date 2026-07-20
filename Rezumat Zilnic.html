@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rezumat Zilnic — SHC Solar Suite</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;background:#0c1526;color:#e2e8f0;min-height:100vh;}
+a{color:#f59e0b;}
+.wrap{max-width:820px;margin:0 auto;padding:32px 20px 60px;}
+.top{display:flex;align-items:center;gap:14px;margin-bottom:22px;}
+.top img{width:44px;height:44px;border-radius:10px;background:#fff;padding:4px;object-fit:contain;}
+.backbtn{font-size:12.5px;color:#64748b;text-decoration:none;border:1px solid #1e2d45;padding:6px 12px;border-radius:8px;}
+.datebar{display:flex;align-items:center;gap:10px;background:#111d35;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 18px;margin-bottom:16px;flex-wrap:wrap;}
+.datebar input[type=date]{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none;}
+.datepick-display{background:#0c1526;color:#e2e8f0;border:1px solid #1e2d45;border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer;min-width:110px;text-align:center;}
+.datepick-display:hover{border-color:#f59e0b;}
+.datepick-wrap{position:relative;display:inline-block;}
+.navbtn{background:#0c1526;border:1px solid #1e2d45;color:#e2e8f0;border-radius:8px;padding:8px 12px;cursor:pointer;font-size:14px;}
+.navbtn:hover{border-color:#f59e0b;}
+.todaybtn{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);color:#f59e0b;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:12.5px;font-weight:600;}
+.printbtn{background:#0c1526;border:1px solid #1e2d45;color:#cbd5e1;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:12.5px;font-weight:600;}
+.printbtn:hover{border-color:#f59e0b;color:#f59e0b;}
+.agentSel{background:#0c1526;color:#e2e8f0;border:1px solid #1e2d45;border-radius:8px;padding:8px 10px;font-size:13px;}
+.trendbar{display:flex;align-items:center;gap:10px;background:#111d35;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 18px;margin-bottom:16px;}
+.spark{display:flex;align-items:flex-end;gap:5px;height:44px;}
+.spark .bar{width:16px;background:rgba(245,158,11,.35);border-radius:3px 3px 0 0;position:relative;min-height:2px;}
+.spark .bar.today{background:#f59e0b;}
+.spark .lbl{font-size:9.5px;color:#475569;text-align:center;margin-top:4px;}
+.trendcol{display:flex;flex-direction:column;align-items:center;}
+.cmp{font-size:12px;color:#94a3b8;}
+.cmp b{color:#f1f5f9;}
+.cmp .up{color:#fbbf24;}
+.cmp .down{color:#64748b;}
+.section{background:#111d35;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:20px 22px;margin-bottom:16px;}
+.section h3{font-size:14px;color:#f59e0b;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.section ul{list-style:none;display:flex;flex-direction:column;gap:8px;}
+.section li{font-size:13px;color:#cbd5e1;line-height:1.5;padding-bottom:8px;border-bottom:1px solid #1a2540;}
+.section li:last-child{border-bottom:none;padding-bottom:0;}
+.section li strong{color:#f1f5f9;}
+.muted{color:#64748b;}
+.empty{text-align:center;color:#475569;font-size:13px;padding:40px 0;}
+.loading{text-align:center;color:#64748b;font-size:13px;padding:60px 0;}
+.badge-late{color:#f87171;font-weight:600;}
+.badge-up{color:#fbbf24;font-weight:600;}
+@media print{
+  .backbtn,.navbtn,.todaybtn,.printbtn,.agentSel,#prevDay,#nextDay{display:none!important;}
+  body{background:#fff;color:#111;}
+  .section,.trendbar,.datebar{background:#fff;border-color:#ddd;}
+  .section li{color:#111;border-color:#eee;}
+  .muted{color:#555;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <img src="assets/shc-logo-cropped.png" alt="">
+    <div>
+      <div style="font-weight:800;font-size:18px;">Rezumat Zilnic</div>
+      <div class="muted" style="font-size:12px;">SHC Solar Suite · vizibil pentru Chirila / Nicoraș</div>
+    </div>
+    <a href="./index.html" class="backbtn" style="margin-left:auto;">← Pagina principală</a>
+  </div>
+
+  <div class="datebar">
+    <button class="navbtn" id="prevDay">‹</button>
+    <div class="datepick-wrap">
+      <div class="datepick-display" id="datePickDisplay"></div>
+      <input type="date" id="datePick">
+    </div>
+    <button class="navbtn" id="nextDay">›</button>
+    <button class="todaybtn" id="todayBtn">Azi</button>
+    <div id="dateLabel" class="muted" style="font-size:13px;margin-left:8px;"></div>
+    <select class="agentSel" id="agentSel" style="margin-left:auto;">
+      <option value="">Toți agenții</option>
+    </select>
+    <button class="printbtn" id="printBtn">🖨 Export / Print</button>
+  </div>
+
+  <div class="trendbar">
+    <div style="font-size:12px;color:#64748b;margin-right:6px;">Tendință 7 zile</div>
+    <div class="spark" id="sparkWrap"></div>
+    <div id="cmpWrap" style="margin-left:auto;display:flex;gap:16px;flex-wrap:wrap;"></div>
+  </div>
+
+  <div id="noActivityWrap"></div>
+  <div id="content"><div class="loading">Se încarcă...</div></div>
+  <div id="refreshFooter" class="muted" style="font-size:11.5px;text-align:right;margin-top:10px;"></div>
+</div>
+
+<script>
+const FIREBASE_BASE = 'https://solarcrm-ba919-default-rtdb.firebaseio.com';
+async function fetchJson(path){
+  try{
+    const res = await fetch(`${FIREBASE_BASE}/${path}.json`);
+    if(!res.ok) return {};
+    return (await res.json()) || {};
+  }catch(e){ return {}; }
+}
+function toArray(obj){ if(!obj) return []; return Array.isArray(obj) ? obj.filter(Boolean) : Object.values(obj).filter(Boolean); }
+function isoDate(d){ return d.toLocaleDateString('sv-SE',{timeZone:'Europe/Bucharest'}); }
+function fmtTime(ts){ return new Date(ts).toLocaleTimeString('ro-RO',{timeZone:'Europe/Bucharest',hour:'2-digit',minute:'2-digit'}); }
+function fmtDateLabel(iso){
+  const d=new Date(iso+'T12:00:00');
+  return d.toLocaleDateString('ro-RO',{timeZone:'Europe/Bucharest',weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+}
+function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+const dateInput = document.getElementById('datePick');
+const dateDisplay = document.getElementById('datePickDisplay');
+const todayIso = isoDate(new Date());
+dateInput.value = todayIso;
+function dmy(iso){ const p=iso.split('-'); return p.length===3 ? `${p[2]}/${p[1]}/${p[0]}` : iso; }
+function syncDisplay(){ dateDisplay.textContent = dmy(dateInput.value || todayIso); }
+dateDisplay.addEventListener('click', ()=>{ if(dateInput.showPicker) dateInput.showPicker(); else dateInput.click(); });
+syncDisplay();
+
+async function render(){
+  const iso = dateInput.value || todayIso;
+  syncDisplay();
+  document.getElementById('dateLabel').textContent = fmtDateLabel(iso);
+  document.getElementById('refreshFooter').textContent = 'se încarcă...';
+
+  const [crmData, planningData, visitsData, pontajData] = await Promise.all([
+    fetchJson('solarcrm_v2'), fetchJson('shc_planning'), fetchJson('shc_visits'), fetchJson('shc_pontaj')
+  ]);
+  const cfg = crmData.config || {};
+  const users = toArray(cfg.users);
+  const projects = toArray(crmData.projects);
+  const allOffers = toArray(crmData.oferte_calculator);
+  const planningProjects = toArray(planningData.projects);
+  const allVisits = toArray(visitsData.visits);
+  const allPontaj = toArray(pontajData.records);
+
+  const agentSel = document.getElementById('agentSel');
+  if(!agentSel.dataset.filled){
+    users.forEach(u=>{ const o=document.createElement('option'); o.value=u.name||''; o.textContent=u.name||'?'; agentSel.appendChild(o); });
+    agentSel.dataset.filled='1';
+    agentSel.onchange = render;
+  }
+  const agentFilter = agentSel.value;
+
+  function dayBounds(dISO){ const s=new Date(dISO+'T00:00:00+03:00').getTime(); return [s, s+24*3600*1000]; }
+  function crmLogFor(dISO){
+    const [s,e]=dayBounds(dISO); const out=[];
+    projects.forEach(p=>{
+      toArray(p.auditLog).filter(ev=>ev.timestamp && ev.timestamp>=s && ev.timestamp<e).forEach(ev=>{
+        if(agentFilter && ev.user!==agentFilter) return;
+        out.push({client:p.client||'Client', action:ev.action||'actualizare', reason:ev.reason||'', by:ev.user||'', time:ev.timestamp});
+      });
+    });
+    return out.sort((a,b)=>b.time-a.time);
+  }
+  function offersFor(dISO){ const [s,e]=dayBounds(dISO); return allOffers.filter(o=>o.timestamp&&o.timestamp>=s&&o.timestamp<e&&(!agentFilter||o.user===agentFilter||o.creatDe===agentFilter)); }
+  function visitsFor(dISO){ const [s,e]=dayBounds(dISO); return allVisits.filter(v=>v.createdAt&&v.createdAt>=s&&v.createdAt<e&&(!agentFilter||v.createdBy===agentFilter)); }
+  function pontajFor(dISO){ return allPontaj.filter(r=>r.date===dISO&&(!agentFilter||r.userName===agentFilter)); }
+
+  const crmLog = crmLogFor(iso);
+  const offers = offersFor(iso).sort((a,b)=>b.timestamp-a.timestamp);
+  const visits = visitsFor(iso);
+  const pontajRecords = pontajFor(iso);
+
+  let html = '';
+
+  html += section('📋 SolarCRM — activitate', crmLog.length, crmLog.map(a=>
+    `<li><strong>${esc(a.client)}</strong> — ${esc(a.action)}${a.reason?' ('+esc(a.reason)+')':''} <span class="muted">· ${a.by?esc(a.by)+' · ':''}${fmtTime(a.time)}</span></li>`));
+
+  // Follow-up restante (calculat la data selectata) — nu se filtreaza pe zi, doar pe agent
+  const overdue = [], stale = [];
+  const refDate = new Date(iso+'T00:00:00');
+  projects.forEach(p=>{
+    if(!['Lead','Ofertă','Contract'].includes(p.status)) return;
+    if(agentFilter && p.responsabil!==agentFilter) return;
+    if(p.nextFollowUp){
+      const fu = new Date(p.nextFollowUp+'T00:00:00');
+      if(fu < refDate) overdue.push({client:p.client||'Client', date:p.nextFollowUp, resp:p.responsabil||'—'});
+    } else {
+      const base = p.fuLastContactAt ? p.fuLastContactAt.slice(0,10) : (p.date_inserted||p.date_start);
+      if(base){ const days=Math.round((refDate-new Date(base+'T00:00:00'))/86400000); if(days>=10) stale.push({client:p.client||'Client',days,resp:p.responsabil||'—'}); }
+    }
+  });
+  const fuItems = [
+    ...overdue.map(o=>`<li><span class="badge-late">⚠ restant</span> <strong>${esc(o.client)}</strong> — programat ${o.date} <span class="muted">· ${esc(o.resp)}</span></li>`),
+    ...stale.map(s=>`<li><span class="badge-up">⏰ ${s.days} zile</span> <strong>${esc(s.client)}</strong> fără contact nou <span class="muted">· ${esc(s.resp)}</span></li>`)
+  ];
+  html += section('⏰ Follow-up necesar', fuItems.length, fuItems);
+
+  html += section('☀️ Oferte generate (Calculator PV-BESS)', offers.length, offers.map(o=>
+    `<li><strong>${esc(o.client||o.numeClient||'Client')}</strong> ${o.kwp?'— '+o.kwp+' kWp':''} <span class="muted">· ${esc(o.user||o.creatDe||'')} · ${fmtTime(o.timestamp)}</span></li>`));
+
+  const late=[], upcoming=[];
+  planningProjects.forEach(p=>{
+    toArray(p.stages).forEach(s=>{
+      if(agentFilter && s.responsabil!==agentFilter) return;
+      if(s.status==='intarziat') late.push({project:p.name, stage:s.type});
+      if(s.startDate===iso) upcoming.push({project:p.name, stage:s.type});
+    });
+  });
+  const planItems=[
+    ...late.map(l=>`<li><span class="badge-late">⚠ întârziat</span> ${esc(l.project)} — ${esc(l.stage)}</li>`),
+    ...upcoming.map(u=>`<li><span class="badge-up">⏰ începe azi</span> ${esc(u.project)} — ${esc(u.stage)}</li>`)
+  ];
+  html += section('📅 Planificare Șantier', planItems.length, planItems);
+
+  html += section('📷 Vizită Șantier — adăugate', visits.length, visits.map(v=>
+    `<li><strong>${esc(v.client||v.address||'Vizită')}</strong> ${v.address?'— '+esc(v.address):''} <span class="muted">· de ${esc(v.createdBy||'—')}</span></li>`));
+
+  const pontajItems = pontajRecords.filter(r=>r.checkIn).map(r=>{
+    const km = r.checkIn.distKm!=null?r.checkIn.distKm:null;
+    return `<li><strong>${esc(r.userName||'?')}</strong> — intrare ${r.checkIn.time?fmtTime(r.checkIn.time):''}${r.checkOut?', ieșire '+fmtTime(r.checkOut.time):''} ${km!=null&&km>50?'<span class="badge-up">🚗 '+km+' km</span>':''}</li>`;
+  });
+  html += section('🕐 Pontaj — prezențe', pontajItems.length, pontajItems);
+
+  document.getElementById('content').innerHTML = html || '<div class="empty">Nicio activitate în această zi.</div>';
+
+  // ── Fără activitate azi (doar pentru ziua curentă selectată, doar agenti, nu admin) ──
+  const noActWrap = document.getElementById('noActivityWrap');
+  if(!agentFilter){
+    const activeNames = new Set([
+      ...crmLog.map(a=>a.by).filter(Boolean),
+      ...pontajRecords.filter(r=>r.checkIn).map(r=>r.userName).filter(Boolean),
+      ...visits.map(v=>v.createdBy).filter(Boolean),
+      ...offers.map(o=>o.user||o.creatDe).filter(Boolean),
+    ]);
+    const inactive = users.filter(u=>u.name && !activeNames.has(u.name) && u.role!=='admin');
+    if(inactive.length){
+      noActWrap.innerHTML = `<div class="section"><h3>😶 Fără activitate în ${dmy(iso)} <span class="muted" style="font-weight:400;font-size:12px;">(${inactive.length})</span></h3><ul>${inactive.map(u=>`<li>${esc(u.name)}</li>`).join('')}</ul></div>`;
+    } else noActWrap.innerHTML='';
+  } else noActWrap.innerHTML='';
+
+  // ── Sparkline 7 zile + comparatie cu ziua anterioara ──
+  const days=[]; for(let i=6;i>=0;i--){ const d=new Date(iso+'T12:00:00'); d.setDate(d.getDate()-i); days.push(isoDate(d)); }
+  const totals = days.map(dISO => crmLogFor(dISO).length + offersFor(dISO).length + visitsFor(dISO).length);
+  const maxT = Math.max(1, ...totals);
+  const sparkWrap = document.getElementById('sparkWrap');
+  sparkWrap.innerHTML = days.map((dISO,i)=>{
+    const h = Math.max(2, Math.round(totals[i]/maxT*40));
+    const lbl = new Date(dISO+'T12:00:00').toLocaleDateString('ro-RO',{weekday:'short'});
+    return `<div class="trendcol"><div class="bar${dISO===iso?' today':''}" style="height:${h}px" title="${totals[i]} · ${dmy(dISO)}"></div><div class="lbl">${lbl}</div></div>`;
+  }).join('');
+
+  const prevIsoD = new Date(iso+'T12:00:00'); prevIsoD.setDate(prevIsoD.getDate()-1);
+  const prevIso = isoDate(prevIsoD);
+  const todayTotal = crmLog.length + offers.length + visits.length;
+  const prevTotal = crmLogFor(prevIso).length + offersFor(prevIso).length + visitsFor(prevIso).length;
+  const diff = todayTotal - prevTotal;
+  const diffTxt = diff===0 ? 'la fel ca ieri' : (diff>0 ? `<span class="up">▲ +${diff}</span> față de ieri` : `<span class="down">▼ ${diff}</span> față de ieri`);
+  document.getElementById('cmpWrap').innerHTML = `<div class="cmp">Activitate azi: <b>${todayTotal}</b> · ${diffTxt} (<b>${prevTotal}</b>)</div>`;
+
+  document.getElementById('refreshFooter').textContent = 'actualizat ' + new Date().toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit'});
+}
+function section(title, count, items){
+  if(!count) return '';
+  return `<div class="section"><h3>${title} <span class="muted" style="font-weight:400;font-size:12px;">(${count})</span></h3><ul>${items.join('')}</ul></div>`;
+}
+
+document.getElementById('prevDay').onclick = ()=>{ const d=new Date(dateInput.value+'T12:00:00'); d.setDate(d.getDate()-1); dateInput.value=isoDate(d); render(); };
+document.getElementById('nextDay').onclick = ()=>{ const d=new Date(dateInput.value+'T12:00:00'); d.setDate(d.getDate()+1); dateInput.value=isoDate(d); render(); };
+document.getElementById('todayBtn').onclick = ()=>{ dateInput.value=todayIso; render(); };
+document.getElementById('printBtn').onclick = ()=>window.print();
+dateInput.onchange = render;
+render();
+</script>
+</body>
+</html>
