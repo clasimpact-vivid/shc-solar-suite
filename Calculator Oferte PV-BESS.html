@@ -4110,10 +4110,38 @@ function buildOfferHTML(r){
     '<div class="cta"><div style="font-family:Poppins;font-weight:700;font-size:14px;color:'+INK+'">Sunteți gata să treceți la implementare?</div>'+
       '<div style="font-size:9.5px;color:'+MUT+';margin-top:4px">Confirmăm oferta, agreăm graficul tranșelor și demarăm implementarea în 48 de ore.</div>'+
       '<div class="mono" style="font-size:9px;font-weight:700;color:'+ORGD+';margin-top:10px;letter-spacing:.4px">'+esc(firmaEmail||'office@shc-group.ro')+(firmaTelefon?' · '+esc(firmaTelefon):'')+'</div></div>'+
-    '<div class="callout" style="margin-top:14px"><b>Note ofertă:</b> '+esc(notes)+'</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px">'+
       '<div class="card"><div style="font-size:10px;font-weight:700;color:'+INK+'">Reprezentant '+esc(firma)+'</div><div style="height:38px;border-bottom:1px solid '+INK+';margin:6px 0"></div><div style="font-size:8.5px;color:'+MUT+'">Semnătură și ștampilă</div></div>'+
       '<div class="card"><div style="font-size:10px;font-weight:700;color:'+INK+'">Reprezentant beneficiar'+(client?' · '+esc(client):'')+'</div><div style="height:38px;border-bottom:1px solid '+INK+';margin:6px 0"></div><div style="font-size:8.5px;color:'+MUT+'">Semnătură și ștampilă</div></div>'+
+    '</div>'+
+    foot()+'</div>';
+
+  // ═════════ P11 · NOTE & LEGENDĂ ACRONIME ═════════
+  var legItems=[
+    ['CAPEX','Capital Expenditure — investiția inițială totală (echipamente + instalare).'],
+    ['OPEX','Operational Expenditure — costuri anuale de operare și mentenanță.'],
+    ['O&M','Operations & Maintenance — verificări periodice, curățarea panourilor, monitorizare, înlocuiri minore.'],
+    ['ROI','Return on Investment — câștigul total raportat la investiția inițială, în %.'],
+    ['kWp','Kilowatt-peak — puterea maximă a sistemului în condiții optime.'],
+    ['kWh','Kilowatt-oră — unitatea de măsură a energiei produse/consumate.'],
+    ['BESS','Battery Energy Storage System — sistem de stocare a energiei în baterii.'],
+    ['EPC','Engineering, Procurement, Construction — contract complet „la cheie”.'],
+    ['Payback','Perioada de recuperare a investiției din economiile generate.'],
+    ['PV','Photovoltaic — tehnologia de conversie a luminii solare în energie electrică.'],
+    ['MPPT','Maximum Power Point Tracking — circuitul invertorului care extrage puterea maximă din fiecare string de panouri.'],
+    ['DC / AC','Curent continuu (de la panouri) / curent alternativ (spre rețea). Raportul DC/AC = supradimensionarea câmpului PV față de invertor.'],
+    ['Voc','Voltage open-circuit — tensiunea în gol a unui panou; determină câte module se pot lega în serie pe un string.'],
+    ['String','Șir de panouri legate în serie, conectat la o intrare MPPT a invertorului.'],
+    ['STC','Standard Test Conditions — condițiile standard (1000 W/m², 25 °C) la care se declară puterea nominală a panoului.']
+  ];
+  var legCol=function(arr){return arr.map(function(it){return '<div style="margin-bottom:11px"><span style="font-family:Poppins;font-weight:700;color:'+INK+';font-size:9.6px">'+it[0]+'</span> <span style="font-size:8.8px;color:'+MUT+';line-height:1.55">— '+esc(it[1])+'</span></div>';}).join('');};
+  var legendPage='<div class="page">'+secHead('Note ofertă & legendă acronime','Precizări finale și explicarea termenilor folosiți în document')+
+    '<div class="callout"><b>Note ofertă:</b> '+esc(notes)+'</div>'+
+    '<div class="card" style="margin-top:16px"><div class="ctag" style="background:'+MINT+';color:#0E7A67">Legendă acronime</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 26px">'+
+        '<div>'+legCol(legItems.slice(0,Math.ceil(legItems.length/2)))+'</div>'+
+        '<div>'+legCol(legItems.slice(Math.ceil(legItems.length/2)))+'</div>'+
+      '</div>'+
     '</div>'+
     '<div style="flex:1"></div>'+
     '<div class="darkfoot"><p class="mono">Document tehnico-economic cu caracter informativ. Valorile de producție și financiare sunt estimări bazate pe ipotezele menționate și pot varia în funcție de condițiile reale de amplasament, profilul de consum și evoluția prețului energiei. Prezenta ofertă nu constituie ofertă fermă în sensul art. 1188 Cod civil până la confirmarea scrisă a părților. © 2026 '+esc(firma)+' · Software proprietar · Legea nr. 8/1996.</p></div>'+
@@ -4185,11 +4213,13 @@ function buildOfferHTML(r){
     '<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">'+
     '<style>'+css+'</style></head>'+
     '<body><div class="bar"><span>Ofertă '+esc(nrOferta)+' — previzualizare. Apasă „Printează” și alege „Salvează ca PDF”. <span style="opacity:.55;font-size:11px">'+watermark+'</span></span><button onclick="window.print()">🖨 Printează / Salvează PDF</button></div>'+
-    '<div class="pages">'+p1+pSumar+pSpecs+pVal+equipPage+pFin+pAn+pProd+echipPage+pTermeni+'</div>'+
+    '<div class="pages">'+p1+pSumar+pSpecs+pVal+equipPage+pFin+pAn+pProd+echipPage+pTermeni+legendPage+'</div>'+
     '<script>window.addEventListener(\'load\',function(){var go=function(){setTimeout(function(){try{window.print();}catch(e){}},400);};if(document.fonts&&document.fonts.ready){document.fonts.ready.then(go);}else{go();}});<\/script>'+
     '</body></html>';
   return doc;
 }
+
+
 
 
 
