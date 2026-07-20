@@ -1,0 +1,22 @@
+name: Rezumat zilnic SHC Solar Suite (18:00)
+
+on:
+  schedule:
+    # 15:00 UTC = 18:00 România (EEST, vară), luni-vineri
+    - cron: '0 15 * * 1-5'
+  workflow_dispatch: {}
+
+jobs:
+  send-summary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Trimite rezumatul zilnic
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: node scripts/send-daily-summary.js
