@@ -12,27 +12,37 @@ a{color:#f59e0b;}
 .top{display:flex;align-items:center;gap:14px;margin-bottom:22px;}
 .top img{width:44px;height:44px;border-radius:10px;background:#fff;padding:4px;object-fit:contain;}
 .backbtn{font-size:12.5px;color:#64748b;text-decoration:none;border:1px solid #1e2d45;padding:6px 12px;border-radius:8px;}
-.datebar{display:flex;align-items:center;gap:10px;background:#111d35;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 18px;margin-bottom:16px;flex-wrap:wrap;}
+.datebar{background:#111d35;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:8px 14px;margin-bottom:16px;}
+.datebar-row{display:flex;align-items:center;gap:4px;flex-wrap:wrap;row-gap:8px;}
+.datebar-row + .datebar-row{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06);}
 .datebar input[type=date]{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none;}
-.datepick-display{background:#0c1526;color:#e2e8f0;border:1px solid #1e2d45;border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer;min-width:110px;text-align:center;}
-.datepick-display:hover{border-color:#f59e0b;}
+.tb-group{display:flex;align-items:center;gap:2px;}
+.tb-div{width:1px;align-self:stretch;background:rgba(255,255,255,.08);margin:0 12px;}
+.seg{display:flex;background:#0a1220;border-radius:9px;padding:3px;gap:2px;}
+.seg button{border:none;background:transparent;color:#8291a8;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:7px;cursor:pointer;transition:.15s;}
+.seg button.active{background:#f59e0b;color:#1a1204;}
+.seg button:not(.active):hover{color:#cbd5e1;}
+.iconbtn{background:transparent;border:none;color:#8291a8;width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+.iconbtn:hover{background:#0a1220;color:#e2e8f0;}
+.datepick-display{background:transparent;color:#e2e8f0;border:none;padding:7px 10px;font-size:13px;font-weight:600;cursor:pointer;border-radius:8px;display:flex;align-items:center;gap:7px;}
+.datepick-display:hover{background:#0a1220;}
+.datepick-display .cal-ic{opacity:.55;font-size:13px;}
 .datepick-wrap{position:relative;display:inline-block;}
-.navbtn{background:#0c1526;border:1px solid #1e2d45;color:#e2e8f0;border-radius:8px;padding:8px 12px;cursor:pointer;font-size:14px;}
-.navbtn:hover{border-color:#f59e0b;}
-.todaybtn{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);color:#f59e0b;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:12.5px;font-weight:600;}
-.printbtn{background:#0c1526;border:1px solid #1e2d45;color:#cbd5e1;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:12.5px;font-weight:600;}
-.printbtn:hover{border-color:#f59e0b;color:#f59e0b;}
-.agentSel{background:#0c1526;color:#e2e8f0;border:1px solid #1e2d45;border-radius:8px;padding:8px 10px;font-size:13px;}
-.trendbar{display:flex;align-items:center;gap:10px;background:#111d35;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 18px;margin-bottom:16px;}
-.spark{display:flex;align-items:flex-end;gap:5px;height:44px;}
-.spark .bar{width:16px;background:rgba(245,158,11,.35);border-radius:3px 3px 0 0;position:relative;min-height:2px;}
-.spark .bar.today{background:#f59e0b;}
-.spark .lbl{font-size:9.5px;color:#475569;text-align:center;margin-top:4px;}
+.todaylink{background:transparent;border:none;color:#f59e0b;font-size:12.5px;font-weight:600;padding:7px 10px;border-radius:8px;cursor:pointer;}
+.todaylink:hover{background:rgba(245,158,11,.1);}
+.dateRangeLbl{font-size:12.5px;color:#64748b;padding:0 4px;}
+.agentSel{background:#0a1220;color:#cbd5e1;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 12px;font-size:12.5px;height:34px;}
+.printbtn{background:#0a1220;border:1px solid rgba(255,255,255,.08);color:#cbd5e1;border-radius:8px;padding:0 14px;height:34px;cursor:pointer;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:6px;}
+.printbtn:hover{border-color:rgba(245,158,11,.4);color:#f59e0b;}
+.trendbar{background:#111d35;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:18px 20px;margin-bottom:16px;}
+.trendbar .trendhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.trendbar .trendtitle{font-size:12.5px;color:#94a3b8;font-weight:600;}
 .trendcol{display:flex;flex-direction:column;align-items:center;}
-.cmp{font-size:12px;color:#94a3b8;}
+.cmp{font-size:12.5px;color:#94a3b8;}
 .cmp b{color:#f1f5f9;}
-.cmp .up{color:#fbbf24;}
-.cmp .down{color:#64748b;}
+.cmp .up{color:#fbbf24;font-weight:700;}
+.cmp .down{color:#64748b;font-weight:700;}
+.datebox{font-size:10.5px;color:#f59e0b;font-weight:600;margin-right:6px;}
 .section{background:#111d35;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:20px 22px;margin-bottom:16px;}
 .section h3{font-size:14px;color:#f59e0b;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
 .section ul{list-style:none;display:flex;flex-direction:column;gap:8px;}
@@ -45,7 +55,7 @@ a{color:#f59e0b;}
 .badge-late{color:#f87171;font-weight:600;}
 .badge-up{color:#fbbf24;font-weight:600;}
 @media print{
-  .backbtn,.navbtn,.todaybtn,.printbtn,.agentSel,#prevDay,#nextDay{display:none!important;}
+  .backbtn,.iconbtn,.todaylink,.printbtn,.agentSel,.seg,.tb-div{display:none!important;}
   body{background:#fff;color:#111;}
   .section,.trendbar,.datebar{background:#fff;border-color:#ddd;}
   .section li{color:#111;border-color:#eee;}
@@ -56,33 +66,48 @@ a{color:#f59e0b;}
 <body>
 <div class="wrap">
   <div class="top">
-    <img src="assets/shc-logo-cropped.png" alt="">
+    <img src="data:image/png;base64,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" alt="">
     <div>
       <div style="font-weight:800;font-size:18px;">Rezumat Zilnic</div>
-      <div class="muted" style="font-size:12px;">SHC Solar Suite · vizibil pentru Chirila / Nicoraș</div>
+      <div class="muted" style="font-size:12px;">SHC Solar Suite</div>
     </div>
     <a href="./index.html" class="backbtn" style="margin-left:auto;">← Pagina principală</a>
   </div>
 
   <div class="datebar">
-    <button class="navbtn" id="prevDay">‹</button>
-    <div class="datepick-wrap">
-      <div class="datepick-display" id="datePickDisplay"></div>
-      <input type="date" id="datePick">
+    <div class="datebar-row">
+      <div class="tb-group">
+        <div class="seg">
+          <button class="active" id="modeDay">Zi</button>
+          <button id="modeWeek">Săptămână</button>
+        </div>
+      </div>
+      <div class="tb-div"></div>
+      <div class="tb-group">
+        <button class="iconbtn" id="prevDay">‹</button>
+        <div class="datepick-wrap">
+          <div class="datepick-display" id="datePickDisplay"><span class="cal-ic">📅</span><span id="datePickText"></span></div>
+          <input type="date" id="datePick">
+        </div>
+        <button class="iconbtn" id="nextDay">›</button>
+        <button class="todaylink" id="todayBtn">Azi</button>
+      </div>
+      <div id="dateLabel" class="dateRangeLbl"></div>
     </div>
-    <button class="navbtn" id="nextDay">›</button>
-    <button class="todaybtn" id="todayBtn">Azi</button>
-    <div id="dateLabel" class="muted" style="font-size:13px;margin-left:8px;"></div>
-    <select class="agentSel" id="agentSel" style="margin-left:auto;">
-      <option value="">Toți agenții</option>
-    </select>
-    <button class="printbtn" id="printBtn">🖨 Export / Print</button>
+    <div class="datebar-row" style="justify-content:flex-end;">
+      <select class="agentSel" id="agentSel">
+        <option value="">Toți agenții</option>
+      </select>
+      <button class="printbtn" id="printBtn">🖨 Export / Print</button>
+    </div>
   </div>
 
   <div class="trendbar">
-    <div style="font-size:12px;color:#64748b;margin-right:6px;">Tendință 7 zile</div>
-    <div class="spark" id="sparkWrap"></div>
-    <div id="cmpWrap" style="margin-left:auto;display:flex;gap:16px;flex-wrap:wrap;"></div>
+    <div class="trendhead">
+      <div class="trendtitle">📈 Linie productivitate — 7 zile</div>
+      <div id="cmpWrap"></div>
+    </div>
+    <svg id="prodLine" width="100%" height="70" viewBox="0 0 700 70" preserveAspectRatio="none" style="display:block;"></svg>
   </div>
 
   <div id="noActivityWrap"></div>
@@ -110,17 +135,29 @@ function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','
 
 const dateInput = document.getElementById('datePick');
 const dateDisplay = document.getElementById('datePickDisplay');
+const dateText = document.getElementById('datePickText');
 const todayIso = isoDate(new Date());
 dateInput.value = todayIso;
+let viewMode = 'zi'; // 'zi' | 'saptamana'
 function dmy(iso){ const p=iso.split('-'); return p.length===3 ? `${p[2]}/${p[1]}/${p[0]}` : iso; }
-function syncDisplay(){ dateDisplay.textContent = dmy(dateInput.value || todayIso); }
+function syncDisplay(){ dateText.textContent = dmy(dateInput.value || todayIso); }
 dateDisplay.addEventListener('click', ()=>{ if(dateInput.showPicker) dateInput.showPicker(); else dateInput.click(); });
 syncDisplay();
+function weekDaysOf(iso){
+  const d=new Date(iso+'T12:00:00'); const dow=(d.getDay()+6)%7; // 0=luni
+  d.setDate(d.getDate()-dow);
+  const out=[]; for(let i=0;i<7;i++){ out.push(isoDate(d)); d.setDate(d.getDate()+1); } return out;
+}
 
 async function render(){
   const iso = dateInput.value || todayIso;
   syncDisplay();
-  document.getElementById('dateLabel').textContent = fmtDateLabel(iso);
+  const rangeDays = viewMode==='saptamana' ? weekDaysOf(iso) : [iso];
+  if(viewMode==='saptamana'){
+    document.getElementById('dateLabel').textContent = `${dmy(rangeDays[0])} – ${dmy(rangeDays[6])}`;
+  } else {
+    document.getElementById('dateLabel').textContent = fmtDateLabel(iso);
+  }
   document.getElementById('refreshFooter').textContent = 'se încarcă...';
 
   const [crmData, planningData, visitsData, pontajData] = await Promise.all([
@@ -141,6 +178,7 @@ async function render(){
     agentSel.onchange = render;
   }
   const agentFilter = agentSel.value;
+  const dTag = d => viewMode==='saptamana' ? ` <span class="muted">(${dmy(d)})</span>` : '';
 
   function dayBounds(dISO){ const s=new Date(dISO+'T00:00:00+03:00').getTime(); return [s, s+24*3600*1000]; }
   function crmLogFor(dISO){
@@ -148,28 +186,30 @@ async function render(){
     projects.forEach(p=>{
       toArray(p.auditLog).filter(ev=>ev.timestamp && ev.timestamp>=s && ev.timestamp<e).forEach(ev=>{
         if(agentFilter && ev.user!==agentFilter) return;
-        out.push({client:p.client||'Client', action:ev.action||'actualizare', reason:ev.reason||'', by:ev.user||'', time:ev.timestamp});
+        out.push({client:p.client||'Client', action:ev.action||'actualizare', reason:ev.reason||'', by:ev.user||'', time:ev.timestamp, day:dISO});
       });
     });
     return out.sort((a,b)=>b.time-a.time);
   }
-  function offersFor(dISO){ const [s,e]=dayBounds(dISO); return allOffers.filter(o=>o.timestamp&&o.timestamp>=s&&o.timestamp<e&&(!agentFilter||o.user===agentFilter||o.creatDe===agentFilter)); }
-  function visitsFor(dISO){ const [s,e]=dayBounds(dISO); return allVisits.filter(v=>v.createdAt&&v.createdAt>=s&&v.createdAt<e&&(!agentFilter||v.createdBy===agentFilter)); }
+  function offersFor(dISO){ const [s,e]=dayBounds(dISO); return allOffers.filter(o=>o.timestamp&&o.timestamp>=s&&o.timestamp<e&&(!agentFilter||o.user===agentFilter||o.creatDe===agentFilter)).map(o=>({...o,day:dISO})); }
+  function visitsFor(dISO){ const [s,e]=dayBounds(dISO); return allVisits.filter(v=>v.createdAt&&v.createdAt>=s&&v.createdAt<e&&(!agentFilter||v.createdBy===agentFilter)).map(v=>({...v,day:dISO})); }
   function pontajFor(dISO){ return allPontaj.filter(r=>r.date===dISO&&(!agentFilter||r.userName===agentFilter)); }
+  const flat = (fn) => rangeDays.flatMap(fn);
 
-  const crmLog = crmLogFor(iso);
-  const offers = offersFor(iso).sort((a,b)=>b.timestamp-a.timestamp);
-  const visits = visitsFor(iso);
-  const pontajRecords = pontajFor(iso);
+  const crmLog = flat(crmLogFor).sort((a,b)=>b.time-a.time);
+  const offers = flat(offersFor).sort((a,b)=>b.timestamp-a.timestamp);
+  const visits = flat(visitsFor);
+  const pontajRecords = flat(pontajFor);
 
   let html = '';
 
   html += section('📋 SolarCRM — activitate', crmLog.length, crmLog.map(a=>
-    `<li><strong>${esc(a.client)}</strong> — ${esc(a.action)}${a.reason?' ('+esc(a.reason)+')':''} <span class="muted">· ${a.by?esc(a.by)+' · ':''}${fmtTime(a.time)}</span></li>`));
+    `<li><strong>${esc(a.client)}</strong> — ${esc(a.action)}${a.reason?' ('+esc(a.reason)+')':''} <span class="muted">· ${a.by?esc(a.by)+' · ':''}${fmtTime(a.time)}</span>${dTag(a.day)}</li>`));
 
-  // Follow-up restante (calculat la data selectata) — nu se filtreaza pe zi, doar pe agent
+  // Follow-up restante (calculat la ultima zi din interval) — nu se filtreaza pe zi, doar pe agent
   const overdue = [], stale = [];
-  const refDate = new Date(iso+'T00:00:00');
+  const refIso = rangeDays[rangeDays.length-1];
+  const refDate = new Date(refIso+'T00:00:00');
   projects.forEach(p=>{
     if(!['Lead','Ofertă','Contract'].includes(p.status)) return;
     if(agentFilter && p.responsabil!==agentFilter) return;
@@ -188,34 +228,34 @@ async function render(){
   html += section('⏰ Follow-up necesar', fuItems.length, fuItems);
 
   html += section('☀️ Oferte generate (Calculator PV-BESS)', offers.length, offers.map(o=>
-    `<li><strong>${esc(o.client||o.numeClient||'Client')}</strong> ${o.kwp?'— '+o.kwp+' kWp':''} <span class="muted">· ${esc(o.user||o.creatDe||'')} · ${fmtTime(o.timestamp)}</span></li>`));
+    `<li><strong>${esc(o.client||o.numeClient||'Client')}</strong> ${o.kwp?'— '+o.kwp+' kWp':''} <span class="muted">· ${esc(o.user||o.creatDe||'')} · ${fmtTime(o.timestamp)}</span>${dTag(o.day)}</li>`));
 
   const late=[], upcoming=[];
   planningProjects.forEach(p=>{
     toArray(p.stages).forEach(s=>{
       if(agentFilter && s.responsabil!==agentFilter) return;
       if(s.status==='intarziat') late.push({project:p.name, stage:s.type});
-      if(s.startDate===iso) upcoming.push({project:p.name, stage:s.type});
+      if(rangeDays.includes(s.startDate)) upcoming.push({project:p.name, stage:s.type, day:s.startDate});
     });
   });
   const planItems=[
     ...late.map(l=>`<li><span class="badge-late">⚠ întârziat</span> ${esc(l.project)} — ${esc(l.stage)}</li>`),
-    ...upcoming.map(u=>`<li><span class="badge-up">⏰ începe azi</span> ${esc(u.project)} — ${esc(u.stage)}</li>`)
+    ...upcoming.map(u=>`<li><span class="badge-up">⏰ începe</span> ${esc(u.project)} — ${esc(u.stage)}${dTag(u.day)}</li>`)
   ];
   html += section('📅 Planificare Șantier', planItems.length, planItems);
 
   html += section('📷 Vizită Șantier — adăugate', visits.length, visits.map(v=>
-    `<li><strong>${esc(v.client||v.address||'Vizită')}</strong> ${v.address?'— '+esc(v.address):''} <span class="muted">· de ${esc(v.createdBy||'—')}</span></li>`));
+    `<li><strong>${esc(v.client||v.address||'Vizită')}</strong> ${v.address?'— '+esc(v.address):''} <span class="muted">· de ${esc(v.createdBy||'—')}</span>${dTag(v.day)}</li>`));
 
   const pontajItems = pontajRecords.filter(r=>r.checkIn).map(r=>{
     const km = r.checkIn.distKm!=null?r.checkIn.distKm:null;
-    return `<li><strong>${esc(r.userName||'?')}</strong> — intrare ${r.checkIn.time?fmtTime(r.checkIn.time):''}${r.checkOut?', ieșire '+fmtTime(r.checkOut.time):''} ${km!=null&&km>50?'<span class="badge-up">🚗 '+km+' km</span>':''}</li>`;
+    return `<li><strong>${esc(r.userName||'?')}</strong> — intrare ${r.checkIn.time?fmtTime(r.checkIn.time):''}${r.checkOut?', ieșire '+fmtTime(r.checkOut.time):''} ${km!=null&&km>50?'<span class="badge-up">🚗 '+km+' km</span>':''}${dTag(r.date)}</li>`;
   });
   html += section('🕐 Pontaj — prezențe', pontajItems.length, pontajItems);
 
-  document.getElementById('content').innerHTML = html || '<div class="empty">Nicio activitate în această zi.</div>';
+  document.getElementById('content').innerHTML = html || `<div class="empty">Nicio activitate în ${viewMode==='saptamana'?'această săptămână':'această zi'}.</div>`;
 
-  // ── Fără activitate azi (doar pentru ziua curentă selectată, doar agenti, nu admin) ──
+  // ── Fără activitate (doar agenti, nu admin) ──
   const noActWrap = document.getElementById('noActivityWrap');
   if(!agentFilter){
     const activeNames = new Set([
@@ -225,42 +265,74 @@ async function render(){
       ...offers.map(o=>o.user||o.creatDe).filter(Boolean),
     ]);
     const inactive = users.filter(u=>u.name && !activeNames.has(u.name) && u.role!=='admin');
+    const periodLbl = viewMode==='saptamana' ? `${dmy(rangeDays[0])} – ${dmy(rangeDays[6])}` : dmy(iso);
     if(inactive.length){
-      noActWrap.innerHTML = `<div class="section"><h3>😶 Fără activitate în ${dmy(iso)} <span class="muted" style="font-weight:400;font-size:12px;">(${inactive.length})</span></h3><ul>${inactive.map(u=>`<li>${esc(u.name)}</li>`).join('')}</ul></div>`;
+      noActWrap.innerHTML = `<div class="section"><h3>😶 Fără activitate în ${periodLbl} <span class="muted" style="font-weight:400;font-size:12px;">(${inactive.length})</span></h3><ul>${inactive.map(u=>`<li>${esc(u.name)}</li>`).join('')}</ul></div>`;
     } else noActWrap.innerHTML='';
   } else noActWrap.innerHTML='';
 
-  // ── Sparkline 7 zile + comparatie cu ziua anterioara ──
-  const days=[]; for(let i=6;i>=0;i--){ const d=new Date(iso+'T12:00:00'); d.setDate(d.getDate()-i); days.push(isoDate(d)); }
-  const totals = days.map(dISO => crmLogFor(dISO).length + offersFor(dISO).length + visitsFor(dISO).length);
-  const maxT = Math.max(1, ...totals);
-  const sparkWrap = document.getElementById('sparkWrap');
-  sparkWrap.innerHTML = days.map((dISO,i)=>{
-    const h = Math.max(2, Math.round(totals[i]/maxT*40));
-    const lbl = new Date(dISO+'T12:00:00').toLocaleDateString('ro-RO',{weekday:'short'});
-    return `<div class="trendcol"><div class="bar${dISO===iso?' today':''}" style="height:${h}px" title="${totals[i]} · ${dmy(dISO)}"></div><div class="lbl">${lbl}</div></div>`;
-  }).join('');
+  // ── Linie productivitate 7 zile + comparatie cu perioada anterioara ──
+  const trendAnchor = viewMode==='saptamana' ? rangeDays[6] : iso;
+  const last7=[]; for(let i=6;i>=0;i--){ const d=new Date(trendAnchor+'T12:00:00'); d.setDate(d.getDate()-i); last7.push(isoDate(d)); }
+  const totals = last7.map(dISO => crmLogFor(dISO).length + offersFor(dISO).length + visitsFor(dISO).length);
+  drawProdLine(last7, totals, rangeDays);
 
-  const prevIsoD = new Date(iso+'T12:00:00'); prevIsoD.setDate(prevIsoD.getDate()-1);
-  const prevIso = isoDate(prevIsoD);
   const todayTotal = crmLog.length + offers.length + visits.length;
-  const prevTotal = crmLogFor(prevIso).length + offersFor(prevIso).length + visitsFor(prevIso).length;
+  let prevTotal, prevLbl;
+  if(viewMode==='saptamana'){
+    const prevWeekDays = weekDaysOf(rangeDays[0]).map(()=>null); // placeholder unused
+    const prevAnchor = new Date(rangeDays[0]+'T12:00:00'); prevAnchor.setDate(prevAnchor.getDate()-1);
+    const prevWeek = weekDaysOf(isoDate(prevAnchor));
+    prevTotal = prevWeek.reduce((sum,d)=>sum+crmLogFor(d).length+offersFor(d).length+visitsFor(d).length,0);
+    prevLbl = 'săptămâna trecută';
+  } else {
+    const prevIsoD = new Date(iso+'T12:00:00'); prevIsoD.setDate(prevIsoD.getDate()-1);
+    const prevIso = isoDate(prevIsoD);
+    prevTotal = crmLogFor(prevIso).length + offersFor(prevIso).length + visitsFor(prevIso).length;
+    prevLbl = 'ieri';
+  }
   const diff = todayTotal - prevTotal;
-  const diffTxt = diff===0 ? 'la fel ca ieri' : (diff>0 ? `<span class="up">▲ +${diff}</span> față de ieri` : `<span class="down">▼ ${diff}</span> față de ieri`);
-  document.getElementById('cmpWrap').innerHTML = `<div class="cmp">Activitate azi: <b>${todayTotal}</b> · ${diffTxt} (<b>${prevTotal}</b>)</div>`;
+  const diffTxt = diff===0 ? `la fel ca ${prevLbl}` : (diff>0 ? `<span class="up">▲ +${diff}</span> față de ${prevLbl}` : `<span class="down">▼ ${diff}</span> față de ${prevLbl}`);
+  document.getElementById('cmpWrap').innerHTML = `<div class="cmp">Activitate: <b>${todayTotal}</b> · ${diffTxt} <span class="muted">(${prevTotal})</span></div>`;
 
   document.getElementById('refreshFooter').textContent = 'actualizat ' + new Date().toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit'});
+}
+function drawProdLine(days, totals, highlightDays){
+  const svg = document.getElementById('prodLine');
+  const W=700,H=70,padX=26,padTop=10,padBottom=20;
+  const maxT = Math.max(1, ...totals);
+  const stepX = (W-2*padX)/(days.length-1);
+  const chartH = H-padTop-padBottom;
+  const pts = totals.map((t,i)=>{
+    const x = padX + i*stepX;
+    const y = padTop + chartH - (t/maxT)*chartH;
+    return [x,y];
+  });
+  const line = pts.map(p=>p.join(',')).join(' ');
+  const area = `${padX},${padTop+chartH} ${line} ${padX+(days.length-1)*stepX},${padTop+chartH}`;
+  const dots = pts.map(([x,y],i)=>{
+    const hi = highlightDays.includes(days[i]);
+    return `<circle cx="${x}" cy="${y}" r="${hi?4.5:3}" fill="${hi?'#f59e0b':'#475569'}" stroke="#0c1526" stroke-width="1.5"><title>${totals[i]} · ${dmy(days[i])}</title></circle>
+      <text x="${x}" y="${y-10}" font-size="10" fill="${hi?'#f59e0b':'#64748b'}" text-anchor="middle" font-weight="600">${totals[i]}</text>`;
+  }).join('');
+  const labels = days.map((d,i)=>{
+    const x = padX + i*stepX;
+    const lbl = new Date(d+'T12:00:00').toLocaleDateString('ro-RO',{weekday:'short'});
+    return `<text x="${x}" y="${H-2}" font-size="10.5" fill="#64748b" text-anchor="middle">${lbl}</text>`;
+  }).join('');
+  svg.innerHTML = `<polygon points="${area}" fill="rgba(245,158,11,0.08)"/><polyline points="${line}" fill="none" stroke="#f59e0b" stroke-width="2"/>${dots}${labels}`;
 }
 function section(title, count, items){
   if(!count) return '';
   return `<div class="section"><h3>${title} <span class="muted" style="font-weight:400;font-size:12px;">(${count})</span></h3><ul>${items.join('')}</ul></div>`;
 }
 
-document.getElementById('prevDay').onclick = ()=>{ const d=new Date(dateInput.value+'T12:00:00'); d.setDate(d.getDate()-1); dateInput.value=isoDate(d); render(); };
-document.getElementById('nextDay').onclick = ()=>{ const d=new Date(dateInput.value+'T12:00:00'); d.setDate(d.getDate()+1); dateInput.value=isoDate(d); render(); };
+document.getElementById('prevDay').onclick = ()=>{ const step=viewMode==='saptamana'?7:1; const d=new Date(dateInput.value+'T12:00:00'); d.setDate(d.getDate()-step); dateInput.value=isoDate(d); render(); };
+document.getElementById('nextDay').onclick = ()=>{ const step=viewMode==='saptamana'?7:1; const d=new Date(dateInput.value+'T12:00:00'); d.setDate(d.getDate()+step); dateInput.value=isoDate(d); render(); };
 document.getElementById('todayBtn').onclick = ()=>{ dateInput.value=todayIso; render(); };
 document.getElementById('printBtn').onclick = ()=>window.print();
-dateInput.onchange = render;
+document.getElementById('modeDay').onclick = ()=>{ viewMode='zi'; document.getElementById('modeDay').classList.add('active'); document.getElementById('modeWeek').classList.remove('active'); render(); };
+document.getElementById('modeWeek').onclick = ()=>{ viewMode='saptamana'; document.getElementById('modeWeek').classList.add('active'); document.getElementById('modeDay').classList.remove('active'); render(); };dateInput.onchange = render;
 render();
 </script>
 </body>
