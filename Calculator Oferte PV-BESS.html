@@ -979,6 +979,7 @@
           <tr style="background:#0b1e3d">
             <th style="text-align:center;padding:9px 6px;font-size:9px;color:#fff;font-weight:700;letter-spacing:.8px;text-transform:uppercase;width:46px">Nr. crt.</th>
             <th style="text-align:left;padding:9px 6px;font-size:9px;color:#fff;font-weight:700;letter-spacing:.8px;text-transform:uppercase;width:120px">Grup</th>
+            <th style="text-align:left;padding:9px 6px;font-size:9px;color:#fff;font-weight:700;letter-spacing:.8px;text-transform:uppercase;width:110px">Cod produs</th>
             <th style="text-align:left;padding:9px 6px;font-size:9px;color:#fff;font-weight:700;letter-spacing:.8px;text-transform:uppercase">Capitol de lucrări</th>
             <th style="text-align:left;padding:9px 6px;font-size:9px;color:#fff;font-weight:700;letter-spacing:.8px;text-transform:uppercase;width:120px">Unitate de măsură</th>
             <th style="text-align:right;padding:9px 6px;font-size:9px;color:#fff;font-weight:700;letter-spacing:.8px;text-transform:uppercase;width:96px">Cantitate</th>
@@ -2219,7 +2220,7 @@ window.applyConfig = function applyConfig(config){
   document.getElementById('spacingOut').textContent = (document.getElementById('spacingFactor').value) + '%';
   document.getElementById('invertorMarcaCustomField').style.display =
     (document.getElementById('invertorMarca').value === 'custom') ? 'block' : 'none';
-  if(Array.isArray(config.devizRows)){ devizRows = config.devizRows.map(function(x){return {grup:x.grup||'',capitol:x.capitol||'',um:x.um||'',cant:x.cant,pret:x.pret,inCapex:!!x.inCapex};}); renderDeviz(); }
+  if(Array.isArray(config.devizRows)){ devizRows = config.devizRows.map(function(x){return {grup:x.grup||'',cod:x.cod||'',capitol:x.capitol||'',um:x.um||'',cant:x.cant,pret:x.pret,inCapex:!!x.inCapex};}); renderDeviz(); }
   render();
 }
 
@@ -2284,7 +2285,7 @@ document.getElementById('btnReset').addEventListener('click', function(){
   document.getElementById('marjaOut').textContent = Math.round(defaults.marjaComercial||0) + '%';
   document.getElementById('invertorMarcaCustomField').style.display =
     (document.getElementById('invertorMarca').value === 'custom') ? 'block' : 'none';
-  devizRows.length = 0; devizRows.push({grup:'',capitol:'',um:'',cant:'',pret:''}); renderDeviz();
+  devizRows.length = 0; devizRows.push({grup:'',cod:'',capitol:'',um:'',cant:'',pret:''}); renderDeviz();
   var d0 = new Date();
   document.getElementById('dataOferta').value = String(d0.getDate()).padStart(2,'0') + '.' + String(d0.getMonth()+1).padStart(2,'0') + '.' + d0.getFullYear();
   updateDevizFoot();
@@ -3047,6 +3048,7 @@ function renderDeviz(){
     return '<tr style="background:'+rbg+'">'+
       '<td style="text-align:center;color:var(--text3);padding:5px 6px">'+(i+1)+'</td>'+
       '<td style="padding:5px 6px"><select data-di="'+i+'" data-df="grup" style="width:100%;'+ic+'">'+['','A. Sistem PV','B. Stocare BESS','C. Alte lucrări','Locația 1','Locația 2'].map(function(g){return '<option value="'+g+'" '+(row.grup===g?'selected':'')+'>'+(g||'—')+'</option>';}).join('')+'</select></td>'+
+      '<td style="padding:5px 6px"><input type="text" data-di="'+i+'" data-df="cod" value="'+String(row.cod||'').replace(/"/g,'&quot;')+'" placeholder="ex: GW112.6-BAT" style="width:100%;'+ic+';font-family:monospace;font-size:11px"></td>'+
       '<td style="padding:5px 6px"><input type="text" data-di="'+i+'" data-df="capitol" value="'+String(row.capitol||'').replace(/"/g,'&quot;')+'" style="width:100%;'+ic+'"></td>'+
       '<td style="padding:5px 6px"><input type="text" data-di="'+i+'" data-df="um" value="'+String(row.um||'').replace(/"/g,'&quot;')+'" style="width:100%;'+ic+'"></td>'+
       '<td style="padding:5px 6px"><input type="number" step="any" data-di="'+i+'" data-df="cant" value="'+((row.cant!==''&&row.cant!=null)?row.cant:'')+'" style="width:100%;text-align:right;'+ic+'"></td>'+
@@ -3083,7 +3085,7 @@ function renderDeviz(){
   }
   var add=document.getElementById('btnAddDevizRow');
   if(add) add.addEventListener('click', function(){
-    devizRows.push({grup:'',capitol:'',um:'',cant:'',pret:'',inCapex:false});
+    devizRows.push({grup:'',cod:'',capitol:'',um:'',cant:'',pret:'',inCapex:false});
     renderDeviz();
     var inputs=document.querySelectorAll('#devizBody tr:last-child input');
     if(inputs.length) inputs[0].focus();
@@ -3953,7 +3955,7 @@ function buildOfferHTML(r){
       var bg=i%2===0?'#ffffff':'#f7f9fb';
       bodyRows+='<tr style="background:'+bg+';border-bottom:1px solid '+DZBORDER+'">'+
         '<td style="padding:9px 10px;text-align:center;color:'+MUT+';width:42px">'+(i+1)+'</td>'+
-        '<td style="padding:9px 10px;color:'+INK+';font-weight:500">'+esc(x.capitol||'')+'</td>'+
+        '<td style="padding:9px 10px;color:'+INK+';font-weight:500">'+esc(x.capitol||'')+(x.cod?'<div style="font-family:monospace;font-size:9.5px;color:'+MUT+';margin-top:2px">Cod: '+esc(x.cod)+'</div>':'')+'</td>'+
         '<td style="padding:9px 10px;text-align:center;color:'+MUT+';width:96px">'+esc(x.um||'')+'</td>'+
         '<td style="padding:9px 10px;text-align:right;color:'+INK+';width:70px">'+((x.cant!==''&&x.cant!=null)?esc(String(x.cant)):'—')+'</td>'+
         '<td style="padding:9px 10px;text-align:right;color:'+MUT+';width:104px">'+(pu?(ronShow?'<div style="color:'+INK+'">'+fmt(pu)+' lei</div><div style="font-size:9px;color:'+MUT+'">€ '+fmt(pu/curs)+'</div>':fmt(pu)+' lei'):'—')+'</td>'+
@@ -4212,7 +4214,7 @@ function buildOfferHTML(r){
   // ─── TERMENI & CONDIȚII ───────────────────────────────────────────────────
   var tcR=function(lbl,val){return '<tr style="border-bottom:1px solid '+LINE+'"><td style="padding:7px 10px;font-size:11px;color:'+MUT+';font-weight:600;width:44%">'+lbl+'</td><td style="padding:7px 10px;font-size:11px;color:'+INK+';font-weight:600">'+val+'</td></tr>';};
   var pTermeni='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
-    hdr('05','De ce '+firma.split(' ')[0].toUpperCase()+' & pașii următori','Condiții comerciale, garanții și informații despre contractant')+
+    hdr('05','De ce lucrați cu noi & pașii următori','Condiții comerciale, garanții și informații despre contractant')+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1">'+
       '<div>'+
         '<div style="background:'+AC+';color:#fff;font-family:Archivo,sans-serif;font-weight:700;font-size:12px;padding:10px 12px;border-radius:8px 8px 0 0">Termeni &amp; Condiții Comerciale</div>'+
