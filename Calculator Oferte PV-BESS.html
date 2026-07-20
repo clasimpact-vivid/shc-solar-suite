@@ -649,7 +649,13 @@
     </div>
 
     <div class="card">
-      <h2 class="section">⚙️ Ipoteze financiare</h2>
+      <h2 class="section">✅ Beneficii pentru client</h2>
+      <p style="font-size:12px;color:var(--text2);margin:0 0 12px">Bifează ce se aplică la acest proiect — apar în oferta PDF, la client, ca argumente pro. Textul e editabil.</p>
+      <div id="benefitsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <button type="button" id="btnAddBenefit" style="margin-top:10px;padding:8px 14px;border:1px dashed var(--border);background:transparent;border-radius:8px;font-size:12px;cursor:pointer;color:var(--text2);">+ Adaugă beneficiu</button>
+    </div>
+
+    <div class="card">
       <div class="field">
         <label>TVA (%)</label>
         <input type="number" id="tva" value="21" step="0.5">
@@ -1332,6 +1338,52 @@ function render(){
   function L(eur){ return fmtEur2.format((eur||0)*cursR) + ' lei'; }
   function L0(eur){ return fmtEur.format(Math.round((eur||0)*cursR)) + ' lei'; }
   function LE(eur){ return L(eur) + ' (€' + fmtEur2.format(eur||0) + ')'; }
+
+  // Beneficii pentru client
+  (function(){
+    var DEFAULT_BENEFITS = [
+      {text:'Reducere semnificativă a facturii de energie electrică, prin producție proprie de energie', on:true},
+      {text:'Independență crescută față de creșterile de preț ale energiei din rețea', on:true},
+      {text:'Backup / continuitate alimentare în caz de pană de curent (dacă sistemul include BESS cu funcție de backup)', on:false},
+      {text:'Stocare a surplusului de energie produs ziua, pentru a fi folosit seara/noaptea', on:false},
+      {text:'Reducere a vârfurilor de consum (peak shaving) și a penalităților de depășire putere contractată', on:false},
+      {text:'Durată de viață lungă a echipamentelor, cu garanție producător', on:true},
+      {text:'Monitorizare producție și consum în timp real, de pe telefon/laptop', on:true},
+      {text:'Contribuție la reducerea amprentei de carbon a companiei', on:false}
+    ];
+    var BKEY='shc_calc_benefits';
+    var list;
+    try{ list = JSON.parse(localStorage.getItem(BKEY)); }catch(e){ list=null; }
+    if(!Array.isArray(list) || !list.length) list = DEFAULT_BENEFITS.map(function(b){return {text:b.text,on:b.on};});
+    window._benefits = list;
+
+    function persistBenefits(){ try{ localStorage.setItem(BKEY, JSON.stringify(window._benefits)); }catch(e){} }
+    function renderBenefits(){
+      var wrap = document.getElementById('benefitsList');
+      wrap.innerHTML = window._benefits.map(function(b,i){
+        return '<div style="display:flex;align-items:flex-start;gap:8px;">'+
+          '<input type="checkbox" data-bidx="'+i+'" class="benefitChk" '+(b.on?'checked':'')+' style="margin-top:3px;">'+
+          '<input type="text" data-bidx="'+i+'" class="benefitTxt" value="'+b.text.replace(/"/g,'&quot;')+'" style="flex:1;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;">'+
+          '<button type="button" data-bidx="'+i+'" class="benefitDel" style="border:none;background:transparent;color:#ef4444;cursor:pointer;font-size:14px;padding:2px 6px;">✕</button>'+
+        '</div>';
+      }).join('');
+      wrap.querySelectorAll('.benefitChk').forEach(function(el){
+        el.addEventListener('change', function(){ window._benefits[+el.dataset.bidx].on = el.checked; persistBenefits(); });
+      });
+      wrap.querySelectorAll('.benefitTxt').forEach(function(el){
+        el.addEventListener('input', function(){ window._benefits[+el.dataset.bidx].text = el.value; persistBenefits(); });
+      });
+      wrap.querySelectorAll('.benefitDel').forEach(function(el){
+        el.addEventListener('click', function(){ window._benefits.splice(+el.dataset.bidx,1); persistBenefits(); renderBenefits(); });
+      });
+    }
+    renderBenefits();
+    document.getElementById('btnAddBenefit').addEventListener('click', function(){
+      window._benefits.push({text:'', on:true});
+      persistBenefits();
+      renderBenefits();
+    });
+  })();
 
   // Recomandare capacitate BESS — combină consum zilnic + surplus PV
   (function(){
@@ -3957,6 +4009,8 @@ function buildOfferHTML(r){
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 32px"><div>'+legCol(legItems.slice(0,Math.ceil(legItems.length/2)))+'</div><div>'+legCol(legItems.slice(Math.ceil(legItems.length/2)))+'</div></div>'+
     '<div style="flex:1"></div><div style="border-top:1px solid '+LINE+';padding-top:12px;display:flex;justify-content:space-between;font-size:9px;color:'+MUT+'"><span>© 2026 '+esc(firma)+' · Software proprietar · Legea nr. 8/1996</span><span>'+esc(nrOferta)+'</span></div></div>';
 
+  var hdr=function(num,title,sub){return '<div style="display:flex;align-items:center;gap:14px"><div style="width:34px;height:34px;flex:none;border:1.5px solid '+GOLD+';border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;color:'+GOLD+';font-size:13px">'+num+'</div><h2 style="font-family:Archivo,sans-serif;font-weight:800;font-size:18px;color:'+INK+';margin:0">'+title+'</h2></div><p style="font-size:11.5px;color:'+MUT+';margin:6px 0 16px 48px;border-bottom:2px solid '+LINE+';padding-bottom:14px">'+sub+'</p>';};
+
   var genBy = (window.SESSION && window.SESSION.userName) ? window.SESSION.userName : (typeof SESSION!=='undefined'&&SESSION ? SESSION.userName : '');
   var genAt = new Date().toLocaleString('ro-RO',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
   var watermark = genBy ? esc(genBy)+' · '+genAt : genAt;
@@ -3989,6 +4043,16 @@ function buildOfferHTML(r){
       '</div>'+
       foot(1)+'</div></div>';
 
+  var benefitsOn = (window._benefits||[]).filter(function(b){ return b.on && b.text && b.text.trim(); });
+  var benefitsHTML = benefitsOn.length ? (
+    '<div style="page-break-inside:avoid;margin-top:26px;border:1px solid '+LINE+';border-radius:9px;padding:20px 22px;background:'+SOFT+'">'+
+      '<div style="font-family:Archivo,sans-serif;font-weight:700;font-size:13px;color:'+AC+';margin-bottom:12px">De ce este avantajos acest sistem pentru dvs.</div>'+
+      benefitsOn.map(function(b){
+        return '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;font-size:11.5px;color:'+INK+';line-height:1.5"><span style="color:'+AC+';font-weight:700">✓</span><span>'+b.text+'</span></div>';
+      }).join('')+
+    '</div>'
+  ) : '';
+
   var p2='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
     '<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid '+AC+';padding-bottom:9px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+AC+';margin:0">Centralizator valoric</h2><span style="font-size:10px;color:'+MUT+'">'+(ronShow?'EUR și RON · curs '+fmt(curs,4):'Valori în EUR')+'</span></div>'+
     '<table style="width:100%;border-collapse:collapse;margin-top:18px;font-size:11.5px"><thead><tr style="color:'+MUT+';font-size:9px;letter-spacing:1px;text-transform:uppercase"><th style="text-align:left;padding:0 0 8px;font-weight:700">Descriere</th><th style="text-align:right;padding:0 0 8px;font-weight:700">RON (fără TVA)</th><th style="text-align:right;padding:0 0 8px;font-weight:700">EUR (fără TVA)</th></tr></thead><tbody>'+costRowsHTML+
@@ -4000,6 +4064,7 @@ function buildOfferHTML(r){
     '<div style="display:flex;flex-wrap:wrap;gap:18px;margin-top:14px">'+segLeg+'</div>'+
     '<h3 style="font-family:Archivo,sans-serif;font-weight:700;font-size:13px;color:'+INK+';margin:34px 0 14px">Grafic de plăți (raportat la total cu TVA)</h3>'+
     '<div style="display:flex;gap:10px">'+transeHTML+'</div>'+
+    benefitsHTML+
     foot(2)+'</div>';
 
   var p3='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
@@ -4066,8 +4131,7 @@ function buildOfferHTML(r){
       '<div style="font-size:9.5px;color:'+MUT+';margin-top:5px;opacity:0.85">'+sub+'</div></div>';
   };
   var pSumar='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
-    '<h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:16px;color:'+AC+';margin:0 0 3px">1. Sumar Executiv – Indicatori Cheie</h2>'+
-    '<p style="font-size:11px;color:'+MUT+';margin:0 0 14px;border-bottom:2px solid '+AC+';padding-bottom:8px">Parametri tehnici și financiari principali ai proiectului</p>'+
+    hdr('01','Rezumat executiv','Investiția, energia valorificată și randamentul dintr-o privire')+
     '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px">'+
       kpiC('Putere instalată DC', r.kwp.toFixed(1)+' kWp', r.numPanouri+' panouri', '#f59e0b')+
       kpiC('Stocare BESS', bessStr2, bessSub2, '#16a34a')+
@@ -4100,8 +4164,7 @@ function buildOfferHTML(r){
   var surfStr=r.areaNeeded>0?'~'+fmt0(r.areaNeeded)+' m²':'—';
   var specR=function(lbl,val,muted){return '<tr style="border-bottom:1px solid '+LINE+'"><td style="padding:7px 10px;font-size:11px;color:'+MUT+';font-weight:600;width:45%">'+lbl+'</td><td style="padding:7px 10px;font-size:11px;color:'+(muted?MUT:INK)+';font-weight:700">'+val+'</td></tr>';};
   var pSpecs='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
-    '<h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:16px;color:'+AC+';margin:0 0 3px">2. Specificații Tehnice</h2>'+
-    '<p style="font-size:11px;color:'+MUT+';margin:0 0 14px;border-bottom:2px solid '+AC+';padding-bottom:8px">Date tehnice detaliate ale sistemului fotovoltaic și de stocare</p>'+
+    hdr('02','Sistemul propus — specificații tehnice','Configurația completă a componentelor și randamentul așteptat')+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">'+
       '<table style="width:100%;border-collapse:collapse;border:1px solid '+LINE+';border-radius:8px;overflow:hidden"><tbody>'+
         specR('Beneficiar', esc(client||'—'))+
@@ -4149,8 +4212,7 @@ function buildOfferHTML(r){
   // ─── TERMENI & CONDIȚII ───────────────────────────────────────────────────
   var tcR=function(lbl,val){return '<tr style="border-bottom:1px solid '+LINE+'"><td style="padding:7px 10px;font-size:11px;color:'+MUT+';font-weight:600;width:44%">'+lbl+'</td><td style="padding:7px 10px;font-size:11px;color:'+INK+';font-weight:600">'+val+'</td></tr>';};
   var pTermeni='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
-    '<h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:16px;color:'+AC+';margin:0 0 3px">Termeni, Condiții &amp; Date Emitent</h2>'+
-    '<p style="font-size:11px;color:'+MUT+';margin:0 0 14px;border-bottom:2px solid '+AC+';padding-bottom:8px">Condiții comerciale, garanții și informații despre contractant</p>'+
+    hdr('05','De ce '+firma.split(' ')[0].toUpperCase()+' & pașii următori','Condiții comerciale, garanții și informații despre contractant')+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1">'+
       '<div>'+
         '<div style="background:'+AC+';color:#fff;font-family:Archivo,sans-serif;font-weight:700;font-size:12px;padding:10px 12px;border-radius:8px 8px 0 0">Termeni &amp; Condiții Comerciale</div>'+
