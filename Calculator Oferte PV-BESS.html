@@ -2848,9 +2848,7 @@ document.getElementById('btnPdf').addEventListener('click', function(){
   addFooter();
 
   // ─── OUTPUT ───
-  var filename = 'Oferta-PV-SHC-' + r.kwp.toFixed(2) + 'kWp';
-  if(client) filename += '-' + client.replace(/[^a-zA-Z0-9]/g,'');
-  if(nrOferta) filename += '-' + nrOferta.replace(/[^a-zA-Z0-9]/g,'');
+  var filename = ('Ofertă ' + nrOferta + (client ? (' - ' + client) : '')).replace(/[\\/:*?"<>|]/g,'');
   var pdfBlob = doc.output('blob');
   var pdfUrl = URL.createObjectURL(pdfBlob);
 
@@ -4256,6 +4254,9 @@ document.getElementById('btnOfertaPdf').addEventListener('click', function(){
   var client=(document.getElementById('numeClient').value||'').trim();
   logOffer('oferta_pdf', nrOferta, client, Math.round(r.capexTotalTva*(getVal('curs')||5.2)));
   var html = buildOfferHTML(r);
+  var pdfTitle = 'Ofertă ' + nrOferta + (client ? (' - ' + client) : '');
+  var oldTitle = document.title;
+  document.title = pdfTitle;
   var blob = new Blob([html], {type:'text/html'});
   var url = URL.createObjectURL(blob);
   // Afișează întotdeauna în overlay (cel mai fiabil în orice mediu)
@@ -4278,7 +4279,7 @@ document.getElementById('btnOfertaPdf').addEventListener('click', function(){
   btnClose.style.cssText = 'background:transparent;color:#fff;border:1px solid rgba(255,255,255,.4);padding:8px 12px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:13px';
   var aDl = document.createElement('a');
   aDl.textContent = '⬇ Descarcă HTML';
-  aDl.href = url; aDl.download = 'Oferta-'+(nrOferta||'SHC')+'.html';
+  aDl.href = url; aDl.download = pdfTitle.replace(/[\\/:*?"<>|]/g,'')+'.html';
   aDl.style.cssText = 'color:#fff;text-decoration:none;font-size:12px;background:rgba(255,255,255,.15);padding:6px 12px;border-radius:6px;white-space:nowrap;';
   bar.appendChild(btnPrint); bar.appendChild(aNew); bar.appendChild(aDl); bar.appendChild(btnClose);
   var frame = document.createElement('iframe');
@@ -4288,7 +4289,7 @@ document.getElementById('btnOfertaPdf').addEventListener('click', function(){
   ov.appendChild(bar); ov.appendChild(frame);
   document.body.appendChild(ov);
   btnPrint.addEventListener('click', function(){ try{ frame.contentWindow.focus(); frame.contentWindow.print(); }catch(e){} });
-  btnClose.addEventListener('click', function(){ document.body.removeChild(ov); URL.revokeObjectURL(url); });
+  btnClose.addEventListener('click', function(){ document.body.removeChild(ov); URL.revokeObjectURL(url); document.title = oldTitle; });
   } catch(err) {
     alert('Eroare la generarea ofertei:\n' + err.message);
     console.error('[Ofertă PDF]', err);
