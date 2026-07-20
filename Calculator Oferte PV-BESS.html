@@ -2051,7 +2051,7 @@ document.getElementById('btnSave').addEventListener('click', function(){
   config.yearSlider = document.getElementById('yearSlider').value;
   config.devizRows = devizRows;
   var jsonStr = JSON.stringify(config, null, 2);
-  var filename = 'config-oferta-' + (config.numeClient||'draft').replace(/[^a-zA-Z0-9]/g,'') + '.json';
+  var filename = ('Ofertă SHC-' + (config.nrOfertaSuffix||'draft') + (config.numeClient?(' - '+config.numeClient):'') + ' (config).json').replace(/[\\/:*?"<>|]/g,'');
 
   // Try native download first
   var downloadWorked = false;
@@ -3814,8 +3814,23 @@ function buildOfferHTML(r){
     ? '<span class="chip" style="border-color:'+ORG+';color:'+ORG+'">Soluție EPC „la cheie”</span><span class="chip" style="border-color:'+TEAL+';color:'+TEAL+'">'+(bessIncl?'Stocare LFP · siguranță ridicată':'Echipamente Tier 1')+'</span><span class="chip" style="border-color:#7C9AEF;color:#7C9AEF">Monitorizare & garanții extinse</span>'
     : '<span class="chip" style="border-color:'+ORG+';color:'+ORG+'">AC-coupled · retrofit fără modificare PV</span><span class="chip" style="border-color:'+TEAL+';color:'+TEAL+'">Baterii LFP · siguranță ridicată</span><span class="chip" style="border-color:#7C9AEF;color:#7C9AEF">Management centralizat</span>';
 
+  // mini-staturi pentru zona de mijloc a copertei
+  var hasBess=bessIncl||bessKwhV>0||!hasPV;
+  var mini=[];
+  if(hasBess){
+    mini.push(['BACKUP LA CĂDEREA REȚELEI','inclus']);
+    mini.push(['GARANȚIE BATERII','10 ani']);
+    mini.push(hasPV?['GARANȚIE PANOURI',getVal('garantiePanouri')+' ani']:['MONTAJ','fără oprirea instalației']);
+  }else{
+    mini.push(['GARANȚIE PANOURI',getVal('garantiePanouri')+' ani']);
+    mini.push(['GARANȚIE INVERTOARE',getVal('garantieInvertor')+' ani']);
+    mini.push(['EXECUȚIE','completă, „la cheie”']);
+  }
+  var miniHTML=mini.map(function(m){return '<div class="mono" style="font-size:8.5px;color:'+GRL+';letter-spacing:.5px">'+m[0]+'  <span style="color:#fff;font-family:Poppins;font-weight:600;font-size:11.5px;letter-spacing:0">'+m[1]+'</span></div>';}).join('');
+  var tSize=sysTitle.length>34?'36px':'46px';
+
   var p1='<div class="page dark" style="padding:0">'+
-    '<div style="padding:16mm 16mm 0;flex:1;display:flex;flex-direction:column">'+
+    '<div style="padding:13mm 15mm 0;flex:1;display:flex;flex-direction:column">'+
       '<div style="display:flex;justify-content:space-between;align-items:flex-start">'+
         '<div style="display:flex;gap:12px;align-items:center">'+
           '<div style="background:#fff;border-radius:8px;padding:6px 7px;display:flex">'+logoSvg+'</div>'+
@@ -3824,23 +3839,26 @@ function buildOfferHTML(r){
         '</div>'+
         '<div class="mono" style="font-size:7.6px;color:'+GRD+';border:1px solid '+BORD+';border-radius:13px;padding:7px 14px;letter-spacing:.4px">ISO 9001 · 14001 · 45001 · 27001</div>'+
       '</div>'+
-      '<div class="mono" style="font-size:8.5px;font-weight:700;color:'+ORG+';letter-spacing:1.6px;margin-top:14mm">OFERTĂ TEHNICO-ECONOMICĂ · '+eyebrow+'</div>'+
-      '<h1 style="font-family:Poppins;font-weight:700;font-size:31px;line-height:1.25;color:#fff;margin:14px 0 0;max-width:160mm">'+esc(sysTitle)+'</h1>'+
-      '<p style="font-family:Poppins;font-weight:300;font-size:12px;line-height:1.6;color:'+GRD+';margin:14px 0 0;max-width:155mm">'+
+      '<div style="flex:1.1"></div>'+
+      '<div class="mono" style="font-size:10px;font-weight:700;color:'+ORG+';letter-spacing:2px">OFERTĂ TEHNICO-ECONOMICĂ · '+eyebrow+'</div>'+
+      '<h1 style="font-family:Poppins;font-weight:700;font-size:'+tSize+';line-height:1.15;color:#fff;margin:16px 0 0;max-width:170mm">'+esc(sysTitle)+'</h1>'+
+      '<p style="font-family:Poppins;font-weight:300;font-size:13.5px;line-height:1.65;color:'+GRD+';margin:16px 0 0;max-width:160mm">'+
         (hasPV
           ?'Soluție completă „la cheie”: proiectare, aprovizionare echipamente, instalare, testare și punere în funcțiune'+(bessIncl?', cu sistem de stocare integrat pentru maximizarea autoconsumului':'')+'.'
           :'Soluție <b style="color:#fff;font-weight:600">retrofit AC-coupled</b> — baterii LFP, invertoare hibride și management al stocării, integrate în instalația existentă, fără modificarea acesteia.')+
       '</p>'+
-      '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px">'+chips+'</div>'+
-      '<div style="display:flex;gap:14px;margin-top:26px">'+
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:22px">'+chips+'</div>'+
+      '<div style="flex:0.9"></div>'+
+      '<div style="display:flex;gap:26px;flex-wrap:wrap;border-top:1px solid '+BORD+';border-bottom:1px solid '+BORD+';padding:15px 2px;align-items:center">'+miniHTML+'</div>'+
+      '<div style="flex:0.9"></div>'+
+      '<div style="display:flex;gap:14px">'+
         '<div class="dcard"><div class="dlab">BENEFICIAR</div><div class="dval">'+esc(clientDisp)+'</div><div class="dsub">'+eyebrow.charAt(0)+eyebrow.slice(1).toLowerCase()+'</div></div>'+
         '<div class="dcard"><div class="dlab">FURNIZOR / EXECUTANT EPC</div><div class="dval">'+esc(firma)+'</div><div class="dsub">'+esc([firmaCUI,firmaRegCom,firmaAdresa].filter(Boolean).join(' · ')||'—')+'</div></div>'+
       '</div>'+
-      '<div style="margin-top:24px;display:inline-flex;align-items:center;gap:9px;border:1.3px solid '+ORG+';border-radius:15px;padding:8px 16px;align-self:flex-start">'+
-        '<span style="width:5px;height:5px;border-radius:50%;background:'+ORG+'"></span>'+
-        '<span class="mono" style="font-size:8px;font-weight:700;color:'+ORG+';letter-spacing:.6px">OFERTA '+esc(nrOferta)+(dataOferta?' · DATA: '+esc(dataOferta):'')+(validUntil?' · VALABILĂ PÂNĂ LA: '+esc(validUntil).toUpperCase():'')+'</span>'+
+      '<div style="margin:20px 0 24px;display:inline-flex;align-items:center;gap:9px;border:1.4px solid '+ORG+';border-radius:16px;padding:9px 18px;align-self:flex-start">'+
+        '<span style="width:6px;height:6px;border-radius:50%;background:'+ORG+'"></span>'+
+        '<span class="mono" style="font-size:9.5px;font-weight:700;color:'+ORG+';letter-spacing:.6px">OFERTA '+esc(nrOferta)+(dataOferta?' · DATA: '+esc(dataOferta):'')+(validUntil?' · VALABILĂ PÂNĂ LA: '+esc(validUntil).toUpperCase():'')+'</span>'+
       '</div>'+
-      '<div style="flex:1"></div>'+
     '</div>'+
     '<div style="background:'+NAVY3+';border-top:1px solid '+BORD+';display:flex;padding:0 6mm">'+coverBand+'</div>'+
   '</div>';
@@ -4048,7 +4066,6 @@ function buildOfferHTML(r){
   }
 
   // ═════════ P9 · AVANTAJE & DEZAVANTAJE ═════════
-  var hasBess=bessIncl||bessKwhV>0||!hasPV;
   var prosList=[];
   if(hasPV){
     prosList.push(['Factura scade de la prima zi','Energia produsă pe acoperiș înlocuiește direct energia cumpărată din rețea, la cost zero de producție.']);
@@ -4175,13 +4192,13 @@ function buildOfferHTML(r){
     '.srow{display:flex;justify-content:space-between;gap:12px;padding:6.5px 0;border-bottom:1px solid #EFF2F7;font-size:9.3px}'+
     '.srow span{color:'+MUT+'}.srow b{color:'+INK+';font-size:9px;text-align:right}'+
     '.chip{border:1.1px solid;border-radius:12px;padding:6px 13px;font-family:"JetBrains Mono",monospace;font-size:7.5px;letter-spacing:.3px}'+
-    '.dcard{flex:1;background:'+NAVY2+';border:1px solid '+BORD+';border-radius:10px;padding:13px 15px}'+
-    '.dcard .dlab{font-family:"JetBrains Mono",monospace;font-size:6.8px;color:'+GRL+';letter-spacing:1px}'+
-    '.dcard .dval{font-family:Poppins;font-weight:700;font-size:13px;color:#fff;margin-top:6px}'+
-    '.dcard .dsub{font-size:8px;color:'+GRD+';margin-top:4px;line-height:1.5}'+
-    '.bcell{flex:1;padding:16px 18px 14px}'+
-    '.bval{font-family:Poppins;color:#fff;font-size:11px}.bval b{font-weight:700;font-size:20px}.bval u{text-decoration:none;color:'+ORG+';font-weight:700;font-size:10px}'+
-    '.blab{font-family:"JetBrains Mono",monospace;font-size:6.4px;color:'+GRL+';letter-spacing:.5px;margin-top:6px;line-height:1.55}'+
+    '.dcard{flex:1;background:'+NAVY2+';border:1px solid '+BORD+';border-radius:10px;padding:16px 18px}'+
+    '.dcard .dlab{font-family:"JetBrains Mono",monospace;font-size:8px;color:'+GRL+';letter-spacing:1px}'+
+    '.dcard .dval{font-family:Poppins;font-weight:700;font-size:16px;color:#fff;margin-top:7px}'+
+    '.dcard .dsub{font-size:9px;color:'+GRD+';margin-top:4px;line-height:1.5}'+
+    '.bcell{flex:1;padding:24px 20px 22px}'+
+    '.bval{font-family:Poppins;color:#fff;font-size:13px}.bval b{font-weight:700;font-size:29px}.bval u{text-decoration:none;color:'+ORG+';font-weight:700;font-size:14px}'+
+    '.blab{font-family:"JetBrains Mono",monospace;font-size:7.8px;color:'+GRL+';letter-spacing:.5px;margin-top:8px;line-height:1.6}'+
     '.vtab{width:100%;border-collapse:collapse;font-size:10px}'+
     '.vtab thead th{font-family:"JetBrains Mono",monospace;font-size:7px;letter-spacing:.8px;color:#fff;background:'+NAVY+';padding:9px 10px;font-weight:700}'+
     '.vtab td{padding:9px 10px;border-bottom:1px solid '+LINE+'}'+
@@ -4208,7 +4225,7 @@ function buildOfferHTML(r){
     '.darkfoot p{font-size:6.8px;line-height:1.7;color:#6E7891;margin:0;letter-spacing:.3px}'+
     '@page{size:A4;margin:0}@media print{body{background:#fff}.bar{display:none}.pages{padding:0;gap:0}.page{box-shadow:none;page-break-after:always;break-after:page}.page:last-child{page-break-after:auto}}';
 
-  var doc='<!DOCTYPE html><html lang="ro"><head><meta charset="UTF-8"><title>Ofertă '+esc(nrOferta)+(client?(' · '+esc(client)):'')+'</title>'+
+  var doc='<!DOCTYPE html><html lang="ro"><head><meta charset="UTF-8"><title>Ofertă '+esc(nrOferta)+(client?(' - '+esc(client)):'')+'</title>'+
     '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'+
     '<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">'+
     '<style>'+css+'</style></head>'+
@@ -4218,6 +4235,12 @@ function buildOfferHTML(r){
     '</body></html>';
   return doc;
 }
+
+
+
+
+
+
 
 
 
