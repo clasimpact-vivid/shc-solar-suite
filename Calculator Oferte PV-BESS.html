@@ -2972,7 +2972,7 @@ function renderDeviz(){
     var rbg=i%2===0?'#ffffff':'#f7f9fb';
     return '<tr style="background:'+rbg+'">'+
       '<td style="text-align:center;color:var(--text3);padding:5px 6px">'+(i+1)+'</td>'+
-      '<td style="padding:5px 6px"><select data-di="'+i+'" data-df="grup" style="width:100%;'+ic+'">'+['','A. Sistem PV','B. Stocare BESS','C. Alte lucrări','Locația 1','Locația 2'].map(function(g){return '<option value="'+g+'" '+(row.grup===g?'selected':'')+'>'+(g||'—')+'</option>';}).join('')+'</select></td>'+
+      '<td style="padding:5px 6px"><select data-di="'+i+'" data-df="grup" style="width:100%;'+ic+'">'+['','A. Sistem PV','B. Stocare BESS','Invertor','STS','BMS','EMS','C. Alte lucrări','Locația 1','Locația 2'].map(function(g){return '<option value="'+g+'" '+(row.grup===g?'selected':'')+'>'+(g||'—')+'</option>';}).join('')+'</select></td>'+
       '<td style="padding:5px 6px"><input type="text" data-di="'+i+'" data-df="capitol" value="'+String(row.capitol||'').replace(/"/g,'&quot;')+'" style="width:100%;'+ic+'"></td>'+
       '<td style="padding:5px 6px"><input type="text" data-di="'+i+'" data-df="um" value="'+String(row.um||'').replace(/"/g,'&quot;')+'" style="width:100%;'+ic+'"></td>'+
       '<td style="padding:5px 6px"><input type="number" step="any" data-di="'+i+'" data-df="cant" value="'+((row.cant!==''&&row.cant!=null)?row.cant:'')+'" style="width:100%;text-align:right;'+ic+'"></td>'+
