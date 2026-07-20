@@ -2108,6 +2108,45 @@ document.getElementById('btnClearVariants').addEventListener('click', function()
 });
 
 
+function dateStamp(){
+  var d=new Date();
+  return ('0'+d.getDate()).slice(-2)+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+d.getFullYear();
+}
+function offerFileBase(ext){
+  var client=(document.getElementById('numeClient')?document.getElementById('numeClient').value:'').trim().replace(/[^a-zA-Z0-9 ]/g,'').replace(/\s+/g,'_')||'Client';
+  var nrSuf=document.getElementById('nrOfertaSuffix')?document.getElementById('nrOfertaSuffix').value:'';
+  var nrOferta=nrSuf?('SHC-'+nrSuf):'';
+  return [client, dateStamp(), nrOferta].filter(Boolean).join('_');
+}
+window._hasSavedConfig = false;
+function requireSavedConfig(actionLabel, proceedFn){
+  if(window._hasSavedConfig){ proceedFn(); return; }
+  var modal=document.createElement('div');
+  modal.style.cssText='position:fixed;inset:0;z-index:100000;background:rgba(10,20,40,.65);display:flex;align-items:center;justify-content:center;padding:24px;';
+  var box=document.createElement('div');
+  box.style.cssText='background:#fff;border-radius:14px;max-width:480px;width:100%;padding:30px 28px;font-family:inherit;box-shadow:0 20px 60px rgba(0,0,0,.3)';
+  box.innerHTML='<div style="font-size:38px;margin-bottom:10px">💾</div>'+
+    '<h2 style="font-size:17px;margin:0 0 10px;color:#0b1e3d">Ai salvat configurația?</h2>'+
+    '<p style="font-size:13px;color:#555;line-height:1.5;margin:0 0 20px">Înainte de a '+actionLabel+', salvează configurația (chiar dacă oferta nu e terminată) — ca să o poți relua ulterior. Fișierul se va numi automat cu numele clientului, data și numărul ofertei.</p>'+
+    '<div style="display:flex;gap:10px;flex-wrap:wrap">'+
+      '<button id="rsSaveNow" style="flex:1;min-width:160px;padding:11px;border:none;background:#0b1e3d;color:#fff;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px">💾 Salvează acum</button>'+
+      '<button id="rsProceed" style="flex:1;min-width:160px;padding:11px;border:1px solid #ddd;background:#fff;color:#333;border-radius:8px;cursor:pointer;font-size:13px">Am salvat deja, continuă</button>'+
+    '</div>'+
+    '<button id="rsCancel" style="margin-top:10px;width:100%;padding:8px;border:none;background:transparent;color:#888;cursor:pointer;font-size:12px">Anulează</button>';
+  modal.appendChild(box);
+  document.body.appendChild(modal);
+  function close(){ document.body.removeChild(modal); }
+  box.querySelector('#rsSaveNow').addEventListener('click', function(){
+    document.getElementById('btnSave').click();
+    window._hasSavedConfig = true;
+    close();
+    proceedFn();
+  });
+  box.querySelector('#rsProceed').addEventListener('click', function(){ window._hasSavedConfig = true; close(); proceedFn(); });
+  box.querySelector('#rsCancel').addEventListener('click', close);
+  modal.addEventListener('click', function(e){ if(e.target===modal) close(); });
+}
+
 document.getElementById('btnSave').addEventListener('click', function(){
   var config = {};
   ids.forEach(function(id){
@@ -2121,7 +2160,8 @@ document.getElementById('btnSave').addEventListener('click', function(){
   config.yearSlider = document.getElementById('yearSlider').value;
   config.devizRows = devizRows;
   var jsonStr = JSON.stringify(config, null, 2);
-  var filename = 'config-oferta-' + (config.numeClient||'draft').replace(/[^a-zA-Z0-9]/g,'') + '.json';
+  var filename = 'config-oferta_' + offerFileBase() + '.json';
+  window._hasSavedConfig = true;
 
   // Try native download first
   var downloadWorked = false;
@@ -2293,6 +2333,7 @@ document.getElementById('btnReset').addEventListener('click', function(){
 });
 
 document.getElementById('btnPdf').addEventListener('click', function(){
+ requireSavedConfig('exporta oferta PDF (clasic)', function(){
   var r = compute();
   var nrSuf=document.getElementById('nrOfertaSuffix').value||'';
   var nrOferta='SHC-'+(nrSuf||'');
@@ -2923,9 +2964,7 @@ document.getElementById('btnPdf').addEventListener('click', function(){
   addFooter();
 
   // ─── OUTPUT ───
-  var filename = 'Oferta-PV-SHC-' + r.kwp.toFixed(2) + 'kWp';
-  if(client) filename += '-' + client.replace(/[^a-zA-Z0-9]/g,'');
-  if(nrOferta) filename += '-' + nrOferta.replace(/[^a-zA-Z0-9]/g,'');
+  var filename = offerFileBase();
   var pdfBlob = doc.output('blob');
   var pdfUrl = URL.createObjectURL(pdfBlob);
 
@@ -2936,6 +2975,7 @@ document.getElementById('btnPdf').addEventListener('click', function(){
   }catch(e){}
 
   showPdfModal(pdfUrl, filename);
+ });
 });
 
 function showPdfModal(pdfUrl, filename){
@@ -4291,6 +4331,7 @@ function buildOfferHTML(r){
 }
 
 document.getElementById('btnOfertaPdf').addEventListener('click', function(){
+ requireSavedConfig('genera oferta PDF', function(){
   try {
   var r = compute();
   var nrSuf=document.getElementById('nrOfertaSuffix').value||'';
@@ -4341,6 +4382,7 @@ document.getElementById('btnOfertaPdf').addEventListener('click', function(){
     alert('Eroare la generarea ofertei:\n' + err.message);
     console.error('[Ofertă PDF]', err);
   }
+ });
 });
 
 var today = new Date();
