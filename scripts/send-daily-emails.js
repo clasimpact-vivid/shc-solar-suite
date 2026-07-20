@@ -137,6 +137,33 @@ async function main() {
     return `<h3 style="color:#f59e0b;margin:18px 0 8px;">🚗 Pontaj — deplasări peste 50km azi</h3><ul style="margin:0;padding-left:20px;">${rows}</ul>`;
   }
 
+  // ── SolarCRM: follow-up-uri restante sau lucrări fără follow-up de 10+ zile ──
+  function followUpSectionFor(user, isFull) {
+    const overdue = [];
+    const stale = [];
+    projects.forEach(p => {
+      if (!['Lead', 'Ofertă', 'Contract'].includes(p.status)) return;
+      const isOwn = p.responsabil && user.name && p.responsabil.trim() === user.name.trim();
+      if (!isFull && !isOwn) return;
+      const today0 = new Date(); today0.setHours(0, 0, 0, 0);
+      if (p.nextFollowUp) {
+        const fuD = new Date(p.nextFollowUp + 'T00:00:00');
+        if (fuD < today0) overdue.push({ client: p.client || 'Client', date: p.nextFollowUp, responsabil: p.responsabil || '—' });
+      } else {
+        const baseIso = p.fuLastContactAt ? p.fuLastContactAt.slice(0, 10) : (p.date_inserted || p.date_start);
+        if (baseIso) {
+          const days = Math.round((today0 - new Date(baseIso + 'T00:00:00')) / 86400000);
+          if (days >= 10) stale.push({ client: p.client || 'Client', days, responsabil: p.responsabil || '—' });
+        }
+      }
+    });
+    if (!overdue.length && !stale.length) return '';
+    let html = `<h3 style="color:#f59e0b;margin:18px 0 8px;">⏰ SolarCRM — follow-up</h3>`;
+    if (overdue.length) html += `<p style="margin:4px 0;color:#dc2626;font-weight:600;">Follow-up restant:</p><ul style="margin:0 0 10px;padding-left:20px;">${overdue.map(o => `<li><strong>${o.client}</strong> — programat ${o.date} <span style="color:#94a3b8">· resp. ${o.responsabil}</span></li>`).join('')}</ul>`;
+    if (stale.length) html += `<p style="margin:4px 0;color:#d97706;font-weight:600;">Fără follow-up setat de 10+ zile:</p><ul style="margin:0;padding-left:20px;">${stale.map(s => `<li><strong>${s.client}</strong> — ${s.days} zile fără contact nou <span style="color:#94a3b8">· resp. ${s.responsabil}</span></li>`).join('')}</ul>`;
+    return html;
+  }
+
   // ── Compune și trimite câte un email per destinatar ──
   let sent = 0;
   for (const user of allUsers) {
@@ -146,6 +173,7 @@ async function main() {
     let body = '';
     const wantsCRM = notif.solarcrm !== false; // implicit true dacă nu e explicit dezactivat
     if (isFull || wantsCRM) body += crmSectionFor(user, isFull);
+    if (isFull || wantsCRM) body += followUpSectionFor(user, isFull);
     if (isFull || notif.planificare) body += planningSectionFor(user, isFull);
     if (isFull || notif.vizita) body += visitsSectionFor(isFull);
     if (isFull || notif.pontaj) body += pontajSectionFor(isFull);
