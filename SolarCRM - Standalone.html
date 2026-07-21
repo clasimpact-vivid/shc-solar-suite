@@ -1769,9 +1769,11 @@ class Component extends DCLogic {
     } catch(e){ this._initAuth(); }
   }
 
-  persist(onlyId){
+  persist(onlyId,projectsOverride,usersOverride){
     try {
-      const {projects,users,companyInfo}=this.state;
+      const {companyInfo}=this.state;
+      const projects=projectsOverride||this.state.projects;
+      const users=usersOverride||this.state.users;
       localStorage.setItem('solarcrm_v3',JSON.stringify({projects,users,adminPw:this.adminPassword,adminPin:this.adminPin,companyInfo}));
       let writePromise=null;
       const db=getDb();
@@ -1900,7 +1902,6 @@ class Component extends DCLogic {
       const fu=new Date(); fu.setDate(fu.getDate()+(isNaN(days)?14:days));
       data.nextFollowUp=fu.toISOString().slice(0,10);
     }
-    let _affectedId;
     this.setState(s=>{
       let projects, affectedId;
       if(editingId){
@@ -1916,9 +1917,9 @@ class Component extends DCLogic {
         projects=[{id:newId,...data,date_inserted:new Date().toISOString().slice(0,10),auditLog:[entry],attachments:[]}, ...s.projects];
         affectedId=newId;
       }
-      _affectedId=affectedId;
+      this.persist(affectedId,projects);
       return {projects,showModal:false,editingId:null};
-    },()=>this.persist(_affectedId));
+    });
   }
 
   openStatusModal(projectId,newStatus){ this.setState({statusModal:{show:true,projectId,newStatus,reason:''}}); }
@@ -1928,8 +1929,9 @@ class Component extends DCLogic {
       const old=s.projects.find(p=>p.id===projectId);
       const entry=this.buildAuditEntry('status_change','Status: '+(old?old.status:'?')+' → '+newStatus,reason.trim()||null);
       const projects=s.projects.map(p=>p.id===projectId?{...p,status:newStatus,auditLog:[...(p.auditLog||[]),entry]}:p);
+      this.persist(projectId,projects);
       return {projects,statusModal:{show:false,projectId:null,newStatus:'',reason:''}};
-    },()=>this.persist(projectId));
+    });
   }
 
   shcGetLock(){try{return JSON.parse(localStorage.getItem('shc_lock_solarcrm')||'{"fails":0,"until":0}');}catch(e){return{fails:0,until:0};}}
@@ -2073,7 +2075,7 @@ class Component extends DCLogic {
     w.document.write(html); w.document.close();
     setTimeout(()=>{try{w.print();}catch(e){}},600);
     const entry=this.buildAuditEntry('contract','Contract generat (Nr. '+p.id+'/'+new Date().getFullYear()+')');
-    this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,auditLog:[...(pr.auditLog||[]),entry]}:pr);return {projects:projects2};},()=>this.persist(selectedId));
+    this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,auditLog:[...(pr.auditLog||[]),entry]}:pr);this.persist(selectedId,projects2);return {projects:projects2};});
   }
 
   loadProjectOffers(clientName){
@@ -2123,7 +2125,7 @@ class Component extends DCLogic {
     try{localStorage.setItem('shc_offer_prefill',JSON.stringify(payload));}catch(e){}
     // Navigăm în același tab; butonul Back revine la CRM
     const entry=this.buildAuditEntry('offer','Ofertă PV-BESS generată');
-    this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,auditLog:[...(pr.auditLog||[]),entry]}:pr);this.persist(selectedId);return {projects:projects2};},()=>{
+    this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,auditLog:[...(pr.auditLog||[]),entry]}:pr);this.persist(selectedId,projects2);return {projects:projects2};},()=>{
       window.location.href='./Calculator Oferte PV-BESS.html';
     });
   }
@@ -2177,7 +2179,8 @@ class Component extends DCLogic {
       existingNamesLower.add(fullName.toLowerCase());
       result.push({name:fullName,functie:functie||'—',pin,acces:bucket,status:'creat'});
     });
-    this.setState({users,bulkResult:result},()=>setTimeout(()=>this.persist('users'),0));
+    this.setState({users,bulkResult:result});
+    this.persist('users',null,users);
   }
   umExportBulkCSV(){
     const r=this.state.bulkResult||[];
@@ -2202,7 +2205,8 @@ class Component extends DCLogic {
     const apps={crm:!!umForm.appCrm,calculator:!!umForm.appCalculator,planificare:!!umForm.appPlanificare,vizita:!!umForm.appVizita,pontaj:!!umForm.appPontaj};
     const user={id:'u'+Date.now(),name:umForm.name.trim(),email:umForm.email.trim(),role:umForm.role,color,password:umForm.password.trim(),pin:umForm.pin.trim()||genUniquePin5(users),isSuperAdmin:!!umForm.isSuperAdmin,pontajHR:!!umForm.pontajHR,pontajPlanner:!!umForm.pontajPlanner,segmente,notif,apps};
     const newUsers=[...users,user];
-    this.setState({users:newUsers,userMgmtMode:'list',umForm:{...EMPTY_UM_FORM}},()=>setTimeout(()=>this.persist('users'),0));
+    this.setState({users:newUsers,userMgmtMode:'list',umForm:{...EMPTY_UM_FORM}});
+    this.persist('users',null,newUsers);
   }
 
   umSaveEdit(){
@@ -2220,7 +2224,8 @@ class Component extends DCLogic {
       if(umForm.password.trim())updated.password=umForm.password.trim();
       return updated;
     });
-    this.setState({users:newUsers,userMgmtMode:'list',editingUserId:null,umForm:{...EMPTY_UM_FORM}},()=>setTimeout(()=>this.persist('users'),0));
+    this.setState({users:newUsers,userMgmtMode:'list',editingUserId:null,umForm:{...EMPTY_UM_FORM}});
+    this.persist('users',null,newUsers);
   }
 
   umDeleteUser(userId){
@@ -2228,7 +2233,8 @@ class Component extends DCLogic {
     if(!(cu&&(cu.id==='u_chirila'||cu.id==='u_nicoras'))){ window.alert('Doar Alexandru Chirila și Ionuț Nicoraș pot șterge utilizatori.'); return; }
     if(!window.confirm('Ștergi acest utilizator definitiv?'))return;
     const newUsers=this.state.users.filter(u=>u.id!==userId);
-    this.setState({users:newUsers},()=>setTimeout(()=>this.persist('users'),0));
+    this.setState({users:newUsers});
+    this.persist('users',null,newUsers);
   }
 
   umSaveAdminPw(){
@@ -2238,7 +2244,8 @@ class Component extends DCLogic {
     if(umForm.password!==umForm.password2){this.setState({umErrMsg:'Parolele nu coincid!'});return;}
     this.adminPassword=umForm.password.trim();
     if(umForm.pin && umForm.pin.trim()) this.adminPin=umForm.pin.trim();
-    this.setState({userMgmtMode:'list',umForm:{...EMPTY_UM_FORM},umErrMsg:''},()=>setTimeout(()=>this.persist('users'),0));
+    this.setState({userMgmtMode:'list',umForm:{...EMPTY_UM_FORM},umErrMsg:''});
+    this.persist('users');
   }
 
   // ─── RENDER ────────────────────────────────────────────────────────────────
@@ -2495,8 +2502,9 @@ class Component extends DCLogic {
         if(!selectedId||!fuDateInput)return;
         this.setState(s=>{
           const projects=s.projects.map(p=>p.id===selectedId?{...p,nextFollowUp:fuDateInput,fuNote:fuNoteInput.trim(),fuLastContactBy:currentUser?currentUser.name:null,fuLastContactAt:new Date().toISOString()}:p);
+          this.persist(selectedId,projects);
           return {projects,showFollowUpForm:false};
-        },()=>setTimeout(()=>this.persist(selectedId),0));
+        });
       },
       onFormDateStart:e=>{ const v=maskDmy(this.state.form.date_start_dmy,e.target.value); this.setState(s=>({form:{...s.form,date_start_dmy:v,date_start:dmyToIso(v)}})); },
       onFormDateExec:e=>{ const v=maskDmy(this.state.form.date_executie_dmy,e.target.value); this.setState(s=>({form:{...s.form,date_executie_dmy:v,date_executie:dmyToIso(v)}})); },
@@ -2565,7 +2573,7 @@ class Component extends DCLogic {
       onUmCoRegCom:e=>this.setState(s=>({companyInfo:{...s.companyInfo,regCom:e.target.value}})),
       onUmCoRepName:e=>this.setState(s=>({companyInfo:{...s.companyInfo,repName:e.target.value}})),
       onUmCoRepRole:e=>this.setState(s=>({companyInfo:{...s.companyInfo,repRole:e.target.value}})),
-      umSaveCompany:()=>{setTimeout(()=>this.persist('users'),0);this.setState({userMgmtMode:'list'});},
+      umSaveCompany:()=>{this.persist('users');this.setState({userMgmtMode:'list'});},
       umHasUsers:users.length>0,umNoUsers:users.length===0,
       umErrMsg:this.state.umErrMsg||'',hasUmErr:!!this.state.umErrMsg,
       umUsersList,
