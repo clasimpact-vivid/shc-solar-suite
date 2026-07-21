@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
 ================================================================================
-  Calculator Oferte PV & BESS — v21 · șablon ofertă SHC Dark (Poppins)
+  Calculator Oferte PV & BESS — v20
   © 2026 SHC Group / Smart House Color SRL — Toate drepturile rezervate.
   Autor: Alexandru [SHC Group], dezvoltat cu asistență AI (Anthropic Claude).
   
@@ -26,12 +26,12 @@
   <meta name="description" content="Software proprietar SHC Group - uz intern">
 <style>
   :root{
-    --bg:#f0f2f5; --card:#ffffff; --border:#dde1e7;
-    --text:#16191e; --text2:#5f6b7a; --text3:#9ba5b0;
-    --accent:#f59e0b; --green:#16a34a; --amber:#d97706; --red:#dc2626;
+    --bg:#0c1526; --card:#111f38; --card2:#0e1a30; --border:#1e3450;
+    --text:#e8edf5; --text2:#94a3b8; --text3:#64748b;
+    --accent:#f59e0b; --green:#22c55e; --amber:#f59e0b; --red:#f87171;
     --radius-sm:8px; --radius-md:12px; --radius-lg:16px;
-    --shadow-sm:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
-    --shadow-md:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+    --shadow-sm:0 1px 3px rgba(0,0,0,.25),0 1px 2px rgba(0,0,0,.15);
+    --shadow-md:0 4px 12px rgba(0,0,0,.3),0 2px 4px rgba(0,0,0,.15);
   }
   input[type=range], input[type=checkbox] { accent-color: var(--accent); }
   *{box-sizing:border-box}
@@ -50,12 +50,28 @@
     font-family:inherit;font-weight:500;transition:all .15s;
     box-shadow:var(--shadow-sm);color:var(--text);
   }
-  button:hover{background:#f4f6f9;border-color:#c8cdd4;box-shadow:var(--shadow-md);}
+  button:hover{background:#182b4a;border-color:#2a4468;box-shadow:var(--shadow-md);}
   button:active{transform:scale(.98);}
   .primary{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 8px rgba(245,158,11,.25);}
   .primary:hover{background:#d97706;border-color:#d97706;box-shadow:0 4px 14px rgba(245,158,11,.35);}
 
   .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:16px}
+  .stepPill{padding:8px 11px;border:none;background:transparent;border-radius:7px;font-size:11.5px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;white-space:nowrap;flex:none;}
+  .stepPill:hover{background:#182b4a;}
+  .stepPill.active{background:var(--accent);color:#0c1526;}
+  .stepFooterNav{display:flex;justify-content:space-between;gap:10px;margin:18px 0 26px;}
+  .stepFooterNav button{padding:10px 18px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid var(--border);background:var(--card);color:var(--text);}
+  .stepFooterNav button.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+  [data-step]:not(.step-active){display:none!important;}
+  div[data-step].step-active.card{display:block;}
+  .menuItemBtn{display:flex;width:100%;text-align:left;padding:9px 10px;border:none;background:transparent;border-radius:7px;font-size:13px;font-family:inherit;color:var(--text);cursor:pointer;}
+  .menuItemBtn:hover{background:#182b4a;}
+  @media (max-width:768px){
+    #moreMenuPanel{left:0;right:0;width:auto;min-width:0;}
+    .topbar h1{font-size:16px;}
+    .topbar .sub{display:none;}
+    .stepPill{font-size:11px;padding:7px 9px;}
+  }
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
   .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
   @media (max-width:800px){.grid2{grid-template-columns:1fr}.grid4{grid-template-columns:repeat(2,1fr)}}
@@ -88,7 +104,7 @@
   label{font-size:11px;color:var(--text2);display:block;margin-bottom:5px;font-weight:600;letter-spacing:.2px;text-transform:uppercase;}
   input[type=text],input[type=number],textarea,select{
     width:100%;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--border);
-    border-radius:var(--radius-md);background:#fff;color:var(--text);
+    border-radius:var(--radius-md);background:var(--card2);color:var(--text);
     font-family:inherit;transition:border .15s,box-shadow .15s;
     box-shadow:var(--shadow-sm);
     -webkit-appearance:none;appearance:none;
@@ -110,10 +126,10 @@
   .check{display:flex;align-items:center;gap:8px;margin-bottom:12px}
   .check input{width:auto}
 
-  .metric{background:#f7f8fa;border-radius:var(--radius-md);padding:14px;border:1px solid var(--border);}
-  .metric.hot{background:#fef2f2;border:1px solid #fecaca}
-  .metric.good{background:#f0fdf4;border:1px solid #bbf7d0}
-  .metric.warn{background:#fffbeb;border:1px solid #fde68a}
+  .metric{background:var(--card2);border-radius:var(--radius-md);padding:14px;border:1px solid var(--border);}
+  .metric.hot{background:#2a1414;border:1px solid #7f1d1d}
+  .metric.good{background:#0f2a1a;border:1px solid #166534}
+  .metric.warn{background:#2a220f;border:1px solid #92650a}
   .metric .l{font-size:11px;color:var(--text2);margin:0 0 4px;font-weight:600;text-transform:uppercase;letter-spacing:.2px;}
   .metric .v{font-size:22px;font-weight:700;margin:0}
   .metric .v.hot{color:var(--red)}
@@ -200,19 +216,26 @@
       <h1>Calculator oferte PV &amp; BESS</h1>
       <p class="sub">Draft editabil — modifică orice parametru, rezultatele se actualizează live</p>
     </div>
-    <div id="topBtns" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <div id="topBtns" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;position:relative;">
       <span id="currentUserBadge" style="font-size:12px;color:var(--text2);padding:5px 10px;border:1px solid var(--border);border-radius:6px;display:none"></span>
-      <button id="btnChangePw" style="display:none;font-size:12px;padding:5px 10px" title="Schimbă parola">🔑 Parolă</button>
-      <button id="btnLogout" style="display:none;font-size:12px;padding:5px 10px">⎋ Ieși</button>
-      <button id="btnReset">↺ Reset valori</button>
-      <button id="btnSave">💾 Salvează config</button>
-      <button id="btnLoad">📂 Încarcă config</button>
-      <button id="btnImportJson" style="background:#f59e0b;color:#fff;border-color:#f59e0b;">🔗 Import JSON</button>
-      <button id="btnPasteConfig">📋 Lipește config</button>
-      <input type="file" id="fileLoad" accept=".json" style="display:none">
       <button id="btnOfertaPdf" class="primary">📄 Ofertă PDF</button>
-      <button id="btnPdf">⬇ Export PDF clasic</button>
-      <button id="btnOferteColegi">👥 Oferte colegi</button>
+      <button id="btnMoreMenu" style="font-size:16px;padding:6px 12px;line-height:1;">⋯</button>
+      <div id="moreMenuPanel" style="display:none;position:absolute;top:100%;right:0;margin-top:6px;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.4);padding:8px;z-index:500;min-width:220px;">
+        <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;padding:6px 8px 4px;">Configurație</div>
+        <button id="btnReset" class="menuItemBtn">↺ Reset valori</button>
+        <button id="btnSave" class="menuItemBtn">💾 Salvează config</button>
+        <button id="btnLoad" class="menuItemBtn">📂 Încarcă config</button>
+        <button id="btnImportJson" class="menuItemBtn">🔗 Import JSON</button>
+        <button id="btnPasteConfig" class="menuItemBtn">📋 Lipește config</button>
+        <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;padding:10px 8px 4px;border-top:1px solid var(--border);margin-top:6px;">Altele</div>
+        <button id="btnPdf" class="menuItemBtn">⬇ Export PDF clasic</button>
+        <button id="btnOferteColegi" class="menuItemBtn">👥 Oferte colegi</button>
+        <button id="btnAdminOpen" class="menuItemBtn" style="display:none;">⚙️ Admin</button>
+        <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;padding:10px 8px 4px;border-top:1px solid var(--border);margin-top:6px;">Cont</div>
+        <button id="btnChangePw" class="menuItemBtn" style="display:none;">🔑 Schimbă parola</button>
+        <button id="btnLogout" class="menuItemBtn" style="display:none;">⎋ Ieși</button>
+      </div>
+      <input type="file" id="fileLoad" accept=".json" style="display:none">
     </div>
   </div>
 
@@ -254,8 +277,12 @@
   </div>
 </div>
 
-<div id="adminSection" class="card" style="display:none;border:2px solid #0f2850">
-    <h2 class="section">⚙️ Panou administrare <span style="font-size:12px;color:var(--text2);font-weight:400">(vizibil doar admin)</span></h2>
+<div id="adminModalBg" style="display:none;position:fixed;inset:0;z-index:99997;background:rgba(0,0,0,0.5);"></div>
+<div id="adminSection" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99998;width:min(760px,92vw);max-height:86vh;overflow:auto;" class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <h2 class="section" style="margin-bottom:0;">⚙️ Panou administrare <span style="font-size:12px;color:var(--text2);font-weight:400">(vizibil doar admin)</span></h2>
+      <button id="btnAdminClose" style="font-size:12px;padding:5px 10px;">✕ Închide</button>
+    </div>
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">
       <button id="btnAdminUsers" class="primary" style="font-size:12px">👥 Utilizatori</button>
       <button id="btnAdminJournal" style="font-size:12px">📋 Jurnal oferte</button>
@@ -264,7 +291,22 @@
     <div id="adminContent"></div>
   </div>
 
-  <div class="card">
+  <div id="stepNav" style="position:sticky;top:0;z-index:40;background:var(--bg);padding:12px 0 10px;margin-bottom:4px;">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:nowrap;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:6px;">
+      <button id="stepPrevBtn" style="flex:none;padding:8px 14px;border-radius:7px;border:1px solid var(--border);background:var(--card2);font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text2);">← Înapoi</button>
+      <div style="display:flex;gap:5px;flex:1;overflow-x:auto;-webkit-overflow-scrolling:touch;">
+        <button class="stepPill" data-goto="1">1 · Date ofertă</button>
+        <button class="stepPill" data-goto="2">2 · PV &amp; Invertor</button>
+        <button class="stepPill" data-goto="3">3 · BESS &amp; STS</button>
+        <button class="stepPill" data-goto="4">4 · Costuri &amp; Finanțare</button>
+        <button class="stepPill" data-goto="5">5 · Beneficii &amp; Note</button>
+        <button class="stepPill" data-goto="6">6 · Rezultate &amp; Ofertă</button>
+      </div>
+      <button id="stepNextBtn" style="flex:none;padding:8px 14px;border-radius:7px;border:none;background:var(--accent);color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;">Continuă →</button>
+    </div>
+  </div>
+
+  <div class="card" data-step="1">
     <h2 class="section">📋 Date ofertă</h2>
     <div class="row2">
       <div class="field">
@@ -324,7 +366,7 @@
         </div>
         <div class="field">
           <label>Email</label>
-          <input type="text" id="firmaEmail" placeholder="ex: office@firma.ro" value="nicorasionut@shc-group.ro">
+          <input type="text" id="firmaEmail" placeholder="ex: office@firma.ro" value="office@shc-group.ro">
         </div>
         <div class="field">
           <label>Reprezentant legal</label>
@@ -336,9 +378,9 @@
     <p id="validUntil" style="font-size:12px;color:var(--text2);margin:4px 0 0"></p>
   </div>
 
-  <div class="grid4" id="metricCards"></div>
+  <div class="grid4" id="metricCards" data-step="6"></div>
 
-  <div class="grid2" style="margin-top:16px">
+  <div class="grid2" style="margin-top:16px" data-step="2">
     <div class="card">
       <h2 class="section">☀️ Sistem fotovoltaic</h2>
 
@@ -405,28 +447,6 @@
           <input type="number" id="garantiePanouri" value="25" step="1">
         </div>
       </div>
-      <div class="field" id="customPowerField" style="display:block">
-        <label>Marcă personalizată (opțional)</label>
-        <input type="text" id="customPanelBrand" placeholder="ex: DAS Solar, JINKO/AIKO/TRINA/LONGI, etc.">
-      </div>
-
-      <!-- 5-6. Lungime / Lățime -->
-      <div class="row2">
-        <div class="field">
-          <label>Lungime panou (m)</label>
-          <input type="number" id="panelLength" value="2.30" step="0.01">
-        </div>
-        <div class="field">
-          <label>Lățime panou (m)</label>
-          <input type="number" id="panelWidth" value="1.13" step="0.01">
-        </div>
-      </div>
-
-      <!-- 7. Preț per panou -->
-      <div class="field">
-        <label>Preț per panou (lei, opțional — completează CAPEX PV automat)</label>
-        <input type="number" id="pretPerPanou" value="0" step="1" placeholder="ex: 1500">
-      </div>
 
       <!-- 8. Producție zilnică -->
       <div class="field">
@@ -439,6 +459,12 @@
         <label>Zile de funcționare pe an</label>
         <input type="number" id="zileFunctionare" value="365" step="1">
         <p id="yieldSpecCalc" style="font-size:11px;color:var(--text3);margin:6px 0 0"></p>
+      </div>
+
+      <!-- 7. Preț per panou -->
+      <div class="field">
+        <label>Preț per panou (lei, opțional — completează CAPEX PV automat)</label>
+        <input type="number" id="pretPerPanou" value="0" step="1" placeholder="ex: 1500">
       </div>
 
       <!-- 10. CAPEX PV -->
@@ -471,36 +497,6 @@
         </select>
         <input type="number" id="correctionPctCustom" value="100" step="1" min="0" max="100" style="display:none;margin-top:8px">
         <p id="yieldEfectiv" style="font-size:11px;color:var(--text3);margin:6px 0 0"></p>
-      </div>
-      <div class="field" style="border-top:1px dashed var(--border);padding-top:14px">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
-          <input type="checkbox" id="secondArrayEnabled" style="width:auto;margin:0">
-          <span>Acoperiș cu a doua orientare (Array B — ex: panouri pe Est + panouri pe Sud)</span>
-        </label>
-      </div>
-      <div id="secondArrayFields" style="display:none">
-        <div class="row2">
-          <div class="field">
-            <label>Număr panouri (Array B)</label>
-            <input type="number" id="numPanouriB" value="0" step="1">
-          </div>
-          <div class="field">
-            <label>Putere panou (Wp, Array B)</label>
-            <input type="number" id="customPowerB" value="0" step="1">
-          </div>
-        </div>
-        <div class="field">
-          <label>Factor corecție orientare/umbrire (Array B): <strong id="correctionOutB">88%</strong></label>
-          <select id="orientationPresetB">
-            <option value="100">Sud, fără umbrire — 100%</option>
-            <option value="95">Sud-Est/Sud-Vest — 95%</option>
-            <option value="88" selected>Est/Vest — 88%</option>
-            <option value="75">Nord sau umbrire parțială — 75%</option>
-            <option value="custom">Personalizat...</option>
-          </select>
-          <input type="number" id="correctionPctCustomB" value="88" step="1" min="0" max="100" style="display:none;margin-top:8px">
-        </div>
-        <p id="combinedKwpInfo" style="font-size:11px;color:var(--text3);margin:6px 0 0"></p>
       </div>
       <div class="field">
         <label>Preț energie (lei/kWh)</label>
@@ -571,14 +567,30 @@
         </div>
       </div>
       <p id="dcAcRatioInfo" style="font-size:12px;margin:0 0 12px"></p>
-      <div class="field" style="margin-bottom:0">
+      <div class="field">
         <label>CAPEX invertor fără TVA (lei)</label>
         <input type="number" id="capexInvertor" value="0" step="1" placeholder="ex: 62000">
       </div>
+      <h2 class="section" style="margin-top:16px;">🔌 Backup la pană (EPS)</h2>
+      <p style="font-size:11px;color:var(--text3);margin:0 0 10px">Alimentarea de rezervă în caz de pană e o funcție a invertorului (ieșire EPS/backup) — are nevoie de baterie (BESS) pentru energie. Fără BESS, backup-ul nu are din ce alimenta consumatorii.</p>
+      <div class="field">
+        <label>Backup EPS</label>
+        <select id="backupMode">
+          <option value="none">Fără backup</option>
+          <option value="optional">Opțional</option>
+          <option value="included">Inclus în ofertă</option>
+        </select>
+        <p id="backupWarn" style="font-size:11px;color:var(--amber);margin:6px 0 0;display:none">⚠ Necesită Stocare BESS activă — altfel backup-ul nu are energie disponibilă la pană.</p>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Cost suplimentar backup/EPS fără TVA (lei, opțional)</label>
+        <input type="number" id="capexBackup" value="0" step="1" placeholder="ex: 8000">
+      </div>
       <div id="invertorInfo" style="margin-top:16px;border-top:1px dashed var(--border);padding-top:14px"></div>
     </div>
+  </div>
 
-    <div class="card">
+  <div class="card" data-step="3">
       <h2 class="section">🔋 Stocare BESS (opțional)</h2>
       <div id="bessRecoBox" style="display:none;background:#f0f7ff;border:1px solid #cfe3ff;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12.5px;color:#0f2850;line-height:1.6;"></div>
       <!-- 1. Stocare BESS mod -->
@@ -600,6 +612,11 @@
         <label>Capacitate stocare BESS (kWh)</label>
         <input type="number" id="bessKwh" value="0" step="0.5" placeholder="ex: 10">
         <div id="bessKwhWarn" style="display:none;color:#dc2626;font-size:11.5px;margin-top:4px;font-weight:600">⚠ Capacitate 0 kWh — completează, altfel economiile și payback-ul BESS ies 0.</div>
+        <p style="font-size:11px;color:var(--text3);margin:6px 0 0">BMS (Battery Management System) — protecția/monitorizarea celulelor e responsabilitatea bateriei, inclusă standard de producător în orice BESS modern. Nu necesită cost separat, decât la sisteme industriale cu BMS extern dedicat.</p>
+      </div>
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:400"><input type="checkbox" id="bmsExternCheck" style="width:auto"> BMS extern separat (rar necesar, doar industrial)</label>
+        <input type="number" id="capexBmsExtern" value="0" step="1" placeholder="ex: 15000" style="display:none;margin-top:8px">
       </div>
       <!-- 3. CAPEX -->
       <div class="field">
@@ -637,32 +654,63 @@
           <option value="included">Inclus în ofertă</option>
         </select>
       </div>
-      <div class="field">
-        <label>Tip / Marcă STS (opțional)</label>
-        <input type="text" id="stsTip" placeholder="ex: Schneider, ABB, Eaton...">
-      </div>
+      <input type="hidden" id="stsTip" value="">
       <div class="field" style="margin-bottom:0">
         <label>CAPEX STS fără TVA (lei)</label>
         <input type="number" id="capexSTS" value="0" step="1" placeholder="ex: 35000">
       </div>
 
+      <h2 class="section" style="margin-top:20px">🔀 ATS — Automatic Transfer Switch</h2>
+      <p style="font-size:11px;color:var(--text3);margin:0 0 10px">Comută automat consumul între rețea și sursa de backup (BESS/invertor) — hardware separat de panou/tablou, distinct de STS. La sisteme mici poate fi integrat în invertor; la C&amp;I/industrial e panou dedicat.</p>
+      <div class="field">
+        <label>Includere ATS</label>
+        <select id="atsMode">
+          <option value="none">Fără ATS</option>
+          <option value="optional">Opțional</option>
+          <option value="included">Inclus în ofertă</option>
+        </select>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>CAPEX ATS fără TVA (lei)</label>
+        <input type="number" id="capexAts" value="0" step="1" placeholder="ex: 12000">
+      </div>
+
+      <h2 class="section" style="margin-top:20px">🧠 EMS — Energy Management System</h2>
+      <p style="font-size:11px;color:var(--text3);margin:0 0 10px">Orchestrează fluxurile PV + BESS + rețea + consumatori (control/optimizare la nivel de sistem) — pe rezidențial e de regulă logica proprie a invertorului hibrid; pe C&amp;I/industrial e adesea controler dedicat, separat.</p>
+      <div class="field">
+        <label>Includere EMS</label>
+        <select id="emsMode">
+          <option value="none">Fără EMS dedicat (logică invertor)</option>
+          <option value="optional">Opțional</option>
+          <option value="included">Inclus în ofertă</option>
+        </select>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>CAPEX EMS fără TVA (lei)</label>
+        <input type="number" id="capexEms" value="0" step="1" placeholder="ex: 20000">
+      </div>
+
     </div>
 
-    <div class="card">
-      <h2 class="section">⚙️ Ipoteze financiare</h2>
+    <div class="card" data-step="5">
+      <h2 class="section">✅ Beneficii pentru client</h2>
+      <p style="font-size:12px;color:var(--text2);margin:0 0 12px">Bifează ce se aplică la acest proiect — apar în oferta PDF, la client, ca argumente pro. Textul e editabil.</p>
+      <div id="benefitsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <button type="button" id="btnAddBenefit" style="margin-top:10px;padding:8px 14px;border:1px dashed var(--border);background:transparent;border-radius:8px;font-size:12px;cursor:pointer;color:var(--text2);">+ Adaugă beneficiu</button>
+    </div>
+
+    <div class="card" data-step="4">
       <div class="field">
         <label>TVA (%)</label>
         <input type="number" id="tva" value="21" step="0.5">
         <div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;">
           <button type="button" onclick="document.getElementById('tva').value=0;document.getElementById('tva').dispatchEvent(new Event('input',{bubbles:true}));" style="font-size:11px;padding:2px 8px;background:var(--green);color:#fff;border:1px solid var(--green);border-radius:4px;cursor:pointer;">0% rezidențial (PF)</button>
-          <button type="button" onclick="document.getElementById('tva').value=21;document.getElementById('tva').dispatchEvent(new Event('input',{bubbles:true}));" style="font-size:11px;padding:2px 8px;border:1px solid var(--border);border-radius:4px;cursor:pointer;">21% C&amp;I (PJ)</button>
+          <button type="button" onclick="document.getElementById('tva').value=21;document.getElementById('tva').dispatchEvent(new Event('input',{bubbles:true}));" style="font-size:11px;padding:2px 8px;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:4px;cursor:pointer;">21% C&amp;I (PJ)</button>
         </div>
       </div>
-      <div class="field">
-        <label>Marjă comercială (%): <strong id="marjaOut">0%</strong></label>
-        <input type="range" id="marjaComercial" min="0" max="50" value="0" step="1">
-        <p id="marjaCalc" style="font-size:11px;color:var(--text3);margin:6px 0 0"></p>
-      </div>
+      <input type="hidden" id="marjaComercial" value="0">
+      <strong id="marjaOut" style="display:none">0%</strong>
+      <p id="marjaCalc" style="display:none"></p>
       <div class="row2">
         <div class="field">
           <label>Degradare (%/an)</label>
@@ -710,7 +758,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" data-step="4">
       <h2 class="section">🏦 Finanțare (opțional)</h2>
       <div class="field">
         <label>Scenariu de finanțare</label>
@@ -839,49 +887,52 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" data-step="4">
       <h2 class="section">🧾 Defalcare costuri</h2>
       <p style="font-size:12px;color:var(--text2);margin:0 0 12px">Costurile pe panouri, invertor și baterii sunt cele introduse mai sus (CAPEX PV / Invertor / BESS). Completează aici elementele suplimentare.</p>
       <!-- 1. Preț montaj per kW -->
-      <div class="field">
-        <label>Preț montaj per kW (lei/kW, opțional)</label>
-        <input type="number" id="pretMontajPerKw" value="0" step="1" placeholder="ex: 260">
-      </div>
-      <!-- 2. Montaj -->
+      <!-- 1+2. Montaj -->
       <div class="field">
         <label>Montaj (lei fără TVA)</label>
         <input type="number" id="costMontaj" value="0" step="1" placeholder="ex: 42000">
         <p id="costMontajCalc" style="font-size:11px;color:var(--text3);margin:6px 0 0"></p>
       </div>
+      <details style="margin:-6px 0 14px;border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
+        <summary style="font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;letter-spacing:.3px;text-transform:uppercase;user-select:none;">Calculează montajul din preț/kW (opțional)</summary>
+        <div style="margin-top:10px;">
+          <label style="font-size:11.5px;color:var(--text2);font-weight:600;display:block;margin-bottom:6px;">Preț montaj per kW (lei/kW)</label>
+          <input type="number" id="pretMontajPerKw" value="0" step="1" placeholder="ex: 260">
+        </div>
+        <p style="font-size:11px;color:var(--text3);margin:8px 0 0">Dacă completezi aici, "Montaj" de mai sus se recalculează automat (preț/kW × putere instalată).</p>
+      </details>
       <!-- 3. Comisionare -->
       <div class="field">
-        <label>Comisionare (lei fără TVA)</label>
+        <label>Comisionare / Punere în funcțiune (PIF) (lei fără TVA)</label>
         <input type="number" id="costComisionare" value="0" step="1" placeholder="ex: 10000">
       </div>
       <!-- 4. Cost alte elemente -->
       <div class="field">
-        <label>Cost alte elemente (lei fără TVA)</label>
+        <label>Alte elemente suplimentare — sumă fixă (lei fără TVA)</label>
         <input type="number" id="costAlteElemente" value="0" step="1" placeholder="ex: structuri, cablare suplimentară">
       </div>
       <!-- 5. Alte costuri % -->
       <div class="field" style="margin-bottom:0">
-        <label>Alte costuri: <strong id="alteOut">0%</strong></label>
+        <label>Marjă neprevăzute — % din echipamente (PV+Invertor+BESS+...): <strong id="alteOut">0%</strong></label>
         <input type="range" id="alteCheltuieliPct" min="0" max="20" value="0" step="0.5">
       </div>
       <p style="font-size:11px;color:var(--text3);margin:6px 0 0" id="alteVal"></p>
     </div>
-  </div>
 
-  <div class="card">
+  <div class="card" data-step="6">
     <h2 class="section">⏱ Explorează un an specific al proiecției</h2>
     <div class="field" style="margin-bottom:16px">
       <label>An proiect: <strong id="yearOut">An 0 (start)</strong></label>
       <input type="range" id="yearSlider" min="0" max="25" value="0" step="1">
     </div>
-    <div class="grid4" id="yearCards"></div>
+    <div class="grid4" id="yearCards" style="grid-template-columns:1fr 1fr;max-width:520px;margin:0 auto"></div>
   </div>
 
-  <div class="card">
+  <div class="card" data-step="6">
     <h2 class="section">📈 Cash-flow cumulat — proiecție pe durata proiectului</h2>
     <div class="legend">
       <span><span class="dot" style="background:#16a34a"></span>Cash-flow cumulat (lei)</span>
@@ -892,13 +943,13 @@
     </div>
   </div>
 
-  <div class="grid2">
+  <div class="grid2" data-step="6">
     <div class="card" style="display:flex;flex-direction:column;align-self:start;">
       <h2 class="section">🔋 Configurație sistem</h2>
-      <div id="systemDiagram" style="display:flex;align-items:stretch;margin:0 -22px -22px -22px;"></div>
-      <div class="legend" id="capexLegend"></div>
-      <div style="position:relative;width:100%;height:180px;display:none" id="capexChartWrap">
-        <canvas id="capexChart" role="img" aria-label="Diagramă plăcintă distribuție CAPEX">Distribuția costurilor pe sistem PV, BESS și TVA.</canvas>
+      <div id="systemDiagram" style="margin:0 -20px 0 -20px;"></div>
+      <div style="display:none">
+        <div class="legend" id="capexLegend"></div>
+        <canvas id="capexChart"></canvas>
       </div>
     </div>
     <div class="card">
@@ -908,7 +959,7 @@
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" data-step="6">
     <h2 class="section">🌱 Impact CO₂</h2>
     <div class="grid4">
       <div class="metric good">
@@ -921,33 +972,33 @@
         <p class="v good" id="co2Total">—</p>
         <p class="s" id="co2Years">—</p>
       </div>
-      <div class="metric">
+      <div class="metric good">
         <p class="l">Echivalent copaci plantați</p>
-        <p class="v" id="co2Trees">—</p>
+        <p class="v good" id="co2Trees">—</p>
         <p class="s">~21 kg CO₂/copac/an</p>
       </div>
-      <div class="metric">
+      <div class="metric good">
         <p class="l">Echivalent km parcurși (auto)</p>
-        <p class="v" id="co2Km">—</p>
+        <p class="v good" id="co2Km">—</p>
         <p class="s">~0.12 kg CO₂/km</p>
       </div>
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" data-step="6">
     <h2 class="section">📊 Producție lunară estimată (An 1)</h2>
     <div style="position:relative;width:100%;height:240px">
       <canvas id="monthlyChart" role="img" aria-label="Grafic bare producție lunară estimată pentru anul 1, distribuție sezonală tipică României">Producția lunară este mai mare în lunile de vară și mai mică iarna, reflectând profilul tipic de radiație solară din România.</canvas>
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" data-step="6">
     <h2 class="section">⚖️ Comparație: cu vs fără BESS</h2>
     <p style="font-size:12px;color:var(--text2);margin:0 0 12px">Activ doar când "Stocare BESS" este "Inclus" sau "Opțional" — arată impactul deciziei de a adăuga stocare.</p>
     <div id="bessCompare"></div>
   </div>
 
-  <div class="card">
+  <div class="card" data-step="6">
     <h2 class="section">🆚 Compară variante (A / B / C)</h2>
     <p style="font-size:12px;color:var(--text2);margin:0 0 12px">Salvează configurația curentă ca variantă, modifică parametrii, salvează din nou — vezi diferențele unul lângă altul.</p>
     <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
@@ -959,12 +1010,12 @@
     <div id="variantsTable"></div>
   </div>
 
-  <div class="card">
+  <div class="card" data-step="5">
     <h2 class="section">📝 Note ofertă</h2>
     <textarea id="notesArea" rows="3" placeholder="Adaugă note specifice acestei oferte (locație, condiții speciale, mențiuni)..."></textarea>
   </div>
 
-  <div class="card">
+  <div class="card" data-step="4">
     <h2 class="section">🧱 Deviz de lucrări</h2>
     <p style="font-size:12px;color:var(--text2);margin:0 0 12px">Completează tabelul ca în Excel. <strong>„Valoare total" se calculează automat</strong> (Cantitate × Preț unitar, fără TVA). Apare în PDF cu subtotal, TVA și total. Folosește „+ Adaugă rând" pentru linii noi.</p>
     <div class="deviz-wrap" style="overflow-x:auto">
@@ -973,6 +1024,7 @@
           <tr style="background:#0b1e3d">
             <th style="text-align:center;padding:9px 6px;font-size:9px;color:#fff;font-weight:700;letter-spacing:.8px;text-transform:uppercase;width:46px">Nr. crt.</th>
             <th style="text-align:left;padding:9px 6px;font-size:9px;color:#fff;font-weight:700;letter-spacing:.8px;text-transform:uppercase;width:120px">Grup</th>
+            <th style="text-align:left;padding:9px 6px;font-size:9px;color:#fff;font-weight:700;letter-spacing:.8px;text-transform:uppercase;width:110px">Cod produs</th>
             <th style="text-align:left;padding:9px 6px;font-size:9px;color:#fff;font-weight:700;letter-spacing:.8px;text-transform:uppercase">Capitol de lucrări</th>
             <th style="text-align:left;padding:9px 6px;font-size:9px;color:#fff;font-weight:700;letter-spacing:.8px;text-transform:uppercase;width:120px">Unitate de măsură</th>
             <th style="text-align:right;padding:9px 6px;font-size:9px;color:#fff;font-weight:700;letter-spacing:.8px;text-transform:uppercase;width:96px">Cantitate</th>
@@ -1006,7 +1058,7 @@
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" data-step="6">
     <h2 class="section">📖 Legendă acronime</h2>
     <div class="grid2" style="font-size:13px;line-height:1.6">
       <div>
@@ -1017,6 +1069,10 @@
         <p><strong>kWp</strong> — Kilowatt-peak. Puterea maximă pe care o poate produce sistemul în condiții optime.</p>
         <p><strong>kWh</strong> — Kilowatt-oră. Unitatea de măsură a energiei produse/consumate.</p>
         <p><strong>BESS</strong> — Battery Energy Storage System. Sistem de stocare a energiei în baterii.</p>
+        <p><strong>BMS</strong> — Battery Management System. Electronica ce protejează și echilibrează celulele bateriei; inclusă standard în orice BESS modern.</p>
+        <p><strong>STS</strong> — Stație de Transformare & Siguranță. Echipament electric ce asigură protecția și transformarea tensiunii între instalație și rețea.</p>
+        <p><strong>ATS</strong> — Automatic Transfer Switch. Comută automat consumul între rețea și sursa de backup (BESS/invertor).</p>
+        <p><strong>EMS</strong> — Energy Management System. Orchestrează fluxurile PV + BESS + rețea + consumatori la nivel de sistem.</p>
         <p style="margin-bottom:0"><strong>EPC</strong> — Engineering, Procurement, Construction. Contract complet "la cheie".</p>
       </div>
       <div>
@@ -1024,6 +1080,10 @@
         <p><strong>PV</strong> — Photovoltaic. Tehnologia de conversie a luminii solare în energie electrică.</p>
         <p><strong>MPPT</strong> — Maximum Power Point Tracking. Circuitul invertorului care extrage puterea maximă din fiecare string de panouri.</p>
         <p><strong>DC / AC</strong> — Curent continuu (de la panouri) / curent alternativ (spre rețea). Raportul DC/AC = supradimensionarea câmpului PV față de invertor.</p>
+        <p><strong>EPS</strong> — Emergency Power Supply. Ieșirea de backup a invertorului, alimentează consumatori esențiali la pană de rețea (necesită BESS).</p>
+        <p><strong>TVA</strong> — Taxa pe Valoarea Adăugată. Cota standard 21%; 0% pentru rezidențial persoană fizică conform legii în vigoare.</p>
+        <p><strong>C&amp;I</strong> — Commercial & Industrial. Segment de clienți comerciali/industriali (persoane juridice), cu regim TVA distinct de rezidențial.</p>
+        <p><strong>kW / MW</strong> — Kilowatt / Megawatt. Unități de putere; 1 MW = 1.000 kW, folosite pentru puterea instalată sau contractată.</p>
         <p><strong>Voc</strong> — Voltage open-circuit. Tensiunea în gol a unui panou; determină câte module se pot lega în serie pe un string.</p>
         <p><strong>String</strong> — Șir de panouri legate în serie, conectat la o intrare MPPT a invertorului.</p>
         <p style="margin-bottom:0"><strong>STC</strong> — Standard Test Conditions. Condițiile standard (1000 W/m², 25 °C) la care se declară puterea nominală a panoului.</p>
@@ -1087,7 +1147,7 @@ var defaults = {
   numPanouri: 0, panelBrand: 'custom', customPower: 0, customPanelBrand: '',
   garantiePanouri: 25,
   sizingMode: 'manual', targetKwp: 0,
-  panelLength: 2.30, panelWidth: 1.13, spacingFactor: 25,
+  spacingFactor: 25,
   capexPv: 0, yieldZilnic: 3.42, zileFunctionare: 365, pretEnergie: 0.83, pretInjectie: 0.36,
   autoconsum: 65, bessMode: 'none', capexBess: 0, autoconsumBess: 95,
   consumZilnic: 0, capacitateBaterie: 0,
@@ -1104,13 +1164,12 @@ var defaults = {
   mixedGrantPct: 0, mixedLoanPct: 0, mixedRate: 0, mixedYears: 0,
   avansPct: 0, transa2Pct: 0,
   pretPerPanou: 0, pretMontajPerKw: 0,
-  secondArrayEnabled: false, numPanouriB: 0, customPowerB: 0, orientationPresetB: '88', correctionPctCustomB: 88,
   equipmentList: '',
   existingKwp: 0, existingInvertor: '', existingProductie: 0,
   firmaTa: 'SC Smart House Color SRL', numeClient: '', nrOfertaSuffix: '', valabilitate: 30, curs: 5.2, notesArea: ''
 };
 
-var ids = ['numPanouri','customPower','customPanelBrand','garantiePanouri','panelLength','panelWidth','spacingFactor','capexPv','yieldZilnic','zileFunctionare','pretEnergie','pretInjectie','autoconsum','capexBess','autoconsumBess','tva','degradare','escaladare','om','durata','curs','valabilitate','dataOferta','putereContractata','atrValue','capexInvertor','costAlteElemente','costMontaj','costComisionare','alteCheltuieliPct','puterInvertor','garantieInvertor','invertorMarcaCustom','targetKwp','correctionPctCustom','financingPct','financingRate','financingYears','avansPct','transa2Pct','pretPerPanou','pretMontajPerKw','numPanouriB','customPowerB','correctionPctCustomB','consumZilnic','capacitateBaterie','loanComision','leasingAvans','leasingLuni','leasingRate','leasingRezidual','euGrantPct','euProgram','euDurataImpl','mixedGrantPct','mixedLoanPct','mixedRate','mixedYears','bessKwh','capexSTS','marjaComercial','bessCicluriAn','bessArbitrajSpread','bessDegrade1','rataDiscontare','existingKwp','existingInvertor','existingProductie'];
+var ids = ['numPanouri','customPower','garantiePanouri','spacingFactor','capexPv','yieldZilnic','zileFunctionare','pretEnergie','pretInjectie','autoconsum','capexBess','autoconsumBess','tva','degradare','escaladare','om','durata','curs','valabilitate','dataOferta','putereContractata','atrValue','capexInvertor','costAlteElemente','costMontaj','costComisionare','alteCheltuieliPct','puterInvertor','garantieInvertor','invertorMarcaCustom','targetKwp','correctionPctCustom','financingPct','financingRate','financingYears','avansPct','transa2Pct','pretPerPanou','pretMontajPerKw','consumZilnic','capacitateBaterie','loanComision','leasingAvans','leasingLuni','leasingRate','leasingRezidual','euGrantPct','euProgram','euDurataImpl','mixedGrantPct','mixedLoanPct','mixedRate','mixedYears','bessKwh','capexSTS','marjaComercial','bessCicluriAn','bessArbitrajSpread','bessDegrade1','rataDiscontare','existingKwp','existingInvertor','existingProductie','capexBackup','capexAts','capexEms','capexBmsExtern'];
 
 function getVal(id){
   var el = document.getElementById(id);
@@ -1141,20 +1200,12 @@ function compute(){
     numPanouri = Math.max(0, Math.round(getVal('numPanouri')));
   }
   var kwpA = (numPanouri * panelPower) / 1000;
+  var kwp = kwpA;
+  var numPanouriTotal = numPanouri;
 
-  var secondArrayEnabled = document.getElementById('secondArrayEnabled').checked;
-  var numPanouriB = secondArrayEnabled ? Math.max(0, Math.round(getVal('numPanouriB'))) : 0;
-  var panelPowerB = getVal('customPowerB');
-  var kwpB = secondArrayEnabled ? (numPanouriB * panelPowerB) / 1000 : 0;
-  var kwp = kwpA + kwpB;
-  var numPanouriTotal = numPanouri + numPanouriB;
-
-  var panelLength = getVal('panelLength');
-  var panelWidth = getVal('panelWidth');
   var spacing = getVal('spacingFactor')/100;
-  var panelArea = panelLength * panelWidth;
+  var panelArea = 2.30 * 1.13;
   var areaNeeded = numPanouriTotal * panelArea * (1+spacing);
-  var areaNeededB = secondArrayEnabled ? numPanouriB * panelArea * (1+spacing) : 0;
 
   var cursC = getVal('curs') || 5.2;
   var capexPv = getVal('capexPv')/cursC;
@@ -1173,6 +1224,17 @@ function compute(){
   var stsMode = document.getElementById('stsMode').value;
   var stsActive = (stsMode === 'included');
   var capexSTS = stsActive ? getVal('capexSTS')/cursC : 0;
+  var atsMode = document.getElementById('atsMode').value;
+  var atsActive = (atsMode === 'included');
+  var capexAts = atsActive ? getVal('capexAts')/cursC : 0;
+  var emsMode = document.getElementById('emsMode').value;
+  var emsActive = (emsMode === 'included');
+  var capexEms = emsActive ? getVal('capexEms')/cursC : 0;
+  var backupMode = document.getElementById('backupMode').value;
+  var backupActive = (backupMode === 'included');
+  var capexBackup = backupActive ? getVal('capexBackup')/cursC : 0;
+  var bmsExternOn = document.getElementById('bmsExternCheck').checked;
+  var capexBmsExtern = bmsExternOn ? getVal('capexBmsExtern')/cursC : 0;
   var tva = getVal('tva')/100;
   var degradare = getVal('degradare')/100;
   var escaladare = getVal('escaladare')/100;
@@ -1190,7 +1252,7 @@ function compute(){
   var costComisionare = getVal('costComisionare')/cursC;
   var alteCheltuieliPct = getVal('alteCheltuieliPct')/100;
 
-  var capexEchipamente = capexPv + capexInvertor + (bessActive ? capexBess : 0) + capexSTS;
+  var capexEchipamente = capexPv + capexInvertor + (bessActive ? capexBess : 0) + capexSTS + capexAts + capexEms + capexBackup + capexBmsExtern;
   var alteCheltuieli = capexEchipamente * alteCheltuieliPct;
 
   var capexTotal = capexEchipamente + atrValue + costAlteElemente + costMontaj + costComisionare + alteCheltuieli;
@@ -1198,14 +1260,7 @@ function compute(){
   var orientationSel = document.getElementById('orientationPreset').value;
   var correctionPct = orientationSel === 'custom' ? getVal('correctionPctCustom') : parseFloat(orientationSel);
   var prodA = kwpA * yieldSpec * (correctionPct/100);
-
-  var correctionPctB = 0, prodB = 0;
-  if(secondArrayEnabled){
-    var orientationSelB = document.getElementById('orientationPresetB').value;
-    correctionPctB = orientationSelB === 'custom' ? getVal('correctionPctCustomB') : parseFloat(orientationSelB);
-    prodB = kwpB * yieldSpec * (correctionPctB/100);
-  }
-  var prodAn1 = prodA + prodB;
+  var prodAn1 = prodA;
 
   // producția PV existentă (deja deținută de client) — autoconsumată/facturată la fel ca producția nouă, NU se vinde separat
   var existingKwpEarly = getVal('existingKwp')||0;
@@ -1283,6 +1338,10 @@ function compute(){
     capexBess: bessActive ? capexBess : 0,
     capexBessMode: bessMode,
     capexSTS: capexSTS, stsMode: stsMode,
+    capexAts: capexAts, atsMode: atsMode,
+    capexEms: capexEms, emsMode: emsMode,
+    capexBackup: capexBackup, backupMode: backupMode,
+    capexBmsExtern: capexBmsExtern, bmsExternOn: bmsExternOn,
     marjaComercial: getVal('marjaComercial'),
     pretVanzare: capexTotal * (1 + getVal('marjaComercial')/100),
     tvaAmount: capexTotal*tva,
@@ -1292,8 +1351,7 @@ function compute(){
     totalVenituri25: totalVenituri25, totalOM25: totalOM25,
     rows: rows, durata: durata, effAutoconsum: effAutoconsum, kwp: kwp,
     numPanouri: numPanouriTotal, numPanouriA: numPanouri, panelPower: panelPower, areaNeeded: areaNeeded,
-    secondArrayEnabled: secondArrayEnabled, kwpA: kwpA, kwpB: kwpB, numPanouriB: numPanouriB, panelPowerB: panelPowerB,
-    correctionPctB: correctionPctB, prodA: prodA, prodB: prodB,
+    kwpA: kwpA, prodA: prodA,
     atrValue: atrValue, putereContractata: putereContractata,
     capexInvertor: capexInvertor, costAlteElemente: costAlteElemente, costMontaj: costMontaj, costComisionare: costComisionare,
     alteCheltuieli: alteCheltuieli, capexEchipamente: capexEchipamente,
@@ -1333,6 +1391,52 @@ function render(){
   function L0(eur){ return fmtEur.format(Math.round((eur||0)*cursR)) + ' lei'; }
   function LE(eur){ return L(eur) + ' (€' + fmtEur2.format(eur||0) + ')'; }
 
+  // Beneficii pentru client
+  (function(){
+    var DEFAULT_BENEFITS = [
+      {text:'Reducere semnificativă a facturii de energie electrică, prin producție proprie de energie', on:true},
+      {text:'Independență crescută față de creșterile de preț ale energiei din rețea', on:true},
+      {text:'Backup / continuitate alimentare în caz de pană de curent (dacă sistemul include BESS cu funcție de backup)', on:false},
+      {text:'Stocare a surplusului de energie produs ziua, pentru a fi folosit seara/noaptea', on:false},
+      {text:'Reducere a vârfurilor de consum (peak shaving) și a penalităților de depășire putere contractată', on:false},
+      {text:'Durată de viață lungă a echipamentelor, cu garanție producător', on:true},
+      {text:'Monitorizare producție și consum în timp real, de pe telefon/laptop', on:true},
+      {text:'Contribuție la reducerea amprentei de carbon a companiei', on:false}
+    ];
+    var BKEY='shc_calc_benefits';
+    var list;
+    try{ list = JSON.parse(localStorage.getItem(BKEY)); }catch(e){ list=null; }
+    if(!Array.isArray(list) || !list.length) list = DEFAULT_BENEFITS.map(function(b){return {text:b.text,on:b.on};});
+    window._benefits = list;
+
+    function persistBenefits(){ try{ localStorage.setItem(BKEY, JSON.stringify(window._benefits)); }catch(e){} }
+    function renderBenefits(){
+      var wrap = document.getElementById('benefitsList');
+      wrap.innerHTML = window._benefits.map(function(b,i){
+        return '<div style="display:flex;align-items:flex-start;gap:8px;">'+
+          '<input type="checkbox" data-bidx="'+i+'" class="benefitChk" '+(b.on?'checked':'')+' style="margin-top:3px;">'+
+          '<input type="text" data-bidx="'+i+'" class="benefitTxt" value="'+b.text.replace(/"/g,'&quot;')+'" style="flex:1;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;">'+
+          '<button type="button" data-bidx="'+i+'" class="benefitDel" style="border:none;background:transparent;color:#ef4444;cursor:pointer;font-size:14px;padding:2px 6px;">✕</button>'+
+        '</div>';
+      }).join('');
+      wrap.querySelectorAll('.benefitChk').forEach(function(el){
+        el.addEventListener('change', function(){ window._benefits[+el.dataset.bidx].on = el.checked; persistBenefits(); });
+      });
+      wrap.querySelectorAll('.benefitTxt').forEach(function(el){
+        el.addEventListener('input', function(){ window._benefits[+el.dataset.bidx].text = el.value; persistBenefits(); });
+      });
+      wrap.querySelectorAll('.benefitDel').forEach(function(el){
+        el.addEventListener('click', function(){ window._benefits.splice(+el.dataset.bidx,1); persistBenefits(); renderBenefits(); });
+      });
+    }
+    renderBenefits();
+    document.getElementById('btnAddBenefit').addEventListener('click', function(){
+      window._benefits.push({text:'', on:true});
+      persistBenefits();
+      renderBenefits();
+    });
+  })();
+
   // Recomandare capacitate BESS — combină consum zilnic + surplus PV
   (function(){
     var box = document.getElementById('bessRecoBox');
@@ -1362,15 +1466,6 @@ function render(){
   document.getElementById('yieldSpecCalc').textContent =
     'Yield anual: ' + getVal('yieldZilnic') + ' kWh/kWp/zi × ' + Math.round(getVal('zileFunctionare')) + ' zile = ' + Math.round(r.yieldSpec) + ' kWh/kWp/an';
 
-  // Second array
-  document.getElementById('secondArrayFields').style.display = r.secondArrayEnabled ? 'block' : 'none';
-  if(r.secondArrayEnabled){
-    document.getElementById('correctionOutB').textContent = r.correctionPctB + '%';
-    document.getElementById('correctionPctCustomB').style.display =
-      (document.getElementById('orientationPresetB').value === 'custom') ? 'block' : 'none';
-    document.getElementById('combinedKwpInfo').textContent =
-      'Array A: ' + r.kwpA.toFixed(2) + ' kWp (' + Math.round(r.prodA) + ' kWh/an) · Array B: ' + r.kwpB.toFixed(2) + ' kWp (' + Math.round(r.prodB) + ' kWh/an) · Total: ' + r.kwp.toFixed(2) + ' kWp (' + Math.round(r.prodAn1) + ' kWh/an)';
-  }
 
   // Financing — show/hide panels per mode
   var finMode = document.getElementById('financingMode').value;
@@ -1516,7 +1611,7 @@ function render(){
 
   document.getElementById('alteOut').textContent = getVal('alteCheltuieliPct') + '%';
   // Persist config
-  try { var st={}; ['numPanouri','panelBrand','sizingMode','customPower','customPanelBrand','kwpA','kwpB','capexPv','capexInvertor','bessMode','bessKwh','capexBess','stsMode','capexSTS','costMontaj','costComisionare','alteCheltuieliPct','om','pretEnergie','pretInjectie','autoconsum','escaladare','degradare','durata','tva','curs','marjaComercial','bessCicluriAn','bessArbitrajSpread','bessDegrade1','rataDiscontare','numeClient','nrOfertaSuffix','dataOferta','valabilitate','firmaTa','firmaCUI','firmaRegCom','firmaAdresa','firmaTelefon','firmaEmail','firmaRepLegal'].forEach(function(k){var el=document.getElementById(k);if(el)st[k]=el.value;}); localStorage.setItem('shc_calc_state',JSON.stringify(st)); } catch(e) {}
+  try { var st={}; ['numPanouri','panelBrand','sizingMode','customPower','customPanelBrand','kwpA','kwpB','capexPv','capexInvertor','bessMode','bessKwh','capexBess','stsMode','capexSTS','atsMode','capexAts','emsMode','capexEms','backupMode','capexBackup','capexBmsExtern','costMontaj','costComisionare','alteCheltuieliPct','om','pretEnergie','pretInjectie','autoconsum','escaladare','degradare','durata','tva','curs','marjaComercial','bessCicluriAn','bessArbitrajSpread','bessDegrade1','rataDiscontare','numeClient','nrOfertaSuffix','dataOferta','valabilitate','firmaTa','firmaCUI','firmaRegCom','firmaAdresa','firmaTelefon','firmaEmail','firmaRepLegal'].forEach(function(k){var el=document.getElementById(k);if(el)st[k]=el.value;}); localStorage.setItem('shc_calc_state',JSON.stringify(st)); } catch(e) {}
   document.getElementById('marjaOut').textContent = Math.round(getVal('marjaComercial')) + '%';
   if(document.getElementById('marjaCalc')) document.getElementById('marjaCalc').textContent = r.marjaComercial>0 ? 'Cost: '+LE(r.capexTotal)+'  →  Preț client: '+LE(r.pretVanzare) : '';
   document.getElementById('alteVal').textContent =
@@ -1578,7 +1673,7 @@ function render(){
       scen.map(function(s){
         var kw = r.kwp>0 ? r.kwp/s[1] : 0;
         var active = r.puterInvertor>0 && Math.abs(ratio-s[1])<0.04;
-        return '<div style="border:1px solid '+(active?'var(--accent)':'var(--border)')+';border-radius:8px;padding:12px 9px;background:'+(active?'#eef3fb':'#fff')+'">'+
+        return '<div style="border:1px solid '+(active?'var(--accent)':'var(--border)')+';border-radius:8px;padding:12px 9px;background:'+(active?'#2a2210':'var(--card2)')+'">'+
           '<div style="font-size:12px;font-weight:700;color:var(--text);text-align:center">'+s[0]+(active?' <span style=\"font-size:9px;color:var(--accent)\">● ales</span>':'')+'</div>'+
           '<div style="font-size:9.5px;color:var(--text2);margin:3px 0 8px;text-align:center;font-weight:600">DC/AC '+s[1].toFixed(2).replace('.',',')+' · '+s[2]+'</div>'+
           '<div style="text-align:center;font-family:inherit;font-weight:800;font-size:17px;color:var(--accent)">'+(kw>0?fmtN(kw,0)+' kW':'—')+'</div>'+
@@ -1665,9 +1760,7 @@ function render(){
   function leiEur(v){ return curs>0 ? (fmtEur.format(v*curs)+' lei') : ('€'+fmtEur.format(v)); }
   var cards = [
     {label:'CAPEX (fără TVA)', value: leiEur(r.capexTotal), sub:'€'+fmtEur.format(r.capexTotal)+' · cu TVA '+leiEur(r.capexTotalTva), cls:''},
-    {label:'Producție anuală', value: fmtInt.format(Math.round(r.prodAn1)) + ' kWh', sub: r.secondArrayEnabled
-      ? 'An 1 · ' + r.kwp.toFixed(2) + ' kWp · ' + r.numPanouriA + '+' + r.numPanouriB + ' panouri (A+B)'
-      : 'An 1 · ' + r.kwp.toFixed(2) + ' kWp · ' + r.numPanouri + ' panouri', cls:''},
+    {label:'Producție anuală', value: fmtInt.format(Math.round(r.prodAn1)) + ' kWh', sub: 'An 1 · ' + r.kwp.toFixed(2) + ' kWp · ' + r.numPanouri + ' panouri', cls:''},
     {label:'Economii anuale (An 1)', value: leiEur(r.economiiAn1), sub: Math.round(r.effAutoconsum*100)+'% autoconsumție', cls:''},
     {label:'Payback simplu', value: payback, sub:'bazat pe CAPEX fără TVA', cls: pbClass}
   ];
@@ -1689,8 +1782,6 @@ function render(){
 
   var yearCards = [
     {label:'Cash-flow cumulat', value: (yearRow.cumulative<0?'-':'')+L0(Math.abs(yearRow.cumulative)), sub: yearRow.cumulative>=0?'investiție recuperată':'încă în recuperare', cls: yearCumClass},
-    {label:'Producție în acest an', value: fmtInt.format(Math.round(yearProd)) + ' kWh', sub: selectedYear===0?'—':'cu degradare ' + getVal('degradare') + '%/an', cls:''},
-    {label:'Economii în acest an', value: L0(yearEcon), sub: selectedYear===0?'investiție inițială':'după O&M', cls:''},
     {label:'Status', value: yearRow.cumulative>=0 ? 'Profit net: '+L0(yearRow.cumulative) : 'Recuperare', sub: r.paybackYear!==null ? 'payback la ' + r.paybackYear.toFixed(1) + ' ani' : '—', cls: yearCumClass}
   ];
 
@@ -1755,7 +1846,6 @@ function render(){
     return '<span><span class="dot" style="background:'+capexColors[i]+'"></span>'+l+' '+pct+'%</span>';
   }).join('');
 
-  document.getElementById('capexChartWrap').style.display = totalCapex>0 ? 'block' : 'none';
   if(capexChart) capexChart.destroy();
   capexChart = new Chart(document.getElementById('capexChart'), {
     type:'doughnut',
@@ -1823,37 +1913,55 @@ function render(){
       '</table>';
   }
 
-  // ── System Diagram — simple cards ──────────────
+  // ── System Diagram — animated current flow ──────────────
   (function(){
     var bessOn=(r.capexBessMode==='included');
     var stsOn=(r.stsMode!=='none');
-    var kwpStr=r.kwp>0?r.kwp.toFixed(2)+' kWp':'—';
-    var numStr=r.numPanouri>0?r.numPanouri+' panouri':'—';
-    var bKwh=bessOn&&getVal('bessKwh')>0?getVal('bessKwh')+' kWh':'—';
-    var prodStr=r.prodAn1>0?fmt0(r.prodAn1)+' kWh/an':'';
+    var kwpStr=r.kwp>0?r.kwp.toFixed(2)+' kWp':'';
+    var numStr=r.numPanouri>0?r.numPanouri+' panouri':'';
+    var bKwh=bessOn&&getVal('bessKwh')>0?getVal('bessKwh')+' kWh':'';
 
-    function box(icon, label, val, color){
-      return '<div style="flex:1;min-width:80px;background:#fff;border:2px solid '+color+';border-top:4px solid '+color+';border-radius:10px;padding:14px 10px;text-align:center;">'+
-        '<div style="font-size:22px;margin-bottom:6px;">'+icon+'</div>'+
-        '<div style="font-size:11px;font-weight:800;color:'+color+';text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">'+label+'</div>'+
-        '<div style="font-size:12px;font-weight:600;color:#0f172a;">'+val+'</div>'+
-      '</div>';
-    }
-    function arr(){
-      return '<div style="display:flex;align-items:center;padding:0 4px;color:#94a3b8;font-size:18px;font-weight:700;">→</div>';
-    }
+    var nodes=[{icon:'☀️',label:'Panouri PV',val:kwpStr,sub:numStr,color:'#f59e0b'},
+               {icon:'⚡',label:'Invertor',val:'',sub:'',color:'#f97316'}];
+    if(bessOn) nodes.push({icon:'🔋',label:'Stocare BESS',val:bKwh,sub:'',color:'#0f2850'});
+    if(stsOn) nodes.push({icon:'🏭',label:'STS',val:'Inclus',sub:'',color:'#64748b'});
 
-    var html='<div style="display:flex;align-items:stretch;gap:4px;flex-wrap:wrap;padding:14px;background:#f8fafc;border-radius:0 0 10px 10px;width:100%;box-sizing:border-box;">'+
-      box('☀️','Panouri PV',kwpStr+'<br><span style="font-size:10px;color:#64748b;">'+numStr+(prodStr?' · '+prodStr:'')+'</span>','#f59e0b')+
-      arr()+
-      box('⚡','Invertor','C&I','#f97316')+
-      (bessOn?arr()+box('🔋','Stocare BESS',bKwh,'#0f2850'):'')+
-      (stsOn?arr()+box('🏭','STS','Inclus','#64748b'):'')+
-    '</div>';
+    var n=nodes.length;
+    var W=400,H=260,pad=W/(n*2);
+    var step=n>1?(W-pad*2)/(n-1):0;
+    var cy=H/2+8;
+    var xs=nodes.map(function(_,i){return pad+step*i;});
+    var rad = n<=2?52:(n===3?42:36);
+
+    var svg='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;display:block;">';
+    // wires with animated current dashes
+    for(var i=0;i<n-1;i++){
+      var x1=xs[i]+rad+3, x2=xs[i+1]-rad-3;
+      svg+='<line x1="'+x1+'" y1="'+cy+'" x2="'+x2+'" y2="'+cy+'" stroke="#334155" stroke-width="4" stroke-linecap="round"/>';
+      svg+='<line x1="'+x1+'" y1="'+cy+'" x2="'+x2+'" y2="'+cy+'" stroke="'+nodes[i].color+'" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 12">'+
+             '<animate attributeName="stroke-dashoffset" from="0" to="-28" dur="0.9s" repeatCount="indefinite"/>'+
+           '</line>';
+    }
+    // nodes
+    nodes.forEach(function(node,i){
+      var cx=xs[i];
+      svg+='<g>'+
+        '<circle cx="'+cx+'" cy="'+cy+'" r="'+rad+'" fill="var(--card)" stroke="'+node.color+'" stroke-width="3"/>'+
+        '<circle cx="'+cx+'" cy="'+cy+'" r="'+rad+'" fill="none" stroke="'+node.color+'" stroke-width="2" opacity="0.4">'+
+          '<animate attributeName="r" values="'+rad+';'+(rad+7)+';'+rad+'" dur="1.8s" repeatCount="indefinite"/>'+
+          '<animate attributeName="opacity" values="0.5;0;0.5" dur="1.8s" repeatCount="indefinite"/>'+
+        '</circle>'+
+        '<text x="'+cx+'" y="'+(cy+9)+'" text-anchor="middle" font-size="'+(rad*0.62)+'">'+node.icon+'</text>'+
+        '<text x="'+cx+'" y="'+(cy+rad+22)+'" text-anchor="middle" font-size="15" font-weight="800" fill="'+node.color+'" letter-spacing="0.3" style="text-transform:uppercase">'+node.label+'</text>'+
+        (node.val?'<text x="'+cx+'" y="'+(cy+rad+40)+'" text-anchor="middle" font-size="15" font-weight="700" fill="#e8edf5">'+node.val+'</text>':'')+
+        (node.sub?'<text x="'+cx+'" y="'+(cy-rad-14)+'" text-anchor="middle" font-size="13" fill="#94a3b8">'+node.sub+'</text>':'')+
+      '</g>';
+    });
+    svg+='</svg>';
 
     var diag=document.getElementById('systemDiagram');
-    diag.style.padding='0';diag.style.background='transparent';diag.style.borderRadius='10px';diag.style.overflow='hidden';
-    diag.innerHTML=html;
+    diag.style.padding='16px 10px';diag.style.background='var(--card)';diag.style.borderRadius='0 0 var(--radius-lg) var(--radius-lg)';diag.style.overflow='hidden';diag.style.width='100%';diag.style.height='260px';diag.style.boxSizing='border-box';diag.style.display='flex';diag.style.alignItems='center';diag.style.justifyContent='center';diag.style.marginBottom='0';diag.style.display='flex';diag.style.alignItems='center';diag.style.justifyContent='center';
+    diag.innerHTML=svg;
   })();
 
   var summaryRows = [
@@ -1871,6 +1979,24 @@ function render(){
     summaryRows.push(['Cost total STS — Stație Transformare & Siguranță (fără TVA)', LE(r.capexSTS)]);
   } else if(r.stsMode === 'optional'){
     summaryRows.push(['STS (opțional)', fmtEur2.format(getVal('capexSTS')) + ' lei — neinclus în total']);
+  }
+  if(r.atsMode === 'included'){
+    summaryRows.push(['Cost total ATS — Automatic Transfer Switch (fără TVA)', LE(r.capexAts)]);
+  } else if(r.atsMode === 'optional'){
+    summaryRows.push(['ATS (opțional)', fmtEur2.format(getVal('capexAts')) + ' lei — neinclus în total']);
+  }
+  if(r.emsMode === 'included'){
+    summaryRows.push(['Cost total EMS — Energy Management System (fără TVA)', LE(r.capexEms)]);
+  } else if(r.emsMode === 'optional'){
+    summaryRows.push(['EMS (opțional)', fmtEur2.format(getVal('capexEms')) + ' lei — neinclus în total']);
+  }
+  if(r.backupMode === 'included'){
+    summaryRows.push(['Cost total Backup/EPS (fără TVA)', LE(r.capexBackup)]);
+  } else if(r.backupMode === 'optional'){
+    summaryRows.push(['Backup/EPS (opțional)', fmtEur2.format(getVal('capexBackup')) + ' lei — neinclus în total']);
+  }
+  if(r.bmsExternOn && r.capexBmsExtern > 0){
+    summaryRows.push(['Cost total BMS extern (fără TVA)', LE(r.capexBmsExtern)]);
   }
   if(r.costAlteElemente > 0){
     summaryRows.push(['Cost alte elemente (fără TVA)', LE(r.costAlteElemente)]);
@@ -1954,10 +2080,19 @@ ids.forEach(function(id){
 });
 document.getElementById('bessMode').addEventListener('change', render);
 document.getElementById('stsMode').addEventListener('change', render);
+document.getElementById('atsMode').addEventListener('change', render);
+document.getElementById('emsMode').addEventListener('change', render);
+document.getElementById('backupMode').addEventListener('change', function(){
+  var warn = document.getElementById('backupWarn');
+  if(warn) warn.style.display = (this.value!=='none' && document.getElementById('bessMode').value==='none') ? 'block' : 'none';
+  render();
+});
+document.getElementById('bmsExternCheck').addEventListener('change', function(){
+  document.getElementById('capexBmsExtern').style.display = this.checked ? 'block' : 'none';
+  render();
+});
 document.getElementById('panelBrand').addEventListener('change', function(){
   document.getElementById('customPower').value = panelBrandDefaults[this.value] || 645;
-  var brandLabels = {generic:'Generic', jinko:'JINKO Tiger Neo', aiko:'AIKO', trina:'TRINA Vertex', longi:'LONGI', custom:''};
-  document.getElementById('customPanelBrand').value = brandLabels[this.value] || '';
   render();
 });
 document.getElementById('spacingFactor').addEventListener('input', function(){
@@ -1972,8 +2107,6 @@ document.getElementById('marjaComercial').addEventListener('input', function(){
 });
 document.getElementById('sizingMode').addEventListener('change', render);
 document.getElementById('orientationPreset').addEventListener('change', render);
-document.getElementById('secondArrayEnabled').addEventListener('change', render);
-document.getElementById('orientationPresetB').addEventListener('change', render);
 document.getElementById('financingMode').addEventListener('change', render);
 document.getElementById('leasingTip').addEventListener('change', render);
 document.getElementById('avansPct').addEventListener('input', function(){
@@ -2038,20 +2171,61 @@ document.getElementById('btnClearVariants').addEventListener('click', function()
 });
 
 
+function dateStamp(){
+  var d=new Date();
+  return ('0'+d.getDate()).slice(-2)+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+d.getFullYear();
+}
+function offerFileBase(ext){
+  var client=(document.getElementById('numeClient')?document.getElementById('numeClient').value:'').trim().replace(/[^a-zA-Z0-9 ]/g,'').replace(/\s+/g,'_')||'Client';
+  var nrSuf=document.getElementById('nrOfertaSuffix')?document.getElementById('nrOfertaSuffix').value:'';
+  var nrOferta=nrSuf?('SHC-'+nrSuf):'';
+  return [client, dateStamp(), nrOferta].filter(Boolean).join('_');
+}
+window._hasSavedConfig = false;
+function requireSavedConfig(actionLabel, proceedFn){
+  if(window._hasSavedConfig){ proceedFn(); return; }
+  var modal=document.createElement('div');
+  modal.style.cssText='position:fixed;inset:0;z-index:100000;background:rgba(10,20,40,.65);display:flex;align-items:center;justify-content:center;padding:24px;';
+  var box=document.createElement('div');
+  box.style.cssText='background:#fff;border-radius:14px;max-width:480px;width:100%;padding:30px 28px;font-family:inherit;box-shadow:0 20px 60px rgba(0,0,0,.3)';
+  box.innerHTML='<div style="font-size:38px;margin-bottom:10px">💾</div>'+
+    '<h2 style="font-size:17px;margin:0 0 10px;color:#0b1e3d">Ai salvat configurația?</h2>'+
+    '<p style="font-size:13px;color:#555;line-height:1.5;margin:0 0 20px">Înainte de a '+actionLabel+', salvează configurația (chiar dacă oferta nu e terminată) — ca să o poți relua ulterior. Fișierul se va numi automat cu numele clientului, data și numărul ofertei.</p>'+
+    '<div style="display:flex;gap:10px;flex-wrap:wrap">'+
+      '<button id="rsSaveNow" style="flex:1;min-width:160px;padding:11px;border:none;background:#0b1e3d;color:#fff;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px">💾 Salvează acum</button>'+
+      '<button id="rsProceed" style="flex:1;min-width:160px;padding:11px;border:1px solid #ddd;background:#fff;color:#333;border-radius:8px;cursor:pointer;font-size:13px">Am salvat deja, continuă</button>'+
+    '</div>'+
+    '<button id="rsCancel" style="margin-top:10px;width:100%;padding:8px;border:none;background:transparent;color:#888;cursor:pointer;font-size:12px">Anulează</button>';
+  modal.appendChild(box);
+  document.body.appendChild(modal);
+  function close(){ document.body.removeChild(modal); }
+  box.querySelector('#rsSaveNow').addEventListener('click', function(){
+    document.getElementById('btnSave').click();
+    window._hasSavedConfig = true;
+    close();
+    proceedFn();
+  });
+  box.querySelector('#rsProceed').addEventListener('click', function(){ window._hasSavedConfig = true; close(); proceedFn(); });
+  box.querySelector('#rsCancel').addEventListener('click', close);
+  modal.addEventListener('click', function(e){ if(e.target===modal) close(); });
+}
+
 document.getElementById('btnSave').addEventListener('click', function(){
   var config = {};
   ids.forEach(function(id){
     var el = document.getElementById(id);
     if(el) config[id] = el.type==='checkbox' ? el.checked : el.value;
   });
-  ['panelBrand','bessMode','stsMode','stsTip','firmaTa','firmaCUI','firmaRegCom','firmaAdresa','firmaTelefon','firmaEmail','firmaRepLegal','numeClient','notesArea','sizingMode','nrOfertaSuffix','dataOferta','valabilitate'].forEach(function(id){
+  ['panelBrand','bessMode','stsMode','atsMode','emsMode','backupMode','stsTip','firmaTa','firmaCUI','firmaRegCom','firmaAdresa','firmaTelefon','firmaEmail','firmaRepLegal','numeClient','notesArea','sizingMode','nrOfertaSuffix','dataOferta','valabilitate'].forEach(function(id){
     var el = document.getElementById(id);
     if(el) config[id] = el.value;
   });
+  var bmsEl = document.getElementById('bmsExternCheck'); if(bmsEl) config.bmsExternCheck = bmsEl.checked;
   config.yearSlider = document.getElementById('yearSlider').value;
   config.devizRows = devizRows;
   var jsonStr = JSON.stringify(config, null, 2);
-  var filename = ('Ofertă SHC-' + (config.nrOfertaSuffix||'draft') + (config.numeClient?(' - '+config.numeClient):'') + ' (config).json').replace(/[\\/:*?"<>|]/g,'');
+  var filename = 'config-oferta_' + offerFileBase() + '.json';
+  window._hasSavedConfig = true;
 
   // Try native download first
   var downloadWorked = false;
@@ -2150,7 +2324,7 @@ window.applyConfig = function applyConfig(config){
   document.getElementById('spacingOut').textContent = (document.getElementById('spacingFactor').value) + '%';
   document.getElementById('invertorMarcaCustomField').style.display =
     (document.getElementById('invertorMarca').value === 'custom') ? 'block' : 'none';
-  if(Array.isArray(config.devizRows)){ devizRows = config.devizRows.map(function(x){return {grup:x.grup||'',capitol:x.capitol||'',um:x.um||'',cant:x.cant,pret:x.pret,inCapex:!!x.inCapex};}); renderDeviz(); }
+  if(Array.isArray(config.devizRows)){ devizRows = config.devizRows.map(function(x){return {grup:x.grup||'',cod:x.cod||'',capitol:x.capitol||'',um:x.um||'',cant:x.cant,pret:x.pret,inCapex:!!x.inCapex};}); renderDeviz(); }
   render();
 }
 
@@ -2215,7 +2389,7 @@ document.getElementById('btnReset').addEventListener('click', function(){
   document.getElementById('marjaOut').textContent = Math.round(defaults.marjaComercial||0) + '%';
   document.getElementById('invertorMarcaCustomField').style.display =
     (document.getElementById('invertorMarca').value === 'custom') ? 'block' : 'none';
-  devizRows.length = 0; devizRows.push({grup:'',capitol:'',um:'',cant:'',pret:''}); renderDeviz();
+  devizRows.length = 0; devizRows.push({grup:'',cod:'',capitol:'',um:'',cant:'',pret:''}); renderDeviz();
   var d0 = new Date();
   document.getElementById('dataOferta').value = String(d0.getDate()).padStart(2,'0') + '.' + String(d0.getMonth()+1).padStart(2,'0') + '.' + d0.getFullYear();
   updateDevizFoot();
@@ -2223,11 +2397,17 @@ document.getElementById('btnReset').addEventListener('click', function(){
 });
 
 document.getElementById('btnPdf').addEventListener('click', function(){
+ requireSavedConfig('exporta oferta PDF (clasic)', function(){
   var r = compute();
   var nrSuf=document.getElementById('nrOfertaSuffix').value||'';
   var nrOferta='SHC-'+(nrSuf||'');
   var client=(document.getElementById('numeClient').value||'').trim();
-  logOffer('export_clasic', nrOferta, client, Math.round(r.capexTotalTva*(getVal('curs')||5.2)));
+  logOffer('export_clasic', nrOferta, client, Math.round(r.capexTotalTva*(getVal('curs')||5.2)), {
+    kwp: r.kwp ? r.kwp.toFixed(2) : null,
+    capexTotalEur: Math.round(r.capexTotalTva),
+    payback: r.paybackYear!==null ? r.paybackYear.toFixed(1)+' ani' : '> '+r.durata+' ani',
+    irr: r.irrVal!=null ? (r.irrVal*100).toFixed(1)+'%' : '—'
+  });
   var jsPDF = window.jspdf.jsPDF;
   var doc = new jsPDF({unit:'mm', format:'a4'});
   // Protecție: ignoră liniile cu coordonate invalide (NaN/Infinity) ca să nu crape exportul
@@ -2460,6 +2640,10 @@ document.getElementById('btnPdf').addEventListener('click', function(){
   if(r.capexInvertor>0) tableRow('Invertor/e (fara TVA)', eur(r.capexInvertor), curs>0 ? fmtEur2.format(r.capexInvertor*curs)+' lei' : '');
   if(bessIncluded) tableRow('Stocare BESS (fara TVA)', eur(r.capexBess), curs>0 ? fmtEur2.format(r.capexBess*curs)+' lei' : '');
   if(stsIncluded) tableRow('STS - Statie Transformare & Siguranta (fara TVA)', eur(r.capexSTS), curs>0 ? fmtEur2.format(r.capexSTS*curs)+' lei' : '');
+  if(r.atsMode==='included') tableRow('ATS - Automatic Transfer Switch (fara TVA)', eur(r.capexAts), curs>0 ? fmtEur2.format(r.capexAts*curs)+' lei' : '');
+  if(r.emsMode==='included') tableRow('EMS - Energy Management System (fara TVA)', eur(r.capexEms), curs>0 ? fmtEur2.format(r.capexEms*curs)+' lei' : '');
+  if(r.backupMode==='included') tableRow('Backup / EPS (fara TVA)', eur(r.capexBackup), curs>0 ? fmtEur2.format(r.capexBackup*curs)+' lei' : '');
+  if(r.bmsExternOn && r.capexBmsExtern>0) tableRow('BMS extern (fara TVA)', eur(r.capexBmsExtern), curs>0 ? fmtEur2.format(r.capexBmsExtern*curs)+' lei' : '');
   if(r.costAlteElemente>0) tableRow('Alte elemente (fara TVA)', eur(r.costAlteElemente), curs>0 ? fmtEur2.format(r.costAlteElemente*curs)+' lei' : '');
   if(r.costMontaj>0) tableRow('Montaj (fara TVA)', eur(r.costMontaj), curs>0 ? fmtEur2.format(r.costMontaj*curs)+' lei' : '');
   if(r.costComisionare>0) tableRow('Comisionare (fara TVA)', eur(r.costComisionare), curs>0 ? fmtEur2.format(r.costComisionare*curs)+' lei' : '');
@@ -2848,7 +3032,7 @@ document.getElementById('btnPdf').addEventListener('click', function(){
   addFooter();
 
   // ─── OUTPUT ───
-  var filename = ('Ofertă ' + nrOferta + (client ? (' - ' + client) : '')).replace(/[\\/:*?"<>|]/g,'');
+  var filename = offerFileBase();
   var pdfBlob = doc.output('blob');
   var pdfUrl = URL.createObjectURL(pdfBlob);
 
@@ -2859,6 +3043,7 @@ document.getElementById('btnPdf').addEventListener('click', function(){
   }catch(e){}
 
   showPdfModal(pdfUrl, filename);
+ });
 });
 
 function showPdfModal(pdfUrl, filename){
@@ -2967,15 +3152,16 @@ function renderDeviz(){
   body.innerHTML = devizRows.map(function(row,i){
     var val=devizNum(row.cant)*devizNum(row.pret);
     var ic='font-size:13px;padding:6px 8px;border:1px solid var(--border);border-radius:6px';
-    var rbg=i%2===0?'#ffffff':'#f7f9fb';
+    var rbg=i%2===0?'var(--card2)':'var(--card)';
     return '<tr style="background:'+rbg+'">'+
       '<td style="text-align:center;color:var(--text3);padding:5px 6px">'+(i+1)+'</td>'+
-      '<td style="padding:5px 6px"><select data-di="'+i+'" data-df="grup" style="width:100%;'+ic+'">'+['','A. Sistem PV','B. Stocare BESS','Invertor','STS','BMS','EMS','C. Alte lucrări','Locația 1','Locația 2'].map(function(g){return '<option value="'+g+'" '+(row.grup===g?'selected':'')+'>'+(g||'—')+'</option>';}).join('')+'</select></td>'+
+      '<td style="padding:5px 6px"><select data-di="'+i+'" data-df="grup" style="width:100%;'+ic+'">'+['','A. Sistem PV','B. Invertor','C. Stocare BESS','D. STS / ATS / EMS','E. Structuri de montaj','F. Cablare & protecții AC/DC','G. Proiectare & avize','H. Montaj & punere în funcțiune','I. Alte lucrări','Locația 1','Locația 2'].map(function(g){return '<option value="'+g+'" '+(row.grup===g?'selected':'')+'>'+(g||'—')+'</option>';}).join('')+'</select></td>'+
+      '<td style="padding:5px 6px"><input type="text" data-di="'+i+'" data-df="cod" value="'+String(row.cod||'').replace(/"/g,'&quot;')+'" placeholder="ex: GW112.6-BAT" style="width:100%;'+ic+';font-family:monospace;font-size:11px"></td>'+
       '<td style="padding:5px 6px"><input type="text" data-di="'+i+'" data-df="capitol" value="'+String(row.capitol||'').replace(/"/g,'&quot;')+'" style="width:100%;'+ic+'"></td>'+
       '<td style="padding:5px 6px"><input type="text" data-di="'+i+'" data-df="um" value="'+String(row.um||'').replace(/"/g,'&quot;')+'" style="width:100%;'+ic+'"></td>'+
       '<td style="padding:5px 6px"><input type="number" step="any" data-di="'+i+'" data-df="cant" value="'+((row.cant!==''&&row.cant!=null)?row.cant:'')+'" style="width:100%;text-align:right;'+ic+'"></td>'+
       '<td style="padding:5px 6px"><input type="number" step="any" data-di="'+i+'" data-df="pret" value="'+((row.pret!==''&&row.pret!=null)?row.pret:'')+'" style="width:100%;text-align:right;'+ic+'"></td>'+
-      '<td style="text-align:right;padding:5px 6px;font-weight:700;color:#0b1e3d;white-space:nowrap" data-dval="'+i+'">'+fmtEur2.format(val)+' lei</td>'+
+      '<td style="text-align:right;padding:5px 6px;font-weight:700;color:var(--accent);white-space:nowrap" data-dval="'+i+'">'+fmtEur2.format(val)+' lei</td>'+
       '<td style="text-align:center;padding:5px 4px"><input type="checkbox" data-di="'+i+'" data-df="inCapex" '+(row.inCapex?'checked':'')+' title="Include în CAPEX (Cost alte elemente)" style="width:18px;height:18px;cursor:pointer;accent-color:#f59e0b;"></td>'+
       '<td style="text-align:center;padding:5px 4px"><button type="button" data-ddel="'+i+'" title="Șterge rând" style="padding:4px 9px;color:var(--red);border-color:#f0c9c4">✕</button></td>'+
     '</tr>';
@@ -3007,7 +3193,7 @@ function renderDeviz(){
   }
   var add=document.getElementById('btnAddDevizRow');
   if(add) add.addEventListener('click', function(){
-    devizRows.push({grup:'',capitol:'',um:'',cant:'',pret:'',inCapex:false});
+    devizRows.push({grup:'',cod:'',capitol:'',um:'',cant:'',pret:'',inCapex:false});
     renderDeviz();
     var inputs=document.querySelectorAll('#devizBody tr:last-child input');
     if(inputs.length) inputs[0].focus();
@@ -3064,12 +3250,15 @@ function saveUsers(arr){ try{ localStorage.setItem(USERS_KEY, JSON.stringify(arr
 function getJournal(){ try{ return JSON.parse(localStorage.getItem(JOURNAL_KEY)||'[]'); }catch(e){ return []; } }
 function saveJournal(arr){ try{ localStorage.setItem(JOURNAL_KEY, JSON.stringify(arr)); }catch(e){} }
 
-function logOffer(action, nrOferta, client, valoareLei){
+function logOffer(action, nrOferta, client, valoareLei, extra){
   var S = window.SESSION || SESSION;
   if(!S) return;
-  var entry={userId:S.userId, userName:S.userName, role:S.role,
+  extra = extra || {};
+  var entry={userId:S.userId, userName:S.userName, role:S.role, userEmail:S.email||'',
     timestamp:new Date().toISOString(), action:action,
-    nrOferta:nrOferta||'—', client:client||'—', valoareLei:valoareLei||0};
+    nrOferta:nrOferta||'—', client:client||'—', valoareLei:valoareLei||0,
+    kwp:extra.kwp||null, capexTotalEur:extra.capexTotalEur||null,
+    payback:extra.payback||'—', irr:extra.irr||'—', offerHtml:extra.offerHtml||''};
   var j=getJournal();
   j.unshift(entry);
   if(j.length>1000) j=j.slice(0,1000);
@@ -3096,14 +3285,26 @@ function openOferteColegi(){
     if(!entries.length){ list.innerHTML='<p style="color:#888;font-size:13px">Nicio ofertă generată încă.</p>'; return; }
     entries.sort(function(a,b){ return new Date(b.timestamp)-new Date(a.timestamp); });
     var html='<table style="width:100%;border-collapse:collapse;font-size:12.5px"><thead><tr style="text-align:left;border-bottom:2px solid #eee">'+
-      '<th style="padding:8px 6px">Data</th><th style="padding:8px 6px">Utilizator</th><th style="padding:8px 6px">Client</th><th style="padding:8px 6px">Nr. ofertă</th><th style="padding:8px 6px;text-align:right">Valoare (lei)</th></tr></thead><tbody>';
-    entries.forEach(function(e){
+      '<th style="padding:8px 6px">Data</th><th style="padding:8px 6px">Utilizator</th><th style="padding:8px 6px">Client</th><th style="padding:8px 6px">Nr. ofertă</th><th style="padding:8px 6px;text-align:right">Valoare (lei)</th><th style="padding:8px 6px"></th></tr></thead><tbody>';
+    entries.forEach(function(e,idx){
       var d=new Date(e.timestamp);
       var dStr=('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
-      html+='<tr style="border-bottom:1px solid #f0f0f0"><td style="padding:7px 6px;white-space:nowrap">'+dStr+'</td><td style="padding:7px 6px">'+(e.userName||'—')+'</td><td style="padding:7px 6px">'+(e.client||'—')+'</td><td style="padding:7px 6px">'+(e.nrOferta||'—')+'</td><td style="padding:7px 6px;text-align:right;font-weight:600">'+Math.round(e.valoareLei||0).toLocaleString('ro-RO')+'</td></tr>';
+      var hasHtml = e.offerHtml && e.offerHtml.length>50;
+      html+='<tr style="border-bottom:1px solid #f0f0f0"><td style="padding:7px 6px;white-space:nowrap">'+dStr+'</td><td style="padding:7px 6px">'+(e.userName||'—')+'</td><td style="padding:7px 6px">'+(e.client||'—')+'</td><td style="padding:7px 6px">'+(e.nrOferta||'—')+'</td><td style="padding:7px 6px;text-align:right;font-weight:600">'+Math.round(e.valoareLei||0).toLocaleString('ro-RO')+'</td><td style="padding:7px 6px;text-align:center">'+(hasHtml?'<button data-jidx="'+idx+'" class="ofertaDlBtn" style="border:1px solid #dbeafe;background:#fff;border-radius:5px;font-size:11px;cursor:pointer;color:#2563eb;padding:4px 8px">⬇</button>':'')+'</td></tr>';
     });
     html+='</tbody></table>';
     list.innerHTML=html;
+    list.querySelectorAll('.ofertaDlBtn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var e=entries[+btn.dataset.jidx];
+        var blob=new Blob([e.offerHtml],{type:'text/html'});
+        var url=URL.createObjectURL(blob);
+        var a=document.createElement('a');
+        a.href=url; a.download='Oferta-'+(e.nrOferta||'SHC')+'.html';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function(){URL.revokeObjectURL(url);},2000);
+      });
+    });
   }
 
   try{
@@ -3199,10 +3400,10 @@ function startSession(user){
   cpBtn.textContent = user.fromCRM ? '🔑 PIN' : '🔑 Parolă';
   cpBtn.title = user.fromCRM ? 'PIN-ul se gestionează din SolarCRM' : 'Schimbă parola';
   if(user.role==='admin'){
-    document.getElementById('adminSection').style.display='block';
+    document.getElementById('btnAdminOpen').style.display='inline-block';
     renderAdminUsers();
   } else {
-    document.getElementById('adminSection').style.display='none';
+    document.getElementById('btnAdminOpen').style.display='none';
     var ft=document.getElementById('firmaTa');
     if(ft){ft.readOnly=true;ft.style.background='#f7f8fa';ft.style.color='var(--text2)';}
   }
@@ -3236,7 +3437,7 @@ function logout(){
   document.getElementById('currentUserBadge').style.display='none';
   document.getElementById('btnLogout').style.display='none';
   document.getElementById('btnChangePw').style.display='none';
-  document.getElementById('adminSection').style.display='none';
+  document.getElementById('btnAdminOpen').style.display='none';
   document.getElementById('loginPassword').value='';
   document.getElementById('loginError').textContent='';
   document.getElementById('loginOverlay').style.display='flex';
@@ -3748,14 +3949,9 @@ function buildOfferHTML(r){
   var esc=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
   var curs=getVal('curs')||0, ronShow=curs>0;
   var ronTxt=function(v){return ronShow?fmt(v*curs)+' lei':'—';};
-  var ronMain=function(v){return ronShow?fmt0(v*curs)+' lei':'€ '+fmt(v);};
-  var eurSub=function(v){return '≈ '+fmt0(v)+' €';};
 
-  // ── paleta SHC dark ──
-  var NAVY='#0D1424', NAVY2='#151E33', NAVY3='#101A2E', BORD='#26314D';
-  var INK='#1C2333', MUT='#6A7385', GRL='#9AA3B5', GRD='#AAB3C5', LINE='#E4E9F1', SOFT='#F6F8FB';
-  var ORG='#EFA63B', ORGD='#B97A1E', TEAL='#14A08A', GRN='#1F9D55', BLU='#3F6CE0';
-  var CREAM='#FDF6E7', CREAMB='#F3E3BF', MINT='#E2F5F1';
+  // palette navy
+  var AC='#0f2850', GOLD='#c8963c', SOFT='#eef3fb', INK='#1a2230', MUT='#5b6675', LINE='#dfe4ec', GRN='#2f9e5e';
 
   var firma=document.getElementById('firmaTa').value||'Smart House Color SRL';
   var firmaCUI=(document.getElementById('firmaCUI')||{value:''}).value||'';
@@ -3778,91 +3974,51 @@ function buildOfferHTML(r){
   var paybackYr=payback!==null?Math.floor(payback):-1;
   var capexTotal=r.capexTotal, capexTotalTva=r.capexTotalTva, tvaAmount=r.tvaAmount;
   var net1=r.economiiAn1-om;
-  var bessKwhV=getVal('bessKwh')||0, bessCicV=getVal('bessCicluriAn')||0;
-  var hasPV=r.kwp>0;
-  var sysTitle = hasPV
-    ? ('Sistem fotovoltaic '+fmt(r.kwp,2)+' kWp'+(bessIncl?' + stocare '+(bessKwhV>0?fmt0(bessKwhV)+' kWh':'BESS'):'')+(stsIncl?' + STS':''))
-    : ('Sistem de stocare '+(bessKwhV>0?fmt0(bessKwhV)+' kWh':'BESS'));
-  var eyebrow = hasPV ? (bessIncl?'SISTEM FOTOVOLTAIC CU STOCARE':'SISTEM FOTOVOLTAIC') : 'SISTEM DE STOCARE A ENERGIEI (BESS)';
+  var sysTitle = r.kwp>0
+    ? ('Sistem fotovoltaic '+fmt(r.kwp,2)+' kWp'+(bessIncl?' + Stocare BESS'+(getVal('bessKwh')>0?' '+fmt0(getVal('bessKwh'))+' kWh':''):'')+(stsIncl?' + STS':''))
+    : ('Sistem de stocare BESS'+(getVal('bessKwh')>0?' '+fmt0(getVal('bessKwh'))+' kWh':''));
 
-  // ── stiluri reutilizabile (string helpers) ──
-  var pgN=0, totalPgHint='';
-  var foot=function(){pgN++;var p=pgN;return '<div style="flex:1"></div><div class="ftr"><span>'+esc(firma.toUpperCase())+' · Ofertă tehnico-economică '+esc(clientDisp)+'</span><span>'+esc(nrOferta)+' · pag. '+p+'</span></div>';};
-  var secN=0;
-  var secHead=function(title,sub){secN++;var n=(secN<10?'0':'')+secN;
-    return '<div class="sechd"><span class="secchip">'+n+'</span><div><h2>'+title+'</h2><p>'+sub+'</p></div></div>';};
-  var kpi=function(val,unit,labels,col){
-    return '<div class="kpi"><div class="kv" style="color:'+(col||ORGD)+'">'+val+(unit?'<span class="ku">'+unit+'</span>':'')+'</div><div class="kl">'+labels.map(function(l){return '<div>'+l+'</div>';}).join('')+'</div></div>';};
+  // ── cost rows (doar liniile completate) ──
+  var costDefs=[['Panouri fotovoltaice'+(r.numPanouri?(' ('+r.numPanouri+' module)'):''), r.capexPv]];
+  if(r.capexInvertor>0) costDefs.push(['Invertor/e trifazice', r.capexInvertor]);
+  if(bessIncl) costDefs.push(['Sistem stocare BESS (LiFePO₄)', r.capexBess]);
+  if(stsIncl) costDefs.push(['Stație Transformare & Siguranță (STS)', r.capexSTS]);
+  if(r.atsMode==='included') costDefs.push(['ATS - Automatic Transfer Switch', r.capexAts]);
+  if(r.emsMode==='included') costDefs.push(['EMS - Energy Management System', r.capexEms]);
+  if(r.backupMode==='included') costDefs.push(['Backup la pană (EPS)', r.capexBackup]);
+  if(r.bmsExternOn && r.capexBmsExtern>0) costDefs.push(['BMS extern', r.capexBmsExtern]);
+  if(r.costAlteElemente>0) costDefs.push(['Structuri & alte elemente', r.costAlteElemente]);
+  if(r.costMontaj>0) costDefs.push(['Montaj & punere în funcțiune', r.costMontaj]);
+  if(r.costComisionare>0) costDefs.push(['Comisionare & documentație', r.costComisionare]);
+  if(r.alteCheltuieli>0) costDefs.push(['Alte costuri ('+getVal('alteCheltuieliPct')+'%)', r.alteCheltuieli]);
+  if(r.atrValue>0) costDefs.push(['Aviz tehnic de racordare (ATR)', r.atrValue]);
+  var costRowsHTML=costDefs.map(function(c){return '<tr style="border-bottom:1px solid '+LINE+'"><td style="padding:10px 0;color:'+INK+'">'+esc(c[0])+'</td><td style="padding:10px 0;text-align:right;font-weight:600;color:'+INK+'">'+ronTxt(c[1])+'</td><td style="padding:10px 0;text-align:right;color:'+MUT+'">€ '+fmt(c[1])+'</td></tr>';}).join('');
 
-  // ── logo vectorial (căsuța) ──
-  var logoSvg='<svg viewBox="0 0 100 80" style="width:34px;height:27px"><line x1="9" y1="76" x2="9" y2="32" stroke="#8B9096" stroke-width="1.8"/><line x1="9" y1="32" x2="9" y2="19" stroke="#8B9096" stroke-width="1.8"/><line x1="9" y1="32" x2="-2.3" y2="38.5" stroke="#8B9096" stroke-width="1.8"/><line x1="9" y1="32" x2="20.3" y2="38.5" stroke="#8B9096" stroke-width="1.8"/><circle cx="9" cy="32" r="1.8" fill="#8B9096"/><rect x="24" y="38" width="68" height="38" fill="#EFEFEF" stroke="#9A9FA6" stroke-width="0.8"/><rect x="32" y="44" width="13" height="12" fill="#D9372B"/><rect x="54" y="44" width="13" height="12" fill="#F2B01E"/><rect x="32" y="60" width="13" height="12" fill="#2C6FBF"/><rect x="54" y="60" width="13" height="12" fill="#47A03C"/><rect x="76" y="56" width="11" height="20" fill="#B9BEC5"/><rect x="78" y="14" width="6" height="16" fill="#7A7F86"/><polygon points="20,38 58,6 96,38" fill="#54585E"/><polygon points="29,34 47,19 55,26 37,41" fill="#2C5AA0"/></svg>';
+  // ── capex segments ──
+  var segDefs=[['Panouri PV',r.capexPv,AC],['Invertor/e',r.capexInvertor,GOLD],['Stocare BESS',bessIncl?r.capexBess:0,GRN],['TVA',tvaAmount,'#9aa3b0']].filter(function(s){return s[1]>0;});
+  var segTot=segDefs.reduce(function(a,b){return a+b[1];},0)||1;
+  var segBar=segDefs.map(function(s){return '<div style="width:'+(s[1]/segTot*100).toFixed(2)+'%;background:'+s[2]+';display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700">'+Math.round(s[1]/segTot*100)+'%</div>';}).join('');
+  var segLeg=segDefs.map(function(s){return '<div style="display:flex;align-items:center;gap:8px"><span style="width:11px;height:11px;border-radius:3px;background:'+s[2]+'"></span><span style="font-size:11px;color:'+INK+'"><strong>'+esc(s[0])+'</strong> · € '+fmt(s[1])+'</span></div>';}).join('');
 
-  // ═════════ P1 · COPERTĂ (dark) ═════════
-  var coverCells=[];
-  if(hasPV) coverCells.push(['<b>'+fmt(r.kwp,1)+'</b><u> kWp</u>',['PUTERE INSTALATĂ ·',(r.numPanouri||0)+' PANOURI']]);
-  if(bessKwhV>0&&(bessIncl||!hasPV)) coverCells.push(['<b>'+fmt0(bessKwhV)+'</b><u> kWh</u>',['STOCARE BESS ·','BATERII LiFePO4']]);
-  if(hasPV) coverCells.push(['<b>'+fmt0(r.prodAn1/1000)+'</b><u> MWh</u>',['PRODUCȚIE ESTIMATĂ ·','ANUL 1']]);
-  else coverCells.push(['<b>'+fmt0((r.economiiAn1+(r.bessRevAn1||0))*curs)+'</b><u> lei</u>',['REDUCERE FACTURĂ ·','ESTIMAT AN 1']]);
-  coverCells.push(['<b>'+ronMain(capexTotal).replace(' lei','')+'</b><u> '+(ronShow?'lei':'')+'</u>',['INVESTIȚIE FĂRĂ TVA ·','CU TVA: '+ronMain(capexTotalTva)]]);
-  coverCells.push(['<b>'+(payback!==null?'~'+fmt(payback,1):'>'+durata)+'</b><u> ani</u>',['PERIOADĂ DE','AMORTIZARE']]);
-  coverCells=coverCells.slice(0,4);
-  var coverBand=coverCells.map(function(c,i){return '<div class="bcell"'+(i?' style="border-left:1px solid '+BORD+'"':'')+'><div class="bval">'+c[0]+'</div><div class="blab">'+c[1].map(function(l){return '<div>'+l+'</div>';}).join('')+'</div></div>';}).join('');
+  // ── plati ──
+  var avansPct=getVal('avansPct'), transa2Pct=getVal('transa2Pct'), transa3Pct=Math.max(0,100-avansPct-transa2Pct);
+  var transe=[['Avans la semnare',avansPct],['Livrare echipamente',transa2Pct],['Tranșă finală — PIF',transa3Pct]];
+  var transeHTML=transe.map(function(t){return '<div style="flex:'+(t[1]||1)+';background:'+SOFT+';border:1px solid '+LINE+';border-left:3px solid '+GOLD+';border-radius:7px;padding:14px"><div style="font-size:9.5px;letter-spacing:.5px;color:'+MUT+';font-weight:600;text-transform:uppercase">'+esc(t[0])+'</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:18px;color:'+AC+';margin-top:8px">'+t[1]+'%</div><div style="font-size:11.5px;color:'+INK+';margin-top:4px;font-weight:600">'+(ronShow?fmt(capexTotalTva*t[1]/100*curs)+' lei':'€ '+fmt(capexTotalTva*t[1]/100))+'</div><div style="font-size:10px;color:'+MUT+'">€ '+fmt(capexTotalTva*t[1]/100)+'</div></div>';}).join('');
 
-  var chips = hasPV
-    ? '<span class="chip" style="border-color:'+ORG+';color:'+ORG+'">Soluție EPC „la cheie”</span><span class="chip" style="border-color:'+TEAL+';color:'+TEAL+'">'+(bessIncl?'Stocare LFP · siguranță ridicată':'Echipamente Tier 1')+'</span><span class="chip" style="border-color:#7C9AEF;color:#7C9AEF">Monitorizare & garanții extinse</span>'
-    : '<span class="chip" style="border-color:'+ORG+';color:'+ORG+'">AC-coupled · retrofit fără modificare PV</span><span class="chip" style="border-color:'+TEAL+';color:'+TEAL+'">Baterii LFP · siguranță ridicată</span><span class="chip" style="border-color:#7C9AEF;color:#7C9AEF">Management centralizat</span>';
+  // ── ipoteze ──
+  var ipoteze=[
+    ['Producție specifică', fmt(getVal('yieldZilnic'),2)+' kWh/kWp/zi × '+Math.round(getVal('zileFunctionare'))+' zile = '+fmt0(r.yieldSpec)+' kWh/kWp/an'],
+    ['Preț energie','lei '+fmt(getVal('pretEnergie'),3)+'/kWh'],
+    ['Preț injecție surplus','lei '+fmt(getVal('pretInjectie'),3)+'/kWh'],
+    ['Autoconsumție', Math.round(r.effAutoconsum*100)+'%'],
+    ['Degradare anuală module', fmt(getVal('degradare'),1)+' %/an'],
+    ['Escaladare preț energie', fmt(getVal('escaladare'),1)+' %/an'],
+    ['Mentenanță O&M',(ronShow?fmt0(om*curs)+' lei/an':'€ '+fmt0(om)+'/an')],
+    ['Durată analiză', durata+' ani']
+  ];
+  var ipotezeHTML=ipoteze.map(function(p){return '<tr style="border-bottom:1px solid '+LINE+'"><td style="padding:9px 0;color:'+MUT+'">'+esc(p[0])+'</td><td style="padding:9px 0;text-align:right;font-weight:600;color:'+INK+'">'+esc(p[1])+'</td></tr>';}).join('');
 
-  // mini-staturi pentru zona de mijloc a copertei
-  var hasBess=bessIncl||bessKwhV>0||!hasPV;
-  var mini=[];
-  if(hasBess){
-    mini.push(['BACKUP LA CĂDEREA REȚELEI','inclus']);
-    mini.push(['GARANȚIE BATERII','10 ani']);
-    mini.push(hasPV?['GARANȚIE PANOURI',getVal('garantiePanouri')+' ani']:['MONTAJ','fără oprirea instalației']);
-  }else{
-    mini.push(['GARANȚIE PANOURI',getVal('garantiePanouri')+' ani']);
-    mini.push(['GARANȚIE INVERTOARE',getVal('garantieInvertor')+' ani']);
-    mini.push(['EXECUȚIE','completă, „la cheie”']);
-  }
-  var miniHTML=mini.map(function(m){return '<div class="mono" style="font-size:8.5px;color:'+GRL+';letter-spacing:.5px">'+m[0]+'  <span style="color:#fff;font-family:Poppins;font-weight:600;font-size:11.5px;letter-spacing:0">'+m[1]+'</span></div>';}).join('');
-  var tSize=sysTitle.length>34?'36px':'46px';
-
-  var p1='<div class="page dark" style="padding:0">'+
-    '<div style="padding:13mm 15mm 0;flex:1;display:flex;flex-direction:column">'+
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start">'+
-        '<div style="display:flex;gap:12px;align-items:center">'+
-          '<div style="background:#fff;border-radius:8px;padding:6px 7px;display:flex">'+logoSvg+'</div>'+
-          '<div><div style="font-family:Poppins;font-weight:700;font-size:13px;color:#fff;letter-spacing:.3px">'+esc(firma.toUpperCase())+'</div>'+
-          '<div class="mono" style="font-size:7.5px;color:'+GRL+';letter-spacing:.4px;margin-top:2px">EPC · Fotovoltaic · Stocare · ANRE A3/E1/E2</div></div>'+
-        '</div>'+
-        '<div class="mono" style="font-size:7.6px;color:'+GRD+';border:1px solid '+BORD+';border-radius:13px;padding:7px 14px;letter-spacing:.4px">ISO 9001 · 14001 · 45001 · 27001</div>'+
-      '</div>'+
-      '<div style="flex:1.1"></div>'+
-      '<div class="mono" style="font-size:10px;font-weight:700;color:'+ORG+';letter-spacing:2px">OFERTĂ TEHNICO-ECONOMICĂ · '+eyebrow+'</div>'+
-      '<h1 style="font-family:Poppins;font-weight:700;font-size:'+tSize+';line-height:1.15;color:#fff;margin:16px 0 0;max-width:170mm">'+esc(sysTitle)+'</h1>'+
-      '<p style="font-family:Poppins;font-weight:300;font-size:13.5px;line-height:1.65;color:'+GRD+';margin:16px 0 0;max-width:160mm">'+
-        (hasPV
-          ?'Soluție completă „la cheie”: proiectare, aprovizionare echipamente, instalare, testare și punere în funcțiune'+(bessIncl?', cu sistem de stocare integrat pentru maximizarea autoconsumului':'')+'.'
-          :'Soluție <b style="color:#fff;font-weight:600">retrofit AC-coupled</b> — baterii LFP, invertoare hibride și management al stocării, integrate în instalația existentă, fără modificarea acesteia.')+
-      '</p>'+
-      '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:22px">'+chips+'</div>'+
-      '<div style="flex:0.9"></div>'+
-      '<div style="display:flex;gap:26px;flex-wrap:wrap;border-top:1px solid '+BORD+';border-bottom:1px solid '+BORD+';padding:15px 2px;align-items:center">'+miniHTML+'</div>'+
-      '<div style="flex:0.9"></div>'+
-      '<div style="display:flex;gap:14px">'+
-        '<div class="dcard"><div class="dlab">BENEFICIAR</div><div class="dval">'+esc(clientDisp)+'</div><div class="dsub">'+eyebrow.charAt(0)+eyebrow.slice(1).toLowerCase()+'</div></div>'+
-        '<div class="dcard"><div class="dlab">FURNIZOR / EXECUTANT EPC</div><div class="dval">'+esc(firma)+'</div><div class="dsub">'+esc([firmaCUI,firmaRegCom,firmaAdresa].filter(Boolean).join(' · ')||'—')+'</div></div>'+
-      '</div>'+
-      '<div style="margin:20px 0 24px;display:inline-flex;align-items:center;gap:9px;border:1.4px solid '+ORG+';border-radius:16px;padding:9px 18px;align-self:flex-start">'+
-        '<span style="width:6px;height:6px;border-radius:50%;background:'+ORG+'"></span>'+
-        '<span class="mono" style="font-size:9.5px;font-weight:700;color:'+ORG+';letter-spacing:.6px">OFERTA '+esc(nrOferta)+(dataOferta?' · DATA: '+esc(dataOferta):'')+(validUntil?' · VALABILĂ PÂNĂ LA: '+esc(validUntil).toUpperCase():'')+'</span>'+
-      '</div>'+
-    '</div>'+
-    '<div style="background:'+NAVY3+';border-top:1px solid '+BORD+';display:flex;padding:0 6mm">'+coverBand+'</div>'+
-  '</div>';
-  pgN++;
-
-  // ── cashflow chart (SVG, stil nou) ──
+  // ── cashflow chart ──
   var X0=60,X1=980,Y0=20,Y1=260;
   var vals=r.rows.map(function(x){return x.cumulative;});
   var vmin=Math.min.apply(null,vals),vmax=Math.max.apply(null,vals),range=(vmax-vmin)||1;
@@ -3871,267 +4027,89 @@ function buildOfferHTML(r){
   var cfPoints=r.rows.map(function(x){return xFor(x.an).toFixed(1)+','+yFor(x.cumulative).toFixed(1);}).join(' ');
   var cfArea='M'+xFor(0).toFixed(1)+','+yFor(r.rows[0].cumulative).toFixed(1)+' '+r.rows.map(function(x){return 'L'+xFor(x.an).toFixed(1)+','+yFor(x.cumulative).toFixed(1);}).join(' ')+' L'+X1+','+Y1+' L'+X0+','+Y1+' Z';
   var cfZeroY=yFor(0).toFixed(1);
-  var cfGrid='';for(var gi=0;gi<5;gi++){var gy=(Y0+(Y1-Y0)/4*gi).toFixed(1);cfGrid+='<line x1="60" y1="'+gy+'" x2="980" y2="'+gy+'" stroke="'+LINE+'" stroke-width="1"></line>';}
-  var cfXlab='';for(var yr=0;yr<=durata;yr+=5){cfXlab+='<text x="'+xFor(yr).toFixed(1)+'" y="290" text-anchor="middle" font-size="12" font-family="JetBrains Mono" fill="'+GRL+'">'+yr+'</text>';}
+  var cfGrid='';for(var gi=0;gi<5;gi++){var gy=(Y0+(Y1-Y0)/4*gi).toFixed(1);cfGrid+='<line x1="60" y1="'+gy+'" x2="980" y2="'+gy+'" stroke="#e8ebf0" stroke-width="1"></line>';}
+  var cfXlab='';for(var yr=0;yr<=durata;yr+=5){cfXlab+='<text x="'+xFor(yr).toFixed(1)+'" y="290" text-anchor="middle" font-size="13" fill="#8a94a3">An '+yr+'</text>';}
   var cfYlabArr=[vmin,(vmin+vmax)/2,vmax], cfYlab='';
-  cfYlabArr.forEach(function(v){cfYlab+='<text x="54" y="'+(yFor(v)+4).toFixed(1)+'" text-anchor="end" font-size="11" font-family="JetBrains Mono" fill="'+GRL+'">'+(v>=0?'':'−')+fmt0(Math.abs(v)*curs/1000)+'k</text>';});
+  cfYlabArr.forEach(function(v){cfYlab+='<text x="54" y="'+(yFor(v)+4).toFixed(1)+'" text-anchor="end" font-size="12" fill="#8a94a3">'+(v>=0?'+':'−')+fmt0(Math.abs(v)*curs/1000)+'k lei</text>';});
   var cfPay='';
-  if(payback!==null){var px=xFor(payback).toFixed(1);cfPay='<circle cx="'+px+'" cy="'+cfZeroY+'" r="6" fill="'+ORG+'"></circle><text x="'+(+px+12)+'" y="'+(cfZeroY-10)+'" font-size="12" font-family="JetBrains Mono" fill="'+ORGD+'">amortizare ~'+fmt(payback,1)+' ani</text>';}
-  var cfSvg='<svg viewBox="0 0 1000 300" style="width:100%;height:auto" preserveAspectRatio="xMidYMid meet">'+cfGrid+
-    '<path d="'+cfArea+'" fill="'+TEAL+'" fill-opacity="0.12"></path>'+
-    '<line x1="60" y1="'+cfZeroY+'" x2="980" y2="'+cfZeroY+'" stroke="#E05C4B" stroke-width="1.4" stroke-dasharray="5 4"></line>'+
-    '<polyline points="'+cfPoints+'" fill="none" stroke="'+TEAL+'" stroke-width="2.8" stroke-linejoin="round"></polyline>'+cfPay+cfXlab+cfYlab+'</svg>';
+  if(payback!==null){var px=xFor(payback).toFixed(1);cfPay='<line x1="'+px+'" y1="20" x2="'+px+'" y2="270" stroke="'+GOLD+'" stroke-width="1.6"></line><circle cx="'+px+'" cy="'+cfZeroY+'" r="5.5" fill="'+GOLD+'"></circle>';}
 
-  // ═════════ P2 · REZUMAT EXECUTIV ═════════
-  var irrStr=r.irrVal!=null?(r.irrVal*100).toFixed(1)+'%':'—';
-  var npvMain=r.npvCalc!=null?ronMain(r.npvCalc):'—';
-  var kpiRow1=
-    (hasPV?kpi(fmt(r.kwp,1),' kWp',['PUTERE INSTALATĂ','· '+(r.numPanouri||0)+' PANOURI'],ORGD):kpi(fmt0(bessKwhV),' kWh',['CAPACITATE','STOCARE BESS'],ORGD))+
-    kpi(ronMain(capexTotal).replace(' lei',''),' lei',['INVESTIȚIE FĂRĂ TVA','≈ '+fmt0(capexTotal)+' € · CU TVA:',ronMain(capexTotalTva)],INK)+
-    (hasPV?kpi(fmt0(r.prodAn1/1000),' MWh',['PRODUCȚIE ESTIMATĂ','· ANUL 1'],TEAL):kpi(fmt0(bessCicV),' cicluri',['UTILIZARE ESTIMATĂ','· PE AN'],TEAL))+
-    kpi(fmt0((r.economiiAn1+(r.bessRevAn1||0))*curs),' lei',['ECONOMIE / VENIT','· ANUL 1 · ≈ '+fmt0(r.economiiAn1+(r.bessRevAn1||0))+' €'],GRN);
-  var kpiRow2=
-    kpi(payback!==null?'~'+fmt(payback,1):'>'+durata,' ani',['AMORTIZARE','(PAYBACK)'],ORGD)+
-    kpi(irrStr,'',['IRR · RATĂ INTERNĂ','DE RENTABILITATE · '+durata+' ANI'],TEAL)+
-    kpi(npvMain.replace(' lei',''),' lei',['VAN (NPV) · DISC. '+Math.round((r.rataDiscontare||0.08)*100)+'%','≈ '+(r.npvCalc!=null?fmt0(r.npvCalc)+' €':'—')],BLU)+
-    kpi(ronMain(r.finalValue).replace(' lei',''),' lei',['PROFIT NET CUMULAT','· '+durata+' ANI · ≈ '+fmt0(r.finalValue)+' €'],GRN);
-  var pSumar='<div class="page">'+secHead('Rezumat executiv','Investiția, energia valorificată și randamentul dintr-o privire')+
-    '<div class="kgrid">'+kpiRow1+'</div><div class="kgrid" style="margin-top:12px">'+kpiRow2+'</div>'+
-    '<div class="card" style="margin-top:20px;flex:1;display:flex;flex-direction:column">'+
-      '<div style="font-family:Poppins;font-weight:700;font-size:12.5px;color:'+INK+'">Flux de numerar cumulat · '+durata+' ani</div>'+
-      '<div style="font-size:9px;color:'+MUT+';margin-top:2px">Investiția este recuperată în punctul în care linia depășește pragul zero.</div>'+
-      '<div style="margin-top:12px">'+cfSvg+'</div>'+
-    '</div>'+foot()+'</div>';
-
-  // ═════════ P3 · SPECIFICAȚII TEHNICE ═════════
-  var panelStr=document.getElementById('customPanelBrand')&&document.getElementById('customPanelBrand').value?document.getElementById('customPanelBrand').value+' '+getVal('customPower')+'Wp':getVal('customPower')?getVal('customPower')+' Wp':'—';
-  var invStr2=document.getElementById('invertorMarcaCustom')&&document.getElementById('invertorMarcaCustom').value?document.getElementById('invertorMarcaCustom').value:document.getElementById('invertorMarca').value||'—';
-  var surfStr=r.areaNeeded>0?'~'+fmt0(r.areaNeeded)+' m²':'—';
-  var specR=function(lbl,val){return '<div class="srow"><span>'+lbl+'</span><b class="mono">'+val+'</b></div>';};
-  var specL=''+
-    specR('Beneficiar', esc(client||'—'))+
-    (r.existingKwp>0?specR('Instalație PV existentă', fmt(r.existingKwp,1)+' kWp'+(r.existingInvertor?' · '+esc(r.existingInvertor):'')):'')+
-    (hasPV?specR(r.existingKwp>0?'Extindere propusă (nou)':'Putere instalată DC', r.kwp.toFixed(1)+' kWp'):'')+
-    (r.existingKwp>0&&hasPV?specR('Putere totală sistem', fmt(r.kwpTotalSistem,1)+' kWp'):'')+
-    (hasPV?specR('Număr panouri', r.numPanouri+' buc.'):'')+
-    (hasPV?specR('Tip panou', esc(panelStr)):'')+
-    specR('Tip invertor', esc(invStr2))+
-    (bessKwhV>0?specR('Stocare BESS', fmt0(bessKwhV)+' kWh · LiFePO4'):'')+
-    (hasPV?specR('Suprafață estimată', surfStr):'')+
-    specR('Garanție invertoare', getVal('garantieInvertor')+' ani')+
-    (hasPV?specR('Garanție panouri', getVal('garantiePanouri')+' ani'):'')+
-    specR('Garanție execuție', '36 luni de la recepția finală');
-  var specRt=''+
-    (hasPV?specR('Iradiere specifică', fmt0(r.yieldSpec)+' kWh/kWp/an'):'')+
-    (hasPV?specR('Producție An 1 (netă)', fmt0(r.prodAn1)+' kWh/an'):'')+
-    (hasPV?specR('Producție totală '+durata+' ani', fmt0(r.rows.filter(function(x){return x.an>0;}).reduce(function(s,x){return s+(x.prod||0);},0))+' kWh'):'')+
-    (hasPV?specR('Degradare anuală', getVal('degradare')+'%/an'):'')+
-    specR('Autoconsum', Math.round(r.effAutoconsum*100)+'%'+(bessKwhV>0?' (cu BESS)':''))+
-    (bessKwhV>0?specR('BESS cicluri/an', fmt0(bessCicV)):'')+
-    (bessKwhV>0?specR('BESS spread arbitraj', getVal('bessArbitrajSpread')+' €/kWh'):'')+
-    specR('Preț energie An 1', fmt(getVal('pretEnergie'),3)+' lei/kWh')+
-    specR('Preț injecție surplus', fmt(getVal('pretInjectie'),3)+' lei/kWh')+
-    specR('Escaladare preț', getVal('escaladare')+'%/an')+
-    (hasPV?specR('CO2 evitat/an', fmt0(r.prodAn1*0.0003)+' t CO2e'):'')+
-    specR('Durată analiză', durata+' ani');
-  var pSpecs='<div class="page">'+secHead('Specificații tehnice','Date tehnice detaliate ale sistemului propus')+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">'+
-      '<div class="card"><div class="ctag" style="background:'+MINT+';color:#0E7A67">Sistem & echipamente</div>'+specL+'</div>'+
-      '<div class="card"><div class="ctag" style="background:'+CREAM+';color:'+ORGD+'">Parametri de calcul</div>'+specRt+'</div>'+
-    '</div>'+foot()+'</div>';
-
-  // ═════════ P4 · CENTRALIZATOR VALORIC ═════════
-  var costDefs=[];
-  if(hasPV) costDefs.push(['Panouri fotovoltaice'+(r.numPanouri?(' ('+r.numPanouri+' module)'):''), r.capexPv]);
-  if(r.capexInvertor>0) costDefs.push(['Invertor/e trifazice', r.capexInvertor]);
-  if(bessIncl) costDefs.push(['Sistem stocare BESS (LiFePO4)', r.capexBess]);
-  if(stsIncl) costDefs.push(['Stație Transformare & Siguranță (STS)', r.capexSTS]);
-  if(r.costAlteElemente>0) costDefs.push(['Structuri & alte elemente', r.costAlteElemente]);
-  if(r.costMontaj>0) costDefs.push(['Montaj & punere în funcțiune', r.costMontaj]);
-  if(r.costComisionare>0) costDefs.push(['Comisionare & documentație', r.costComisionare]);
-  if(r.alteCheltuieli>0) costDefs.push(['Alte costuri ('+getVal('alteCheltuieliPct')+'%)', r.alteCheltuieli]);
-  if(r.atrValue>0) costDefs.push(['Aviz tehnic de racordare (ATR)', r.atrValue]);
-  var costRowsHTML=costDefs.map(function(c){return '<tr><td>'+esc(c[0])+'</td><td class="tr b">'+(ronShow?fmt(c[1]*curs):'—')+'</td><td class="tr mono mut">'+fmt0(c[1])+' €</td></tr>';}).join('');
-  var segDefs=[['Panouri PV',hasPV?r.capexPv:0,NAVY],['Invertor/e',r.capexInvertor,ORG],['Stocare BESS',bessIncl?r.capexBess:0,TEAL],['Montaj & rest',capexTotal-(hasPV?r.capexPv:0)-r.capexInvertor-(bessIncl?r.capexBess:0),'#9aa3b0']].filter(function(s){return s[1]>0;});
-  var segTot=segDefs.reduce(function(a,b){return a+b[1];},0)||1;
-  var segBar=segDefs.map(function(s){return '<div style="width:'+(s[1]/segTot*100).toFixed(2)+'%;background:'+s[2]+';display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:700;font-family:JetBrains Mono">'+Math.round(s[1]/segTot*100)+'%</div>';}).join('');
-  var segLeg=segDefs.map(function(s){return '<div style="display:flex;align-items:center;gap:7px"><span style="width:10px;height:10px;border-radius:3px;background:'+s[2]+'"></span><span style="font-size:10px;color:'+INK+'"><b>'+esc(s[0])+'</b> · '+(ronShow?fmt0(s[1]*curs)+' lei':fmt0(s[1])+' €')+'</span></div>';}).join('');
-  var avansPct=getVal('avansPct'), transa2Pct=getVal('transa2Pct'), transa3Pct=Math.max(0,100-avansPct-transa2Pct);
-  var transe=[['AVANS LA SEMNARE',avansPct],['LIVRARE ECHIPAMENTE',transa2Pct],['TRANȘĂ FINALĂ · PIF',transa3Pct]];
-  var transeHTML=transe.map(function(t){return '<div class="card" style="flex:1;border-top:3px solid '+ORG+'"><div class="mono" style="font-size:7px;color:'+GRL+';letter-spacing:.8px">'+t[0]+'</div><div style="font-family:Poppins;font-weight:700;font-size:17px;color:'+INK+';margin-top:6px">'+t[1]+'%</div><div style="font-size:10px;color:'+INK+';font-weight:600;margin-top:2px">'+(ronShow?fmt0(capexTotalTva*t[1]/100*curs)+' lei':'')+'</div><div class="mono" style="font-size:8px;color:'+MUT+'">≈ '+fmt0(capexTotalTva*t[1]/100)+' €</div></div>';}).join('');
-  var pVal='<div class="page">'+secHead('Centralizator valoric','Structura investiției — valori fără TVA'+(ronShow?' · curs 1 € = '+fmt(curs,4)+' RON':''))+
-    '<table class="vtab"><thead><tr><th style="text-align:left">DESCRIERE</th><th class="tr">VALOARE (RON)</th><th class="tr">≈ EUR</th></tr></thead><tbody>'+costRowsHTML+
-      '<tr class="sub"><td>Subtotal fără TVA</td><td class="tr b">'+(ronShow?fmt(capexTotal*curs):'—')+'</td><td class="tr mono">'+fmt0(capexTotal)+' €</td></tr>'+
-      '<tr><td>TVA ('+fmt0(getVal('tva'))+'%)</td><td class="tr">'+(ronShow?fmt(tvaAmount*curs):'—')+'</td><td class="tr mono mut">'+fmt0(tvaAmount)+' €</td></tr>'+
-      '<tr class="tot"><td>TOTAL GENERAL CU TVA</td><td class="tr">'+(ronShow?fmt(capexTotalTva*curs)+' lei':'')+'</td><td class="tr mono" style="color:'+ORG+'">≈ '+fmt0(capexTotalTva)+' €</td></tr>'+
-    '</tbody></table>'+
-    '<div style="font-family:Poppins;font-weight:700;font-size:12px;color:'+INK+';margin:22px 0 10px">Distribuția investiției</div>'+
-    '<div style="display:flex;height:30px;border-radius:6px;overflow:hidden;border:1px solid '+LINE+'">'+segBar+'</div>'+
-    '<div style="display:flex;flex-wrap:wrap;gap:16px;margin-top:10px">'+segLeg+'</div>'+
-    '<div style="font-family:Poppins;font-weight:700;font-size:12px;color:'+INK+';margin:22px 0 10px">Grafic de plăți <span style="font-weight:400;font-size:10px;color:'+MUT+'">(raportat la total cu TVA)</span></div>'+
-    '<div style="display:flex;gap:10px">'+transeHTML+'</div>'+foot()+'</div>';
-
-  // ═════════ P5 · DEVIZ (din tabelul editabil) ═════════
-  var dvRows=devizRows.filter(function(x){return (x.capitol&&String(x.capitol).trim())||devizNum(x.cant)||devizNum(x.pret);});
-  var equipPage='';
-  if(dvRows.length){
-    var bodyRows='', subtotal=0, lastGrup='', grpSum=0, grpIdx=0;
-    var flushGrp=function(){if(lastGrup&&grpSum>0){bodyRows+='<tr class="sub"><td></td><td>Subtotal '+esc(lastGrup)+'</td><td></td><td></td><td></td><td class="tr b">'+fmt(grpSum)+'</td><td class="tr mono">'+(ronShow?fmt0(grpSum/curs)+' €':'')+'</td></tr>';}grpSum=0;};
-    dvRows.forEach(function(x,i){
-      var cantN=devizNum(x.cant), pu=devizNum(x.pret), val=cantN*pu;
-      subtotal+=val;
-      if(x.grup && x.grup!==lastGrup){
-        flushGrp();
-        lastGrup=x.grup; grpIdx++;
-        bodyRows+='<tr class="grp"><td colspan="7">'+String.fromCharCode(64+grpIdx)+' · '+esc(x.grup)+'</td></tr>';
-      }
-      grpSum+=val;
-      bodyRows+='<tr><td class="tc mut">'+(i+1)+'</td><td>'+esc(x.capitol||'')+'</td><td class="tc mut">'+esc(x.um||'')+'</td><td class="tc">'+((x.cant!==''&&x.cant!=null)?esc(String(x.cant)):'—')+'</td>'+
-        '<td class="tr mut">'+(pu?fmt(pu):'—')+'</td><td class="tr b">'+(val?fmt(val):'—')+'</td><td class="tr mono mut">'+(val&&ronShow?fmt0(val/curs)+' €':'—')+'</td></tr>';
-    });
-    flushGrp();
-    var tvaP=getVal('tva'), tvaV=subtotal*tvaP/100, totCu=subtotal+tvaV;
-    equipPage='<div class="page">'+secHead('Deviz — capitole de lucrări','Prețuri unitare în lei, fără TVA'+(ronShow?' · curs 1 € = '+fmt(curs,4)+' RON':''))+
-      '<table class="dtab"><thead><tr><th class="tc">NR</th><th style="text-align:left">CAPITOL DE LUCRĂRI</th><th class="tc">U.M.</th><th class="tc">CANT.</th><th class="tr">PREȚ UNITAR</th><th class="tr">VALOARE (LEI)</th><th class="tr">≈ EUR</th></tr></thead><tbody>'+bodyRows+'</tbody></table>'+
-      '<div class="totline"><span>TOTAL fără TVA</span><span><b>'+fmt(subtotal)+' lei</b><i class="mono">'+(ronShow?'≈ '+fmt0(subtotal/curs)+' €':'')+'</i></span></div>'+
-      '<div class="totline sm"><span>TVA ('+fmt0(tvaP)+'%)</span><span>'+fmt(tvaV)+' lei<i class="mono">'+(ronShow?'≈ '+fmt0(tvaV/curs)+' €':'')+'</i></span></div>'+
-      '<div class="totline dark"><span>TOTAL GENERAL CU TVA</span><span><b>'+fmt(totCu)+' lei</b><i class="mono" style="color:'+ORG+'">'+(ronShow?'≈ '+fmt0(totCu/curs)+' €':'')+'</i></span></div>'+
-      '<p class="mono" style="font-size:7.5px;line-height:1.7;color:#8A93A5;margin-top:12px">* Deviz orientativ. Cantitățile și prețurile finale se confirmă după releveul tehnic la fața locului și proiectul de execuție.</p>'+
-      foot()+'</div>';
-  }
-
-  // ═════════ P6 · ANALIZĂ FINANCIARĂ ═════════
-  var ipoteze=[
-    (hasPV?['Producție specifică', fmt(getVal('yieldZilnic'),2)+' kWh/kWp/zi × '+Math.round(getVal('zileFunctionare'))+' zile = '+fmt0(r.yieldSpec)+' kWh/kWp/an']:null),
-    ['Preț energie', fmt(getVal('pretEnergie'),3)+' lei/kWh'],
-    ['Preț injecție surplus', fmt(getVal('pretInjectie'),3)+' lei/kWh'],
-    ['Autoconsum', Math.round(r.effAutoconsum*100)+'%'],
-    (hasPV?['Degradare anuală module', fmt(getVal('degradare'),1)+' %/an']:null),
-    ['Escaladare preț energie', fmt(getVal('escaladare'),1)+' %/an'],
-    ['Mentenanță O&M', (ronShow?fmt0(om*curs)+' lei/an':fmt0(om)+' €/an')],
-    ['Durată analiză', durata+' ani']
-  ].filter(Boolean);
-  var ipotezeHTML=ipoteze.map(function(p){return '<div class="srow"><span>'+esc(p[0])+'</span><b class="mono">'+esc(p[1])+'</b></div>';}).join('');
-  var pFin='<div class="page">'+secHead('Analiză financiară & rentabilitate','Model pe '+durata+' ani · escaladare '+getVal('escaladare')+'%/an')+
-    '<div class="kgrid">'+
-      kpi(payback!==null?'~'+fmt(payback,1):'>'+durata,' ani',['AMORTIZARE','(PAYBACK)'],ORGD)+
-      kpi(irrStr,'',['IRR · RATĂ INTERNĂ','DE RENTABILITATE'],TEAL)+
-      kpi(fmt0(r.roiPct),' %',['ROI CUMULAT','· '+durata+' ANI'],BLU)+
-      kpi(ronMain(r.finalValue).replace(' lei',''),' lei',['VALOARE NETĂ','· '+durata+' ANI · ≈ '+fmt0(r.finalValue)+' €'],GRN)+
-    '</div>'+
-    '<div class="callout" style="margin-top:16px"><b>Economii anul 1:</b> '+(ronShow?fmt0(r.economiiAn1*curs)+' lei':fmt0(r.economiiAn1)+' €')+(r.bessRevAn1>0?' + '+(ronShow?fmt0(r.bessRevAn1*curs)+' lei':fmt0(r.bessRevAn1)+' €')+' din arbitraj BESS':'')+', înainte de O&M ('+(ronShow?fmt0(om*curs)+' lei/an':fmt0(om)+' €/an')+'). Toate valorile sunt estimări bazate pe ipotezele de mai jos și se pot ajusta la profilul real de consum.</div>'+
-    '<div class="card" style="margin-top:16px"><div class="ctag" style="background:'+CREAM+';color:'+ORGD+'">Ipoteze de calcul · ajustabile</div>'+ipotezeHTML+'</div>'+
-    foot()+'</div>';
-
-  // ═════════ P7 · PROIECȚIE ANUALĂ ═════════
+  // ── amortizare ──
   var bessHasArb=(r.bessRevAn1||0)>0;
   var amortHTML=r.rows.filter(function(x){return x.an>=1;}).map(function(x){
     var prod=x.prod||r.prodAn1*Math.pow(1-degr,x.an-1);
     var venPV=x.venPV||0, venBESS=x.venBESS||0, tot=venPV+venBESS;
-    var pos=x.cumulative>=0, isPay=x.an===paybackYr;
-    var cls=isPay?' class="pay"':(pos?' class="pos"':'');
-    return '<tr'+cls+'><td class="b">'+x.an+'</td>'+
-      (hasPV?'<td class="tr mut">'+(prod/1000).toFixed(2)+'</td>':'')+
-      '<td class="tr">'+fmt(venPV)+'</td>'+
-      (bessHasArb?'<td class="tr" style="color:'+GRN+'">'+fmt(venBESS)+'</td>':'')+
-      '<td class="tr">'+fmt(tot)+'</td><td class="tr mut">'+fmt(om)+'</td><td class="tr">'+fmt(x.economii)+'</td>'+
-      '<td class="tr b" style="color:'+(pos?'#1f7a47':'#b04a3a')+'">'+fmt(x.cumulative)+'</td></tr>';
+    var net=x.economii, pos=x.cumulative>=0, isPay=x.an===paybackYr, zebra=x.an%2===0;
+    var bg=pos?(zebra?'#f1f8f3':'#f7fbf8'):(zebra?'#fbf4f4':'#fdf8f8'); if(isPay) bg='#fff6e6';
+    var cumCol=pos?'#1f7a47':'#b04a3a';
+    var cells='<td style="padding:5px 5px;font-weight:600;color:'+INK+';font-size:9.5px">'+x.an+'</td>'+
+      '<td style="padding:5px 5px;text-align:right;color:'+MUT+';font-size:9.5px">'+(prod/1000).toFixed(2)+'</td>'+
+      '<td style="padding:5px 5px;text-align:right;color:'+INK+';font-size:9.5px">'+fmt(venPV)+'</td>'+
+      (bessHasArb?'<td style="padding:5px 5px;text-align:right;color:#1f7a47;font-size:9.5px">'+fmt(venBESS)+'</td>':'')+
+      '<td style="padding:5px 5px;text-align:right;color:'+INK+';font-size:9.5px">'+fmt(tot)+'</td>'+
+      '<td style="padding:5px 5px;text-align:right;color:'+MUT+';font-size:9.5px">'+fmt(om)+'</td>'+
+      '<td style="padding:5px 5px;text-align:right;color:'+INK+';font-size:9.5px">'+fmt(net)+'</td>'+
+      '<td style="padding:5px 5px;text-align:right;font-weight:700;color:'+cumCol+';font-size:9.5px">'+fmt(x.cumulative)+'</td>';
+    return '<tr style="background:'+bg+';border-bottom:1px solid #eef0f4">'+cells+'</tr>';
   }).join('');
-  var pAn='<div class="page">'+secHead('Proiecție financiară anuală','Valori în EUR · '+durata+' ani · degradare și escaladare incluse')+
-    '<table class="atab"><thead><tr><th style="text-align:left">AN</th>'+(hasPV?'<th class="tr">PROD. MWh</th>':'')+'<th class="tr">VEN. PV €</th>'+(bessHasArb?'<th class="tr">VEN. BESS €</th>':'')+'<th class="tr">TOTAL €</th><th class="tr">O&M €</th><th class="tr">NET €</th><th class="tr">CUMULAT €</th></tr></thead><tbody>'+amortHTML+'</tbody></table>'+
-    '<div style="display:flex;gap:18px;margin-top:10px;font-size:9px;color:'+MUT+'"><span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:'+CREAM+';border:1px solid '+CREAMB+'"></span>An payback</span><span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:#f1f8f3"></span>Cumulat pozitiv</span></div>'+
-    foot()+'</div>';
 
-  // ═════════ P8 · PRODUCȚIE LUNARĂ + CO2 (doar PV) ═════════
-  var pProd='';
-  if(hasPV){
-    var weights=[0.045,0.06,0.08,0.10,0.115,0.12,0.125,0.115,0.095,0.075,0.05,0.04];
-    var mNames=['Ian','Feb','Mar','Apr','Mai','Iun','Iul','Aug','Sep','Oct','Nov','Dec'];
-    var maxW=Math.max.apply(null,weights), slot=(980-60)/12, barW=48, baseY=230, maxH=175, monthsHTML='';
-    weights.forEach(function(w,i){var bh=(w/maxW)*maxH,x=60+slot*i+(slot-barW)/2,by=baseY-bh,lx=x+barW/2;monthsHTML+='<rect x="'+x.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+barW+'" height="'+bh.toFixed(1)+'" rx="3" fill="'+ORG+'"></rect><text x="'+lx.toFixed(1)+'" y="'+(by-7).toFixed(1)+'" text-anchor="middle" font-size="11" font-family="JetBrains Mono" fill="'+GRL+'">'+fmt0(r.prodAn1*w)+'</text><text x="'+lx.toFixed(1)+'" y="250" text-anchor="middle" font-size="12" fill="'+MUT+'" font-weight="600">'+mNames[i]+'</text>';});
-    var totalKwh=0;for(var i2=1;i2<=durata;i2++){totalKwh+=r.prodAn1*Math.pow(1-degr,i2-1);}
-    var co2AnnualKg=r.prodAn1*0.3, co2TotalT=totalKwh*0.3/1000;
-    pProd='<div class="page">'+secHead('Producție lunară & impact de mediu','Distribuție sezonală tipică pentru România · CO2 evitat prin înlocuirea energiei din rețea')+
-      '<div class="card"><svg viewBox="0 0 1000 280" style="width:100%;height:auto" preserveAspectRatio="xMidYMid meet"><line x1="60" y1="230" x2="980" y2="230" stroke="'+LINE+'" stroke-width="1"></line>'+monthsHTML+'</svg></div>'+
-      '<div class="kgrid" style="margin-top:16px">'+
-        kpi(fmt0(co2AnnualKg/1000),' t/an',['CO2 EVITAT','· ANUL 1'],TEAL)+
-        kpi(fmt0(co2TotalT),' t',['CO2 EVITAT','· '+durata+' ANI'],GRN)+
-        kpi(fmt0(co2AnnualKg/21),'',['ECHIVALENT COPACI','· PE AN'],INK)+
-        kpi(fmt0(co2AnnualKg/0.12/1000),' mii km',['ECHIVALENT KM AUTO','· PE AN'],INK)+
-      '</div>'+
-      '<div class="callout" style="margin-top:16px">Un argument solid pentru raportările <b>ESG</b> și accesul la finanțare verde.</div>'+
-      foot()+'</div>';
+  // ── productie lunara ──
+  var weights=[0.045,0.06,0.08,0.10,0.115,0.12,0.125,0.115,0.095,0.075,0.05,0.04];
+  var mNames=['Ian','Feb','Mar','Apr','Mai','Iun','Iul','Aug','Sep','Oct','Nov','Dec'];
+  var maxW=Math.max.apply(null,weights), slot=(980-60)/12, barW=48, baseY=230, maxH=175, monthsHTML='';
+  weights.forEach(function(w,i){var bh=(w/maxW)*maxH,x=60+slot*i+(slot-barW)/2,by=baseY-bh,lx=x+barW/2;monthsHTML+='<rect x="'+x.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+barW+'" height="'+bh.toFixed(1)+'" rx="3" fill="'+AC+'"></rect><text x="'+lx.toFixed(1)+'" y="'+(by-7).toFixed(1)+'" text-anchor="middle" font-size="11" fill="#8a94a3">'+fmt0(r.prodAn1*w)+'</text><text x="'+lx.toFixed(1)+'" y="248" text-anchor="middle" font-size="13" fill="'+MUT+'" font-weight="600">'+mNames[i]+'</text>';});
+
+  // ── CO2 ──
+  var totalKwh=0;for(var i2=1;i2<=durata;i2++){totalKwh+=r.prodAn1*Math.pow(1-degr,i2-1);}
+  var co2AnnualKg=r.prodAn1*0.3, co2TotalT=totalKwh*0.3/1000;
+
+  // ── deviz de lucrări (din tabelul editabil) ──
+  var dvRows=devizRows.filter(function(x){return (x.capitol&&String(x.capitol).trim())||devizNum(x.cant)||devizNum(x.pret);});
+  var equipPage='';
+  if(dvRows.length){
+    var DZNAVY='#0b1e3d', DZGOLD='#e7b53b', DZGROUP='#eceef1', DZBORDER='#e4e7ec';
+    var bodyRows='', subtotal=0, lastGrup='';
+    dvRows.forEach(function(x,i){
+      var cantN=devizNum(x.cant), pu=devizNum(x.pret), val=cantN*pu;
+      subtotal+=val;
+      if(x.grup && x.grup!==lastGrup){
+        lastGrup=x.grup;
+        bodyRows+='<tr><td colspan="6" style="padding:9px 10px;background:'+DZGROUP+';font-weight:700;font-size:10.5px;color:'+DZNAVY+';text-transform:uppercase;letter-spacing:.4px">'+esc(x.grup)+'</td></tr>';
+      }
+      var bg=i%2===0?'#ffffff':'#f7f9fb';
+      bodyRows+='<tr style="background:'+bg+';border-bottom:1px solid '+DZBORDER+'">'+
+        '<td style="padding:9px 10px;text-align:center;color:'+MUT+';width:42px">'+(i+1)+'</td>'+
+        '<td style="padding:9px 10px;color:'+INK+';font-weight:500">'+esc(x.capitol||'')+(x.cod?'<div style="font-family:monospace;font-size:9.5px;color:'+MUT+';margin-top:2px">Cod: '+esc(x.cod)+'</div>':'')+'</td>'+
+        '<td style="padding:9px 10px;text-align:center;color:'+MUT+';width:96px">'+esc(x.um||'')+'</td>'+
+        '<td style="padding:9px 10px;text-align:right;color:'+INK+';width:70px">'+((x.cant!==''&&x.cant!=null)?esc(String(x.cant)):'—')+'</td>'+
+        '<td style="padding:9px 10px;text-align:right;color:'+MUT+';width:104px">'+(pu?(ronShow?'<div style="color:'+INK+'">'+fmt(pu)+' lei</div><div style="font-size:9px;color:'+MUT+'">€ '+fmt(pu/curs)+'</div>':fmt(pu)+' lei'):'—')+'</td>'+
+        '<td style="padding:9px 10px;text-align:right;font-weight:700;color:'+DZNAVY+';width:116px">'+(val?(ronShow?'<div>'+fmt(val)+' lei</div><div style="font-size:9px;color:'+MUT+';font-weight:400">€ '+fmt(val/curs)+'</div>':fmt(val)+' lei'):'—')+'</td></tr>';
+    });
+    var tvaP=getVal('tva'), tvaV=subtotal*tvaP/100, totCu=subtotal+tvaV;
+    var dvLine=function(label,vLei,bold){
+      var lei=fmt(vLei)+' lei', eur=(ronShow&&curs>0)?'€ '+fmt(vLei/curs):'';
+      return '<div style="display:flex;justify-content:space-between;align-items:baseline;'+(bold?'background:'+DZNAVY+';color:#fff;border-radius:8px;padding:14px 18px;margin-top:8px':'padding:10px 18px;border-bottom:1px solid '+DZBORDER)+'">'+
+        '<span style="font-size:'+(bold?'12px':'12px')+';font-weight:'+(bold?'700':'500')+';'+(bold?'letter-spacing:.5px;text-transform:uppercase':'color:'+MUT)+'">'+label+'</span>'+
+        '<span style="text-align:right;white-space:nowrap"><span style="font-family:Archivo,sans-serif;font-weight:800;font-size:'+(bold?'18px':'13px')+';'+(bold?'color:'+DZGOLD:'')+'">'+lei+'</span>'+(eur?'<span style="font-size:11px;'+(bold?'color:rgba(255,255,255,.65)':'color:'+MUT)+';margin-left:10px">'+eur+'</span>':'')+'</span>'+
+      '</div>';
+    };
+    var totalsBlock='<div style="margin-top:18px;margin-left:auto;width:64%;min-width:320px;border:1px solid '+DZBORDER+';border-radius:10px;padding:4px 6px 8px">'+dvLine('Subtotal (fără TVA)',subtotal,false)+dvLine('TVA ('+fmt0(tvaP)+'%)',tvaV,false)+dvLine('TOTAL DEVIZ CU TVA',totCu,true)+'</div>';
+    equipPage='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid '+DZNAVY+';padding-bottom:9px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+DZNAVY+';margin:0">Deviz de lucrări</h2><span style="font-size:10px;color:'+MUT+'">prețuri unitare fără TVA</span></div>'+
+      '<table style="width:100%;border-collapse:collapse;margin-top:16px;font-size:11px"><thead><tr style="background:'+DZNAVY+';color:#fff"><th style="text-align:center;padding:11px 10px;font-weight:700;font-size:9px;letter-spacing:1px;text-transform:uppercase">Nr.</th><th style="text-align:left;padding:11px 10px;font-weight:700;font-size:9px;letter-spacing:1px;text-transform:uppercase">Capitol de lucrări</th><th style="text-align:center;padding:11px 10px;font-weight:700;font-size:9px;letter-spacing:1px;text-transform:uppercase">U.M.</th><th style="text-align:right;padding:11px 10px;font-weight:700;font-size:9px;letter-spacing:1px;text-transform:uppercase">Cant.</th><th style="text-align:right;padding:11px 10px;font-weight:700;font-size:9px;letter-spacing:1px;text-transform:uppercase">Preț unitar</th><th style="text-align:right;padding:11px 10px;font-weight:700;font-size:9px;letter-spacing:1px;text-transform:uppercase">Valoare total</th></tr></thead><tbody>'+bodyRows+'</tbody></table>'+
+      totalsBlock+
+      '<p style="font-size:10.5px;color:'+MUT+';margin-top:14px;line-height:1.6">Deviz orientativ. Cantitățile și prețurile finale se confirmă după releveul tehnic la fața locului și proiectul de execuție.</p>'+
+      '<div style="flex:1"></div><div style="border-top:1px solid '+LINE+';padding-top:12px;display:flex;justify-content:space-between;font-size:9px;color:'+MUT+'"><span>© 2026 '+esc(firma)+' · Software proprietar · Legea nr. 8/1996</span><span>'+esc(nrOferta)+'</span></div></div>';
   }
 
-  // ═════════ P9 · AVANTAJE & DEZAVANTAJE ═════════
-  var prosList=[];
-  if(hasPV){
-    prosList.push(['Factura scade de la prima zi','Energia produsă pe acoperiș înlocuiește direct energia cumpărată din rețea, la cost zero de producție.']);
-    prosList.push(['Protecție la scumpirea energiei','Prețul energiei proprii rămâne fix 25 de ani; fiecare scumpire din piață mărește economia dvs.']);
-  }
-  if(hasBess){
-    prosList.push(['Surplusul nu se mai vinde ieftin','Energia produsă ziua se stochează și se consumă seara — în loc să o vindeți la preț mic și să o răscumpărați scump.']);
-    prosList.push(['Backup la căderea rețelei','Consumatorii esențiali rămân alimentați din baterie (port Backup, comutare în milisecunde) — fără întreruperi de activitate.']);
-    prosList.push(['Peak-shaving','Bateria taie vârfurile de putere absorbită din rețea — costuri de distribuție mai mici și protecție la depășiri de putere contractată.']);
-  }
-  prosList.push(['Modular & extensibil','Capacitatea se poate mări ulterior'+(hasPV?'; sistemul e pregătit pentru extindere':' fără modificarea instalației PV existente')+'.']);
-  prosList.push(['Imagine & raportare ESG','Energie verde măsurabilă — argument pentru clienți, licitații și finanțări.']);
-  var consList=[
-    ['Investiție inițială','Costul se plătește acum, economiile vin în timp — recuperarea estimată este prezentată transparent în analiza financiară.'],
-    ['Bateria are durată de viață finită','~6.000 de cicluri / 10 ani garanție; capacitatea scade gradual (~2–3%/an la utilizare normală). Este un consumabil premium, nu o instalație eternă.'],
-    ['Backup-ul are limite','Puterea de backup e limitată de invertor, iar autonomia de energia stocată — alimentează consumatorii critici, nu întregul obiectiv pe termen nelimitat.'],
-    ['Pierderi de conversie','~10–12% din energia stocată se pierde pe ciclul încărcare-descărcare (eficiență inclusă deja în calculele noastre).'],
-    ['Cerințe de amplasare','Bateria are nevoie de spațiu tehnic ventilat, ferit de îngheț și căldură extremă, plus verificări periodice.'],
-  ];
-  if(!hasBess) consList.splice(1,3,['Fără stocare, surplusul se vinde ieftin','Diferența dintre prețul de injecție și cel de cumpărare rămâne un cost — bateria poate fi adăugată ulterior (sistem pregătit).']);
-  var pcItem=function(t,d,col){return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #EFF2F7"><span style="flex:none;width:7px;height:7px;border-radius:50%;background:'+col+';margin-top:5px"></span><div><div style="font-family:Poppins;font-weight:700;font-size:9.6px;color:'+INK+'">'+t+'</div><div style="font-size:8.6px;color:'+MUT+';line-height:1.5;margin-top:2px">'+d+'</div></div></div>';};
-  var echipPage='<div class="page">'+secHead('Avantaje & dezavantaje','Ce înseamnă, concret, '+(hasBess?'să ai baterie și backup':'această investiție')+' — transparent, în ambele direcții')+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">'+
-      '<div class="card" style="border-top:3px solid '+TEAL+'"><div class="ctag" style="background:'+MINT+';color:#0E7A67">De ce merită</div>'+prosList.map(function(p){return pcItem(p[0],p[1],TEAL);}).join('')+'</div>'+
-      '<div class="card" style="border-top:3px solid '+ORG+'"><div class="ctag" style="background:'+CREAM+';color:'+ORGD+'">De luat în calcul</div>'+consList.map(function(p){return pcItem(p[0],p[1],ORG);}).join('')+'</div>'+
-    '</div>'+
-    '<div class="callout" style="margin-top:16px"><b>Concluzia noastră:</b> '+(hasBess
-      ?'pentru un profil cu surplus PV ziua și consum seara, avantajele depășesc clar costurile — recuperarea investiției în '+(payback!==null?'~'+fmt(payback,1)+' ani':'sub durata de garanție')+', dintr-un sistem garantat 10 ani. Dezavantajele de mai sus sunt limitări de planificare, nu riscuri ascunse.'
-      :'sistemul PV se recuperează în '+(payback!==null?'~'+fmt(payback,1)+' ani':'câțiva ani')+' și poate fi completat oricând cu stocare, pe măsură ce profilul de consum o justifică.')+'</div>'+
-    foot()+'</div>';
+  var notes=(document.getElementById('notesArea').value||'').trim()||'Ofertă draft generată din calculatorul SHC Group. Valorile sunt orientative și se confirmă în oferta finală după releveul tehnic. Prețurile nu includ eventuale lucrări de consolidare structurală sau extinderi de rețea solicitate de operatorul de distribuție.';
 
-  // ═════════ P10 · TERMENI + EMITENT + SEMNĂTURI + NOTE ═════════
-  var notes=(document.getElementById('notesArea').value||'').trim()||'Ofertă generată din calculatorul SHC Group. Valorile sunt orientative și se confirmă în oferta finală după releveul tehnic. Prețurile nu includ eventuale lucrări de consolidare structurală sau extinderi de rețea solicitate de operatorul de distribuție.';
-  var tcR=function(lbl,val){return '<div class="srow"><span>'+lbl+'</span><b>'+val+'</b></div>';};
-  var pTermeni='<div class="page">'+secHead('Termeni, condiții & pașii următori','Condiții comerciale, garanții și date de contact')+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">'+
-      '<div class="card"><div class="ctag" style="background:'+CREAM+';color:'+ORGD+'">Termeni & condiții comerciale</div>'+
-        tcR('Valabilitate ofertă',(getVal('valabilitate')||30)+' zile de la emitere')+
-        tcR('Garanție invertoare',getVal('garantieInvertor')+' ani · service autorizat')+
-        (hasPV?tcR('Garanție panouri',getVal('garantiePanouri')+' ani · liniară'):'')+
-        tcR('Garanție execuție','36 luni de la recepția finală')+
-        tcR('TVA','TVA '+getVal('tva')+'% conform legislației')+
-        tcR('Transport la locație','Inclus în prețul ofertat')+
-        tcR('Racordare la rețea','Responsabilitate beneficiar (incl. ATR)')+
-        tcR('Plată','Tranșe conform grafic (se convine contractual)')+
-        tcR('Litigii','Jurisdicția instanței competente, legea română')+
-      '</div>'+
-      '<div class="card"><div class="ctag" style="background:'+MINT+';color:#0E7A67">Date emitent</div>'+
-        tcR('Companie',esc(firma))+
-        (firmaCUI?tcR('CUI',esc(firmaCUI)):'')+
-        (firmaRegCom?tcR('Reg. Com.',esc(firmaRegCom)):'')+
-        (firmaAdresa?tcR('Sediu',esc(firmaAdresa)):'')+
-        (firmaTelefon?tcR('Telefon',esc(firmaTelefon)):'')+
-        (firmaEmail?tcR('E-mail',esc(firmaEmail)):'')+
-        (firmaRepLegal?tcR('Reprezentant legal',esc(firmaRepLegal)):'')+
-        tcR('Referință · dată',esc(nrOferta)+(dataOferta?' · '+esc(dataOferta):''))+
-      '</div>'+
-    '</div>'+
-    '<div class="cta"><div style="font-family:Poppins;font-weight:700;font-size:14px;color:'+INK+'">Sunteți gata să treceți la implementare?</div>'+
-      '<div style="font-size:9.5px;color:'+MUT+';margin-top:4px">Confirmăm oferta, agreăm graficul tranșelor și demarăm implementarea în 48 de ore.</div>'+
-      '<div class="mono" style="font-size:9px;font-weight:700;color:'+ORGD+';margin-top:10px;letter-spacing:.4px">'+esc(firmaEmail||'office@shc-group.ro')+(firmaTelefon?' · '+esc(firmaTelefon):'')+'</div></div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px">'+
-      '<div class="card"><div style="font-size:10px;font-weight:700;color:'+INK+'">Reprezentant '+esc(firma)+'</div><div style="height:38px;border-bottom:1px solid '+INK+';margin:6px 0"></div><div style="font-size:8.5px;color:'+MUT+'">Semnătură și ștampilă</div></div>'+
-      '<div class="card"><div style="font-size:10px;font-weight:700;color:'+INK+'">Reprezentant beneficiar'+(client?' · '+esc(client):'')+'</div><div style="height:38px;border-bottom:1px solid '+INK+';margin:6px 0"></div><div style="font-size:8.5px;color:'+MUT+'">Semnătură și ștampilă</div></div>'+
-    '</div>'+
-    foot()+'</div>';
-
-  // ═════════ P11 · NOTE & LEGENDĂ ACRONIME ═════════
+  var eqCard=function(title,src){
+    return '<div style="flex:1;border:1px solid '+LINE+';border-radius:10px;padding:18px;display:flex;flex-direction:column;align-items:center"><div style="width:100%;height:250px;display:flex;align-items:center;justify-content:center;background:#f6f7f9;border-radius:8px;overflow:hidden">'+(src?'<img src="'+src+'" style="max-width:100%;max-height:100%;object-fit:contain">':'<span style="font-family:monospace;font-size:10px;color:'+MUT+'">IMAGINE</span>')+'</div><div style="font-family:Archivo,sans-serif;font-weight:700;font-size:13px;color:'+AC+';margin-top:14px">'+title+'</div></div>';
+  };
+  var eqCards=[eqCard('Panou fotovoltaic',EQ_IMG.panou),eqCard('Invertor',EQ_IMG.invertor)];
+  if(bessIncl) eqCards.push(eqCard('Stocare BESS',EQ_IMG.bess));
+  var echipPage='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column"><div style="border-bottom:2px solid '+AC+';padding-bottom:9px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+AC+';margin:0">Echipamente propuse</h2></div><p style="font-size:12px;color:'+MUT+';margin:14px 0 0">Imagini orientative ale echipamentelor principale incluse in oferta.</p><div style="display:flex;gap:16px;margin-top:24px">'+eqCards.join('')+'</div><div style="flex:1"></div><div style="border-top:1px solid '+LINE+';padding-top:12px;display:flex;justify-content:space-between;font-size:9px;color:'+MUT+'"><span>© 2026 '+esc(firma)+' · Software proprietar · Legea nr. 8/1996</span><span>'+esc(nrOferta)+'</span></div></div>';
   var legItems=[
     ['CAPEX','Capital Expenditure — investiția inițială totală (echipamente + instalare).'],
     ['OPEX','Operational Expenditure — costuri anuale de operare și mentenanță.'],
@@ -4140,123 +4118,329 @@ function buildOfferHTML(r){
     ['kWp','Kilowatt-peak — puterea maximă a sistemului în condiții optime.'],
     ['kWh','Kilowatt-oră — unitatea de măsură a energiei produse/consumate.'],
     ['BESS','Battery Energy Storage System — sistem de stocare a energiei în baterii.'],
-    ['EPC','Engineering, Procurement, Construction — contract complet „la cheie”.'],
+    ['BMS','Battery Management System — electronica ce protejează și echilibrează celulele bateriei; inclusă standard în orice BESS modern.'],
+    ['STS','Stație de Transformare & Siguranță — echipament electric ce asigură protecția și transformarea tensiunii între instalație și rețea.'],
+    ['ATS','Automatic Transfer Switch — comută automat consumul între rețea și sursa de backup (BESS/invertor).'],
+    ['EMS','Energy Management System — orchestrează fluxurile PV + BESS + rețea + consumatori la nivel de sistem.'],
+    ['EPC','Engineering, Procurement, Construction — contract complet „la cheie".'],
     ['Payback','Perioada de recuperare a investiției din economiile generate.'],
     ['PV','Photovoltaic — tehnologia de conversie a luminii solare în energie electrică.'],
     ['MPPT','Maximum Power Point Tracking — circuitul invertorului care extrage puterea maximă din fiecare string de panouri.'],
     ['DC / AC','Curent continuu (de la panouri) / curent alternativ (spre rețea). Raportul DC/AC = supradimensionarea câmpului PV față de invertor.'],
+    ['EPS','Emergency Power Supply — ieșirea de backup a invertorului, alimentează consumatori esențiali la pană de rețea (necesită BESS).'],
+    ['TVA','Taxa pe Valoarea Adăugată — cota standard 21%; 0% pentru rezidențial persoană fizică conform legii în vigoare.'],
+    ['C&I','Commercial & Industrial — segment de clienți comerciali/industriali (persoane juridice), cu regim TVA distinct de rezidențial.'],
+    ['kW / MW','Kilowatt / Megawatt — unități de putere; 1 MW = 1.000 kW.'],
     ['Voc','Voltage open-circuit — tensiunea în gol a unui panou; determină câte module se pot lega în serie pe un string.'],
     ['String','Șir de panouri legate în serie, conectat la o intrare MPPT a invertorului.'],
     ['STC','Standard Test Conditions — condițiile standard (1000 W/m², 25 °C) la care se declară puterea nominală a panoului.']
   ];
-  var legCol=function(arr){return arr.map(function(it){return '<div style="margin-bottom:11px"><span style="font-family:Poppins;font-weight:700;color:'+INK+';font-size:9.6px">'+it[0]+'</span> <span style="font-size:8.8px;color:'+MUT+';line-height:1.55">— '+esc(it[1])+'</span></div>';}).join('');};
-  var legendPage='<div class="page">'+secHead('Note ofertă & legendă acronime','Precizări finale și explicarea termenilor folosiți în document')+
-    '<div class="callout"><b>Note ofertă:</b> '+esc(notes)+'</div>'+
-    '<div class="card" style="margin-top:16px"><div class="ctag" style="background:'+MINT+';color:#0E7A67">Legendă acronime</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 26px">'+
-        '<div>'+legCol(legItems.slice(0,Math.ceil(legItems.length/2)))+'</div>'+
-        '<div>'+legCol(legItems.slice(Math.ceil(legItems.length/2)))+'</div>'+
+  var legCol=function(arr){return arr.map(function(it){return '<div style="margin-bottom:12px"><span style="font-family:Archivo,sans-serif;font-weight:700;color:'+AC+';font-size:12px">'+it[0]+'</span> <span style="font-size:11px;color:'+INK+';line-height:1.5">— '+esc(it[1])+'</span></div>';}).join('');};
+  var legendPage='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
+    '<div style="border-bottom:2px solid '+AC+';padding-bottom:9px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+AC+';margin:0">Note ofertă &amp; legendă acronime</h2></div>'+
+    '<div style="margin-top:20px;background:'+SOFT+';border-radius:8px;padding:18px 20px"><div style="font-family:Archivo,sans-serif;font-weight:700;font-size:11px;color:'+AC+';letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">Note ofertă</div><p style="font-size:12px;color:'+INK+';line-height:1.65;margin:0;white-space:pre-wrap">'+esc(notes)+'</p></div>'+
+    '<h3 style="font-family:Archivo,sans-serif;font-weight:700;font-size:13px;color:'+INK+';margin:30px 0 16px">Legendă acronime</h3>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 32px"><div>'+legCol(legItems.slice(0,Math.ceil(legItems.length/2)))+'</div><div>'+legCol(legItems.slice(Math.ceil(legItems.length/2)))+'</div></div>'+
+    '<div style="flex:1"></div><div style="border-top:1px solid '+LINE+';padding-top:12px;display:flex;justify-content:space-between;font-size:9px;color:'+MUT+'"><span>© 2026 '+esc(firma)+' · Software proprietar · Legea nr. 8/1996</span><span>'+esc(nrOferta)+'</span></div></div>';
+
+  var hdr=function(num,title,sub){return '<div style="display:flex;align-items:center;gap:14px"><div style="width:34px;height:34px;flex:none;border:1.5px solid '+GOLD+';border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;color:'+GOLD+';font-size:13px">'+num+'</div><h2 style="font-family:Archivo,sans-serif;font-weight:800;font-size:18px;color:'+INK+';margin:0">'+title+'</h2></div><p style="font-size:11.5px;color:'+MUT+';margin:6px 0 16px 48px;border-bottom:2px solid '+LINE+';padding-bottom:14px">'+sub+'</p>';};
+
+  var genBy = (window.SESSION && window.SESSION.userName) ? window.SESSION.userName : (typeof SESSION!=='undefined'&&SESSION ? SESSION.userName : '');
+  var genAt = new Date().toLocaleString('ro-RO',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  var watermark = genBy ? esc(genBy)+' · '+genAt : genAt;
+  var foot=function(p){return '<div style="flex:1"></div><div style="border-top:1px solid '+LINE+';padding-top:12px;display:flex;justify-content:space-between;font-size:9px;color:'+MUT+'"><span>'+esc(nrOferta)+' · '+esc(clientDisp)+'</span><span style="color:'+MUT+'">'+watermark+'</span><span>Pag. '+p+'</span></div>';};
+
+  // ───────────── PAGES ─────────────
+  var badgesDyn=[];
+  if(r.kwp>0) badgesDyn.push(['#f59e0b','Sistem fotovoltaic '+fmt(r.kwp,1)+' kWp']);
+  if(bessIncl) badgesDyn.push(['#22c55e','Stocare BESS · siguranță ridicată']);
+  if(r.backupMode==='included') badgesDyn.push(['#3b82f6','Backup la cădere rețea']);
+  if(!badgesDyn.length) badgesDyn.push(['#3b82f6','Management centralizat']);
+  var badgesHTML=badgesDyn.map(function(b){return '<span style="display:inline-flex;align-items:center;padding:7px 14px;border:1px solid '+b[0]+';border-radius:20px;font-family:monospace;font-size:10.5px;color:'+b[0]+';letter-spacing:.3px">'+esc(b[1])+'</span>';}).join('');
+
+  var factsDyn=[];
+  if(r.backupMode==='included') factsDyn.push(['Backup la căderea rețelei','inclus']);
+  var garantieBat=getVal('garantieInvertor'); if(garantieBat>0 && bessIncl) factsDyn.push(['Garanție baterii', garantieBat+' ani']);
+  factsDyn.push(['Montaj','fără oprirea instalației']);
+  var factsHTML=factsDyn.map(function(f){return '<span style="font-size:10px;letter-spacing:.6px;color:rgba(255,255,255,.45);text-transform:uppercase">'+esc(f[0])+' <strong style="color:#fff;font-size:12px;letter-spacing:0;text-transform:none">'+esc(f[1])+'</strong></span>';}).join('<span style="width:1px;height:14px;background:rgba(255,255,255,.15);display:inline-block;margin:0 18px;vertical-align:middle"></span>');
+
+  var coverKpi1 = r.kwp>0
+    ? ['Putere instalată', fmt(r.kwp,1)+' kWp', r.numPanouri+' panouri']
+    : ['Capacitate stocare', fmt0(getVal('bessKwh'))+' kWh', 'baterie BESS'];
+  var coverKpi2 = ['Reducere factură', (ronShow?fmt0(r.economiiAn1+r.bessRevAn1)+' lei':'€ '+fmt(r.economiiAn1+r.bessRevAn1)), 'estimat An 1'];
+  var coverKpi3 = ['Investiție fără TVA', (ronShow?fmt0(capexTotal*curs)+' lei':'€ '+fmt(capexTotal)), 'cu TVA: '+(ronShow?fmt0(capexTotalTva*curs)+' lei':'€ '+fmt(capexTotalTva))];
+  var coverKpiCard=function(k,dark){return '<div style="flex:1;padding:20px 22px'+(dark?'':';border-right:1px solid rgba(255,255,255,.1)')+'"><div style="font-size:9px;letter-spacing:1.3px;color:rgba(255,255,255,.45);font-weight:700;text-transform:uppercase">'+k[0]+'</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:26px;color:#fff;margin-top:8px">'+k[1]+'</div><div style="font-size:10.5px;color:rgba(255,255,255,.45);margin-top:5px">'+k[2]+'</div></div>';};
+
+  var p1='<div class="page" style="display:flex;flex-direction:column;background:'+AC+'">'+
+    '<div style="padding:26px 18mm 0;display:flex;justify-content:space-between;align-items:flex-start">'+
+      '<div style="display:flex;align-items:center;gap:14px"><div style="width:46px;height:46px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px">🏠</div><div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:19px;color:#fff;letter-spacing:.3px">'+esc(firma.toUpperCase())+'</div><div style="font-size:9.5px;letter-spacing:1.8px;color:rgba(255,255,255,.5);margin-top:4px;font-weight:600">EPC · FOTOVOLTAIC · STOCARE · ANRE A3/E1/E2</div></div></div>'+
+      '<div style="border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:7px 16px;font-family:monospace;font-size:10px;color:rgba(255,255,255,.7);letter-spacing:.5px;white-space:nowrap">ISO 9001 · 14001 · 45001 · 27001</div>'+
+    '</div>'+
+    '<div style="height:22mm"></div>'+
+    '<div style="padding:0 18mm">'+
+      '<div style="font-family:monospace;font-size:11px;letter-spacing:2.5px;color:'+GOLD+';font-weight:700;text-transform:uppercase">OFERTĂ TEHNICO-ECONOMICĂ · '+(bessIncl?'SISTEM DE STOCARE A ENERGIEI (BESS)':(r.kwp>0?'SISTEM FOTOVOLTAIC':'SOLUȚIE ENERGETICĂ'))+'</div>'+
+      '<h1 style="font-family:Archivo,sans-serif;font-weight:800;font-size:34px;line-height:1.1;color:#fff;margin:10px 0 12px;letter-spacing:-.6px">'+esc(sysTitle)+'</h1>'+
+      '<p style="font-size:12.5px;color:rgba(255,255,255,.6);margin:0 0 16px;max-width:150mm;line-height:1.5">Soluție EPC completă „la cheie": proiectare, aprovizionare echipamente, instalare, testare și punere în funcțiune, integrate în instalația existentă.</p>'+
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">'+badgesHTML+'</div>'+
+      '<div style="border-top:1px solid rgba(255,255,255,.12);padding-top:12px;margin-bottom:14px">'+factsHTML+'</div>'+
+      '<div style="display:flex;gap:12px;margin-bottom:12px">'+
+        '<div style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:13px 16px"><div style="font-size:9px;letter-spacing:1.2px;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase">Beneficiar</div><div style="font-family:Archivo,sans-serif;font-weight:700;font-size:15px;color:#fff;margin-top:5px">'+esc(clientDisp)+'</div><div style="font-size:10px;color:rgba(255,255,255,.45);margin-top:2px">'+(bessIncl?'Sistem de stocare a energiei (BESS)':'Sistem fotovoltaic')+'</div></div>'+
+        '<div style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:13px 16px"><div style="font-size:9px;letter-spacing:1.2px;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase">Furnizor / Executant EPC</div><div style="font-family:Archivo,sans-serif;font-weight:700;font-size:15px;color:#fff;margin-top:5px">'+esc(firma)+'</div><div style="font-size:10px;color:rgba(255,255,255,.45);margin-top:2px">'+esc(document.getElementById('firmaCUI').value||'')+' · '+esc(document.getElementById('firmaRegCom').value||'')+' · '+esc(document.getElementById('firmaAdresa').value||'')+'</div></div>'+
       '</div>'+
+      '<div style="display:inline-block;border:1px solid '+GOLD+';border-radius:20px;padding:6px 16px;font-family:monospace;font-size:10px;color:'+GOLD+';letter-spacing:.4px;margin-bottom:14px">● OFERTĂ '+esc(nrOferta)+' · DATA: '+esc(dataOferta)+' · VALABILĂ PÂNĂ LA: '+esc(validUntil)+'</div>'+
     '</div>'+
     '<div style="flex:1"></div>'+
-    '<div class="darkfoot"><p class="mono">Document tehnico-economic cu caracter informativ. Valorile de producție și financiare sunt estimări bazate pe ipotezele menționate și pot varia în funcție de condițiile reale de amplasament, profilul de consum și evoluția prețului energiei. Prezenta ofertă nu constituie ofertă fermă în sensul art. 1188 Cod civil până la confirmarea scrisă a părților. © 2026 '+esc(firma)+' · Software proprietar · Legea nr. 8/1996.</p></div>'+
-    (function(){pgN++;return '';})()+
-  '</div>';
+    '<div style="display:flex;border-top:1px solid rgba(255,255,255,.12)">'+coverKpiCard(coverKpi1)+coverKpiCard(coverKpi2)+coverKpiCard(coverKpi3)+'<div style="flex:1;padding:18px 22px;background:'+GOLD+'"><div style="font-size:9px;letter-spacing:1.2px;color:rgba(0,0,0,.55);font-weight:700;text-transform:uppercase">Payback simplu</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:24px;color:'+AC+';margin-top:6px">'+paybackStr+'</div><div style="font-size:10px;color:rgba(0,0,0,.5);margin-top:4px">perioadă de amortizare</div></div></div>'+
+    '</div>';
 
-  var genBy=(window.SESSION&&window.SESSION.userName)?window.SESSION.userName:(typeof SESSION!=='undefined'&&SESSION?SESSION.userName:'');
-  var genAt=new Date().toLocaleString('ro-RO',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-  var watermark=genBy?esc(genBy)+' · '+genAt:genAt;
+  var benefitsOn = (window._benefits||[]).filter(function(b){ return b.on && b.text && b.text.trim(); });
+  var benefitsHTML = benefitsOn.length ? (
+    '<div style="page-break-inside:avoid;margin-top:26px;border:1px solid '+LINE+';border-radius:9px;padding:20px 22px;background:'+SOFT+'">'+
+      '<div style="font-family:Archivo,sans-serif;font-weight:700;font-size:13px;color:'+AC+';margin-bottom:12px">De ce este avantajos acest sistem pentru dvs.</div>'+
+      benefitsOn.map(function(b){
+        return '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;font-size:11.5px;color:'+INK+';line-height:1.5"><span style="color:'+AC+';font-weight:700">✓</span><span>'+b.text+'</span></div>';
+      }).join('')+
+    '</div>'
+  ) : '';
 
-  var css='*{box-sizing:border-box}html,body{margin:0;padding:0}'+
-    'body{background:#e7e5df;font-family:Poppins,sans-serif;font-variant-numeric:tabular-nums;color:'+INK+'}'+
-    '.mono{font-family:"JetBrains Mono",monospace}'+
-    '.bar{position:fixed;top:0;left:0;right:0;background:'+NAVY+';color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 18px;z-index:99;font-size:13px}'+
-    '.bar button{background:'+ORG+';color:'+NAVY+';border:0;font-weight:700;padding:8px 16px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:13px}'+
-    '.pages{padding:60px 24px 40px;display:flex;flex-direction:column;align-items:center;gap:24px}'+
-    '.page{width:210mm;min-height:297mm;background:#fff;box-shadow:0 4px 24px rgba(20,30,50,.12);display:flex;flex-direction:column;padding:14mm 14mm 10mm}'+
-    '.page.dark{background:'+NAVY+'}'+
-    '.ftr{border-top:1px solid '+LINE+';padding-top:9px;display:flex;justify-content:space-between;font-family:"JetBrains Mono",monospace;font-size:6.8px;color:#B6BDCB;letter-spacing:.5px}'+
-    '.sechd{display:flex;gap:12px;align-items:flex-start;margin-bottom:16px}'+
-    '.sechd .secchip{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:9px;color:'+ORGD+';border:1.2px solid '+ORG+';border-radius:6px;padding:5px 9px;margin-top:3px}'+
-    '.sechd h2{font-family:Poppins;font-weight:700;font-size:19px;color:'+INK+';margin:0}'+
-    '.sechd p{font-size:10px;color:'+MUT+';margin:2px 0 0}'+
-    '.kgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}'+
-    '.kpi{background:#fff;border:1px solid '+LINE+';border-radius:9px;padding:12px 12px 10px}'+
-    '.kpi .kv{font-family:Poppins;font-weight:700;font-size:18px;line-height:1.1}'+
-    '.kpi .ku{font-size:10px;margin-left:3px}'+
-    '.kpi .kl{font-family:"JetBrains Mono",monospace;font-size:6.6px;color:'+GRL+';letter-spacing:.5px;margin-top:7px;line-height:1.5}'+
-    '.card{background:#fff;border:1px solid '+LINE+';border-radius:10px;padding:14px 16px}'+
-    '.ctag{display:inline-block;font-family:"JetBrains Mono",monospace;font-weight:700;font-size:7px;letter-spacing:.5px;border-radius:9px;padding:5px 10px;margin-bottom:10px}'+
-    '.srow{display:flex;justify-content:space-between;gap:12px;padding:6.5px 0;border-bottom:1px solid #EFF2F7;font-size:9.3px}'+
-    '.srow span{color:'+MUT+'}.srow b{color:'+INK+';font-size:9px;text-align:right}'+
-    '.chip{border:1.1px solid;border-radius:12px;padding:6px 13px;font-family:"JetBrains Mono",monospace;font-size:7.5px;letter-spacing:.3px}'+
-    '.dcard{flex:1;background:'+NAVY2+';border:1px solid '+BORD+';border-radius:10px;padding:16px 18px}'+
-    '.dcard .dlab{font-family:"JetBrains Mono",monospace;font-size:8px;color:'+GRL+';letter-spacing:1px}'+
-    '.dcard .dval{font-family:Poppins;font-weight:700;font-size:16px;color:#fff;margin-top:7px}'+
-    '.dcard .dsub{font-size:9px;color:'+GRD+';margin-top:4px;line-height:1.5}'+
-    '.bcell{flex:1;padding:24px 20px 22px}'+
-    '.bval{font-family:Poppins;color:#fff;font-size:13px}.bval b{font-weight:700;font-size:29px}.bval u{text-decoration:none;color:'+ORG+';font-weight:700;font-size:14px}'+
-    '.blab{font-family:"JetBrains Mono",monospace;font-size:7.8px;color:'+GRL+';letter-spacing:.5px;margin-top:8px;line-height:1.6}'+
-    '.vtab{width:100%;border-collapse:collapse;font-size:10px}'+
-    '.vtab thead th{font-family:"JetBrains Mono",monospace;font-size:7px;letter-spacing:.8px;color:#fff;background:'+NAVY+';padding:9px 10px;font-weight:700}'+
-    '.vtab td{padding:9px 10px;border-bottom:1px solid '+LINE+'}'+
-    '.vtab .sub td{background:'+SOFT+';font-weight:700}'+
-    '.vtab .tot td{background:'+NAVY+';color:#fff;font-family:Poppins;font-weight:700;font-size:11px}'+
-    '.dtab{width:100%;border-collapse:collapse;font-size:9.3px}'+
-    '.dtab thead th{font-family:"JetBrains Mono",monospace;font-size:6.8px;letter-spacing:.7px;color:#fff;background:'+NAVY+';padding:8px 8px;font-weight:700}'+
-    '.dtab td{padding:7.5px 8px;border-bottom:1px solid '+LINE+'}'+
-    '.dtab .grp td{background:'+NAVY+';color:#fff;font-family:Poppins;font-weight:700;font-size:9px;padding:8px 10px}'+
-    '.dtab .sub td{background:'+SOFT+';font-weight:700}'+
-    '.atab{width:100%;border-collapse:collapse;font-size:8.6px}'+
-    '.atab thead th{font-family:"JetBrains Mono",monospace;font-size:6.6px;letter-spacing:.5px;color:#fff;background:'+NAVY+';padding:7px 6px;font-weight:700}'+
-    '.atab td{padding:4.5px 6px;border-bottom:1px solid #eef0f4}'+
-    '.atab tr.pos td{background:#f7fbf8}.atab tr.pay td{background:'+CREAM+'}'+
-    '.tr{text-align:right}.tc{text-align:center}.b{font-weight:700}.mut{color:'+MUT+'}'+
-    '.totline{display:flex;justify-content:space-between;align-items:baseline;padding:10px 14px;border-bottom:1px solid '+LINE+';font-size:11px}'+
-    '.totline.sm{font-size:10px;color:'+MUT+'}'+
-    '.totline.dark{background:'+NAVY+';color:#fff;border-radius:8px;margin-top:8px;font-family:Poppins;font-weight:700}'+
-    '.totline i{font-style:normal;font-size:8.5px;color:'+MUT+';margin-left:10px}'+
-    '.totline.dark i{color:rgba(255,255,255,.7)}'+
-    '.callout{background:'+CREAM+';border-left:4px solid '+ORG+';border-radius:8px;padding:11px 15px;font-size:9.3px;line-height:1.6;color:#6B4E14}'+
-    '.cta{background:'+CREAM+';border:1px solid '+CREAMB+';border-radius:12px;padding:16px 20px;margin-top:16px}'+
-    '.darkfoot{background:'+NAVY+';border-radius:10px;padding:14px 18px;margin-top:14px}'+
-    '.darkfoot p{font-size:6.8px;line-height:1.7;color:#6E7891;margin:0;letter-spacing:.3px}'+
-    '@page{size:A4;margin:0}@media print{body{background:#fff}.bar{display:none}.pages{padding:0;gap:0}.page{box-shadow:none;page-break-after:always;break-after:page}.page:last-child{page-break-after:auto}}';
+  var p2='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid '+AC+';padding-bottom:9px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+AC+';margin:0">Centralizator valoric</h2><span style="font-size:10px;color:'+MUT+'">'+(ronShow?'EUR și RON · curs '+fmt(curs,4):'Valori în EUR')+'</span></div>'+
+    '<table style="width:100%;border-collapse:collapse;margin-top:18px;font-size:11.5px"><thead><tr style="color:'+MUT+';font-size:9px;letter-spacing:1px;text-transform:uppercase"><th style="text-align:left;padding:0 0 8px;font-weight:700">Descriere</th><th style="text-align:right;padding:0 0 8px;font-weight:700">RON (fără TVA)</th><th style="text-align:right;padding:0 0 8px;font-weight:700">EUR (fără TVA)</th></tr></thead><tbody>'+costRowsHTML+
+      '<tr style="background:'+SOFT+'"><td style="padding:11px 8px;font-weight:700;color:'+AC+'">TVA ('+fmt0(getVal("tva"))+'%)</td><td style="padding:11px 0;text-align:right;font-weight:700;color:'+AC+'">'+ronTxt(tvaAmount)+'</td><td style="padding:11px 8px;text-align:right;color:'+MUT+'">€ '+fmt(tvaAmount)+'</td></tr>'+
+      '<tr style="background:'+AC+';color:#fff"><td style="padding:14px 8px;font-family:Archivo,sans-serif;font-weight:700;font-size:13px">TOTAL GENERAL CU TVA</td><td style="padding:14px 0;text-align:right;font-family:Archivo,sans-serif;font-weight:800;font-size:15px">'+(ronShow?fmt(capexTotalTva*curs)+' lei':'€ '+fmt(capexTotalTva))+'</td><td style="padding:14px 8px;text-align:right;font-weight:600;color:rgba(255,255,255,.8)">€ '+fmt(capexTotalTva)+'</td></tr>'+
+    '</tbody></table>'+
+    '<h3 style="font-family:Archivo,sans-serif;font-weight:700;font-size:13px;color:'+INK+';margin:34px 0 14px">Distribuția investiției</h3>'+
+    '<div style="display:flex;height:34px;border-radius:6px;overflow:hidden;border:1px solid '+LINE+'">'+segBar+'</div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:18px;margin-top:14px">'+segLeg+'</div>'+
+    '<h3 style="font-family:Archivo,sans-serif;font-weight:700;font-size:13px;color:'+INK+';margin:34px 0 14px">Grafic de plăți (raportat la total cu TVA)</h3>'+
+    '<div style="display:flex;gap:10px">'+transeHTML+'</div>'+
+    benefitsHTML+
+    foot(2)+'</div>';
 
-  var doc='<!DOCTYPE html><html lang="ro"><head><meta charset="UTF-8"><title>Ofertă '+esc(nrOferta)+(client?(' - '+esc(client)):'')+'</title>'+
+  var p3='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
+    '<div style="border-bottom:2px solid '+AC+';padding-bottom:9px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+AC+';margin:0">Analiză financiară</h2></div>'+
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px">'+
+      '<div style="border:1px solid '+LINE+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Economii anuale (An 1)</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:21px;color:'+AC+';margin-top:8px">'+(ronShow?fmt0(r.economiiAn1*curs)+' lei':'€ '+fmt(r.economiiAn1))+'</div><div style="font-size:10px;color:'+MUT+';margin-top:4px">'+(ronShow?'€ '+fmt(r.economiiAn1)+' /an · brut':'brut, înainte de O&M')+'</div></div>'+
+      '<div style="border:1px solid '+LINE+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Autoconsumție</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:21px;color:'+AC+';margin-top:8px">'+Math.round(r.effAutoconsum*100)+'%</div><div style="font-size:10px;color:'+MUT+';margin-top:4px">'+(bessIncl?'cu stocare BESS':'fără stocare')+'</div></div>'+
+      '<div style="border:1px solid '+LINE+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Payback simplu</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:21px;color:'+AC+';margin-top:8px">'+paybackStr+'</div><div style="font-size:10px;color:'+MUT+';margin-top:4px">recuperare investiție</div></div>'+
+      '<div style="border:1px solid '+LINE+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">ROI total ('+durata+' ani)</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:21px;color:'+AC+';margin-top:8px">'+fmt0(r.roiPct)+'%</div><div style="font-size:10px;color:'+MUT+';margin-top:4px">randament total</div></div>'+
+      '<div style="border:1px solid '+LINE+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">O&M anual</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:21px;color:'+AC+';margin-top:8px">'+(ronShow?fmt0(om*curs)+' lei':'€ '+fmt0(om))+'</div><div style="font-size:10px;color:'+MUT+';margin-top:4px">mentenanță / an</div></div>'+
+      '<div style="border:1px solid '+AC+';background:'+SOFT+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+AC+';font-weight:700;text-transform:uppercase">Valoare netă · '+durata+' ani</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:21px;color:'+AC+';margin-top:8px">'+(ronShow?fmt0(r.finalValue*curs)+' lei':'€ '+fmt(r.finalValue))+'</div><div style="font-size:10px;color:'+MUT+';margin-top:4px">€ '+fmt(r.finalValue)+'</div></div>'+
+    '</div>'+
+    '<h3 style="font-family:Archivo,sans-serif;font-weight:700;font-size:13px;color:'+INK+';margin:30px 0 6px">Ipoteze de calcul</h3>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:11.5px"><tbody>'+ipotezeHTML+'</tbody></table>'+
+    foot(3)+'</div>';
+
+  var p4='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
+    '<div style="border-bottom:2px solid '+AC+';padding-bottom:9px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+AC+';margin:0">Proiecție cash-flow cumulat — '+durata+' ani</h2></div>'+
+    '<p style="font-size:12px;color:'+MUT+';margin:14px 0 0;line-height:1.55">Evoluția cash-flow-ului cumulat: de la investiția inițială (CAPEX negativ) până la valoarea netă finală. Linia depășește pragul zero în punctul de payback.</p>'+
+    '<div style="margin-top:22px;border:1px solid '+LINE+';border-radius:9px;padding:18px 16px 10px;background:#fcfcfd"><svg viewBox="0 0 1000 320" style="width:100%;height:auto" preserveAspectRatio="xMidYMid meet">'+cfGrid+'<path d="'+cfArea+'" fill="'+AC+'" fill-opacity="0.08"></path><line x1="60" y1="'+cfZeroY+'" x2="980" y2="'+cfZeroY+'" stroke="#c0392b" stroke-width="1.4" stroke-dasharray="5 4"></line>'+cfPay+'<polyline points="'+cfPoints+'" fill="none" stroke="'+AC+'" stroke-width="2.6" stroke-linejoin="round"></polyline>'+cfXlab+cfYlab+'</svg></div>'+
+    '<div style="display:flex;gap:24px;margin-top:18px"><div style="display:flex;align-items:center;gap:8px"><span style="width:18px;height:3px;background:'+AC+';border-radius:2px"></span><span style="font-size:11px;color:'+MUT+'">Cash-flow cumulat</span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:18px;border-top:2px dashed #c0392b"></span><span style="font-size:11px;color:'+MUT+'">Prag recuperare investiție</span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:11px;height:11px;border-radius:50%;background:'+GOLD+'"></span><span style="font-size:11px;color:'+MUT+'">Punct payback · '+paybackStr+'</span></div></div>'+
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:26px">'+
+      '<div style="background:'+SOFT+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Investiție inițială</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:19px;color:'+AC+';margin-top:7px">€ '+fmt(capexTotal)+'</div></div>'+
+      '<div style="background:'+SOFT+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Recuperare la</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:19px;color:'+AC+';margin-top:7px">'+paybackStr+'</div></div>'+
+      '<div style="background:'+SOFT+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Valoare netă finală</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:19px;color:'+AC+';margin-top:7px">€ '+fmt(r.finalValue)+'</div></div>'+
+    '</div>'+foot(4)+'</div>';
+
+  var p5hdr='<tr style="background:'+AC+';color:#fff"><th style="text-align:left;padding:7px 6px;font-weight:600;font-size:9px">An</th><th style="text-align:right;padding:7px 6px;font-weight:600;font-size:9px">Prod. MWh</th><th style="text-align:right;padding:7px 6px;font-weight:600;font-size:9px">Ven. PV €</th>'+(bessHasArb?'<th style="text-align:right;padding:7px 6px;font-weight:600;font-size:9px">Ven. BESS €</th>':'')+'<th style="text-align:right;padding:7px 6px;font-weight:600;font-size:9px">Total € </th><th style="text-align:right;padding:7px 6px;font-weight:600;font-size:9px">O&M €</th><th style="text-align:right;padding:7px 6px;font-weight:600;font-size:9px">Net €</th><th style="text-align:right;padding:7px 6px;font-weight:600;font-size:9px">Cumulat €</th></tr>';
+  var p5='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
+    '<div style="border-bottom:2px solid '+AC+';padding-bottom:9px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+AC+';margin:0">Proiecție Financiară Anuală — '+durata+' Ani</h2></div>'+
+    '<table style="width:100%;border-collapse:collapse;margin-top:12px;font-size:9.5px"><thead>'+p5hdr+'</thead><tbody>'+amortHTML+'</tbody></table>'+
+    '<div style="display:flex;gap:20px;margin-top:14px;font-size:10px;color:'+MUT+'"><span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:#fff6e6;border:1px solid #ecd9a8"></span>An payback</span><span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:#f1f8f3"></span>Cumulat pozitiv</span></div>'+
+    foot(5)+'</div>';
+
+  var p6='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
+    '<div style="border-bottom:2px solid '+AC+';padding-bottom:9px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+AC+';margin:0">Producție lunară estimată (An 1)</h2></div>'+
+    '<p style="font-size:12px;color:'+MUT+';margin:14px 0 0">Distribuție sezonală tipică pentru România — producție maximă vara, minimă iarna.</p>'+
+    '<div style="margin-top:18px;border:1px solid '+LINE+';border-radius:9px;padding:18px 16px 8px;background:#fcfcfd"><svg viewBox="0 0 1000 280" style="width:100%;height:auto" preserveAspectRatio="xMidYMid meet"><line x1="60" y1="230" x2="980" y2="230" stroke="#d8dde4" stroke-width="1"></line>'+monthsHTML+'</svg></div>'+
+    '<div style="border-bottom:2px solid '+AC+';padding-bottom:9px;margin-top:30px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+AC+';margin:0">Impact de mediu · CO₂ evitat</h2></div>'+
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px">'+
+      '<div style="border:1px solid '+LINE+';border-top:3px solid '+GRN+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">CO₂ evitat / an</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:20px;color:#1f7a47;margin-top:8px">'+fmt0(co2AnnualKg/1000)+' tone</div><div style="font-size:9.5px;color:'+MUT+';margin-top:5px">factor rețea RO ~0,3 kg/kWh</div></div>'+
+      '<div style="border:1px solid '+LINE+';border-top:3px solid '+GRN+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">CO₂ pe '+durata+' ani</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:20px;color:#1f7a47;margin-top:8px">'+fmt0(co2TotalT)+' tone</div><div style="font-size:9.5px;color:'+MUT+';margin-top:5px">cu degradare inclusă</div></div>'+
+      '<div style="border:1px solid '+LINE+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Echiv. copaci</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:20px;color:'+INK+';margin-top:8px">'+fmt0(co2AnnualKg/21)+' /an</div><div style="font-size:9.5px;color:'+MUT+';margin-top:5px">~21 kg CO₂/copac/an</div></div>'+
+      '<div style="border:1px solid '+LINE+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Echiv. km auto</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:20px;color:'+INK+';margin-top:8px">'+fmt0(co2AnnualKg/0.12)+' /an</div><div style="font-size:9.5px;color:'+MUT+';margin-top:5px">~0,12 kg CO₂/km</div></div>'+
+    '</div>'+foot(6)+'</div>';
+
+
+  // ─── SUMAR EXECUTIV ───────────────────────────────────────────────────────
+  var irrStr=r.irrVal!=null?(r.irrVal*100).toFixed(1)+'%':'—';
+  var npvLei=r.npvCalc!=null?fmt0(r.npvCalc*curs)+' lei':'—';
+  var npvEur=r.npvCalc!=null?'€ '+fmt(r.npvCalc):'—';
+  var profitLei=r.finalValue>=1e6?fmt0(r.finalValue/1e6*curs)+' M lei':fmt0(r.finalValue*curs)+' lei';
+  var profitEur=r.finalValue>=1e6?'€'+(r.finalValue/1e6).toFixed(2)+'M':'€ '+fmt(r.finalValue);
+  var capexLei=r.capexTotal>=1e6?fmt0(r.capexTotal/1e6*curs)+' M lei':fmt0(r.capexTotal*curs)+' lei';
+  var capexEur='€ '+fmt(r.capexTotal)+' fără TVA';
+  var bessKwhV=getVal('bessKwh')||0, bessCicV=getVal('bessCicluriAn')||0;
+  var bessStr2=bessKwhV>0?(bessKwhV>=1000?(bessKwhV/1000).toFixed(2)+' MWh':fmt0(bessKwhV)+' kWh'):'Fără stocare';
+  var bessSub2=bessKwhV>0?bessCicV+' cicluri/an':'—';
+  var prodMWh2=(r.prodAn1/1000).toFixed(0);
+  var kpiC=function(lbl,val,sub,col,bg){col=col||AC;bg=bg||'#fff';
+    return '<div style="background:'+bg+';border:1px solid '+LINE+';border-top:3px solid '+col+';border-radius:8px;padding:14px 12px">'+
+      '<div style="font-size:8px;letter-spacing:1.2px;color:'+MUT+';font-weight:700;text-transform:uppercase">'+lbl+'</div>'+
+      '<div style="font-family:Archivo,sans-serif;font-weight:800;font-size:18px;color:'+col+';margin-top:7px;line-height:1.1">'+val+'</div>'+
+      '<div style="font-size:9.5px;color:'+MUT+';margin-top:5px;opacity:0.85">'+sub+'</div></div>';
+  };
+  var pSumar='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
+    hdr('01','Rezumat executiv','Investiția, energia valorificată și randamentul dintr-o privire')+
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px">'+
+      kpiC('Putere instalată DC', r.kwp.toFixed(1)+' kWp', r.numPanouri+' panouri', '#f59e0b')+
+      kpiC('Stocare BESS', bessStr2, bessSub2, '#16a34a')+
+      kpiC('Producție An 1', prodMWh2+' MWh', 'degradare inclusă', '#f59e0b')+
+      kpiC('Investiție totală', capexLei, capexEur, AC)+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">'+
+      kpiC('IRR ('+durata+' ANI)', irrStr, 'rată internă de rentabilitate', '#f59e0b')+
+      kpiC('NPV (disc. '+Math.round((r.rataDiscontare||0.08)*100)+'%)', npvLei, npvEur, '#0e7490')+
+      kpiC('PAYBACK SIMPLU', paybackStr, 'recuperare investiție', GOLD)+
+      kpiC('PROFIT NET '+durata+' ANI', profitLei, profitEur, '#16a34a')+
+    '</div>'+
+    '<div style="text-align:center;font-weight:700;font-size:12px;color:'+INK+';margin-bottom:8px">Flux de Numerar Cumulat – '+durata+' Ani</div>'+
+    '<div style="border:1px solid '+LINE+';border-radius:8px;padding:14px 12px 6px;background:#fcfcfd;flex:1">'+
+      '<svg viewBox="0 0 1000 260" style="width:100%;height:auto" preserveAspectRatio="xMidYMid meet">'+
+        cfGrid+
+        '<path d="'+cfArea+'" fill="'+AC+'" fill-opacity="0.08"></path>'+
+        '<line x1="60" y1="'+cfZeroY+'" x2="980" y2="'+cfZeroY+'" stroke="#c0392b" stroke-width="1.4" stroke-dasharray="5 4"></line>'+
+        cfPay+
+        '<polyline points="'+cfPoints+'" fill="none" stroke="'+AC+'" stroke-width="2.6" stroke-linejoin="round"></polyline>'+
+        cfXlab+cfYlab+
+      '</svg>'+
+    '</div>'+
+    foot(2)+'</div>';
+
+  // ─── SPECIFICAȚII TEHNICE ─────────────────────────────────────────────────
+  var panelBrandStr=(document.getElementById('customPanelBrand')&&document.getElementById('customPanelBrand').value)||getVal('customPower')?getVal('customPower')+' Wp personalizat':'—';
+  var panelStr=document.getElementById('customPanelBrand')&&document.getElementById('customPanelBrand').value?document.getElementById('customPanelBrand').value+' '+getVal('customPower')+'Wp':getVal('customPower')?getVal('customPower')+' Wp':'—';
+  var invStr2=document.getElementById('invertorMarcaCustom')&&document.getElementById('invertorMarcaCustom').value?document.getElementById('invertorMarcaCustom').value:document.getElementById('invertorMarca').value||'—';
+  var surfStr=r.areaNeeded>0?'~'+fmt0(r.areaNeeded)+' m²':'—';
+  var specR=function(lbl,val,muted){return '<tr style="border-bottom:1px solid '+LINE+'"><td style="padding:7px 10px;font-size:11px;color:'+MUT+';font-weight:600;width:45%">'+lbl+'</td><td style="padding:7px 10px;font-size:11px;color:'+(muted?MUT:INK)+';font-weight:700">'+val+'</td></tr>';};
+  var pSpecs='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
+    hdr('02','Sistemul propus — specificații tehnice','Configurația completă a componentelor și randamentul așteptat')+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">'+
+      '<table style="width:100%;border-collapse:collapse;border:1px solid '+LINE+';border-radius:8px;overflow:hidden"><tbody>'+
+        specR('Beneficiar', esc(client||'—'))+
+        (r.existingKwp>0?specR('Instalație PV existentă', fmt(r.existingKwp,1)+' kWp'+(r.existingInvertor?' · '+esc(r.existingInvertor):'')+(r.existingProductie>0?' · '+fmt0(r.existingProductie)+' kWh/an':'')):'')+
+        specR(r.existingKwp>0?'Extindere propusă (nou)':'Putere instalată DC', r.kwp.toFixed(1)+' kWp')+
+        (r.existingKwp>0?specR('Putere totală sistem (existent + nou)', fmt(r.kwpTotalSistem,1)+' kWp'):'')+
+        specR('Număr panouri', r.numPanouri+' buc.')+
+        specR('Tip panou', panelStr)+
+        specR('Tip invertor', esc(invStr2))+
+        specR('Nr. invertoare', document.getElementById('invertorMarca')?'—':'—')+
+        specR('Stocare BESS totală', bessKwhV>0?fmt0(bessKwhV)+' kWh':(function(){
+          var consumZ=getVal('consumZilnic')||0, dailyProd=r.kwp>0?(r.prodAn1/365):0;
+          if(consumZ<=0&&dailyProd<=0) return '—';
+          var recViaConsum=consumZ>0?consumZ*0.4:0;
+          var surplusZilnic=dailyProd>0?Math.max(0,dailyProd-(consumZ>0?consumZ*0.6:dailyProd*0.35)):0;
+          var vals=[recViaConsum,surplusZilnic].filter(function(v){return v>0;});
+          if(!vals.length) return '—';
+          var avg=vals.reduce(function(a,b){return a+b;},0)/vals.length;
+          var lo=Math.max(2.5,Math.round((avg*0.8)/2.5)*2.5), hi=Math.max(lo+2.5,Math.round((avg*1.25)/2.5)*2.5);
+          return lo+'–'+hi+' kWh (recomandat)';
+        })())+
+        specR('Suprafață estimată', surfStr)+
+        specR('Tip montaj', (r.kwpA>0&&r.kwpB===0?'1 orient.':'2 orient.')+' '+(r.kwp>0?r.kwp.toFixed(1)+' kWp':''))+
+        specR('Garanție invertoare', getVal('garantieInvertor')+' ani')+
+        specR('Garanție panouri', getVal('garantiePanouri')+' ani')+
+        specR('Garanție execuție', '36 luni de la recepția finală')+
+      '</tbody></table>'+
+      '<table style="width:100%;border-collapse:collapse;border:1px solid '+LINE+';border-radius:8px;overflow:hidden"><tbody>'+
+        specR('Iradiere specifică', fmt0(r.yieldSpec)+' kWh/kWp/an')+
+        specR('Producție An 1 (netă)', fmt0(r.prodAn1)+' kWh/an')+
+        specR('Producție totală '+durata+' ani', fmt0(r.rows.filter(function(x){return x.an>0;}).reduce(function(s,x){return s+(x.prod||0);},0))+' kWh')+
+        specR('Degradare anuală', getVal('degradare')+'%/an')+
+        specR('Eficiență sistem (PR)', '~80%',true)+
+        specR('Autoconsumție', Math.round(r.effAutoconsum*100)+'%'+(bessKwhV>0?' (cu BESS)':''))+
+        (bessKwhV>0?specR('BESS cicluri/an', fmt0(bessCicV)):'')+
+        (bessKwhV>0?specR('BESS spread arbitraj', getVal('bessArbitrajSpread')+' €/kWh'):'')+
+        specR('Preț energie An 1', fmt(pretEnergie)+' €/kWh')+
+        specR('Escaladare preț', getVal('escaladare')+'%/an')+
+        specR('CO₂ evitat/an', fmt0(r.prodAn1*0.0003)+' tone CO₂e')+
+        specR('Echivalent gospodării', fmt0(r.prodAn1/3500)+'/an',true)+
+      '</tbody></table>'+
+    '</div>'+
+    foot(3)+'</div>';
+
+  // ─── TERMENI & CONDIȚII ───────────────────────────────────────────────────
+  var tcR=function(lbl,val){return '<tr style="border-bottom:1px solid '+LINE+'"><td style="padding:7px 10px;font-size:11px;color:'+MUT+';font-weight:600;width:44%">'+lbl+'</td><td style="padding:7px 10px;font-size:11px;color:'+INK+';font-weight:600">'+val+'</td></tr>';};
+  var pTermeni='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
+    hdr('05','De ce lucrați cu noi & pașii următori','Condiții comerciale, garanții și informații despre contractant')+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1">'+
+      '<div>'+
+        '<div style="background:'+AC+';color:#fff;font-family:Archivo,sans-serif;font-weight:700;font-size:12px;padding:10px 12px;border-radius:8px 8px 0 0">Termeni &amp; Condiții Comerciale</div>'+
+        '<table style="width:100%;border-collapse:collapse;border:1px solid '+LINE+';border-top:none"><tbody>'+
+          tcR('Valabilitate ofertă', (getVal('valabilitate')||30)+' zile de la data emiterii')+
+          tcR('Garanție invertoare', getVal('garantieInvertor')+' ani – service autorizat')+
+          tcR('Garanție panouri', getVal('garantiePanouri')+' ani – garanție liniară')+
+          tcR('Garanție execuție lucrari', '36 luni de la recepția finală')+
+          tcR('Mențenanță &amp; service', 'Se negociază la semnarea contractului')+
+          tcR('TVA', 'TVA '+getVal('tva')+'% se adaugă conform legislației')+
+          tcR('Transport la locație', 'Inclus în prețul ofertat')+
+          tcR('Racordare la rețeaua electrică', 'Responsabilitate beneficiar (inclusiv ATR)')+
+          tcR('Avize și autorizații', 'Responsabilitate beneficiar, asistență tehnică prestator')+
+          tcR('Plată', 'Tranşe conform grafic de execuție (se convine contractual)')+
+          tcR('Litigii', 'Jurisdicția Tribunalului competent, legislația română')+
+          tcR('Confidențialitate', 'Document confidențial – uz intern')+
+        '</tbody></table>'+
+      '</div>'+
+      '<div>'+
+        '<div style="background:#16a34a;color:#fff;font-family:Archivo,sans-serif;font-weight:700;font-size:12px;padding:10px 12px;border-radius:8px 8px 0 0">Date Emitent – '+esc(firma)+'</div>'+
+        '<table style="width:100%;border-collapse:collapse;border:1px solid '+LINE+';border-top:none"><tbody>'+
+          tcR('Companie', esc(firma))+
+          (firmaCUI?tcR('CUI', esc(firmaCUI)):'')+
+          (firmaRegCom?tcR('Reg. Com.', esc(firmaRegCom)):'')+
+          (firmaAdresa?tcR('Sediu social', esc(firmaAdresa)):'')+
+          (firmaTelefon?tcR('Telefon', esc(firmaTelefon)):'')+
+          (firmaEmail?tcR('Email', esc(firmaEmail)):'')+
+          (firmaRepLegal?tcR('Reprezentant legal', esc(firmaRepLegal)):'')+
+          tcR('Referință ofertă', esc(nrOferta))+
+          tcR('Data emiterii', esc(dataOferta))+
+        '</tbody></table>'+
+      '</div>'+
+    '</div>'+
+    '<div style="margin-top:28px;display:grid;grid-template-columns:1fr auto 1fr;gap:20px;align-items:end">'+
+      '<div style="border:1px solid '+LINE+';border-radius:8px;padding:16px 14px">'+
+        '<div style="font-size:11px;font-weight:700;color:'+AC+';margin-bottom:4px">Reprezentant '+esc(firma)+'</div>'+
+        '<div style="height:40px;border-bottom:1px solid '+INK+';margin-bottom:6px"></div>'+
+        '<div style="font-size:10px;color:'+MUT+'">Semnătură și ştampilă</div>'+
+      '</div>'+
+      '<div style="font-size:16px;font-weight:700;color:'+MUT+';text-align:center;padding-bottom:16px">L.S.</div>'+
+      '<div style="border:1px solid '+LINE+';border-radius:8px;padding:16px 14px">'+
+        '<div style="font-size:11px;font-weight:700;color:'+AC+';margin-bottom:4px">Reprezentant Beneficiar '+(client?'– '+esc(client):'')+'</div>'+
+        '<div style="height:40px;border-bottom:1px solid '+INK+';margin-bottom:6px"></div>'+
+        '<div style="font-size:10px;color:'+MUT+'">Semnătură și ştampilă</div>'+
+      '</div>'+
+    '</div>'+
+  foot(9)+'</div>';
+  var doc='<!DOCTYPE html><html lang="ro"><head><meta charset="UTF-8"><title>Ofertă '+esc(nrOferta)+(client?(' · '+esc(client)):'')+'</title>'+
     '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'+
-    '<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">'+
-    '<style>'+css+'</style></head>'+
-    '<body><div class="bar"><span>Ofertă '+esc(nrOferta)+' — previzualizare. Apasă „Printează” și alege „Salvează ca PDF”. <span style="opacity:.55;font-size:11px">'+watermark+'</span></span><button onclick="window.print()">🖨 Printează / Salvează PDF</button></div>'+
-    '<div class="pages">'+p1+pSumar+pSpecs+pVal+equipPage+pFin+pAn+pProd+echipPage+pTermeni+legendPage+'</div>'+
+    '<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">'+
+    '<style>*{box-sizing:border-box}html,body{margin:0;padding:0}body{background:#e7e5df;font-family:\'IBM Plex Sans\',sans-serif;font-variant-numeric:tabular-nums;color:'+INK+'}'+
+    '.bar{position:fixed;top:0;left:0;right:0;background:'+AC+';color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 18px;z-index:99;font-size:13px}'+
+    '.bar button{background:'+GOLD+';color:'+AC+';border:0;font-weight:700;padding:8px 16px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:13px}'+
+    '.pages{padding:60px 24px 40px;display:flex;flex-direction:column;align-items:center;gap:24px}'+
+    '.page{width:210mm;min-height:297mm;background:#fff;box-shadow:0 4px 24px rgba(20,30,50,.12);display:flex;flex-direction:column}'+
+    '@page{size:A4;margin:0}@media print{body{background:#fff}.bar{display:none}.pages{padding:0;gap:0}.page{box-shadow:none;page-break-after:always;break-after:page}.page:last-child{page-break-after:auto}}</style></head>'+
+    '<body><div class="bar"><span>Ofertă '+esc(nrOferta)+' — previzualizare. Apasă „Printează" și alege „Salvează ca PDF".</span><button onclick="window.print()">🖨 Printează / Salvează PDF</button></div>'+
+    '<div class="pages">'+p1+pSumar+pSpecs+p3+p4+p5+p6+equipPage+p2+echipPage+pTermeni+legendPage+'</div>'+
     '<script>window.addEventListener(\'load\',function(){var go=function(){setTimeout(function(){try{window.print();}catch(e){}},400);};if(document.fonts&&document.fonts.ready){document.fonts.ready.then(go);}else{go();}});<\/script>'+
     '</body></html>';
   return doc;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
 document.getElementById('btnOfertaPdf').addEventListener('click', function(){
+ requireSavedConfig('genera oferta PDF', function(){
   try {
   var r = compute();
   var nrSuf=document.getElementById('nrOfertaSuffix').value||'';
   var nrOferta='SHC-'+(nrSuf||'');
   var client=(document.getElementById('numeClient').value||'').trim();
-  logOffer('oferta_pdf', nrOferta, client, Math.round(r.capexTotalTva*(getVal('curs')||5.2)));
   var html = buildOfferHTML(r);
-  var pdfTitle = 'Ofertă ' + nrOferta + (client ? (' - ' + client) : '');
-  var oldTitle = document.title;
-  document.title = pdfTitle;
+  logOffer('oferta_pdf', nrOferta, client, Math.round(r.capexTotalTva*(getVal('curs')||5.2)), {
+    kwp: r.kwp ? r.kwp.toFixed(2) : null,
+    capexTotalEur: Math.round(r.capexTotalTva),
+    payback: r.paybackYear!==null ? r.paybackYear.toFixed(1)+' ani' : '> '+r.durata+' ani',
+    irr: r.irrVal!=null ? (r.irrVal*100).toFixed(1)+'%' : '—',
+    offerHtml: html
+  });
   var blob = new Blob([html], {type:'text/html'});
   var url = URL.createObjectURL(blob);
   // Afișează întotdeauna în overlay (cel mai fiabil în orice mediu)
@@ -4279,7 +4463,7 @@ document.getElementById('btnOfertaPdf').addEventListener('click', function(){
   btnClose.style.cssText = 'background:transparent;color:#fff;border:1px solid rgba(255,255,255,.4);padding:8px 12px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:13px';
   var aDl = document.createElement('a');
   aDl.textContent = '⬇ Descarcă HTML';
-  aDl.href = url; aDl.download = pdfTitle.replace(/[\\/:*?"<>|]/g,'')+'.html';
+  aDl.href = url; aDl.download = 'Oferta-'+(nrOferta||'SHC')+'.html';
   aDl.style.cssText = 'color:#fff;text-decoration:none;font-size:12px;background:rgba(255,255,255,.15);padding:6px 12px;border-radius:6px;white-space:nowrap;';
   bar.appendChild(btnPrint); bar.appendChild(aNew); bar.appendChild(aDl); bar.appendChild(btnClose);
   var frame = document.createElement('iframe');
@@ -4289,11 +4473,12 @@ document.getElementById('btnOfertaPdf').addEventListener('click', function(){
   ov.appendChild(bar); ov.appendChild(frame);
   document.body.appendChild(ov);
   btnPrint.addEventListener('click', function(){ try{ frame.contentWindow.focus(); frame.contentWindow.print(); }catch(e){} });
-  btnClose.addEventListener('click', function(){ document.body.removeChild(ov); URL.revokeObjectURL(url); document.title = oldTitle; });
+  btnClose.addEventListener('click', function(){ document.body.removeChild(ov); URL.revokeObjectURL(url); });
   } catch(err) {
     alert('Eroare la generarea ofertei:\n' + err.message);
     console.error('[Ofertă PDF]', err);
   }
+ });
 });
 
 var today = new Date();
@@ -4301,6 +4486,20 @@ var dd = String(today.getDate()).padStart(2,'0');
 var mm = String(today.getMonth()+1).padStart(2,'0');
 var yyyy = today.getFullYear();
 document.getElementById('dataOferta').value = dd + '.' + mm + '.' + yyyy;
+
+// Restore last saved state (client name, offer nr, company info, etc.) on reload
+try {
+  var savedSt = localStorage.getItem('shc_calc_state');
+  if(savedSt){
+    var st = JSON.parse(savedSt);
+    Object.keys(st).forEach(function(k){
+      var el = document.getElementById(k);
+      if(el && st[k]!==undefined && st[k]!==null) el.value = st[k];
+    });
+    var emailEl = document.getElementById('firmaEmail');
+    if(emailEl && emailEl.value==='nicorasionut@shc-group.ro') emailEl.value = 'office@shc-group.ro';
+  }
+} catch(e) {}
 
 render();
 })();
@@ -4389,7 +4588,46 @@ render();
 </script>
 </div></div>
 
-
-
+<script>
+(function(){
+  var STORAGE_KEY='pvbessWizardStep';
+  var pills=document.querySelectorAll('.stepPill');
+  var prevBtn=document.getElementById('stepPrevBtn');
+  var nextBtn=document.getElementById('stepNextBtn');
+  var TOTAL=6;
+  function getStep(){ var s=parseInt(localStorage.getItem(STORAGE_KEY),10); return (s>=1&&s<=TOTAL)?s:1; }
+  function showStep(n){
+    if(n<1)n=1; if(n>TOTAL)n=TOTAL;
+    document.querySelectorAll('[data-step]').forEach(function(el){
+      var match = String(el.getAttribute('data-step'))===String(n);
+      el.classList.toggle('step-active', match);
+    });
+    pills.forEach(function(p){ p.classList.toggle('active', +p.dataset.goto===n); });
+    prevBtn.style.visibility = n===1 ? 'hidden':'visible';
+    nextBtn.textContent = n===TOTAL ? '📄 Mergi la generare ofertă' : 'Continuă →';
+    try{ localStorage.setItem(STORAGE_KEY, n); }catch(e){}
+    window.scrollTo({top:0,behavior:'instant'});
+    if(typeof render==='function'){ setTimeout(render, 30); }
+  }
+  pills.forEach(function(p){ p.addEventListener('click', function(){ showStep(+p.dataset.goto); }); });
+  prevBtn.addEventListener('click', function(){ showStep(getStep()-1); });
+  nextBtn.addEventListener('click', function(){ showStep(getStep()+1); });
+  window._pvbessShowStep = showStep;
+  showStep(getStep());
+  var adminOpenBtn=document.getElementById('btnAdminOpen'), adminBg=document.getElementById('adminModalBg'), adminBox=document.getElementById('adminSection'), adminCloseBtn=document.getElementById('btnAdminClose');
+  function openAdmin(){ adminBg.style.display='block'; adminBox.style.display='block'; closeMoreMenu(); }
+  function closeAdmin(){ adminBg.style.display='none'; adminBox.style.display='none'; }
+  if(adminOpenBtn) adminOpenBtn.addEventListener('click', openAdmin);
+  if(adminCloseBtn) adminCloseBtn.addEventListener('click', closeAdmin);
+  if(adminBg) adminBg.addEventListener('click', closeAdmin);
+  var moreBtn=document.getElementById('btnMoreMenu'), morePanel=document.getElementById('moreMenuPanel');
+  function closeMoreMenu(){ morePanel.style.display='none'; }
+  if(moreBtn){
+    moreBtn.addEventListener('click', function(e){ e.stopPropagation(); morePanel.style.display = morePanel.style.display==='block' ? 'none' : 'block'; });
+    morePanel.addEventListener('click', function(e){ e.stopPropagation(); if(e.target.closest('.menuItemBtn')) closeMoreMenu(); });
+    document.addEventListener('click', closeMoreMenu);
+  }
+})();
+</script>
 </body>
 </html>
