@@ -86,20 +86,30 @@ input,select,textarea,button{font-family:inherit;}
 </style>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue, off, update, get, set, remove, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 try {
+  const DB_URL = "https://solarcrm-ba919-default-rtdb.firebaseio.com";
   const app = initializeApp({
     apiKey: "AIzaSyBVElgXbEabUcwjNMa27IEw0YkxaEaXYl0",
     authDomain: "solarcrm-ba919.firebaseapp.com",
-    databaseURL: "https://solarcrm-ba919-default-rtdb.firebaseio.com",
+    databaseURL: DB_URL,
     projectId: "solarcrm-ba919",
     storageBucket: "solarcrm-ba919.firebasestorage.app",
     messagingSenderId: "349523166308",
     appId: "1:349523166308:web:0533aa1dae74f9a0b3cb71"
   }, "solarcrm-isolated-app");
   const database = getDatabase(app);
-  // Shim izolat (nu depinde de window.firebase, evită conflictul cu extensii de browser
-  // care injectează propriul SDK Firebase în pagină și corup conexiunea globală).
+  // Citirea live folosește SDK-ul (funcționează, testat). Scrierile folosesc REST simplu
+  // (fetch direct la baza de date) — nu depind de conexiunea WebSocket persistentă a SDK-ului,
+  // care poate fi blocată/degradată de anumite rețele fără să dea nicio eroare vizibilă.
+  async function restReq(path, method, body){
+    const res = await fetch(DB_URL + '/' + path + '.json', {
+      method, headers:{'Content-Type':'application/json'},
+      body: body!==undefined ? JSON.stringify(body) : undefined
+    });
+    if(!res.ok){ const t=await res.text().catch(()=>''); const e=new Error('REST '+method+' '+res.status+': '+t); e.code=res.status; throw e; }
+    return res.status===204 ? null : res.json().catch(()=>null);
+  }
   window.__fbShim = {
     ref(path){
       const r = ref(database, path);
@@ -107,11 +117,11 @@ try {
       return {
         on(event, cb, errCb){ unsub = onValue(r, cb, errCb); },
         off(){ if(unsub) unsub(); },
-        update(obj){ return update(r, obj); },
-        set(val){ return set(r, val); },
-        remove(){ return remove(r); },
-        push(val){ return push(r, val); },
-        once(event){ return get(r); }
+        update(obj){ return restReq(path, 'PATCH', obj); },
+        set(val){ return restReq(path, 'PUT', val); },
+        remove(){ return restReq(path, 'DELETE'); },
+        push(val){ return restReq(path, 'POST', val); },
+        once(event){ return restReq(path, 'GET').then(val=>({ val:()=>val, exists:()=>val!==null&&val!==undefined })); }
       };
     }
   };
