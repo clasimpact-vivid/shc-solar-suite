@@ -585,19 +585,23 @@ try {
               </sc-if>
             </div>
           </sc-if>
-          <button onClick="{{ openFollowUpForm }}" style="width:100%;padding:8px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12.5px;font-weight:600;color:#334155;cursor:pointer;display:{{ fuButtonDisplay }};" style-hover="background:#f8fafc;">📞 Notează contact / follow-up</button>
-          <div style="display:{{ fuFormDisplay }};flex-direction:column;gap:8px;">
-              <textarea value="{{ fuNoteInput }}" onChange="{{ onFuNote }}" placeholder="ex: nu poate vorbi acum, revin..." rows="2" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12.5px;font-family:inherit;resize:vertical;"></textarea>
-              <div style="position:relative;">
-                <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ fuDateInputDmy }}" onChange="{{ onFuDateDmy }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12.5px;box-sizing:border-box;">
-                <input type="date" value="{{ fuDateInput }}" onChange="{{ onFuDatePicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;">
-                <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;">📅</span>
-              </div>
-              <div style="display:flex;gap:8px;">
-                <button onClick="{{ cancelFollowUpForm }}" style="flex:1;padding:8px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12.5px;font-weight:600;color:#64748b;cursor:pointer;">Anulează</button>
-                <button onClick="{{ saveFollowUp }}" style="flex:1;padding:8px;border:none;background:#2563eb;color:#fff;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;">Salvează</button>
-              </div>
-          </div>
+          <sc-if value="{{ showFollowUpForm }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                <textarea value="{{ fuNoteInput }}" onChange="{{ onFuNote }}" placeholder="ex: nu poate vorbi acum, revin..." rows="2" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12.5px;font-family:inherit;resize:vertical;"></textarea>
+                <div style="position:relative;">
+                  <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ fuDateInputDmy }}" onChange="{{ onFuDateDmy }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12.5px;box-sizing:border-box;">
+                  <input type="date" value="{{ fuDateInput }}" onChange="{{ onFuDatePicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;">
+                  <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;">📅</span>
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <button onClick="{{ cancelFollowUpForm }}" style="flex:1;padding:8px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12.5px;font-weight:600;color:#64748b;cursor:pointer;">Anulează</button>
+                  <button onClick="{{ saveFollowUp }}" style="flex:1;padding:8px;border:none;background:#2563eb;color:#fff;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;">Salvează</button>
+                </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ showFollowUpFormNot }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ openFollowUpForm }}" style="width:100%;padding:8px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12.5px;font-weight:600;color:#334155;cursor:pointer;" style-hover="background:#f8fafc;">📞 Notează contact / follow-up</button>
+          </sc-if>
         </div>
         <!-- Etape șantier -->
         <div style="border-top:1px solid #f1f5f9;padding-top:18px;margin-top:18px;">
@@ -2492,9 +2496,10 @@ class Component extends DCLogic {
       canEditResponsabil:isFullAccess,canEditResponsabilNot:!isFullAccess,responsabilOptions,
       fuButtonDisplay: showFollowUpForm?'none':'block',
       fuFormDisplay: showFollowUpForm?'flex':'none',
+      showFollowUpFormNot:!showFollowUpForm,
       openFollowUpForm:()=>{ const def=new Date(); def.setDate(def.getDate()+10); const defIso=def.toISOString().slice(0,10); this.setState({showFollowUpForm:true,fuNoteInput:'',fuDateInput:defIso,fuDateInputDmy:isoToDmy(defIso)}); },
       cancelFollowUpForm:()=>this.setState({showFollowUpForm:false}),
-      onFuNote:e=>{ const val=e.target.value; console.log('[DEBUG fu] onFuNote fired, val=',val); this.setState({fuNoteInput:val}); },
+      onFuNote:e=>this.setState({fuNoteInput:e.target.value}),
       onFuDateDmy:e=>{ const v=maskDmy(this.state.fuDateInputDmy,e.target.value); this.setState({fuDateInputDmy:v,fuDateInput:dmyToIso(v)}); },
       onFuDatePicker:e=>{ const iso=e.target.value; this.setState({fuDateInput:iso,fuDateInputDmy:isoToDmy(iso)}); },
       saveFollowUp:()=>{
