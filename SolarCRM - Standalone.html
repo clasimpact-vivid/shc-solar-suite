@@ -84,9 +84,39 @@ input,select,textarea,button{font-family:inherit;}
 .crm-mobile-cards{display:none;}
 [style*="cursor:pointer"]:active, [style*="cursor: pointer"]:active { filter:brightness(0.93); }
 </style>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, off, update, get, set, remove, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+try {
+  const app = initializeApp({
+    apiKey: "AIzaSyBVElgXbEabUcwjNMa27IEw0YkxaEaXYl0",
+    authDomain: "solarcrm-ba919.firebaseapp.com",
+    databaseURL: "https://solarcrm-ba919-default-rtdb.firebaseio.com",
+    projectId: "solarcrm-ba919",
+    storageBucket: "solarcrm-ba919.firebasestorage.app",
+    messagingSenderId: "349523166308",
+    appId: "1:349523166308:web:0533aa1dae74f9a0b3cb71"
+  }, "solarcrm-isolated-app");
+  const database = getDatabase(app);
+  // Shim izolat (nu depinde de window.firebase, evită conflictul cu extensii de browser
+  // care injectează propriul SDK Firebase în pagină și corup conexiunea globală).
+  window.__fbShim = {
+    ref(path){
+      const r = ref(database, path);
+      let unsub = null;
+      return {
+        on(event, cb, errCb){ unsub = onValue(r, cb, errCb); },
+        off(){ if(unsub) unsub(); },
+        update(obj){ return update(r, obj); },
+        set(val){ return set(r, val); },
+        remove(){ return remove(r); },
+        push(val){ return push(r, val); },
+        once(event){ return get(r); }
+      };
+    }
+  };
+} catch(e){ console.error('Firebase (modular) init failed', e); }
+</script>
 <script>
 // Diagnostic vizibil: dacă apare o eroare JS pe telefon (unde nu poți deschide consola),
 // afișăm un banner roșu în loc să înghețe ecranul fără niciun indiciu.
@@ -1360,21 +1390,9 @@ let _fbDb = null;
 function getDb(){
   try {
     if(_fbDb) return _fbDb;
-    if(typeof firebase==='undefined') return null;
-    if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
-    _fbDb = firebase.database();
+    if(typeof window.__fbShim==='undefined') return null;
+    _fbDb = window.__fbShim;
     return _fbDb;
-  } catch(e){ return null; }
-}
-
-let _fbStorage = null;
-function getStorage(){
-  try {
-    if(_fbStorage) return _fbStorage;
-    if(typeof firebase==='undefined') return null;
-    if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
-    _fbStorage = firebase.storage();
-    return _fbStorage;
   } catch(e){ return null; }
 }
 
