@@ -1790,6 +1790,7 @@ class Component extends DCLogic {
           } else {
             targets=projects;
           }
+          console.log('[persist-debug] onlyId='+onlyId+' db='+(!!db)+' totalProjects='+projects.length+' targetsFound='+targets.length+' pendingWritesExists='+(!!this._pendingWrites));
           if(targets.length){
             if(onlyId!=null && this._pendingWrites){
               this._pendingWrites.add(onlyId);
