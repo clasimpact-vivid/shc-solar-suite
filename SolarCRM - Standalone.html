@@ -1766,8 +1766,12 @@ class Component extends DCLogic {
             if(onlyId!=null && this._pendingWrites){
               this._pendingWrites.add(onlyId);
               const clear=()=>{ if(this._pendingWrites) this._pendingWrites.delete(onlyId); };
-              writePromise=db.ref('solarcrm_v2/projects/'+String(targets[0].id)).update(stripAtt(targets[0]));
-              if(writePromise&&writePromise.then) writePromise.then(clear).catch(err=>{clear();console.error('Scriere proiect eșuată',err);this.setState({fbWriteError:'Nu s-a putut salva lucrarea pe server. Verifică conexiunea și încearcă din nou.'});}); else setTimeout(clear,3000);
+              const pRef=db.ref('solarcrm_v2/projects/'+String(targets[0].id));
+              writePromise=pRef.update(stripAtt(targets[0]));
+              if(writePromise&&writePromise.then) writePromise.then(()=>{
+                clear();
+                pRef.once('value').then(snap=>{ if(!snap.exists()) this.setState({fbWriteError:'ATENȚIE: scrierea a fost confirmată de SDK dar lucrarea NU există pe server (id '+targets[0].id+'). Contactează dezvoltatorul.'}); }).catch(()=>{});
+              }).catch(err=>{clear();console.error('Scriere proiect eșuată',err);this.setState({fbWriteError:'Nu s-a putut salva lucrarea pe server ('+(err&&err.code?err.code:'eroare necunoscută')+'). Verifică conexiunea și încearcă din nou.'});}); else setTimeout(clear,3000);
             } else {
               targets.forEach(p=>{
                 if(this._pendingWrites){
