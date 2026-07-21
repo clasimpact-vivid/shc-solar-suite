@@ -1658,10 +1658,15 @@ class Component extends DCLogic {
       } else {
         projects = [];
       }
-      // Nu lăsăm un snapshot server (posibil în cursă) să suprascrie un proiect cu scriere locală încă în curs
+      // Nu lăsăm un snapshot server (posibil în cursă) să suprascrie sau să elimine un proiect cu scriere locală încă în curs
       if(this._pendingWrites && this._pendingWrites.size){
         const localById={}; (this.state.projects||[]).forEach(p=>{localById[p.id]=p;});
+        const seenIds=new Set(projects.map(p=>p.id));
         projects = projects.map(p=>this._pendingWrites.has(p.id)&&localById[p.id]?localById[p.id]:p);
+        // Dacă scrierea locală (ex: proiect nou-creat) încă nu a ajuns deloc în snapshot-ul server, îl păstrăm
+        this._pendingWrites.forEach(id=>{
+          if(!seenIds.has(id) && localById[id]) projects.push(localById[id]);
+        });
       }
       projects.sort((a,b)=>b.id-a.id);
       const cfg = data.config||{};
@@ -1729,7 +1734,16 @@ class Component extends DCLogic {
               writePromise=db.ref('solarcrm_v2/projects/'+String(targets[0].id)).update(stripAtt(targets[0]));
               if(writePromise&&writePromise.then) writePromise.then(clear).catch(clear); else setTimeout(clear,3000);
             } else {
-              targets.forEach(p=>{ db.ref('solarcrm_v2/projects/'+String(p.id)).update(stripAtt(p)); });
+              targets.forEach(p=>{
+                if(this._pendingWrites){
+                  this._pendingWrites.add(p.id);
+                  const clear=()=>{ if(this._pendingWrites) this._pendingWrites.delete(p.id); };
+                  const wp=db.ref('solarcrm_v2/projects/'+String(p.id)).update(stripAtt(p));
+                  if(wp&&wp.then) wp.then(clear).catch(clear); else setTimeout(clear,3000);
+                } else {
+                  db.ref('solarcrm_v2/projects/'+String(p.id)).update(stripAtt(p));
+                }
+              });
             }
           }
         }

@@ -4176,18 +4176,21 @@ function buildOfferHTML(r){
       '<div style="display:flex;align-items:center;gap:14px"><div style="width:46px;height:46px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px">🏠</div><div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:19px;color:#fff;letter-spacing:.3px">'+esc(firma.toUpperCase())+'</div><div style="font-size:9.5px;letter-spacing:1.8px;color:rgba(255,255,255,.5);margin-top:4px;font-weight:600">EPC · FOTOVOLTAIC · STOCARE · ANRE A3/E1/E2</div></div></div>'+
       '<div style="border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:7px 16px;font-family:monospace;font-size:10px;color:rgba(255,255,255,.7);letter-spacing:.5px;white-space:nowrap">ISO 9001 · 14001 · 45001 · 27001</div>'+
     '</div>'+
-    '<div style="height:22mm"></div>'+
+    '<div style="height:34mm"></div>'+
     '<div style="padding:0 18mm">'+
       '<div style="font-family:monospace;font-size:11px;letter-spacing:2.5px;color:'+GOLD+';font-weight:700;text-transform:uppercase">OFERTĂ TEHNICO-ECONOMICĂ · '+(bessIncl?'SISTEM DE STOCARE A ENERGIEI (BESS)':(r.kwp>0?'SISTEM FOTOVOLTAIC':'SOLUȚIE ENERGETICĂ'))+'</div>'+
       '<h1 style="font-family:Archivo,sans-serif;font-weight:800;font-size:34px;line-height:1.1;color:#fff;margin:10px 0 12px;letter-spacing:-.6px">'+esc(sysTitle)+'</h1>'+
       '<p style="font-size:12.5px;color:rgba(255,255,255,.6);margin:0 0 16px;max-width:150mm;line-height:1.5">Soluție EPC completă „la cheie": proiectare, aprovizionare echipamente, instalare, testare și punere în funcțiune, integrate în instalația existentă.</p>'+
       '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">'+badgesHTML+'</div>'+
-      '<div style="border-top:1px solid rgba(255,255,255,.12);padding-top:12px;margin-bottom:14px">'+factsHTML+'</div>'+
+      '<div style="border-top:1px solid rgba(255,255,255,.12);padding-top:12px;text-align:center">'+factsHTML+'</div>'+
+    '</div>'+
+    '<div style="flex:1"></div>'+
+    '<div style="padding:0 18mm">'+
       '<div style="display:flex;gap:12px;margin-bottom:12px">'+
         '<div style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:13px 16px"><div style="font-size:9px;letter-spacing:1.2px;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase">Beneficiar</div><div style="font-family:Archivo,sans-serif;font-weight:700;font-size:15px;color:#fff;margin-top:5px">'+esc(clientDisp)+'</div><div style="font-size:10px;color:rgba(255,255,255,.45);margin-top:2px">'+(bessIncl?'Sistem de stocare a energiei (BESS)':'Sistem fotovoltaic')+'</div></div>'+
         '<div style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:13px 16px"><div style="font-size:9px;letter-spacing:1.2px;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase">Furnizor / Executant EPC</div><div style="font-family:Archivo,sans-serif;font-weight:700;font-size:15px;color:#fff;margin-top:5px">'+esc(firma)+'</div><div style="font-size:10px;color:rgba(255,255,255,.45);margin-top:2px">'+esc(document.getElementById('firmaCUI').value||'')+' · '+esc(document.getElementById('firmaRegCom').value||'')+' · '+esc(document.getElementById('firmaAdresa').value||'')+'</div></div>'+
       '</div>'+
-      '<div style="display:inline-block;border:1px solid '+GOLD+';border-radius:20px;padding:6px 16px;font-family:monospace;font-size:10px;color:'+GOLD+';letter-spacing:.4px;margin-bottom:14px">● OFERTĂ '+esc(nrOferta)+' · DATA: '+esc(dataOferta)+' · VALABILĂ PÂNĂ LA: '+esc(validUntil)+'</div>'+
+      '<div style="display:inline-block;border:1px solid '+GOLD+';border-radius:20px;padding:6px 16px;font-family:monospace;font-size:10px;color:'+GOLD+';letter-spacing:.4px">● OFERTĂ '+esc(nrOferta)+' · DATA: '+esc(dataOferta)+' · VALABILĂ PÂNĂ LA: '+esc(validUntil)+'</div>'+
     '</div>'+
     '<div style="flex:1"></div>'+
     '<div style="display:flex;border-top:1px solid rgba(255,255,255,.12)">'+coverKpiCard(coverKpi1)+coverKpiCard(coverKpi2)+coverKpiCard(coverKpi3)+'<div style="flex:1;padding:18px 22px;background:'+GOLD+'"><div style="font-size:9px;letter-spacing:1.2px;color:rgba(0,0,0,.55);font-weight:700;text-transform:uppercase">Payback simplu</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:24px;color:'+AC+';margin-top:6px">'+paybackStr+'</div><div style="font-size:10px;color:rgba(0,0,0,.5);margin-top:4px">perioadă de amortizare</div></div></div>'+
