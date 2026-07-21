@@ -1771,7 +1771,7 @@ class Component extends DCLogic {
   }
 
   persist(onlyId,projectsOverride,usersOverride){
-    console.log('[DEBUG persist] onlyId=',onlyId,'typeof=',typeof onlyId);
+    console.log('[DEBUG persist] onlyId=',onlyId,'typeof=',typeof onlyId,'projectsOverrideLen=',projectsOverride?projectsOverride.length:null);
     try {
       const {companyInfo}=this.state;
       const projects=projectsOverride||this.state.projects;
@@ -1794,16 +1794,20 @@ class Component extends DCLogic {
           } else {
             targets=projects;
           }
+          console.log('[DEBUG persist] targetsFound=',targets.length,'db=',!!db);
           if(targets.length){
             if(onlyId!=null && this._pendingWrites){
               this._pendingWrites.add(onlyId);
               const clear=()=>{ if(this._pendingWrites) this._pendingWrites.delete(onlyId); };
               const pRef=db.ref('solarcrm_v2/projects/'+String(targets[0].id));
+              console.log('[DEBUG persist] calling update on path=','solarcrm_v2/projects/'+String(targets[0].id));
               writePromise=pRef.update(stripAtt(targets[0]));
+              console.log('[DEBUG persist] writePromise=',writePromise,'hasThen=',!!(writePromise&&writePromise.then));
               if(writePromise&&writePromise.then) writePromise.then(()=>{
+                console.log('[DEBUG persist] write RESOLVED OK for id',targets[0].id);
                 clear();
                 pRef.once('value').then(snap=>{ if(!snap.exists()) this.setState({fbWriteError:'ATENȚIE: scrierea a fost confirmată de SDK dar lucrarea NU există pe server (id '+targets[0].id+'). Contactează dezvoltatorul.'}); }).catch(()=>{});
-              }).catch(err=>{clear();console.error('Scriere proiect eșuată',err);this.setState({fbWriteError:'Nu s-a putut salva lucrarea pe server ('+(err&&err.code?err.code:'eroare necunoscută')+'). Verifică conexiunea și încearcă din nou.'});}); else setTimeout(clear,3000);
+              }).catch(err=>{console.log('[DEBUG persist] write REJECTED',err);clear();console.error('Scriere proiect eșuată',err);this.setState({fbWriteError:'Nu s-a putut salva lucrarea pe server ('+(err&&err.code?err.code:'eroare necunoscută')+'). Verifică conexiunea și încearcă din nou.'});}); else setTimeout(clear,3000);
             } else {
               targets.forEach(p=>{
                 if(this._pendingWrites){
