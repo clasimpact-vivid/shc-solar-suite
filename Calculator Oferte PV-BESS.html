@@ -99,6 +99,14 @@
     #topBtns button{flex:1 1 calc(50% - 6px);font-size:11px;padding:8px 6px;}
     /* Centralizator financiar tabele */
     .capex-tbl td{padding:4px 3px;font-size:11px;}
+    /* Bară pași — Prev/Next mai compacte, pastilele rămân scroll orizontal */
+    #stepNav>div{padding:5px!important;gap:6px!important;}
+    #stepPrevBtn,#stepNextBtn{padding:8px 10px!important;font-size:11.5px!important;}
+  }
+  @media (max-width:380px){
+    #stepPrevBtn{padding:8px 8px!important;font-size:0!important;}
+    #stepPrevBtn::after{content:'◄';font-size:13px;}
+    #stepNextBtn{white-space:nowrap;}
   }
 
   label{font-size:11px;color:var(--text2);display:block;margin-bottom:5px;font-weight:600;letter-spacing:.2px;text-transform:uppercase;}
@@ -4421,10 +4429,12 @@ function buildOfferHTML(r){
     '.bar button{background:'+GOLD+';color:'+AC+';border:0;font-weight:700;padding:8px 16px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:13px}'+
     '.pages{padding:60px 24px 40px;display:flex;flex-direction:column;align-items:center;gap:24px}'+
     '.page{width:210mm;min-height:297mm;background:#fff;box-shadow:0 4px 24px rgba(20,30,50,.12);display:flex;flex-direction:column}'+
-    '@page{size:A4;margin:0}@media print{body{background:#fff}.bar{display:none}.pages{padding:0;gap:0}.page{box-shadow:none;page-break-after:always;break-after:page}.page:last-child{page-break-after:auto}}</style></head>'+
+    '@media screen and (max-width:900px){.pages{padding:16px 0 24px;gap:16px}.page{transform:scale(var(--pgscale,1));transform-origin:top center;margin-bottom:calc((var(--pgscale,1) - 1) * 297mm)}.bar{flex-wrap:wrap;padding:10px 14px}.bar span{font-size:12px}}'+
+    '@page{size:A4;margin:0}@media print{body{background:#fff}.bar{display:none}.pages{padding:0;gap:0}.page{transform:none!important;margin:0!important}.page{box-shadow:none;page-break-after:always;break-after:page}.page:last-child{page-break-after:auto}}</style></head>'+
     '<body><div class="bar"><span>Ofertă '+esc(nrOferta)+' — previzualizare. Apasă „Printează" și alege „Salvează ca PDF".</span><button onclick="window.print()">🖨 Printează / Salvează PDF</button></div>'+
     '<div class="pages">'+p1+pSumar+pSpecs+p3+p4+p5+p6+equipPage+p2+echipPage+pTermeni+legendPage+'</div>'+
     '<script>window.addEventListener(\'load\',function(){var go=function(){setTimeout(function(){try{window.print();}catch(e){}},400);};if(document.fonts&&document.fonts.ready){document.fonts.ready.then(go);}else{go();}});<\/script>'+
+    '<script>function fitPages(){if(window.innerWidth>900)return;var w=window.innerWidth-16;var s=Math.min(1,w/793.7);document.documentElement.style.setProperty(\'--pgscale\',s);}fitPages();window.addEventListener(\'resize\',fitPages);<\/script>'+
     '</body></html>';
   return doc;
 }
@@ -4614,7 +4624,10 @@ render();
   }
   pills.forEach(function(p){ p.addEventListener('click', function(){ showStep(+p.dataset.goto); }); });
   prevBtn.addEventListener('click', function(){ showStep(getStep()-1); });
-  nextBtn.addEventListener('click', function(){ showStep(getStep()+1); });
+  nextBtn.addEventListener('click', function(){
+    if(getStep()===TOTAL){ var b=document.getElementById('btnOfertaPdf'); if(b) b.click(); return; }
+    showStep(getStep()+1);
+  });
   window._pvbessShowStep = showStep;
   showStep(getStep());
   var adminOpenBtn=document.getElementById('btnAdminOpen'), adminBg=document.getElementById('adminModalBg'), adminBox=document.getElementById('adminSection'), adminCloseBtn=document.getElementById('btnAdminClose');
