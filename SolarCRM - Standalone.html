@@ -1770,6 +1770,7 @@ class Component extends DCLogic {
   }
 
   persist(onlyId,projectsOverride,usersOverride){
+    alert('DEBUG: persist() apelat cu onlyId='+onlyId);
     try {
       const {companyInfo}=this.state;
       const projects=projectsOverride||this.state.projects;
