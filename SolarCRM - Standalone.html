@@ -1771,6 +1771,7 @@ class Component extends DCLogic {
   }
 
   persist(onlyId,projectsOverride,usersOverride){
+    console.log('[DEBUG persist] onlyId=',onlyId,'typeof=',typeof onlyId);
     try {
       const {companyInfo}=this.state;
       const projects=projectsOverride||this.state.projects;
