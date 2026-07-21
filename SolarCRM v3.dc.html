@@ -8,6 +8,10 @@
 <body>
 <x-dc>
 <helmet>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+if(window.emailjs) emailjs.init({publicKey:'2rsJRlc7YG1yT_wQI'});
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&amp;display=swap" rel="stylesheet">
 <style>
@@ -82,6 +86,7 @@ input,select,textarea,button{font-family:inherit;}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 <script>
 // Diagnostic vizibil: dacă apare o eroare JS pe telefon (unde nu poți deschide consola),
 // afișăm un banner roșu în loc să înghețe ecranul fără niciun indiciu.
@@ -105,7 +110,12 @@ input,select,textarea,button{font-family:inherit;}
 </script>
 <template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 56"><rect width="80" height="56" fill="#0f1729"></rect><rect x="8" y="8" width="20" height="40" rx="3" fill="#1e293b"></rect><path d="M18 18l2.5 6.5 7 1-5 4.8 1.4 7-5.9-3.2-5.9 3.2 1.4-7-5-4.8 7-1z" fill="#f59e0b"></path><rect x="34" y="8" width="38" height="6" rx="2" fill="#1e293b"></rect><rect x="34" y="18" width="38" height="4" rx="1" fill="#1e293b"></rect><rect x="34" y="26" width="38" height="4" rx="1" fill="#1e293b"></rect><rect x="34" y="34" width="38" height="4" rx="1" fill="#1e293b"></rect><rect x="34" y="42" width="20" height="4" rx="1" fill="#1e293b"></rect></svg></template>
 </helmet>
-
+<sc-if value="{{ fbWriteError }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:99999;background:#dc2626;color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.35);display:flex;align-items:center;gap:12px;max-width:90vw;">
+    <span>{{ fbWriteError }}</span>
+    <span onClick="{{ dismissFbWriteError }}" style="cursor:pointer;font-weight:800;opacity:.8;">✕</span>
+  </div>
+</sc-if>
 
 <div style="display:flex;height:100vh;overflow:hidden;">
 
@@ -120,6 +130,9 @@ input,select,textarea,button{font-family:inherit;}
         <div style="color:#f8fafc;font-weight:700;font-size:15px;letter-spacing:-0.4px;">SolarCRM</div>
         <div style="color:#475569;font-size:11px;margin-top:1px;">lucrări fotovoltaice</div>
       </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:10.5px;color:#64748b;">
+      <span style="{{ fbDotStyle }}"></span><span>{{ fbStatusText }}</span>
     </div>
     <a href="./index.html" style="display:inline-block;margin-top:10px;font-size:11px;color:#475569;text-decoration:none;padding:4px 10px;border:1px solid rgba(255,255,255,0.12);border-radius:6px;">← Suite</a>
   </div>
@@ -234,21 +247,21 @@ input,select,textarea,button{font-family:inherit;}
   </sc-if>
 
   <!-- Content -->
-  <div style="flex:1;overflow:auto;padding:20px;">
+  <div style="flex:1;overflow:auto;padding:0 20px 20px;">
 
     <!-- TABLE VIEW -->
     <sc-if value="{{ isTableView }}" hint-placeholder-val="{{ true }}">
       <div class="crm-table-scroll crm-table-desktop">
-        <div style="min-width:980px;display:grid;grid-template-columns:38px 150px 86px 132px 150px 108px 88px 84px 90px 96px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-bottom:2px solid #e2e8f0;border-radius:12px 12px 0 0;gap:10px;position:sticky;top:0;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,0.04);">
+        <div style="min-width:980px;display:grid;grid-template-columns:38px 150px 86px 132px 150px 108px 88px 84px 90px 96px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-bottom:2px solid #e2e8f0;gap:10px;position:sticky;top:0;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,0.04);will-change:transform;transform:translateZ(0);">
           <div style="font-size:11px;font-weight:700;color:#94a3b8;text-align:center;">#</div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Client</div>
+          <div onClick="{{ sortByClient }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Client{{ sortArrowClient }}</div>
           <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Tip</div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Status</div>
+          <div onClick="{{ sortByStatus }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Status{{ sortArrowStatus }}</div>
           <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Adresă</div>
           <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Valoare</div>
           <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Responsabil</div>
           <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Data exec.</div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Înreg. CRM</div>
+          <div onClick="{{ sortByDateInserted }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Înreg. CRM{{ sortArrowDateInserted }}</div>
           <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Follow-up</div>
         </div>
         <div style="background:#fff;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;overflow:hidden;">
@@ -308,7 +321,7 @@ input,select,textarea,button{font-family:inherit;}
 
     <!-- KANBAN VIEW -->
     <sc-if value="{{ isKanbanView }}" hint-placeholder-val="{{ false }}">
-      <div style="display:flex;gap:14px;overflow-x:auto;padding-bottom:12px;align-items:flex-start;">
+      <div style="display:flex;gap:14px;overflow-x:auto;padding-bottom:12px;padding-top:20px;align-items:flex-start;">
         <sc-for list="{{ kanbanCols }}" as="col" hint-placeholder-count="8">
           <div style="flex:none;width:258px;display:flex;flex-direction:column;">
             <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px 8px;">
@@ -340,7 +353,7 @@ input,select,textarea,button{font-family:inherit;}
 
     <!-- REPORTS VIEW -->
     <sc-if value="{{ isReportsView }}" hint-placeholder-val="{{ false }}">
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;margin-top:20px;">
         <div style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:18px 20px;">
           <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Total lucrări</div>
           <div style="font-size:28px;font-weight:700;color:#0f172a;">{{ reportTotalCount }}</div>
@@ -512,7 +525,6 @@ input,select,textarea,button{font-family:inherit;}
           </div>
         </div>
         <!-- Ofertă PV button -->
-        <sc-if value="{{ sel.isPV }}" hint-placeholder-val="{{ false }}">
           <div style="border-top:1px solid #f1f5f9;padding-top:18px;margin-top:18px;">
             <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Calculator Ofertă</div>
             <button onClick="{{ generateOffer }}" style="display:flex;align-items:center;gap:8px;padding:9px 18px;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;width:100%;justify-content:center;" style-hover="background:#d97706;">
@@ -520,7 +532,6 @@ input,select,textarea,button{font-family:inherit;}
               Generează Ofertă PV-BESS
             </button>
           </div>
-        </sc-if>
         <!-- Follow-up -->
         <div style="border-top:1px solid #f1f5f9;padding-top:18px;margin-top:18px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -534,11 +545,8 @@ input,select,textarea,button{font-family:inherit;}
               </sc-if>
             </div>
           </sc-if>
-          <sc-if value="{{ !showFollowUpForm }}" hint-placeholder-val="{{ true }}">
-            <button onClick="{{ openFollowUpForm }}" style="width:100%;padding:8px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12.5px;font-weight:600;color:#334155;cursor:pointer;" style-hover="background:#f8fafc;">📞 Notează contact / follow-up</button>
-          </sc-if>
-          <sc-if value="{{ showFollowUpForm }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;flex-direction:column;gap:8px;">
+          <button onClick="{{ openFollowUpForm }}" style="width:100%;padding:8px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12.5px;font-weight:600;color:#334155;cursor:pointer;display:{{ fuButtonDisplay }};" style-hover="background:#f8fafc;">📞 Notează contact / follow-up</button>
+          <div style="display:{{ fuFormDisplay }};flex-direction:column;gap:8px;">
               <textarea value="{{ fuNoteInput }}" onChange="{{ onFuNote }}" placeholder="ex: nu poate vorbi acum, revin..." rows="2" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12.5px;font-family:inherit;resize:vertical;"></textarea>
               <div style="position:relative;">
                 <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ fuDateInputDmy }}" onChange="{{ onFuDateDmy }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12.5px;box-sizing:border-box;">
@@ -549,8 +557,7 @@ input,select,textarea,button{font-family:inherit;}
                 <button onClick="{{ cancelFollowUpForm }}" style="flex:1;padding:8px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12.5px;font-weight:600;color:#64748b;cursor:pointer;">Anulează</button>
                 <button onClick="{{ saveFollowUp }}" style="flex:1;padding:8px;border:none;background:#2563eb;color:#fff;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;">Salvează</button>
               </div>
-            </div>
-          </sc-if>
+          </div>
         </div>
         <!-- Etape șantier -->
         <div style="border-top:1px solid #f1f5f9;padding-top:18px;margin-top:18px;">
@@ -644,16 +651,17 @@ input,select,textarea,button{font-family:inherit;}
             Adaugă fișiere
             <input type="file" multiple="" onChange="{{ onFileAdd }}" style="display:none;" accept="image/*,.pdf,.doc,.docx,.xlsx,.xls">
           </label>
-          <span style="font-size:11px;color:#94a3b8;margin-left:10px;">max 5MB / fișier</span>
+          <span style="font-size:11px;color:#94a3b8;margin-left:10px;">max 4MB / fișier</span>
         </div>
         <sc-if value="{{ hasAttachments }}" hint-placeholder-val="{{ false }}">
           <sc-for list="{{ attachmentItems }}" as="att" hint-placeholder-count="0">
             <div style="display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid #f1f5f9;">
               {{ att.imgEl }}
-              <div style="flex:1;min-width:0;">
-                <div style="font-size:13px;font-weight:500;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ att.filename }}</div>
+              <div style="flex:1;min-width:0;cursor:pointer;" onClick="{{ att.download }}">
+                <div style="font-size:13px;font-weight:500;color:#2563eb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:underline;">{{ att.filename }}</div>
                 <div style="font-size:11px;color:#94a3b8;margin-top:2px;">{{ att.sizeFmt }} · {{ att.addedBy }} · {{ att.timeAgo }}</div>
               </div>
+              <button onClick="{{ att.download }}" style="padding:4px 8px;border:1px solid #dbeafe;background:#fff;border-radius:5px;font-size:12px;cursor:pointer;color:#2563eb;flex:none;" style-hover="background:#eff6ff;">⬇</button>
               <button onClick="{{ att.remove }}" style="padding:4px 8px;border:1px solid #fee2e2;background:#fff;border-radius:5px;font-size:12px;cursor:pointer;color:#dc2626;flex:none;" style-hover="background:#fff5f5;">✕</button>
             </div>
           </sc-for>
@@ -670,7 +678,7 @@ input,select,textarea,button{font-family:inherit;}
 <!-- ADD/EDIT MODAL -->
 <sc-if value="{{ showModal }}" hint-placeholder-val="{{ false }}">
   <div onClick="{{ closeModal }}" style="position:fixed;inset:0;background:rgba(15,23,41,0.48);z-index:60;animation:fadeIn .15s;"></div>
-  <div class="crm-modal" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;max-height:88vh;background:#fff;border-radius:16px;z-index:70;display:flex;flex-direction:column;box-shadow:0 24px 72px rgba(0,0,0,.22);animation:scaleIn .18s cubic-bezier(0.16,1,0.3,1);overflow:hidden;">
+  <div class="crm-modal" style="position:fixed;top:88px;left:50%;transform:translateX(-50%);width:600px;max-height:calc(100vh - 110px);background:#fff;border-radius:16px;z-index:70;display:flex;flex-direction:column;box-shadow:0 24px 72px rgba(0,0,0,.22);animation:scaleIn .18s cubic-bezier(0.16,1,0.3,1);overflow:hidden;">
     <div style="padding:18px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;flex:none;">
       <div style="font-size:16px;font-weight:700;color:#0f172a;">{{ modalTitle }}</div>
       <button onClick="{{ closeModal }}" style="width:28px;height:28px;border:1px solid #e2e8f0;background:#fff;border-radius:7px;font-size:17px;cursor:pointer;color:#64748b;" style-hover="background:#f8fafc;">×</button>
@@ -710,7 +718,16 @@ input,select,textarea,button{font-family:inherit;}
         </div>
         <div>
           <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Responsabil</label>
+          <sc-if value="{{ canEditResponsabil }}" hint-placeholder-val="{{ false }}">
+            <select value="{{ form.responsabil }}" onChange="{{ onFormResponsabil }}" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:inherit;background:#fff;">
+              <sc-for list="{{ responsabilOptions }}" as="ro" hint-placeholder-count="3">
+                <option value="{{ ro }}">{{ ro }}</option>
+              </sc-for>
+            </select>
+          </sc-if>
+          <sc-if value="{{ canEditResponsabilNot }}" hint-placeholder-val="{{ true }}">
           <input value="{{ form.responsabil }}" readOnly="{{ true }}" disabled="{{ true }}" title="Setat automat la crearea lucrării — nu poate fi modificat" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;background:#f8fafc;color:#64748b;cursor:not-allowed;outline:none;">
+          </sc-if>
         </div>
         <div style="grid-column:span 2;">
           <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Nume client *</label>
@@ -739,6 +756,10 @@ input,select,textarea,button{font-family:inherit;}
             <input type="date" value="{{ form.date_start }}" onChange="{{ onFormDateStartPicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;">
             <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;">📅</span>
           </div>
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Follow-up peste (zile)</label>
+          <input type="number" min="1" value="{{ form.followUpDays }}" onChange="{{ onFormFollowUpDays }}" placeholder="14" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;">
         </div>
         <div>
           <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Data execuției</label>
@@ -857,104 +878,6 @@ input,select,textarea,button{font-family:inherit;}
     <div style="display:flex;gap:10px;">
       <button onClick="{{ closeCpModal }}" style="flex:1;padding:9px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:13px;cursor:pointer;">Anulează</button>
       <button onClick="{{ submitCpModal }}" style="flex:2;padding:9px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Salvează</button>
-    </div>
-  </div>
-</sc-if>
-
-<!-- LOGIN MODAL -->
-<sc-if value="{{ showUserModal }}" hint-placeholder-val="{{ false }}">
-  <div onClick="{{ userModalBgClick }}" style="position: fixed; inset: 0; background: {{ loginBgStyle }}; z-index: 100; animation: fadeIn .18s; backdrop-filter: blur(2px); width: 100%"></div>
-  <div style="position:fixed;inset:0;z-index:110;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;overflow-y:auto;padding:24px 0;pointer-events:none;">
-    <sc-if value="{{ isLoginMode }}" hint-placeholder-val="{{ false }}">
-      <a href="./index.html" style="flex:none;pointer-events:auto;font-size:11px;color:#94a3b8;text-decoration:none;padding:4px 10px;border:1px solid #334155;border-radius:6px;">← Suite</a>
-    </sc-if>
-    <div style="flex:none;pointer-events:auto;width:{{ loginModalWidth }};max-height:82vh;background:{{ loginModalBg }};border-radius:16px;display:flex;flex-direction:column;box-shadow:0 24px 72px rgba(0,0,0,.28);animation:scaleIn .18s cubic-bezier(0.16,1,0.3,1);overflow:hidden;border:{{ loginModalBorder }};">
-    <div style="padding:20px 20px 16px;border-bottom:1px solid {{ loginDivider }};flex:none;">
-      <sc-if value="{{ isLoginMode }}" hint-placeholder-val="{{ false }}">
-        <div style="display:flex;align-items:center;gap:12px;">
-          <div style="width:40px;height:40px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:10px;display:flex;align-items:center;justify-content:center;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L14.09 8.26L21 9.27L16.5 13.64L17.82 20.52L12 17.27L6.18 20.52L7.5 13.64L3 9.27L9.91 8.26L12 2Z" fill="white"></path></svg>
-          </div>
-          <div>
-            <div style="font-weight:800;font-size:16px;color:#f1f5f9;">SolarCRM</div>
-            <div style="font-size:11px;color:#64748b;">Smart House Color · Autentificare necesară</div>
-          </div>
-        </div>
-      </sc-if>
-      <sc-if value="{{ !isLoginMode }}" hint-placeholder-val="{{ true }}">
-        <div style="font-size:16px;font-weight:700;color:{{ loginTitleColor }};">{{ userModalTitle }}</div>
-        <div style="font-size:12px;color:#64748b;margin-top:2px;">{{ userModalSubtitle }}</div>
-      </sc-if>
-    </div>
-    <div style="flex:1;overflow-y:auto;padding:16px 20px;background:{{ loginModalBg }};">
-
-      <!-- PASSWORD STEP -->
-      <sc-if value="{{ showPwStep }}" hint-placeholder-val="{{ false }}">
-        <div style="text-align:center;padding:8px 0 20px;">
-          <div style="width:60px;height:60px;border-radius:50%;background:{{ pwStepColor }};display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:700;margin:0 auto 12px;">{{ pwStepInitials }}</div>
-          <div style="font-size:17px;font-weight:700;color:#0f172a;">{{ pwStepUser }}</div>
-          <div style="font-size:12px;color:#94a3b8;margin-top:3px;">Introdu parola pentru a continua</div>
-        </div>
-        <div style="margin-bottom:14px;">
-          <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Parolă</label>
-          <input type="password" value="{{ pwInput }}" onChange="{{ onPwInput }}" onKeyDown="{{ onPwKeyDown }}" placeholder="••••••••" style="width:100%;padding:10px 12px;border:1.5px solid {{ loginInputBorder }};border-radius:8px;font-size:14px;outline:none;color:{{ loginInputColor }};background:{{ loginInputBg }};">
-        </div>
-        <div style="display:flex;gap:8px;">
-          <button onClick="{{ cancelPwStep }}" style="flex:1;padding:10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:#374151;" style-hover="background:#f8fafc;">← Înapoi</button>
-          <button onClick="{{ confirmPassword }}" style="flex:2;padding:10px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;" style-hover="background:#1d4ed8;">Intră în cont</button>
-        </div>
-      </sc-if>
-
-      <!-- PIN QUICK LOGIN (implicit) -->
-      <sc-if value="{{ showPinStep }}" hint-placeholder-val="{{ true }}">
-        <div style="text-align:center;padding:4px 0 18px;">
-          <div style="font-size:15px;font-weight:800;color:#f1f5f9;">Introdu codul PIN (4 cifre)</div>
-          <div style="font-size:12px;color:#64748b;margin-top:3px;">{{ pinErrMsg }}</div>
-        </div>
-        <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;">
-          <sc-for list="{{ pinDots }}" as="d" hint-placeholder-count="4">
-            <div style="width:14px;height:14px;border-radius:50%;border:2px solid {{ d.color }};background:{{ d.bg }};"></div>
-          </sc-for>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:240px;margin:0 auto 16px;">
-          <sc-for list="{{ pinKeys }}" as="k" hint-placeholder-count="12">
-            <sc-if value="{{ k.visible }}" hint-placeholder-val="{{ true }}">
-              <button onClick="{{ k.onClick }}" style="width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:{{ k.bg }};color:#f1f5f9;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .25s;">{{ k.label }}</button>
-            </sc-if>
-            <sc-if value="{{ k.blank }}" hint-placeholder-val="{{ false }}">
-              <div style="width:72px;height:72px;"></div>
-            </sc-if>
-          </sc-for>
-        </div>
-        <div style="text-align:center;padding-top:6px;border-top:1px solid #1e293b;">
-          <a href="#" onClick="{{ closePinMode }}" style="font-size:12.5px;color:#64748b;">Administrator / Manager — intră cu parolă →</a>
-        </div>
-      </sc-if>
-
-      <!-- USER LIST -->
-      <sc-if value="{{ showNormalStep }}" hint-placeholder-val="{{ true }}">
-        <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">{{ loginSelectLabel }}</div>
-        <sc-for list="{{ allUsersList }}" as="u" hint-placeholder-count="3">
-          <div onClick="{{ u.onClick }}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid {{ u.borderColor }};border-radius:10px;cursor:pointer;margin-bottom:8px;background:{{ u.rowBg }};" style-hover="background:#f8fafc;border-color:#cbd5e1;">
-            <div style="width:40px;height:40px;border-radius:50%;background:{{ u.color }};display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700;flex:none;">{{ u.initials }}</div>
-            <div style="flex:1;">
-              <div style="font-weight:600;font-size:14px;color:#0f172a;">{{ u.name }}</div>
-              <div style="font-size:12px;color:#64748b;">{{ u.role }}</div>
-            </div>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="flex:none;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
-          </div>
-        </sc-for>
-        <sc-if value="{{ noRegularUsers }}">
-          <div style="text-align:center;padding:12px 0 4px;color:#94a3b8;font-size:12px;">Niciun alt utilizator creat.</div>
-        </sc-if>
-        <sc-if value="{{ isLoginMode }}">
-          <div style="text-align:center;margin-top:14px;padding-top:14px;border-top:1px solid {{ loginDivider }};">
-            <a href="#" onClick="{{ openPinMode }}" style="font-size:12.5px;color:#64748b;">← Înapoi la login cu PIN</a>
-          </div>
-        </sc-if>
-      </sc-if>
-
     </div>
   </div>
 </sc-if>
@@ -1317,6 +1240,103 @@ AVRAMUT	SORIN-ILIE	Electrician" style="width:100%;min-height:220px;font-family:m
           <button onClick="{{ umSaveAdminPw }}" style="padding:11px;background:#dc2626;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;" style-hover="background:#b91c1c;">Schimbă parola Admin</button>
         </div>
       </sc-if>
+    </div>
+  </div>
+</sc-if>
+
+<!-- LOGIN MODAL -->
+<sc-if value="{{ showUserModal }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ userModalBgClick }}" style="position: fixed; inset: 0; background: {{ loginBgStyle }}; z-index: 100; animation: fadeIn .18s; backdrop-filter: blur(2px); width: 100%"></div>
+  <div style="position:fixed;inset:0;z-index:110;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;overflow-y:auto;padding:24px 0;pointer-events:none;">
+    <sc-if value="{{ isLoginMode }}" hint-placeholder-val="{{ false }}">
+      <a href="./index.html" style="flex:none;pointer-events:auto;font-size:11px;color:#94a3b8;text-decoration:none;padding:4px 10px;border:1px solid #334155;border-radius:6px;">← Suite</a>
+    </sc-if>
+    <div style="flex:none;pointer-events:auto;width:{{ loginModalWidth }};max-height:82vh;background:{{ loginModalBg }};border-radius:16px;display:flex;flex-direction:column;box-shadow:0 24px 72px rgba(0,0,0,.28);animation:scaleIn .18s cubic-bezier(0.16,1,0.3,1);overflow:hidden;border:{{ loginModalBorder }};">
+    <div style="padding:20px 20px 16px;border-bottom:1px solid {{ loginDivider }};flex:none;">
+      <sc-if value="{{ isLoginMode }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:40px;height:40px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L14.09 8.26L21 9.27L16.5 13.64L17.82 20.52L12 17.27L6.18 20.52L7.5 13.64L3 9.27L9.91 8.26L12 2Z" fill="white"></path></svg>
+          </div>
+          <div>
+            <div style="font-weight:800;font-size:16px;color:#f1f5f9;">SolarCRM</div>
+            <div style="font-size:11px;color:#64748b;">Smart House Color · Autentificare necesară</div>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ !isLoginMode }}" hint-placeholder-val="{{ true }}">
+        <div style="font-size:16px;font-weight:700;color:{{ loginTitleColor }};">{{ userModalTitle }}</div>
+        <div style="font-size:12px;color:#64748b;margin-top:2px;">{{ userModalSubtitle }}</div>
+      </sc-if>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:16px 20px;background:{{ loginModalBg }};">
+
+      <!-- PASSWORD STEP -->
+      <sc-if value="{{ showPwStep }}" hint-placeholder-val="{{ false }}">
+        <div style="text-align:center;padding:8px 0 20px;">
+          <div style="width:60px;height:60px;border-radius:50%;background:{{ pwStepColor }};display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:700;margin:0 auto 12px;">{{ pwStepInitials }}</div>
+          <div style="font-size:17px;font-weight:700;color:#0f172a;">{{ pwStepUser }}</div>
+          <div style="font-size:12px;color:#94a3b8;margin-top:3px;">Introdu parola pentru a continua</div>
+        </div>
+        <div style="margin-bottom:14px;">
+          <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Parolă</label>
+          <input type="password" value="{{ pwInput }}" onChange="{{ onPwInput }}" onKeyDown="{{ onPwKeyDown }}" placeholder="••••••••" style="width:100%;padding:10px 12px;border:1.5px solid {{ loginInputBorder }};border-radius:8px;font-size:14px;outline:none;color:{{ loginInputColor }};background:{{ loginInputBg }};">
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button onClick="{{ cancelPwStep }}" style="flex:1;padding:10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:#374151;" style-hover="background:#f8fafc;">← Înapoi</button>
+          <button onClick="{{ confirmPassword }}" style="flex:2;padding:10px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;" style-hover="background:#1d4ed8;">Intră în cont</button>
+        </div>
+      </sc-if>
+
+      <!-- PIN QUICK LOGIN (implicit) -->
+      <sc-if value="{{ showPinStep }}" hint-placeholder-val="{{ true }}">
+        <div style="text-align:center;padding:4px 0 18px;">
+          <div style="font-size:15px;font-weight:800;color:#f1f5f9;">Introdu codul PIN (4 cifre)</div>
+          <div style="font-size:12px;color:#64748b;margin-top:3px;">{{ pinErrMsg }}</div>
+        </div>
+        <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;">
+          <sc-for list="{{ pinDots }}" as="d" hint-placeholder-count="4">
+            <div style="width:14px;height:14px;border-radius:50%;border:2px solid {{ d.color }};background:{{ d.bg }};"></div>
+          </sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:240px;margin:0 auto 16px;">
+          <sc-for list="{{ pinKeys }}" as="k" hint-placeholder-count="12">
+            <sc-if value="{{ k.visible }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ k.onClick }}" style="width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:{{ k.bg }};color:#f1f5f9;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .25s;">{{ k.label }}</button>
+            </sc-if>
+            <sc-if value="{{ k.blank }}" hint-placeholder-val="{{ false }}">
+              <div style="width:72px;height:72px;"></div>
+            </sc-if>
+          </sc-for>
+        </div>
+        <div style="text-align:center;padding-top:6px;border-top:1px solid #1e293b;">
+          <a href="#" onClick="{{ closePinMode }}" style="font-size:12.5px;color:#64748b;">Administrator / Manager — intră cu parolă →</a>
+        </div>
+      </sc-if>
+
+      <!-- USER LIST -->
+      <sc-if value="{{ showNormalStep }}" hint-placeholder-val="{{ true }}">
+        <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">{{ loginSelectLabel }}</div>
+        <sc-for list="{{ allUsersList }}" as="u" hint-placeholder-count="3">
+          <div onClick="{{ u.onClick }}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid {{ u.borderColor }};border-radius:10px;cursor:pointer;margin-bottom:8px;background:{{ u.rowBg }};" style-hover="background:#f8fafc;border-color:#cbd5e1;">
+            <div style="width:40px;height:40px;border-radius:50%;background:{{ u.color }};display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700;flex:none;">{{ u.initials }}</div>
+            <div style="flex:1;">
+              <div style="font-weight:600;font-size:14px;color:#0f172a;">{{ u.name }}</div>
+              <div style="font-size:12px;color:#64748b;">{{ u.role }}</div>
+            </div>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="flex:none;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
+          </div>
+        </sc-for>
+        <sc-if value="{{ noRegularUsers }}">
+          <div style="text-align:center;padding:12px 0 4px;color:#94a3b8;font-size:12px;">Niciun alt utilizator creat.</div>
+        </sc-if>
+        <sc-if value="{{ isLoginMode }}">
+          <div style="text-align:center;margin-top:14px;padding-top:14px;border-top:1px solid {{ loginDivider }};">
+            <a href="#" onClick="{{ openPinMode }}" style="font-size:12.5px;color:#64748b;">← Înapoi la login cu PIN</a>
+          </div>
+        </sc-if>
+      </sc-if>
 
     </div>
   </div>
@@ -1347,6 +1367,17 @@ function getDb(){
   } catch(e){ return null; }
 }
 
+let _fbStorage = null;
+function getStorage(){
+  try {
+    if(_fbStorage) return _fbStorage;
+    if(typeof firebase==='undefined') return null;
+    if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+    _fbStorage = firebase.storage();
+    return _fbStorage;
+  } catch(e){ return null; }
+}
+
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 const ADMIN_ID = '_admin';
 const ADMIN_DEFAULT_PW = '12345';
@@ -1371,10 +1402,13 @@ function maskDmy(prev,cur){
 }
 
 const DEFAULT_USERS = [
-  {id:'u_nicoras', name:'Ionut Nicoras', role:'Administrator', password:'12345', pin:'1001', color:'#d97706', isSuperAdmin:true, segmente:['PV','Inverter','Baterie','BESS']},
-  {id:'u_chirila', name:'Alexandru Chirila', role:'Manager', password:'12345', pin:'1002', color:'#7c3aed', isSuperAdmin:true, segmente:['PV','Inverter','Baterie','BESS']},
-  {id:'u_dobre', name:'Cristian Dobre', role:'Vânzări', password:'12345', pin:'1003', color:'#16a34a', isSuperAdmin:false, segmente:['PV','Inverter','Baterie']},
-  {id:'u_sirb', name:'Beniamin Sirb', role:'Backoffice', password:'12345', pin:'1004', color:'#0891b2', isSuperAdmin:false, segmente:['PV','Inverter','Baterie']},
+  {id:'u_nicoras', name:'Ionut Nicoras', role:'Administrator', password:'12345', pin:'0000', color:'#d97706', isSuperAdmin:true, segmente:['PV','Inverter','Baterie','BESS']},
+  {id:'u_chirila', name:'Alexandru Chirila', role:'Manager', password:'12345', pin:'7777', color:'#7c3aed', isSuperAdmin:true, segmente:['PV','Inverter','Baterie','BESS']},
+  {id:'u_dobre', name:'Cristian Dobre', role:'Vânzări', password:'12345', pin:'1111', color:'#16a34a', isSuperAdmin:false, segmente:['PV','Inverter','Baterie']},
+  {id:'u_sirb', name:'Beniamin Sirb', role:'Backoffice', password:'12345', pin:'2222', color:'#0891b2', isSuperAdmin:false, segmente:['PV','Inverter','Baterie']},
+  {id:'u_gliga', name:'Andreea Gliga', role:'Backoffice', password:'12345', pin:'9999', color:'#db2777', isSuperAdmin:false, segmente:['PV','Inverter','Baterie']},
+  {id:'u_cosmin', name:'Cosmin', role:'Vânzări', password:'12345', pin:'3333', color:'#0d9488', isSuperAdmin:false, segmente:['PV','Inverter','Baterie']},
+  {id:'u_eszter', name:'Eszter', role:'Contabilitate', password:'12345', pin:'5555', color:'#ea580c', isSuperAdmin:false, segmente:['PV','Inverter','Baterie']},
 ];
 
 const ADMIN_USER = {
@@ -1410,7 +1444,7 @@ const STATUSES_LIST = ['Lead','Ofertă','Contract','Programat','În execuție','
 const USER_COLORS = ['#2563eb','#16a34a','#7c3aed','#d97706','#0e7490','#9333ea','#c2410c','#0f766e','#b45309','#be185d'];
 const NAV_TYPES = [{key:'all',label:'Toate lucrările',dot:'#94a3b8'},{key:'PV',label:'PV (Fotovoltaic)',dot:'#f59e0b'},{key:'Inverter',label:'Inverter',dot:'#3b82f6'},{key:'Baterie',label:'Baterie',dot:'#8b5cf6'},{key:'BESS',label:'BESS',dot:'#22c55e'}];
 const EMPTY_FORM_DMY_FIELDS = {date_start_dmy:'',date_executie_dmy:'',date_end_dmy:''};
-const EMPTY_FORM = {typePV:true,typeInverter:false,typeBaterie:false,typeBESS:false,status:'Lead',client:'',phone:'',email:'',address:'',value:'',responsabil:'',date_start:'',date_executie:'',date_end:'',date_start_dmy:'',date_executie_dmy:'',date_end_dmy:'',equipment:'',kwp:'',panels:'',mounting:'acoperiș',prosumator:false,notes:'',bessKwh:'',capexBESS:'',capexSTS:''};
+const EMPTY_FORM = {typePV:true,typeInverter:false,typeBaterie:false,typeBESS:false,status:'Lead',client:'',phone:'',email:'',address:'',value:'',responsabil:'',date_start:'',date_executie:'',date_end:'',date_start_dmy:'',date_executie_dmy:'',date_end_dmy:'',equipment:'',kwp:'',panels:'',mounting:'acoperiș',prosumator:false,notes:'',bessKwh:'',capexBESS:'',capexSTS:'',followUpDays:'14'};
 const APP_ROLE_TEMPLATES = {
   montator:{appCrm:false,appCalculator:false,appPlanificare:false,appVizita:false,appPontaj:true},
   sefechipa:{appCrm:false,appCalculator:false,appPlanificare:true,appVizita:true,appPontaj:true},
@@ -1444,7 +1478,9 @@ function fmtTypes(types){
   return {typeLabel:types.join('+'),typeBg:'#f8fafc',typeColor:'#374151'};
 }
 function migrate(p){
-  return {...p,types:p.types||(p.type?[p.type]:['PV']),responsabil:p.responsabil||p.technician||null,date_executie:p.date_executie||null,date_inserted:p.date_inserted||p.date_start||new Date().toISOString().slice(0,10),auditLog:p.auditLog||[],attachments:p.attachments||[],bessKwh:p.bessKwh||null,capexBESS:p.capexBESS||null,capexSTS:p.capexSTS||null};
+  let att=p.attachments;
+  if(att && typeof att==='object' && !Array.isArray(att)) att=Object.values(att);
+  return {...p,types:p.types||(p.type?[p.type]:['PV']),responsabil:p.responsabil||p.technician||null,date_executie:p.date_executie||null,date_inserted:p.date_inserted||p.date_start||new Date().toISOString().slice(0,10),auditLog:p.auditLog||[],attachments:att||[],bessKwh:p.bessKwh||null,capexBESS:p.capexBESS||null,capexSTS:p.capexSTS||null};
 }
 
 function buildContractHTML(p, company) {
@@ -1534,6 +1570,7 @@ class Component extends DCLogic {
   state = {
     mobileSidebarOpen: false,
     view:'table', filterType:'all', filterStatus:'all', search:'',
+    sortBy:null, sortDir:'asc',
     selectedId:null, detailTab:'info',
     showModal:false, editingId:null, form:{...EMPTY_FORM},
     projects:[],
@@ -1593,11 +1630,28 @@ class Component extends DCLogic {
   }
 
   componentDidMount(){
+    this._pendingWrites = new Set();
+    window.addEventListener('beforeunload', e=>{
+      if(this._pendingWrites && this._pendingWrites.size){
+        e.preventDefault(); e.returnValue='';
+      }
+    });
     this._startParticles();
     this.shcResetIdle();
     ['click','keydown','mousemove','touchstart','scroll'].forEach(ev=>document.addEventListener(ev,()=>this.shcResetIdle(),{passive:true}));
+    this._fbInitAttempts = 0;
+    this._tryConnectFirebase();
+  }
+
+  _tryConnectFirebase(){
     const db = getDb();
-    if(!db){ this._loadFromLS(); return; }
+    if(!db){
+      // SDK-ul Firebase (script extern) încă nu s-a încărcat — reîncearcă în loc să renunți definitiv
+      this._fbInitAttempts = (this._fbInitAttempts||0) + 1;
+      if(this._fbInitAttempts < 40){ setTimeout(()=>this._tryConnectFirebase(), 250); return; }
+      this._loadFromLS();
+      return;
+    }
     // Fallback dacă Firebase nu răspunde în timp util (rețea mobilă lentă/blocată) —
     // afișăm autentificarea din datele locale în loc să înghețe ecranul la nesfârșit
     this._fbTimeout = setTimeout(()=>{
@@ -1607,6 +1661,7 @@ class Component extends DCLogic {
     this._fbRef.on('value', snap => {
       clearTimeout(this._fbTimeout);
       this._firebaseLoaded = true;
+      if(!this.state.fbConnected) this.setState({fbConnected:true});
       const data = snap.val() || {};
       // Suporta atat structura noua (data.projects obiect, data.config) cat si veche (data.projects array, data.users)
       let projects;
@@ -1616,6 +1671,16 @@ class Component extends DCLogic {
         projects = arr.filter(p=>p!=null&&typeof p==='object').map(migrate);
       } else {
         projects = [];
+      }
+      // Nu lăsăm un snapshot server (posibil în cursă) să suprascrie sau să elimine un proiect cu scriere locală încă în curs
+      if(this._pendingWrites && this._pendingWrites.size){
+        const localById={}; (this.state.projects||[]).forEach(p=>{localById[p.id]=p;});
+        const seenIds=new Set(projects.map(p=>p.id));
+        projects = projects.map(p=>this._pendingWrites.has(p.id)&&localById[p.id]?localById[p.id]:p);
+        // Dacă scrierea locală (ex: proiect nou-creat) încă nu a ajuns deloc în snapshot-ul server, îl păstrăm
+        this._pendingWrites.forEach(id=>{
+          if(!seenIds.has(id) && localById[id]) projects.push(localById[id]);
+        });
       }
       projects.sort((a,b)=>b.id-a.id);
       const cfg = data.config||{};
@@ -1629,6 +1694,23 @@ class Component extends DCLogic {
       if(!this._initialized){
         this._initialized=true;
         clearTimeout(this._fbTimeout);
+        // Recuperare: dacă acest browser are local (localStorage) proiecte care nu au ajuns niciodată pe server
+        // (scrieri pierdute din trecut), le retrimitem acum și le includem imediat în listă.
+        try {
+          const raw = localStorage.getItem('solarcrm_v3');
+          if(raw){
+            const localData = JSON.parse(raw);
+            const localProjects = (localData.projects||[]).map(migrate);
+            const serverIds = new Set(projects.map(p=>p.id));
+            const missing = localProjects.filter(p=>p&&p.id!=null&&!serverIds.has(p.id));
+            if(missing.length){
+              const stripAtt2=p=>{ const {attachments,...rest}=p; return JSON.parse(JSON.stringify(rest)); };
+              missing.forEach(p=>{ try{ db.ref('solarcrm_v2/projects/'+String(p.id)).update(stripAtt2(p)); }catch(e){} });
+              projects = [...projects, ...missing];
+              projects.sort((a,b)=>b.id-a.id);
+            }
+          }
+        } catch(e){}
         this.setState({projects,users,companyInfo},()=>this._initAuth());
       } else {
         this.setState({projects,users,companyInfo});
@@ -1646,19 +1728,6 @@ class Component extends DCLogic {
     if(this._initialized) return;
     this._initialized=true;
     try {
-      // Versiune date: daca e mai veche, sterge proiectele sample
-      const DATA_VERSION = 3;
-      const storedVer = parseInt(localStorage.getItem('solarcrm_data_ver')||'0');
-      if(storedVer < DATA_VERSION){
-        // Stergem cheile vechi care contin sample data
-        const oldRaw = localStorage.getItem('solarcrm_v3');
-        if(oldRaw){
-          const oldData = JSON.parse(oldRaw);
-          // Reset complet: stergem proiecte + useri + parola admin (forteaza re-seed cu DEFAULT_USERS si parola 12345)
-          localStorage.removeItem('solarcrm_v3');
-        }
-        localStorage.setItem('solarcrm_data_ver', String(DATA_VERSION));
-      }
       const raw=localStorage.getItem('solarcrm_v3');
       if(raw){
         const data=JSON.parse(raw);
@@ -1672,20 +1741,52 @@ class Component extends DCLogic {
     } catch(e){ this._initAuth(); }
   }
 
-  persist(){
+  persist(onlyId){
     try {
       const {projects,users,companyInfo}=this.state;
       localStorage.setItem('solarcrm_v3',JSON.stringify({projects,users,adminPw:this.adminPassword,adminPin:this.adminPin,companyInfo}));
-      if(this._firebaseLoaded){
-        const db=getDb(); if(!db) return;
-        // Salveaza fiecare proiect individual — NU suprascrie proiectele colegilor
-        const updates={};
-        projects.forEach(p=>{ updates[String(p.id)]=p; });
-        db.ref('solarcrm_v2/projects').update(updates);
+      let writePromise=null;
+      const db=getDb();
+      if(!db){
+        this.setState({fbWriteError:'Nu ești conectat la server — modificarea e salvată doar local pe acest calculator și nu se vede la colegi. Verifică internetul și reîncarcă pagina.'});
+      }
+      if(db){
+        if(onlyId!=='users'){
+          // Nu trimitem "attachments" aici — are propria cale de scriere (evită suprascrierea între colegi)
+          // JSON round-trip elimină recursiv orice cheie "undefined" — Realtime DB respinge update() cu undefined în interior
+          const stripAtt=p=>{ const {attachments,...rest}=p; return JSON.parse(JSON.stringify(rest)); };
+          let targets=[];
+          if(onlyId!=null){
+            const p=projects.find(x=>x.id===onlyId);
+            if(p) targets=[p];
+          } else {
+            targets=projects;
+          }
+          if(targets.length){
+            if(onlyId!=null && this._pendingWrites){
+              this._pendingWrites.add(onlyId);
+              const clear=()=>{ if(this._pendingWrites) this._pendingWrites.delete(onlyId); };
+              writePromise=db.ref('solarcrm_v2/projects/'+String(targets[0].id)).update(stripAtt(targets[0]));
+              if(writePromise&&writePromise.then) writePromise.then(clear).catch(err=>{clear();console.error('Scriere proiect eșuată',err);this.setState({fbWriteError:'Nu s-a putut salva lucrarea pe server. Verifică conexiunea și încearcă din nou.'});}); else setTimeout(clear,3000);
+            } else {
+              targets.forEach(p=>{
+                if(this._pendingWrites){
+                  this._pendingWrites.add(p.id);
+                  const clear=()=>{ if(this._pendingWrites) this._pendingWrites.delete(p.id); };
+                  const wp=db.ref('solarcrm_v2/projects/'+String(p.id)).update(stripAtt(p));
+                  if(wp&&wp.then) wp.then(clear).catch(err=>{clear();console.error('Scriere proiect eșuată',err);this.setState({fbWriteError:'Nu s-a putut salva o lucrare pe server. Verifică conexiunea și încearcă din nou.'});}); else setTimeout(clear,3000);
+                } else {
+                  db.ref('solarcrm_v2/projects/'+String(p.id)).update(stripAtt(p));
+                }
+              });
+            }
+          }
+        }
         // Config separat
         db.ref('solarcrm_v2/config').set({users,adminPw:this.adminPassword,adminPin:this.adminPin,companyInfo});
       }
-    } catch(e){}
+      return writePromise;
+    } catch(e){ return null; }
   }
 
   _fbDeleteProject(id){
@@ -1724,7 +1825,23 @@ class Component extends DCLogic {
         return new Date(p.nextFollowUp+'T00:00:00')<today0;
       });
     }
+    const {sortBy,sortDir}=this.state;
+    if(sortBy){
+      const dir=sortDir==='asc'?1:-1;
+      res=[...res].sort((a,b)=>{
+        let va,vb;
+        if(sortBy==='client'){ va=(a.client||'').toLowerCase(); vb=(b.client||'').toLowerCase(); }
+        else if(sortBy==='status'){ va=(a.status||'').toLowerCase(); vb=(b.status||'').toLowerCase(); }
+        else if(sortBy==='dateInserted'){ va=a.date_inserted||a.date_start||''; vb=b.date_inserted||b.date_start||''; }
+        if(va<vb) return -1*dir;
+        if(va>vb) return 1*dir;
+        return 0;
+      });
+    }
     return res;
+  }
+  toggleSort(col){
+    this.setState(s=>({sortBy:col, sortDir:(s.sortBy===col&&s.sortDir==='asc')?'desc':'asc'}));
   }
 
   fmt(p){
@@ -1745,20 +1862,27 @@ class Component extends DCLogic {
     const types=[]; if(form.typePV)types.push('PV'); if(form.typeInverter)types.push('Inverter'); if(form.typeBaterie)types.push('Baterie'); if(form.typeBESS)types.push('BESS'); if(types.length===0)types.push('PV');
     const hasPV=types.includes('PV');
     const data={types,status:form.status,client:form.client.trim(),phone:form.phone.trim()||null,email:form.email.trim()||null,address:form.address.trim()||null,value:form.value!==''?parseFloat(form.value):null,responsabil:form.responsabil.trim()||null,date_start:form.date_start||null,date_executie:form.date_executie||null,date_end:form.date_end||null,equipment:form.equipment.trim()||null,kwp:hasPV&&form.kwp!==''?parseFloat(form.kwp):null,panels:hasPV&&form.panels!==''?parseInt(form.panels):null,mounting:hasPV?(form.mounting||null):null,prosumator:hasPV?!!form.prosumator:false,notes:form.notes.trim()||null,bessKwh:form.bessKwh!==''?parseFloat(form.bessKwh):null,capexBESS:form.capexBESS!==''?parseFloat(form.capexBESS):null,capexSTS:form.capexSTS!==''?parseFloat(form.capexSTS):null};
+    if(!editingId){
+      const days=form.followUpDays!==''?parseInt(form.followUpDays):14;
+      const fu=new Date(); fu.setDate(fu.getDate()+(isNaN(days)?14:days));
+      data.nextFollowUp=fu.toISOString().slice(0,10);
+    }
     this.setState(s=>{
-      let projects;
+      let projects, affectedId;
       if(editingId){
         const old=s.projects.find(p=>p.id===editingId)||{};
         const changed=[]; const LABELS={status:'Status',client:'Client',responsabil:'Responsabil',value:'Valoare',date_executie:'Data exec.',address:'Adresă',equipment:'Echipamente'};
         Object.keys(LABELS).forEach(k=>{ if(String(old[k]||'')!==String(data[k]||''))changed.push(LABELS[k]); });
         const entry=this.buildAuditEntry('edit',changed.length?'Modificat: '+changed.join(', '):'Date editate');
         projects=s.projects.map(p=>p.id===editingId?{...p,...data,auditLog:[...(p.auditLog||[]),entry]}:p);
+        affectedId=editingId;
       } else {
         const newId=s.projects.length>0?Math.max(...s.projects.map(p=>p.id))+1:1;
         const entry=this.buildAuditEntry('create','Lucrare creată');
         projects=[{id:newId,...data,date_inserted:new Date().toISOString().slice(0,10),auditLog:[entry],attachments:[]}, ...s.projects];
+        affectedId=newId;
       }
-      setTimeout(()=>this.persist(),0);
+      setTimeout(()=>this.persist(affectedId),0);
       return {projects,showModal:false,editingId:null};
     });
   }
@@ -1770,7 +1894,7 @@ class Component extends DCLogic {
       const old=s.projects.find(p=>p.id===projectId);
       const entry=this.buildAuditEntry('status_change','Status: '+(old?old.status:'?')+' → '+newStatus,reason.trim()||null);
       const projects=s.projects.map(p=>p.id===projectId?{...p,status:newStatus,auditLog:[...(p.auditLog||[]),entry]}:p);
-      setTimeout(()=>this.persist(),0);
+      setTimeout(()=>this.persist(projectId),0);
       return {projects,statusModal:{show:false,projectId:null,newStatus:'',reason:''}};
     });
   }
@@ -1856,21 +1980,55 @@ class Component extends DCLogic {
     this.loginUser(user);
   }
 
-  handleFileAdd(e){
+  async handleFileAdd(e){
     const files=Array.from(e.target.files);
-    files.forEach(f=>{
-      if(f.size>5*1024*1024){window.alert('Fișierul '+f.name+' este prea mare (max 5MB)');return;}
-      const reader=new FileReader();
-      reader.onload=(ev)=>{
-        const att={id:Date.now()+Math.random(),filename:f.name,type:f.type,size:f.size,data:ev.target.result,addedBy:this.state.currentUser?this.state.currentUser.name:'Necunoscut',addedAt:new Date().toISOString()};
-        this.setState(s=>{const projects=s.projects.map(p=>p.id===s.selectedId?{...p,attachments:[...(p.attachments||[]),att]}:p);setTimeout(()=>this.persist(),0);return {projects};});
-      };
-      reader.readAsDataURL(f);
-    });
+    const sid=this.state.selectedId;
     e.target.value='';
+    for(const f of files){
+      if(f.size>4*1024*1024){window.alert('Fișierul '+f.name+' este prea mare (max 4MB)');continue;}
+      const attId=Date.now()+Math.random();
+      let dataUrl;
+      try{
+        dataUrl=await new Promise((resolve,reject)=>{
+          const reader=new FileReader();
+          reader.onload=(ev)=>resolve(ev.target.result);
+          reader.onerror=reject;
+          reader.readAsDataURL(f);
+        });
+      }catch(err){ window.alert('Eroare la citirea fișierului "'+f.name+'".'); continue; }
+      const att={id:attId,filename:f.name,type:f.type,size:f.size,data:dataUrl,addedBy:this.state.currentUser?this.state.currentUser.name:'Necunoscut',addedAt:new Date().toISOString()};
+      this.setState(s=>{const projects=s.projects.map(p=>p.id===sid?{...p,attachments:[...(p.attachments||[]),att]}:p);return {projects};});
+      // Scriere pe cheia proprie a fișierului — uploadurile simultane ale colegilor nu se pot suprascrie reciproc
+      try{
+        const db=getDb();
+        if(db){
+          await db.ref('solarcrm_v2/projects/'+sid+'/attachments/'+String(attId).replace(/\./g,'_')).set(att);
+          try{ localStorage.setItem('solarcrm_v3',JSON.stringify({projects:this.state.projects,users:this.state.users,adminPw:this.adminPassword,adminPin:this.adminPin,companyInfo:this.state.companyInfo})); }catch(e){}
+        }
+      }catch(err){
+        window.alert('Eroare la salvarea fișierului "'+f.name+'" — încearcă din nou: '+(err&&err.message?err.message:'necunoscută'));
+      }
+      this.notifyAttachmentAdded(f.name);
+    }
+  }
+  notifyAttachmentAdded(filename){
+    if(!window.emailjs) return;
+    const p=this.state.projects.find(x=>x.id===this.state.selectedId);
+    if(!p) return;
+    const resp=this.state.users.find(u=>u.name===p.responsabil);
+    const to=(resp&&resp.email?resp.email.trim():'');
+    if(!to) return;
+    const addedBy=this.state.currentUser?this.state.currentUser.name:'Necunoscut';
+    const subject='Atașament nou — '+(p.client||'client');
+    const message='Bună,\n\n'+addedBy+' a adăugat fișierul "'+filename+'" la lucrarea "'+(p.client||'—')+'".\n\nDeschide SolarCRM pentru detalii.\n\nSHC Solar Suite — SolarCRM';
+    emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:to, subject, message}).catch(()=>{});
   }
   removeAttachment(projectId,attId){
-    this.setState(s=>{const projects=s.projects.map(p=>p.id===projectId?{...p,attachments:(p.attachments||[]).filter(a=>a.id!==attId)}:p);setTimeout(()=>this.persist(),0);return {projects};});
+    this.setState(s=>{const projects=s.projects.map(p=>p.id===projectId?{...p,attachments:(p.attachments||[]).filter(a=>a.id!==attId)}:p);return {projects};});
+    try{
+      const db=getDb();
+      if(db) db.ref('solarcrm_v2/projects/'+projectId+'/attachments/'+String(attId).replace(/\./g,'_')).remove();
+    }catch(e){}
   }
 
   generateContractForSelected(){
@@ -1882,7 +2040,7 @@ class Component extends DCLogic {
     w.document.write(html); w.document.close();
     setTimeout(()=>{try{w.print();}catch(e){}},600);
     const entry=this.buildAuditEntry('contract','Contract generat (Nr. '+p.id+'/'+new Date().getFullYear()+')');
-    this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,auditLog:[...(pr.auditLog||[]),entry]}:pr);setTimeout(()=>this.persist(),0);return {projects:projects2};});
+    this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,auditLog:[...(pr.auditLog||[]),entry]}:pr);setTimeout(()=>this.persist(selectedId),0);return {projects:projects2};});
   }
 
   loadProjectOffers(clientName){
@@ -1915,10 +2073,10 @@ class Component extends DCLogic {
     // Update password
     if(isAdmin){
       this.adminPassword=cpNew;
-      this.persist();
+      this.persist('users');
     } else {
       const users=this.state.users.map(u=>u.id===currentUser.id?{...u,password:cpNew}:u);
-      this.setState({users,currentUser:{...currentUser,password:cpNew}},()=>this.persist());
+      this.setState({users,currentUser:{...currentUser,password:cpNew}},()=>this.persist('users'));
     }
     this.setState({showChangePwModal:false,cpErr:''});
     alert('✅ Parola a fost schimbată cu succes!');
@@ -1932,7 +2090,7 @@ class Component extends DCLogic {
     try{localStorage.setItem('shc_offer_prefill',JSON.stringify(payload));}catch(e){}
     // Navigăm în același tab; butonul Back revine la CRM
     const entry=this.buildAuditEntry('offer','Ofertă PV-BESS generată');
-    this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,auditLog:[...(pr.auditLog||[]),entry]}:pr);setTimeout(()=>this.persist(),0);return {projects:projects2};},()=>{
+    this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,auditLog:[...(pr.auditLog||[]),entry]}:pr);setTimeout(()=>this.persist(selectedId),0);return {projects:projects2};},()=>{
       window.location.href='./Calculator Oferte PV-BESS.html';
     });
   }
@@ -1986,7 +2144,7 @@ class Component extends DCLogic {
       existingNamesLower.add(fullName.toLowerCase());
       result.push({name:fullName,functie:functie||'—',pin,acces:bucket,status:'creat'});
     });
-    this.setState({users,bulkResult:result},()=>setTimeout(()=>this.persist(),0));
+    this.setState({users,bulkResult:result},()=>setTimeout(()=>this.persist('users'),0));
   }
   umExportBulkCSV(){
     const r=this.state.bulkResult||[];
@@ -2011,7 +2169,7 @@ class Component extends DCLogic {
     const apps={crm:!!umForm.appCrm,calculator:!!umForm.appCalculator,planificare:!!umForm.appPlanificare,vizita:!!umForm.appVizita,pontaj:!!umForm.appPontaj};
     const user={id:'u'+Date.now(),name:umForm.name.trim(),email:umForm.email.trim(),role:umForm.role,color,password:umForm.password.trim(),pin:umForm.pin.trim()||genUniquePin5(users),isSuperAdmin:!!umForm.isSuperAdmin,pontajHR:!!umForm.pontajHR,pontajPlanner:!!umForm.pontajPlanner,segmente,notif,apps};
     const newUsers=[...users,user];
-    this.setState({users:newUsers,userMgmtMode:'list',umForm:{...EMPTY_UM_FORM}},()=>setTimeout(()=>this.persist(),0));
+    this.setState({users:newUsers,userMgmtMode:'list',umForm:{...EMPTY_UM_FORM}},()=>setTimeout(()=>this.persist('users'),0));
   }
 
   umSaveEdit(){
@@ -2029,7 +2187,7 @@ class Component extends DCLogic {
       if(umForm.password.trim())updated.password=umForm.password.trim();
       return updated;
     });
-    this.setState({users:newUsers,userMgmtMode:'list',editingUserId:null,umForm:{...EMPTY_UM_FORM}},()=>setTimeout(()=>this.persist(),0));
+    this.setState({users:newUsers,userMgmtMode:'list',editingUserId:null,umForm:{...EMPTY_UM_FORM}},()=>setTimeout(()=>this.persist('users'),0));
   }
 
   umDeleteUser(userId){
@@ -2037,7 +2195,7 @@ class Component extends DCLogic {
     if(!(cu&&(cu.id==='u_chirila'||cu.id==='u_nicoras'))){ window.alert('Doar Alexandru Chirila și Ionuț Nicoraș pot șterge utilizatori.'); return; }
     if(!window.confirm('Ștergi acest utilizator definitiv?'))return;
     const newUsers=this.state.users.filter(u=>u.id!==userId);
-    this.setState({users:newUsers},()=>setTimeout(()=>this.persist(),0));
+    this.setState({users:newUsers},()=>setTimeout(()=>this.persist('users'),0));
   }
 
   umSaveAdminPw(){
@@ -2047,12 +2205,12 @@ class Component extends DCLogic {
     if(umForm.password!==umForm.password2){this.setState({umErrMsg:'Parolele nu coincid!'});return;}
     this.adminPassword=umForm.password.trim();
     if(umForm.pin && umForm.pin.trim()) this.adminPin=umForm.pin.trim();
-    this.setState({userMgmtMode:'list',umForm:{...EMPTY_UM_FORM},umErrMsg:''},()=>setTimeout(()=>this.persist(),0));
+    this.setState({userMgmtMode:'list',umForm:{...EMPTY_UM_FORM},umErrMsg:''},()=>setTimeout(()=>this.persist('users'),0));
   }
 
   // ─── RENDER ────────────────────────────────────────────────────────────────
   renderVals(){
-    const {view,filterType,filterStatus,search,selectedId,detailTab,showModal,editingId,form,projects:allProjects,currentUser,users,showUserModal,userModalMode,pwStep,pwInput,statusModal,showUserMgmt,userMgmtMode,editingUserId,umForm,mobileSidebarOpen}=this.state;
+    const {view,filterType,filterStatus,search,selectedId,detailTab,showModal,editingId,form,projects:allProjects,currentUser,users,showUserModal,userModalMode,pwStep,pwInput,statusModal,showUserMgmt,userMgmtMode,editingUserId,umForm,mobileSidebarOpen,showFollowUpForm}=this.state;
     let projects = allProjects;
 
     const preFiltered=this.getPreFiltered();
@@ -2068,6 +2226,7 @@ class Component extends DCLogic {
     const selected=selectedId!=null?projects.find(p=>p.id===selectedId):null;
     const isAdmin=!!(currentUser&&(currentUser.isAdmin||currentUser.role==='Admin'||currentUser.role==='Administrator'));
     const isFullAccess=!!(currentUser&&(currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'||isAdmin));
+    const responsabilOptions=Array.from(new Set([form.responsabil,...users.map(u=>u.name),'Alexandru Chirila','Ionuț Nicoraș'].filter(Boolean)));
 
     // Follow-up restante
     const today0=new Date(); today0.setHours(0,0,0,0);
@@ -2151,16 +2310,17 @@ class Component extends DCLogic {
       hasAuditEntries=auditEntries.length>0; noAuditEntries=!hasAuditEntries;
       attachmentItems=(selected.attachments||[]).map(a=>{
         const sid=selected.id,aid=a.id;
-        const isImg=!!(a.type&&a.type.startsWith('image/')&&a.data);
-        const imgEl=isImg
-          ?React.createElement('img',{src:a.data,style:{width:'52px',height:'52px',objectFit:'cover',borderRadius:'6px',flex:'none',border:'1px solid #e2e8f0'}})
+        const src=a.url||a.data;
+        const isImg=!!(a.type&&a.type.startsWith('image/')&&src);        const imgEl=isImg
+          ?React.createElement('img',{src:src,style:{width:'52px',height:'52px',objectFit:'cover',borderRadius:'6px',flex:'none',border:'1px solid #e2e8f0'}})
           :React.createElement('div',{style:{width:'52px',height:'52px',background:'#f1f5f9',borderRadius:'6px',flex:'none',display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid #e2e8f0'}},
             React.createElement('svg',{width:'22',height:'22',viewBox:'0 0 24 24',fill:'none',stroke:'#64748b',strokeWidth:'1.5'},
               React.createElement('path',{d:'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'}),
               React.createElement('polyline',{points:'14 2 14 8 20 8'})
             )
           );
-        return{...a,isImage:isImg,isNotImage:!isImg,imgEl,sizeFmt:fmtSize(a.size),timeAgo:timeAgo(a.addedAt),remove:()=>this.removeAttachment(sid,aid)};
+        return{...a,isImage:isImg,isNotImage:!isImg,imgEl,sizeFmt:fmtSize(a.size),timeAgo:timeAgo(a.addedAt),remove:()=>this.removeAttachment(sid,aid),
+          download:()=>{ const link=document.createElement('a'); link.href=src; link.target='_blank'; link.download=a.filename||'atasament'; document.body.appendChild(link); link.click(); document.body.removeChild(link); }};
       });
       hasAttachments=attachmentItems.length>0; noAttachments=!hasAttachments;
     }
@@ -2174,10 +2334,9 @@ class Component extends DCLogic {
 
     // Login modal
     const allUsersForLogin=[{...ADMIN_USER,password:this.adminPassword},{...users.map(u=>({...u}))}];
-    // Doar Administrator, Chirila și Nicoraș se pot loga cu parolă — restul folosesc PIN rapid
     const allUsersList=[
       {id:ADMIN_ID,name:'Administrator',role:'Admin',color:'#dc2626',initials:'A',borderColor:'#fecaca',rowBg:'#fff5f5',onClick:()=>this.tryLogin({...ADMIN_USER,password:this.adminPassword})},
-      ...users.filter(u=>u.id==='u_chirila'||u.id==='u_nicoras').map(u=>({...u,initials:initials(u.name),borderColor:'#e2e8f0',rowBg:'#fff',onClick:()=>this.tryLogin(u)}))
+      ...users.map(u=>({...u,initials:initials(u.name),borderColor:'#e2e8f0',rowBg:'#fff',onClick:()=>this.tryLogin(u)}))
     ];
     const noRegularUsers=allUsersList.length<=1;
 
@@ -2220,6 +2379,8 @@ class Component extends DCLogic {
       hasFollowUps,followUpMsg,openFollowUpFilter:()=>this.setState({view:'table',followUpFilterOn:true,filterType:'all',filterStatus:'all'}),
       openUserMgmt:()=>this.openUserMgmt(),
       userColor,userInitials:initials(userName),userName,
+      fbDotStyle:'display:inline-block;width:7px;height:7px;border-radius:50%;background:'+(this.state.fbConnected?'#22c55e':'#ef4444'),
+      fbStatusText:this.state.fbConnected?'Sincronizat live':'Neconectat — se salvează doar local',
       openUserSwitcher:()=>this.setState({showUserModal:true,userModalMode:'switch',pwStep:null,pwInput:''}),
       changePwTitle:(currentUser&&(currentUser.id==='_admin'||currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'))?'Schimbă parola':'PIN-ul se schimbă din SolarCRM → Utilizatori',
       openChangePw:()=>{
@@ -2236,6 +2397,13 @@ class Component extends DCLogic {
       closeCpModal:()=>this.setState({showChangePwModal:false}),
       submitCpModal:()=>this.submitChangePw(),
       filtered:filteredRows,isEmpty:filtered.length===0,filteredCount:filtered.length,
+      sortByClient:()=>this.toggleSort('client'),
+      sortByStatus:()=>this.toggleSort('status'),
+      sortByDateInserted:()=>this.toggleSort('dateInserted'),
+      sortArrow:(col)=>this.state.sortBy===col?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
+      sortArrowClient:this.state.sortBy==='client'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
+      sortArrowStatus:this.state.sortBy==='status'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
+      sortArrowDateInserted:this.state.sortBy==='dateInserted'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
       kanbanCols,
       monthlyBars,typeDist,statusDist,topResp,
       reportTotalCount:projects.length,reportTotalValue:totalVal.toLocaleString('ro-RO')+' RON',
@@ -2270,7 +2438,7 @@ class Component extends DCLogic {
         if(!window.confirm('Ștergi lucrarea lui '+selected.client+'?'))return;
         const delId=selected.id;
         this._fbDeleteProject(delId);
-        this.setState(s=>{const projects=s.projects.filter(p=>p.id!==delId);setTimeout(()=>this.persist(),0);return {projects,selectedId:null};});
+        this.setState(s=>{const projects=s.projects.filter(p=>p.id!==delId);return {projects,selectedId:null};});
       },
       showModal,modalTitle:editingId?'Editare lucrare':'Lucrare nouă',modalSaveLabel:editingId?'Salvează modificările':'Adaugă lucrarea',
       closeModal:()=>this.setState({showModal:false,editingId:null}),saveProject:()=>this.handleSave(),
@@ -2281,6 +2449,9 @@ class Component extends DCLogic {
       onFormPhone:e=>this.setForm('phone',e.target.value),onFormEmail:e=>this.setForm('email',e.target.value),
       onFormAddress:e=>this.setForm('address',e.target.value),onFormValue:e=>this.setForm('value',e.target.value),
       onFormResponsabil:e=>this.setForm('responsabil',e.target.value),
+      canEditResponsabil:isFullAccess,canEditResponsabilNot:!isFullAccess,responsabilOptions,
+      fuButtonDisplay: showFollowUpForm?'none':'block',
+      fuFormDisplay: showFollowUpForm?'flex':'none',
       openFollowUpForm:()=>{ const def=new Date(); def.setDate(def.getDate()+10); const defIso=def.toISOString().slice(0,10); this.setState({showFollowUpForm:true,fuNoteInput:'',fuDateInput:defIso,fuDateInputDmy:isoToDmy(defIso)}); },
       cancelFollowUpForm:()=>this.setState({showFollowUpForm:false}),
       onFuNote:e=>this.setState({fuNoteInput:e.target.value}),
@@ -2292,7 +2463,7 @@ class Component extends DCLogic {
         this.setState(s=>{
           const projects=s.projects.map(p=>p.id===selectedId?{...p,nextFollowUp:fuDateInput,fuNote:fuNoteInput.trim(),fuLastContactBy:currentUser?currentUser.name:null,fuLastContactAt:new Date().toISOString()}:p);
           return {projects,showFollowUpForm:false};
-        },()=>setTimeout(()=>this.persist(),0));
+        },()=>setTimeout(()=>this.persist(selectedId),0));
       },
       onFormDateStart:e=>{ const v=maskDmy(this.state.form.date_start_dmy,e.target.value); this.setState(s=>({form:{...s.form,date_start_dmy:v,date_start:dmyToIso(v)}})); },
       onFormDateExec:e=>{ const v=maskDmy(this.state.form.date_executie_dmy,e.target.value); this.setState(s=>({form:{...s.form,date_executie_dmy:v,date_executie:dmyToIso(v)}})); },
@@ -2300,6 +2471,7 @@ class Component extends DCLogic {
       onFormDateStartPicker:e=>{ const iso=e.target.value; this.setState(s=>({form:{...s.form,date_start:iso,date_start_dmy:isoToDmy(iso)}})); },
       onFormDateExecPicker:e=>{ const iso=e.target.value; this.setState(s=>({form:{...s.form,date_executie:iso,date_executie_dmy:isoToDmy(iso)}})); },
       onFormDateEndPicker:e=>{ const iso=e.target.value; this.setState(s=>({form:{...s.form,date_end:iso,date_end_dmy:isoToDmy(iso)}})); },
+      onFormFollowUpDays:e=>this.setForm('followUpDays',e.target.value),
       onFormEquipment:e=>this.setForm('equipment',e.target.value),
       onFormKwp:e=>this.setForm('kwp',e.target.value),onFormPanels:e=>this.setForm('panels',e.target.value),onFormBessKwh:e=>this.setForm('bessKwh',e.target.value),onFormCapexBESS:e=>this.setForm('capexBESS',e.target.value),onFormCapexSTS:e=>this.setForm('capexSTS',e.target.value),
       onFormMounting:e=>this.setForm('mounting',e.target.value),onFormProsumator:e=>this.setForm('prosumator',e.target.checked),
@@ -2326,6 +2498,8 @@ class Component extends DCLogic {
       showPinStep:this.state.pinMode===true,
       openPinMode:e=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({pinMode:true,pinBuffer:'',pinErr:false}); },
       closePinMode:e=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({pinMode:false,pinBuffer:'',pinErr:false}); },
+      fbWriteError:this.state.fbWriteError||null,
+      dismissFbWriteError:()=>this.setState({fbWriteError:null}),
       pinErrMsg:this.state.pinLockMsg?this.state.pinLockMsg:(this.state.pinErr?'Cod greșit — încearcă din nou':'Introdu codul primit de la administrator'),
       pinDots:[0,1,2,3].map(i=>({color:this.state.pinErr?'#ef4444':'#f59e0b',bg:i<this.state.pinBuffer.length?(this.state.pinErr?'#ef4444':'#f59e0b'):'transparent'})),
       pinKeys:['1','2','3','4','5','6','7','8','9','clear','0','del'].map(k=>({label:k==='del'?'⌫':(k==='clear'?'C':k),visible:true,blank:false,bg:this.state.pinFlash===k?'#7f1d1d':'#1e293b',onClick:()=>this.pinPress(k)})),
@@ -2358,7 +2532,7 @@ class Component extends DCLogic {
       onUmCoRegCom:e=>this.setState(s=>({companyInfo:{...s.companyInfo,regCom:e.target.value}})),
       onUmCoRepName:e=>this.setState(s=>({companyInfo:{...s.companyInfo,repName:e.target.value}})),
       onUmCoRepRole:e=>this.setState(s=>({companyInfo:{...s.companyInfo,repRole:e.target.value}})),
-      umSaveCompany:()=>{setTimeout(()=>this.persist(),0);this.setState({userMgmtMode:'list'});},
+      umSaveCompany:()=>{setTimeout(()=>this.persist('users'),0);this.setState({userMgmtMode:'list'});},
       umHasUsers:users.length>0,umNoUsers:users.length===0,
       umErrMsg:this.state.umErrMsg||'',hasUmErr:!!this.state.umErrMsg,
       umUsersList,
