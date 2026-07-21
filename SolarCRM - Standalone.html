@@ -110,7 +110,12 @@ input,select,textarea,button{font-family:inherit;}
 </script>
 <template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 56"><rect width="80" height="56" fill="#0f1729"></rect><rect x="8" y="8" width="20" height="40" rx="3" fill="#1e293b"></rect><path d="M18 18l2.5 6.5 7 1-5 4.8 1.4 7-5.9-3.2-5.9 3.2 1.4-7-5-4.8 7-1z" fill="#f59e0b"></path><rect x="34" y="8" width="38" height="6" rx="2" fill="#1e293b"></rect><rect x="34" y="18" width="38" height="4" rx="1" fill="#1e293b"></rect><rect x="34" y="26" width="38" height="4" rx="1" fill="#1e293b"></rect><rect x="34" y="34" width="38" height="4" rx="1" fill="#1e293b"></rect><rect x="34" y="42" width="20" height="4" rx="1" fill="#1e293b"></rect></svg></template>
 </helmet>
-
+<sc-if value="{{ fbWriteError }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:99999;background:#dc2626;color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.35);display:flex;align-items:center;gap:12px;max-width:90vw;">
+    <span>{{ fbWriteError }}</span>
+    <span onClick="{{ dismissFbWriteError }}" style="cursor:pointer;font-weight:800;opacity:.8;">✕</span>
+  </div>
+</sc-if>
 
 <div style="display:flex;height:100vh;overflow:hidden;">
 
@@ -1623,6 +1628,11 @@ class Component extends DCLogic {
 
   componentDidMount(){
     this._pendingWrites = new Set();
+    window.addEventListener('beforeunload', e=>{
+      if(this._pendingWrites && this._pendingWrites.size){
+        e.preventDefault(); e.returnValue='';
+      }
+    });
     this._startParticles();
     this.shcResetIdle();
     ['click','keydown','mousemove','touchstart','scroll'].forEach(ev=>document.addEventListener(ev,()=>this.shcResetIdle(),{passive:true}));
@@ -1719,7 +1729,8 @@ class Component extends DCLogic {
         const db=getDb(); if(!db) return null;
         if(onlyId!=='users'){
           // Nu trimitem "attachments" aici — are propria cale de scriere (evită suprascrierea între colegi)
-          const stripAtt=p=>{ const {attachments,...rest}=p; return rest; };
+          // JSON round-trip elimină recursiv orice cheie "undefined" — Realtime DB respinge update() cu undefined în interior
+          const stripAtt=p=>{ const {attachments,...rest}=p; return JSON.parse(JSON.stringify(rest)); };
           let targets=[];
           if(onlyId!=null){
             const p=projects.find(x=>x.id===onlyId);
@@ -1732,14 +1743,14 @@ class Component extends DCLogic {
               this._pendingWrites.add(onlyId);
               const clear=()=>{ if(this._pendingWrites) this._pendingWrites.delete(onlyId); };
               writePromise=db.ref('solarcrm_v2/projects/'+String(targets[0].id)).update(stripAtt(targets[0]));
-              if(writePromise&&writePromise.then) writePromise.then(clear).catch(clear); else setTimeout(clear,3000);
+              if(writePromise&&writePromise.then) writePromise.then(clear).catch(err=>{clear();console.error('Scriere proiect eșuată',err);this.setState({fbWriteError:'Nu s-a putut salva lucrarea pe server. Verifică conexiunea și încearcă din nou.'});}); else setTimeout(clear,3000);
             } else {
               targets.forEach(p=>{
                 if(this._pendingWrites){
                   this._pendingWrites.add(p.id);
                   const clear=()=>{ if(this._pendingWrites) this._pendingWrites.delete(p.id); };
                   const wp=db.ref('solarcrm_v2/projects/'+String(p.id)).update(stripAtt(p));
-                  if(wp&&wp.then) wp.then(clear).catch(clear); else setTimeout(clear,3000);
+                  if(wp&&wp.then) wp.then(clear).catch(err=>{clear();console.error('Scriere proiect eșuată',err);this.setState({fbWriteError:'Nu s-a putut salva o lucrare pe server. Verifică conexiunea și încearcă din nou.'});}); else setTimeout(clear,3000);
                 } else {
                   db.ref('solarcrm_v2/projects/'+String(p.id)).update(stripAtt(p));
                 }
@@ -2461,6 +2472,8 @@ class Component extends DCLogic {
       showPinStep:this.state.pinMode===true,
       openPinMode:e=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({pinMode:true,pinBuffer:'',pinErr:false}); },
       closePinMode:e=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({pinMode:false,pinBuffer:'',pinErr:false}); },
+      fbWriteError:this.state.fbWriteError||null,
+      dismissFbWriteError:()=>this.setState({fbWriteError:null}),
       pinErrMsg:this.state.pinLockMsg?this.state.pinLockMsg:(this.state.pinErr?'Cod greșit — încearcă din nou':'Introdu codul primit de la administrator'),
       pinDots:[0,1,2,3].map(i=>({color:this.state.pinErr?'#ef4444':'#f59e0b',bg:i<this.state.pinBuffer.length?(this.state.pinErr?'#ef4444':'#f59e0b'):'transparent'})),
       pinKeys:['1','2','3','4','5','6','7','8','9','clear','0','del'].map(k=>({label:k==='del'?'⌫':(k==='clear'?'C':k),visible:true,blank:false,bg:this.state.pinFlash===k?'#7f1d1d':'#1e293b',onClick:()=>this.pinPress(k)})),
