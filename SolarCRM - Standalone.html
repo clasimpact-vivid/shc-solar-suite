@@ -1697,7 +1697,7 @@ class Component extends DCLogic {
       const rawP = data.projects;
       if(rawP && typeof rawP === 'object'){
         const arr = Array.isArray(rawP) ? rawP : Object.values(rawP);
-        projects = arr.filter(p=>p!=null&&typeof p==='object').map(migrate);
+        projects = arr.filter(p=>p!=null&&typeof p==='object'&&p.client&&String(p.client).trim()).map(migrate);
       } else {
         projects = [];
       }
