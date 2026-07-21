@@ -2,8 +2,10 @@ name: Notificări email zilnice SHC Solar Suite
 
 on:
   schedule:
-    # 04:30 UTC = 07:30 România (EEST, vară), luni-vineri
-    - cron: '30 4 * * 1-5'
+    # GitHub Actions întârzie predictibil cronurile de pe ore/jumătăți fixe (congestie) —
+    # programat mai devreme, cu buffer, ca livrarea efectivă să cadă pe la 07:30 România
+    # 00:07 UTC = 03:07 România (EEST, vară), luni-vineri
+    - cron: '7 0 * * 1-5'
   workflow_dispatch: {}   # permite rulare manuală din tab-ul Actions, pentru testare
 
 jobs:
