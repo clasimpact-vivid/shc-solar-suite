@@ -1690,6 +1690,23 @@ class Component extends DCLogic {
       if(!this._initialized){
         this._initialized=true;
         clearTimeout(this._fbTimeout);
+        // Recuperare: dacă acest browser are local (localStorage) proiecte care nu au ajuns niciodată pe server
+        // (scrieri pierdute din trecut), le retrimitem acum și le includem imediat în listă.
+        try {
+          const raw = localStorage.getItem('solarcrm_v3');
+          if(raw){
+            const localData = JSON.parse(raw);
+            const localProjects = (localData.projects||[]).map(migrate);
+            const serverIds = new Set(projects.map(p=>p.id));
+            const missing = localProjects.filter(p=>p&&p.id!=null&&!serverIds.has(p.id));
+            if(missing.length){
+              const stripAtt2=p=>{ const {attachments,...rest}=p; return JSON.parse(JSON.stringify(rest)); };
+              missing.forEach(p=>{ try{ db.ref('solarcrm_v2/projects/'+String(p.id)).update(stripAtt2(p)); }catch(e){} });
+              projects = [...projects, ...missing];
+              projects.sort((a,b)=>b.id-a.id);
+            }
+          }
+        } catch(e){}
         this.setState({projects,users,companyInfo},()=>this._initAuth());
       } else {
         this.setState({projects,users,companyInfo});
@@ -1725,8 +1742,8 @@ class Component extends DCLogic {
       const {projects,users,companyInfo}=this.state;
       localStorage.setItem('solarcrm_v3',JSON.stringify({projects,users,adminPw:this.adminPassword,adminPin:this.adminPin,companyInfo}));
       let writePromise=null;
-      if(this._firebaseLoaded){
-        const db=getDb(); if(!db) return null;
+      const db=getDb();
+      if(db){
         if(onlyId!=='users'){
           // Nu trimitem "attachments" aici — are propria cale de scriere (evită suprascrierea între colegi)
           // JSON round-trip elimină recursiv orice cheie "undefined" — Realtime DB respinge update() cu undefined în interior
