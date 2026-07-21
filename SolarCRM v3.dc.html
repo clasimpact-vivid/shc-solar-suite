@@ -84,9 +84,49 @@ input,select,textarea,button{font-family:inherit;}
 .crm-mobile-cards{display:none;}
 [style*="cursor:pointer"]:active, [style*="cursor: pointer"]:active { filter:brightness(0.93); }
 </style>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+try {
+  const DB_URL = "https://solarcrm-ba919-default-rtdb.firebaseio.com";
+  const app = initializeApp({
+    apiKey: "AIzaSyBVElgXbEabUcwjNMa27IEw0YkxaEaXYl0",
+    authDomain: "solarcrm-ba919.firebaseapp.com",
+    databaseURL: DB_URL,
+    projectId: "solarcrm-ba919",
+    storageBucket: "solarcrm-ba919.firebasestorage.app",
+    messagingSenderId: "349523166308",
+    appId: "1:349523166308:web:0533aa1dae74f9a0b3cb71"
+  }, "solarcrm-isolated-app");
+  const database = getDatabase(app);
+  // Citirea live folosește SDK-ul (funcționează, testat). Scrierile folosesc REST simplu
+  // (fetch direct la baza de date) — nu depind de conexiunea WebSocket persistentă a SDK-ului,
+  // care poate fi blocată/degradată de anumite rețele fără să dea nicio eroare vizibilă.
+  async function restReq(path, method, body){
+    const res = await fetch(DB_URL + '/' + path + '.json', {
+      method, headers:{'Content-Type':'application/json'},
+      body: body!==undefined ? JSON.stringify(body) : undefined
+    });
+    if(!res.ok){ const t=await res.text().catch(()=>''); const e=new Error('REST '+method+' '+res.status+': '+t); e.code=res.status; throw e; }
+    return res.status===204 ? null : res.json().catch(()=>null);
+  }
+  window.__fbShim = {
+    ref(path){
+      const r = ref(database, path);
+      let unsub = null;
+      return {
+        on(event, cb, errCb){ unsub = onValue(r, cb, errCb); },
+        off(){ if(unsub) unsub(); },
+        update(obj){ return restReq(path, 'PATCH', obj); },
+        set(val){ return restReq(path, 'PUT', val); },
+        remove(){ return restReq(path, 'DELETE'); },
+        push(val){ return restReq(path, 'POST', val); },
+        once(event){ return restReq(path, 'GET').then(val=>({ val:()=>val, exists:()=>val!==null&&val!==undefined })); }
+      };
+    }
+  };
+} catch(e){ console.error('Firebase (modular) init failed', e); }
+</script>
 <script>
 // Diagnostic vizibil: dacă apare o eroare JS pe telefon (unde nu poți deschide consola),
 // afișăm un banner roșu în loc să înghețe ecranul fără niciun indiciu.
@@ -1360,21 +1400,9 @@ let _fbDb = null;
 function getDb(){
   try {
     if(_fbDb) return _fbDb;
-    if(typeof firebase==='undefined') return null;
-    if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
-    _fbDb = firebase.database();
+    if(typeof window.__fbShim==='undefined') return null;
+    _fbDb = window.__fbShim;
     return _fbDb;
-  } catch(e){ return null; }
-}
-
-let _fbStorage = null;
-function getStorage(){
-  try {
-    if(_fbStorage) return _fbStorage;
-    if(typeof firebase==='undefined') return null;
-    if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
-    _fbStorage = firebase.storage();
-    return _fbStorage;
   } catch(e){ return null; }
 }
 
@@ -1766,8 +1794,12 @@ class Component extends DCLogic {
             if(onlyId!=null && this._pendingWrites){
               this._pendingWrites.add(onlyId);
               const clear=()=>{ if(this._pendingWrites) this._pendingWrites.delete(onlyId); };
-              writePromise=db.ref('solarcrm_v2/projects/'+String(targets[0].id)).update(stripAtt(targets[0]));
-              if(writePromise&&writePromise.then) writePromise.then(clear).catch(err=>{clear();console.error('Scriere proiect eșuată',err);this.setState({fbWriteError:'Nu s-a putut salva lucrarea pe server. Verifică conexiunea și încearcă din nou.'});}); else setTimeout(clear,3000);
+              const pRef=db.ref('solarcrm_v2/projects/'+String(targets[0].id));
+              writePromise=pRef.update(stripAtt(targets[0]));
+              if(writePromise&&writePromise.then) writePromise.then(()=>{
+                clear();
+                pRef.once('value').then(snap=>{ if(!snap.exists()) this.setState({fbWriteError:'ATENȚIE: scrierea a fost confirmată de SDK dar lucrarea NU există pe server (id '+targets[0].id+'). Contactează dezvoltatorul.'}); }).catch(()=>{});
+              }).catch(err=>{clear();console.error('Scriere proiect eșuată',err);this.setState({fbWriteError:'Nu s-a putut salva lucrarea pe server ('+(err&&err.code?err.code:'eroare necunoscută')+'). Verifică conexiunea și încearcă din nou.'});}); else setTimeout(clear,3000);
             } else {
               targets.forEach(p=>{
                 if(this._pendingWrites){
@@ -1867,6 +1899,7 @@ class Component extends DCLogic {
       const fu=new Date(); fu.setDate(fu.getDate()+(isNaN(days)?14:days));
       data.nextFollowUp=fu.toISOString().slice(0,10);
     }
+    let _affectedId;
     this.setState(s=>{
       let projects, affectedId;
       if(editingId){
@@ -1882,9 +1915,9 @@ class Component extends DCLogic {
         projects=[{id:newId,...data,date_inserted:new Date().toISOString().slice(0,10),auditLog:[entry],attachments:[]}, ...s.projects];
         affectedId=newId;
       }
-      setTimeout(()=>this.persist(affectedId),0);
+      _affectedId=affectedId;
       return {projects,showModal:false,editingId:null};
-    });
+    },()=>this.persist(_affectedId));
   }
 
   openStatusModal(projectId,newStatus){ this.setState({statusModal:{show:true,projectId,newStatus,reason:''}}); }
@@ -1894,9 +1927,8 @@ class Component extends DCLogic {
       const old=s.projects.find(p=>p.id===projectId);
       const entry=this.buildAuditEntry('status_change','Status: '+(old?old.status:'?')+' → '+newStatus,reason.trim()||null);
       const projects=s.projects.map(p=>p.id===projectId?{...p,status:newStatus,auditLog:[...(p.auditLog||[]),entry]}:p);
-      setTimeout(()=>this.persist(projectId),0);
       return {projects,statusModal:{show:false,projectId:null,newStatus:'',reason:''}};
-    });
+    },()=>this.persist(projectId));
   }
 
   shcGetLock(){try{return JSON.parse(localStorage.getItem('shc_lock_solarcrm')||'{"fails":0,"until":0}');}catch(e){return{fails:0,until:0};}}
@@ -2040,7 +2072,7 @@ class Component extends DCLogic {
     w.document.write(html); w.document.close();
     setTimeout(()=>{try{w.print();}catch(e){}},600);
     const entry=this.buildAuditEntry('contract','Contract generat (Nr. '+p.id+'/'+new Date().getFullYear()+')');
-    this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,auditLog:[...(pr.auditLog||[]),entry]}:pr);setTimeout(()=>this.persist(selectedId),0);return {projects:projects2};});
+    this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,auditLog:[...(pr.auditLog||[]),entry]}:pr);return {projects:projects2};},()=>this.persist(selectedId));
   }
 
   loadProjectOffers(clientName){
@@ -2090,7 +2122,7 @@ class Component extends DCLogic {
     try{localStorage.setItem('shc_offer_prefill',JSON.stringify(payload));}catch(e){}
     // Navigăm în același tab; butonul Back revine la CRM
     const entry=this.buildAuditEntry('offer','Ofertă PV-BESS generată');
-    this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,auditLog:[...(pr.auditLog||[]),entry]}:pr);setTimeout(()=>this.persist(selectedId),0);return {projects:projects2};},()=>{
+    this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,auditLog:[...(pr.auditLog||[]),entry]}:pr);this.persist(selectedId);return {projects:projects2};},()=>{
       window.location.href='./Calculator Oferte PV-BESS.html';
     });
   }

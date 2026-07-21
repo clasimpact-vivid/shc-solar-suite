@@ -1899,6 +1899,7 @@ class Component extends DCLogic {
       const fu=new Date(); fu.setDate(fu.getDate()+(isNaN(days)?14:days));
       data.nextFollowUp=fu.toISOString().slice(0,10);
     }
+    let _affectedId;
     this.setState(s=>{
       let projects, affectedId;
       if(editingId){
@@ -1914,9 +1915,9 @@ class Component extends DCLogic {
         projects=[{id:newId,...data,date_inserted:new Date().toISOString().slice(0,10),auditLog:[entry],attachments:[]}, ...s.projects];
         affectedId=newId;
       }
-      setTimeout(()=>this.persist(affectedId),0);
+      _affectedId=affectedId;
       return {projects,showModal:false,editingId:null};
-    });
+    },()=>this.persist(_affectedId));
   }
 
   openStatusModal(projectId,newStatus){ this.setState({statusModal:{show:true,projectId,newStatus,reason:''}}); }
@@ -1926,9 +1927,8 @@ class Component extends DCLogic {
       const old=s.projects.find(p=>p.id===projectId);
       const entry=this.buildAuditEntry('status_change','Status: '+(old?old.status:'?')+' → '+newStatus,reason.trim()||null);
       const projects=s.projects.map(p=>p.id===projectId?{...p,status:newStatus,auditLog:[...(p.auditLog||[]),entry]}:p);
-      setTimeout(()=>this.persist(projectId),0);
       return {projects,statusModal:{show:false,projectId:null,newStatus:'',reason:''}};
-    });
+    },()=>this.persist(projectId));
   }
 
   shcGetLock(){try{return JSON.parse(localStorage.getItem('shc_lock_solarcrm')||'{"fails":0,"until":0}');}catch(e){return{fails:0,until:0};}}
@@ -2072,7 +2072,7 @@ class Component extends DCLogic {
     w.document.write(html); w.document.close();
     setTimeout(()=>{try{w.print();}catch(e){}},600);
     const entry=this.buildAuditEntry('contract','Contract generat (Nr. '+p.id+'/'+new Date().getFullYear()+')');
-    this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,auditLog:[...(pr.auditLog||[]),entry]}:pr);setTimeout(()=>this.persist(selectedId),0);return {projects:projects2};});
+    this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,auditLog:[...(pr.auditLog||[]),entry]}:pr);return {projects:projects2};},()=>this.persist(selectedId));
   }
 
   loadProjectOffers(clientName){
@@ -2122,7 +2122,7 @@ class Component extends DCLogic {
     try{localStorage.setItem('shc_offer_prefill',JSON.stringify(payload));}catch(e){}
     // Navigăm în același tab; butonul Back revine la CRM
     const entry=this.buildAuditEntry('offer','Ofertă PV-BESS generată');
-    this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,auditLog:[...(pr.auditLog||[]),entry]}:pr);setTimeout(()=>this.persist(selectedId),0);return {projects:projects2};},()=>{
+    this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,auditLog:[...(pr.auditLog||[]),entry]}:pr);this.persist(selectedId);return {projects:projects2};},()=>{
       window.location.href='./Calculator Oferte PV-BESS.html';
     });
   }
