@@ -1775,7 +1775,7 @@ class Component extends DCLogic {
       const {companyInfo}=this.state;
       const projects=projectsOverride||this.state.projects;
       const users=usersOverride||this.state.users;
-      try{ localStorage.setItem('solarcrm_v3',JSON.stringify({projects,users,adminPw:this.adminPassword,adminPin:this.adminPin,companyInfo})); }catch(lsErr){ console.error('[persist] localStorage quota exceeded, continuă cu scrierea pe server',lsErr); }
+      try{ const lsProjects=projects.map(p=>{ const {attachments,...rest}=p; return rest; }); localStorage.setItem('solarcrm_v3',JSON.stringify({projects:lsProjects,users,adminPw:this.adminPassword,adminPin:this.adminPin,companyInfo})); }catch(lsErr){ console.error('[persist] localStorage quota exceeded, continuă cu scrierea pe server',lsErr); }
       let writePromise=null;
       const db=getDb();
       if(!db){
