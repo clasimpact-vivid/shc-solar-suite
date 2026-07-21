@@ -1508,7 +1508,8 @@ function fmtTypes(types){
 function migrate(p){
   let att=p.attachments;
   if(att && typeof att==='object' && !Array.isArray(att)) att=Object.values(att);
-  return {...p,types:p.types||(p.type?[p.type]:['PV']),responsabil:p.responsabil||p.technician||null,date_executie:p.date_executie||null,date_inserted:p.date_inserted||p.date_start||new Date().toISOString().slice(0,10),auditLog:p.auditLog||[],attachments:att||[],bessKwh:p.bessKwh||null,capexBESS:p.capexBESS||null,capexSTS:p.capexSTS||null};
+  const fixedId=Number.isFinite(Number(p.id))?Number(p.id):Date.now()+Math.floor(Math.random()*1000);
+  return {...p,id:fixedId,types:p.types||(p.type?[p.type]:['PV']),responsabil:p.responsabil||p.technician||null,date_executie:p.date_executie||null,date_inserted:p.date_inserted||p.date_start||new Date().toISOString().slice(0,10),auditLog:p.auditLog||[],attachments:att||[],bessKwh:p.bessKwh||null,capexBESS:p.capexBESS||null,capexSTS:p.capexSTS||null};
 }
 
 function buildContractHTML(p, company) {
@@ -1770,7 +1771,6 @@ class Component extends DCLogic {
   }
 
   persist(onlyId,projectsOverride,usersOverride){
-    alert('DEBUG: persist() apelat cu onlyId='+onlyId);
     try {
       const {companyInfo}=this.state;
       const projects=projectsOverride||this.state.projects;
@@ -1793,7 +1793,6 @@ class Component extends DCLogic {
           } else {
             targets=projects;
           }
-          console.log('[persist-debug] onlyId='+onlyId+' db='+(!!db)+' totalProjects='+projects.length+' targetsFound='+targets.length+' pendingWritesExists='+(!!this._pendingWrites));
           if(targets.length){
             if(onlyId!=null && this._pendingWrites){
               this._pendingWrites.add(onlyId);
@@ -1913,7 +1912,7 @@ class Component extends DCLogic {
         projects=s.projects.map(p=>p.id===editingId?{...p,...data,auditLog:[...(p.auditLog||[]),entry]}:p);
         affectedId=editingId;
       } else {
-        const newId=s.projects.length>0?Math.max(...s.projects.map(p=>p.id))+1:1;
+        const newId=(()=>{ const ids=s.projects.map(p=>Number(p.id)).filter(n=>Number.isFinite(n)); return ids.length?Math.max(...ids)+1:1; })();
         const entry=this.buildAuditEntry('create','Lucrare creată');
         projects=[{id:newId,...data,date_inserted:new Date().toISOString().slice(0,10),auditLog:[entry],attachments:[]}, ...s.projects];
         affectedId=newId;
