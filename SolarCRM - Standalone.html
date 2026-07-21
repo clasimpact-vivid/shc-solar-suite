@@ -1826,7 +1826,7 @@ class Component extends DCLogic {
         db.ref('solarcrm_v2/config').set({users,adminPw:this.adminPassword,adminPin:this.adminPin,companyInfo});
       }
       return writePromise;
-    } catch(e){ return null; }
+    } catch(e){ console.error('[DEBUG persist] EXCEPTION CAUGHT:',e); return null; }
   }
 
   _fbDeleteProject(id){
