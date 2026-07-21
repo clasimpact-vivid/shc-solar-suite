@@ -586,7 +586,8 @@ try {
             </div>
           </sc-if>
           <button onClick="{{ openFollowUpForm }}" style="width:100%;padding:8px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12.5px;font-weight:600;color:#334155;cursor:pointer;display:{{ fuButtonDisplay }};" style-hover="background:#f8fafc;">📞 Notează contact / follow-up</button>
-          <div style="display:{{ fuFormDisplay }};flex-direction:column;gap:8px;">
+          <sc-if value="{{ showFollowUpForm }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:8px;">
               <textarea value="{{ fuNoteInput }}" onChange="{{ onFuNote }}" placeholder="ex: nu poate vorbi acum, revin..." rows="2" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12.5px;font-family:inherit;resize:vertical;"></textarea>
               <div style="position:relative;">
                 <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ fuDateInputDmy }}" onChange="{{ onFuDateDmy }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12.5px;box-sizing:border-box;">
@@ -598,6 +599,7 @@ try {
                 <button onClick="{{ saveFollowUp }}" style="flex:1;padding:8px;border:none;background:#2563eb;color:#fff;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;">Salvează</button>
               </div>
           </div>
+          </sc-if>
         </div>
         <!-- Etape șantier -->
         <div style="border-top:1px solid #f1f5f9;padding-top:18px;margin-top:18px;">
