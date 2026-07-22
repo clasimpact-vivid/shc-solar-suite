@@ -1,38 +1,46 @@
 # SHC Solar Suite
 
-Suită internă de aplicații pentru Smart House Color — CRM, oferte, planificare șantier și vizite tehnice. Toate sincronizate live prin Firebase.
+Suita internă de aplicații Smart House Color pentru vânzări, execuție și operațiuni — sisteme fotovoltaice, stocare BESS și STS.
 
-## 🔗 Aplicații
+Toate aplicațiile sunt fișiere HTML de sine stătătoare, sincronizate live printr-o singură bază de date Firebase (`solarcrm-ba919`). Nu necesită instalare — se deschid direct în browser (desktop sau mobil).
 
-| Aplicație | Fișier | Descriere |
-|---|---|---|
-| **Hub** | `index.html` | Pagina de start — link-uri către toate aplicațiile |
-| **SolarCRM** | `SolarCRM - Standalone.html` | Gestiune lucrări, clienți, contracte, permisiuni pe roluri |
-| **Calculator Oferte PV-BESS** | `Calculator Oferte PV-BESS.html` | Oferte tehnico-economice, cash-flow, export PDF |
-| **Planificare Șantier** | `Planificare Santier.html` | Gantt cu etape, responsabili, alerte |
-| **Vizită Șantier** | `Vizita Santier.html` | Schițe amplasament, poze, date tehnice de la fața locului |
-| **Pontaj** | `Pontaj.html` | Check-in/out cu GPS, listă zilnică echipă, hartă live, export CSV lunar |
+## Cum intri
 
-Link live: `https://clasimpact-vivid.github.io/shc-solar-suite/`
+Deschide **`index.html`** — pagina principală SHC Solar Suite. De acolo, fiecare aplicație se deschide într-un tab nou; poți lucra în mai multe aplicații simultan fără să pierzi contextul.
 
-## 👤 Utilizatori & parole
+Autentificare: PIN de 4 cifre (tastatură numerică) pentru majoritatea colegilor, sau parolă pentru Administrator / Chirila / Nicoraș. Fiecare aplicație are un buton „← Suite" în stânga sus, care te duce înapoi la pagina principală.
 
-Utilizatorii și parolele se gestionează din interiorul SolarCRM (buton **Utilizatori**, sus dreapta) — nu editați cod pentru asta. Modificările se sincronizează automat prin Firebase pentru toți colegii.
+## Aplicațiile din suită
 
-Fiecare utilizator are:
-- **Rol** (Manager, Vânzări, Backoffice, Administrator)
-- **Acces deplin (SuperAdmin)** — vede toate lucrările
-- **Segmente vizibile** (PV, Inverter, Baterie, BESS) — dacă nu e SuperAdmin, vede doar lucrările din segmentele bifate
+### 🧮 Calculator Oferte PV-BESS
+Configurează un sistem (panouri, invertor, baterie BESS, STS), calculează CAPEX/producție/economii/payback, și generează oferta client sub formă de PDF profesional (prima pagină cu fundal navy, KPI-uri, devize, grafic de plăți). Ofertele generate sunt vizibile tuturor colegilor (jurnal comun), nu doar celui care le-a creat.
 
-## 🔄 Cum actualizezi un fișier
+### 📋 SolarCRM
+Gestiunea lucrărilor: de la Lead până la Finalizat. Fiecare lucrare are istoric de audit (cine a modificat ce și când), follow-up automat la 10-14 zile, atașamente (oferte/documente), generare Contract de prestări servicii (document legal complet, cu antet, tabel de componență, semnături), și panou de Utilizatori (PIN-uri, parole, roluri, permisiuni).
 
-1. Cere-i lui Claude modificarea dorită și descarcă fișierul rezultat
-2. Pe GitHub, în acest repo → **Add file → Upload files**
-3. Trage fișierul nou — **păstrează exact același nume** (inclusiv spații/majuscule)
-4. Commit — Netlify/GitHub Pages redeployă automat în ~1 minut
+### 🗓️ Planificare Șantier
+Grafic Gantt pentru etapele unei lucrări (Proiectare → Avize → Montaj → Comisionare → Recepție). Doar Chirila și Nicoraș pot modifica/șterge etape odată create, ca să nu existe confuzie pe termene.
 
-⚠️ Nu redenumi fișierele — link-urile dintre aplicații (SolarCRM ↔ Calculator ↔ Planificare ↔ Vizită) depind de numele exacte.
+### 📍 Vizită Șantier
+Schițe de amplasament pentru vizite la client — desen liber + forme predefinite (panouri, baterii), fotografii, date client/locație. Export PDF cu schiță + poze + date.
 
-## 🗄️ Date
+### 🕐 Pontaj
+Pontaj cu geolocalizare (check-in/check-out), hartă live a echipei din teren, cereri de concediu/învoire (cu aprobare Chirila/Nicoraș/Eszter), proces verbal, și export CSV lunar per angajat (sau pentru toată echipa) pentru contabilitate.
 
-Toate proiectele, ofertele, etapele și utilizatorii se salvează în Firebase Realtime Database (nu în fișierele HTML) — descărcarea/reîncărcarea aplicațiilor **nu șterge datele**.
+### 📊 Rezumat Zilnic
+Vedere agregată a activității zilei/săptămânii din toate aplicațiile — cine a lucrat la ce, oferte generate, follow-up-uri restante, cereri de concediu, linie de productivitate pe 7 zile.
+
+## Utilizatori și acces
+
+Fiecare coleg are un cont unic (nume, rol, PIN, parolă) creat din SolarCRM → Utilizatori (drepturi depline doar pentru Chirila și Nicoraș). Rolul determină ce vede fiecare: agenții de vânzări văd propriile lucrări urgente, contabilitatea (Eszter) vede pontaje/concedii, muncitorii de teren au acces restrâns la Pontaj și instrumentele de teren.
+
+## Note tehnice (pentru cine continuă dezvoltarea)
+
+- Bază de date: Firebase Realtime Database, proiect `solarcrm-ba919`, colecție principală `solarcrm_v2`.
+- E-mailuri automate: Resend (notificări zilnice, oferte, aprobare concedii) + EmailJS (unele fluxuri client-side), rulate printr-un GitHub Action (`.github/workflows/`).
+- Găzduire: GitHub Pages (`clasimpact-vivid.github.io/shc-solar-suite`).
+- Nu edita fișierul `support.js` — e runtime-ul comun al aplicațiilor.
+
+## Status
+
+Suită în fază de testare internă (beta). Înainte de utilizarea cu date reale de clienți: revizuire securitate (reguli Firebase, parole unice per user, 2FA), apoi trecere la producție.
