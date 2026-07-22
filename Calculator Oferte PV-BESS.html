@@ -3442,20 +3442,18 @@ function applyCrmPrefill(){
 
 function logout(){
   window.SESSION = null; SESSION = null; sessionStorage.removeItem('pvbessSession');
-  document.getElementById('currentUserBadge').style.display='none';
-  document.getElementById('btnLogout').style.display='none';
-  document.getElementById('btnChangePw').style.display='none';
-  document.getElementById('btnAdminOpen').style.display='none';
-  document.getElementById('loginPassword').value='';
-  document.getElementById('loginError').textContent='';
-  document.getElementById('loginOverlay').style.display='flex';
+  var ids=['currentUserBadge','btnLogout','btnChangePw','btnAdminOpen'];
+  ids.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
+  var lp=document.getElementById('loginPassword'); if(lp) lp.value='';
+  var le=document.getElementById('loginError'); if(le) le.textContent='';
+  var lo=document.getElementById('loginOverlay'); if(lo) lo.style.display='flex';
   // reset la ecranul implicit (PIN) — altfel rămâne gol dacă ultimul login a fost cu parolă
-  document.getElementById('loginStep1').style.display='none';
-  document.getElementById('loginStep2').style.display='none';
-  document.getElementById('loginStep3').style.display='block';
+  ['loginStep1','loginStep2'].forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
+  var s3=document.getElementById('loginStep3'); if(s3) s3.style.display='block';
   if(typeof officePinBuffer!=='undefined') officePinBuffer='';
   if(typeof renderOfficePinDots==='function') renderOfficePinDots(false);
   var pinErr=document.getElementById('officePinErr'); if(pinErr) pinErr.textContent='';
+  var mp=document.getElementById('moreMenuPanel'); if(mp) mp.style.display='none';
 }
 
 // ── Admin panel ──
