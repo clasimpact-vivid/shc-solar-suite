@@ -1520,7 +1520,7 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
     const tipZi = r.checkIn ? 'Lucrat' : (lvType || 'Absent');
     if(r.checkIn) workedDays++; else if(lvType) leaveDaysCount++;
     const dist = r.checkIn&&r.checkIn.distKm!=null ? r.checkIn.distKm : '';
-    csv+=(exportAll?(getUserById(r.userId)?.name||r.userId)+',':'')+[r.date, tipZi, r.checkIn?'Da':'Nu', r.checkIn?r.checkIn.time:'', r.checkIn&&r.checkIn.editedManually?'Da':'Nu', r.checkOut?'Da':'Nu', r.checkOut?r.checkOut.time:'', r.checkOut&&r.checkOut.editedManually?'Da':'Nu', hrs, dist].join(',')+'\n';
+    csv+=(exportAll?(getUserById(r.userId)?.name||r.userId)+',':'')+[isoToDmy(r.date), tipZi, r.checkIn?'Da':'Nu', r.checkIn?r.checkIn.time:'', r.checkIn&&r.checkIn.editedManually?'Da':'Nu', r.checkOut?'Da':'Nu', r.checkOut?r.checkOut.time:'', r.checkOut&&r.checkOut.editedManually?'Da':'Nu', hrs, dist].join(',')+'\n';
   });
   // Zile de concediu aprobate care nu au niciun record de pontaj (ex: concediu întreaga zi, fără logare)
   const recordedDates=new Set(mine.map(r=>r.userId+'|'+r.date));
@@ -1530,7 +1530,7 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
     while(d<=end){
       const iso=d.toISOString().slice(0,10);
       if(iso>=dateFrom && iso<=dateTo && !recordedDates.has(lv.userId+'|'+iso)){
-        csv+=(exportAll?(getUserById(lv.userId)?.name||lv.userId)+',':'')+[iso, LEAVE_LABELS[lv.type]||lv.type, 'Nu','','Nu','Nu','','Nu','',''].join(',')+'\n';
+        csv+=(exportAll?(getUserById(lv.userId)?.name||lv.userId)+',':'')+[isoToDmy(iso), LEAVE_LABELS[lv.type]||lv.type, 'Nu','','Nu','Nu','','Nu','',''].join(',')+'\n';
         leaveDaysCount++;
       }
       d.setDate(d.getDate()+1);
@@ -1606,7 +1606,7 @@ function addCalendarPicker(textId){
   icon.textContent='📅';
   icon.style.cssText='position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;';
   wrap.appendChild(icon);
-  hidden.addEventListener('click',()=>{ const iso=dmyToIso(textEl.value); hidden.value=iso||''; });
+  hidden.addEventListener('click',(e)=>{ const iso=dmyToIso(textEl.value); hidden.value=iso||''; if(hidden.showPicker){ e.preventDefault(); try{hidden.showPicker();}catch(err){} } });
   hidden.addEventListener('input',()=>{
     if(hidden.value){ textEl.value=isoToDmy(hidden.value); textEl.dispatchEvent(new Event('input',{bubbles:true})); }
   });
