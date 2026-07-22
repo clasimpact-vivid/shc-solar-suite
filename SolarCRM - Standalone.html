@@ -603,6 +603,16 @@ try {
             <button onClick="{{ openFollowUpForm }}" type="button" style="width:100%;padding:8px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12.5px;font-weight:600;color:#334155;cursor:pointer;" style-hover="background:#f8fafc;">📞 Notează contact / follow-up</button>
           </sc-if>
         </div>
+        <!-- Contract button -->
+        <sc-if value="{{ sel.canContract }}" hint-placeholder-val="{{ false }}">
+          <div style="border-top:1px solid #f1f5f9;padding-top:18px;margin-top:18px;">
+            <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Documente</div>
+            <button onClick="{{ generateContract }}" style="display:flex;align-items:center;gap:8px;padding:9px 18px;background:#0f172a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;width:100%;justify-content:center;" style-hover="background:#1e293b;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              Generează Contract
+            </button>
+          </div>
+        </sc-if>
         <!-- Etape șantier -->
         <div style="border-top:1px solid #f1f5f9;padding-top:18px;margin-top:18px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -624,16 +634,6 @@ try {
             <div style="font-size:12px;color:#94a3b8;font-style:italic;">Fără etape planificate încă. Adaugă din Planificare Șantier.</div>
           </sc-if>
         </div>
-        <!-- Contract button -->
-        <sc-if value="{{ sel.canContract }}" hint-placeholder-val="{{ false }}">
-          <div style="border-top:1px solid #f1f5f9;padding-top:18px;margin-top:18px;">
-            <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Documente</div>
-            <button onClick="{{ generateContract }}" style="display:flex;align-items:center;gap:8px;padding:9px 18px;background:#0f172a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;width:100%;justify-content:center;" style-hover="background:#1e293b;">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-              Generează Contract
-            </button>
-          </div>
-        </sc-if>
       </sc-if>
 
       <!-- OFFERS TAB -->
@@ -1465,6 +1465,7 @@ const COMPANY_INFO = {
 };
 
 const CONTRACT_STATUSES = ['Contract', 'Programat', 'În execuție', 'Finalizat'];
+const LOGO_B64 = '/9j/4AAQSkZJRgABAQAASABIAAD/4QCMRXhpZgAATU0AKgAAAAgABQESAAMAAAABAAEAAAEaAAUAAAABAAAASgEbAAUAAAABAAAAUgEoAAMAAAABAAIAAIdpAAQAAAABAAAAWgAAAAAAAABIAAAAAQAAAEgAAAABAAOgAQADAAAAAQABAACgAgAEAAAAAQAAAIWgAwAEAAAAAQAAAGEAAAAA/+0AOFBob3Rvc2hvcCAzLjAAOEJJTQQEAAAAAAAAOEJJTQQlAAAAAAAQ1B2M2Y8AsgTpgAmY7PhCfv/AABEIAGEAhQMBIgACEQEDEQH/xAAfAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgv/xAC1EAACAQMDAgQDBQUEBAAAAX0BAgMABBEFEiExQQYTUWEHInEUMoGRoQgjQrHBFVLR8CQzYnKCCQoWFxgZGiUmJygpKjQ1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4eLj5OXm5+jp6vHy8/T19vf4+fr/xAAfAQADAQEBAQEBAQEBAAAAAAAAAQIDBAUGBwgJCgv/xAC1EQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2wBDAAICAgICAgMCAgMFAwMDBQYFBQUFBggGBgYGBggKCAgICAgICgoKCgoKCgoMDAwMDAwODg4ODg8PDw8PDw8PDw//2wBDAQICAgQEBAcEBAcQCwkLEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBD/3QAEAAn/2gAMAwEAAhEDEQA/AP38oopjNQA4kCm7xVaSZV61RkvkXvQBr76N9c+2ppn71N/tNPWgDot9G+ud/tNPWj+009aAOi30b653+009aP7TT1oA6LfRvrnf7TT1o/tNP71AHRb6UMKwF1JD/FVuO8Vu9AGtnNFV0kDcipwc0ALRRRQB/9D9+ycCqk0m0Zqy/Ssi+k2qaALuoXFza2j3NpAbp4/m8pSAzAdQueN2OgOAemRVfRdb0zxBp6anpE4ngcsuRwyupwyOp5V1IwykAg8EVq18/fE/S9X8AXM/xb8B5e6UouqaQXEcGqqxEaMCQRHcISMSAfMo2tnC4TGlc9/d0iRpJWCIgJLE4AA6kmoLS8tb+BbqzkE0L/ddeVb3B7j3HFfN3wfXxv8AFrSV8e/Fy2Fnb3EhfTdHt5lexWAH5JZtvzTS8dJPlU8qvevpkAAAAYApoJK2gtFedfEb4tfDv4TaV/bHj/XLfSYmBMcbtmeYjtFEuXc/QYHcivzv8S/8FIr2bXXuvh54Fn1PwtpbZv7q4LrL5bHCt+7VkhyenmHnpxUuaW5caUnsfqrRXzP8G/2s/g58aBDY6Lqg0vW5QP8AiW35EM7N6REnZL/wAk+1afxU/ad+F3wc8V6b4M8Zy3aalqqRyQiC3MqbZJPLXLZGPmp8y3FyO9rH0LRTI5FljSVPuuAR9DT6ZBzviy7FjoF1dE42eX+rqP6157pniBZsfNWx8Ybs2Pw61a6BxsNv+txGP6184eFdfaYpls0AfW9heeao5rdRsjNea6BeGRF5r0O3bKigC9RSDpS0Af/R/fl65/U2Oxq6B653VPuGgDpa84+JFsL+00rTm5SS88x19Uihlf8ARgtej1g65YLcp9tY/wDHrDcYHu6Yz+lA0fOng74z/Dj4VfAnwprfj/XINMWWxDRQsd1xNhm/1cS5dunUDHqRXxt8Q/26/il8RhqGkfs7+GZ7Kws1JuNXuIfOlijPG/bzDDnsXLH0FfQfwX/Zr+BXxK+Ffhrxj4y8Jwapq95a4muJJrgM2yR1HCyBQAOwAFeu/EL4c+DPh18A/EHhPwPp0ei6VHC8gij3uAzEFjl2ZiT7mubEQrypyWGjzTt7q7voum7O7CVMJCtGWMly0k1zS/ljf3n12V3sfjBZeE73WfE9x4m+KF3d+MtTgjF3ewmWWUiEuEBmlDB9m5gNseMdsCvv34b/AB9vNI0P/hHPCnhnQ9M0NYNyQWlu6ROrlVJYbvnLA8lsk9zXzPL8Ojrkt9f6ddTRedAI7pooicxKRznPy8455HTjIFegfD3wzbJcvpNlcbFgttihkYYCOo596/MOK6Wa4fAzxNKc1VoxbxCvTtTVuqTbWu2+m+p97Uz7IalHE4en7JxqprCSSqc9WV+jkuVu2+yT20OG+Kvww8A+Pb+TV9E0u28IaoWLO2mqy2rv1yYCxCEE8mPaPavnfx54e+NFrfaZ4g8bNe+KNP8AC/kLHehmuVhto5RIqPJguikggGTp0zX37N4RiVbmD7UDDM4MsggdlRo8bh5uML94bx9M4r6d/Z88OLY6hrkVxIlzDc20cZXBwVJOQc9QQa8jIuM5LF4DCyqTf1iLf7yLV7RveDsrr71a3c8DNctpUqNKeCU5OK/e81vddl221uraqyWt7l34K/tcfBv4vQWuladqg0fW2RV/s+/IhlZsYxE+dknttOfavqavmOT9jX9mWWZ7h/Alr5kjlyRNcj5mOSRiXjn0r6SsbK10yxt9Osk8u3tY0ijXJbaiAKoySScAdSc1+3K/U+Vny/ZPJP2gZDF8I9dcdjaf+lUVfIHge7ZjHz6V9c/tEnHwd1/62f8A6Vw18a+Az80f4UyD7J8KyExpmvWbQ/JXj/hPmJK9gtPuUAaQ6UtIOlLQB//S/fl653VPuGuieue1MfIxoA6SqWpf8g66/wCuT/8AoJq7Xxb4q+D/AMVbzx1qWtaPM13ZXepJcoLy+n8pYDKrPGI4rhAECAhV2egORmhlRS6m5+zF468I6J8AfC413WrOyeOOddks6K/yzP0Uncfyq78Y/i74H8QfDvXNB8OzXmr315A0cUdlp15OHY9gyRFP/Hq5qz+BPxdsPBzeGLDxUtnau/2wpCSl2tz54f7Mt0oBFoVySMb/AOAHbXpZ8E/FH/hKLvxiNWIbUmmspNNFw/2SDTzGRBLEuMC5WT53cDLL8ueM1tg8TKjVhVjvFp/cc+Y4KniaNShN6TTTtvZqx8J+C/F/xJ8H6fqmnaZ8OtZ1GLVYvJYz6TP8ozkFdwXkHnnvj0qj4Q/4T/RtXn1HUPh54kKTRMvy2BJ3FlPQsOwr7R8IfArxDpXiPR7nX9UurjSE0YW93FDqd95j6g8IinadpZ38xGJZomi8oo3JzwRqQfBrxBpPgjxXY6BqNzb+ItUuLpLC5l1K8uFgs2uRJbriaVgpSMAHABPQtgmubOqGGx1DHUZ0Ix+tRlGo43u1J3la7ajd6uy1erPMwORqj9SUq85xwrTpqTjZOK5Ve0U5Wjort2WiPk8a3riWV5pj+AvEMVtfO7ySPpE7zp5hBYI0cm3HHGVOM/SvWPA/i7wLNp+s+HPiJoms2mk6rbLbyR3mkX6I6g85eOIlSOoIIIPINegeN/hf8ZtW1OK6bxH/AG9YpHbLJbQySaP5gjlZ5F3QSMcspHzZB4xVTRvAPxZ8O+Kl8SaJpzw6ZHcBv7Jm1ye5DIYFRm8ycuPvgnb079a+EfAVOeKwWKr4mrN4VNU1Jxsk48rvaCbdrat30Wp9y87ap1acKcV7T4mr30d+rdtfI+NPGnw90Twm19r/AIV8V6PL4W0dTLpvnHUBrFk0hx5ZheYG5iJ4ZSQMZIANfUnwN+Fvx3+GV3plxptxoEnhjVW83VNOhmu3RHYD9/ZPK0gTcDkxYC8AZxjbZ8W/CX4veLL+XWrvzIjPd3Ui2A1GRoIYZQmwHZJDlhtOMfKAelczH8CfjJDPZzkQrEllHA8FrfXMSLIk8zk8XKEs0boGYs/I4wAK+7SseQ53Vrn0p+0T/wAkd1/62f8A6Vw18aeAx80f4V9efGm0e3+BF/ZPAbdoobBDEZWnKFbiEbTKxLPjpuJJPU18n+Brdg0eR6VZzH1v4T/1SV7BafcryTwohEaV63afcoA0h0paQdKWgD//0/35fpWNqCbkNbbdKo3Ee9SKAPMte8QeJLVW+yXWwj/pmh/mteIa78R/ifaswtNXKY/6d4D/ADjNfROq6YJgRjNeYar4WExPy0AeA3Xxf+NKMRHrxH/bpa//ABqs4/GX439vEB/8BLT/AOM169P4IVmPyfpVQ+BV/wCedAHlf/C5vjh/0MJ/8BLT/wCM0f8AC5vjh/0MJ/8AAS0/+M16n/wgi/8APOj/AIQRf+edAHln/C5vjh/0MJ/8BLT/AOM0f8Lm+OH/AEMJ/wDAS0/+M16n/wAIIv8Azzo/4QRf+edAHln/AAub44f9DCf/AAEtP/jNPT4yfG49fEB/8BLT/wCM16h/wgi/886cvgVc/wCr/SgDzO+8efE7xZpk2h+ItWN3Y3OzzI/s8CbtjB1+ZI1YYZQeDXV+EdEaEp8vpXbWngtUIOyu+0fw4ICPlxQB0Ph21MaLxXpNsuFFYOnWQiUcYrpY1wAKAJx0paKKAP/U/fyo2WpKKAM6W3V+1ZcumI+crXRlQaaUoA5FtHjPVaZ/YkXpXYeXR5dAHH/2JF6Uf2JF6V2Hl0eXQBx/9iRelH9iReldh5dHl0Acf/YkXpSjRYh2rr/Lo8ugDlU0iMfw1oQ6eqdBW15dKEoArxxBOlWlGKUACloAKKKKAP/V/fyiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP/2Q==';
 
 const SAMPLE_DATA = [];
 
@@ -1529,20 +1530,48 @@ function buildContractHTML(p, company) {
   const kwInvertor = p.kwp || '_______';
   const clientBlank = '_'.repeat(28);
   const addr = p.address || '________________________________________________';
+  const compRows = [];
+  let compIdx = 1;
+  if ((p.types||[]).includes('PV')) {
+    compRows.push({main:true, nr:compIdx, product:'Sistem fotovoltaic '+(p.kwp||'___')+' kWp', desc:nrPanouri+' panouri × '+wpPanou+' Wp, montaj '+(p.mounting||'acoperiș')});
+    compRows.push({nr:compIdx+'.1', product:'Panouri fotovoltaice', desc:'marca ______________________, '+wpPanou+' Wp/buc'});
+    compRows.push({nr:compIdx+'.2', product:'Structură de prindere', desc:'structură metalică, tip ________________'});
+    compIdx++;
+  }
+  if ((p.types||[]).includes('Inverter')) {
+    compRows.push({main:true, nr:compIdx, product:'Invertor', desc:'marca ______________________, '+kwInvertor+' kW'});
+    compIdx++;
+  }
+  if ((p.types||[]).includes('BESS') || (p.types||[]).includes('Baterie')) {
+    compRows.push({main:true, nr:compIdx, product:'Sistem de stocare BESS'+(p.bessKwh?(' '+p.bessKwh+' kWh'):''), desc:'baterii LiFePO4, BMS integrat, PCS, sistem de răcire'});
+    compIdx++;
+  }
+  compRows.push({main:true, nr:compIdx, product:'Cablaje și accesorii', desc:'cablu DC/AC, conectori, tablou electric IP-65, elemente de mascare'});
+  const compTable = `<table class="comptable"><tr><th style="width:34px;">Nr.</th><th>Produs</th><th>Descriere</th></tr>` +
+    compRows.map(r=>`<tr class="${r.main?'main':'sub'}"><td>${r.nr}</td><td>${r.product}</td><td>${r.desc}</td></tr>`).join('') +
+    `</table>`;
   return `<!DOCTYPE html><html lang="ro"><head><meta charset="utf-8"><title>Contract ${nr}</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Georgia&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
+table.comptable{width:100%;border-collapse:collapse;margin:10pt 0 16pt;font-family:Georgia,sans-serif;font-size:9.5pt;border:1.5px solid #0f172a;}
+table.comptable th{background:#f1f5f9;color:#0f172a;font-weight:700;padding:7pt 10pt;border:1px solid #94a3b8;text-align:center;}
+table.comptable td{padding:7pt 10pt;border:1px solid #cbd5e1;vertical-align:middle;}
+table.comptable tr.main td{background:#f8fafc;font-weight:700;text-align:center;}
+table.comptable tr.main td:first-child{text-align:center;}
+table.comptable tr.main td:last-child,table.comptable tr.sub td:last-child{text-align:left;font-weight:400;}
+table.comptable tr.sub td{text-align:center;color:#334155;}
+table.comptable tr.sub td:nth-child(2){text-align:center;}
 body{font-family:'Georgia','Times New Roman',serif;font-size:11.5pt;line-height:1.7;color:#1e293b;background:#e5e7eb;}
 .page{width:21cm;min-height:29.7cm;margin:0 auto 14pt;background:#fff;padding:1.8cm 2.6cm 2.2cm;position:relative;box-shadow:0 1px 8px rgba(0,0,0,.15);}
 .slimhead{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #cbd5e1;padding-bottom:8pt;margin-bottom:20pt;font-family:Georgia,sans-serif;font-size:8.5pt;color:#64748b;letter-spacing:.4px;text-transform:uppercase;}
 .slimhead b{color:#0f172a;}
-.letterhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:26pt;}
-.brand{display:flex;align-items:center;gap:12pt;}
-.brand .mark{width:40pt;height:40pt;background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:8pt;color:#f59e0b;font-family:Georgia,serif;font-weight:700;font-size:17pt;display:flex;align-items:center;justify-content:center;}
-.brand .co{font-family:Georgia,serif;font-weight:700;font-size:14pt;letter-spacing:.3px;color:#0f172a;}
-.brand .sub{font-family:Georgia,sans-serif;font-size:8pt;color:#64748b;margin-top:2pt;letter-spacing:.2px;}
-.doc-chip{font-family:Georgia,sans-serif;font-size:8pt;letter-spacing:1.5px;text-transform:uppercase;color:#fff;background:#0f172a;padding:5pt 12pt;border-radius:20pt;}
+.letterhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:26pt;gap:14pt;}
+.brand{display:flex;align-items:center;gap:12pt;min-width:0;flex:1;}
+.brand .mark{width:40pt;height:40pt;background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:8pt;color:#f59e0b;font-family:Georgia,serif;font-weight:700;font-size:17pt;display:flex;align-items:center;justify-content:center;flex:none;}
+.brand .co{font-family:Georgia,serif;font-weight:700;font-size:13.5pt;letter-spacing:.3px;color:#0f172a;white-space:nowrap;}
+.brand .sub{font-family:Georgia,sans-serif;font-size:7.8pt;color:#64748b;margin-top:2pt;letter-spacing:.2px;white-space:nowrap;}
+.doc-chip{font-family:Georgia,sans-serif;font-size:7.5pt;letter-spacing:1.3px;text-transform:uppercase;color:#fff;background:#0f172a;padding:7pt 14pt;border-radius:20pt;white-space:nowrap;flex:none;}
 h1{text-align:center;font-size:19pt;letter-spacing:2.5px;font-weight:700;color:#0f172a;margin-bottom:4pt;}
 .title-rule{width:70pt;height:2.5pt;background:#f59e0b;margin:8pt auto 18pt;}
 .infobar{display:flex;justify-content:space-between;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8pt;padding:10pt 18pt;margin-bottom:24pt;font-family:Georgia,sans-serif;}
@@ -1578,7 +1607,7 @@ table.spec .lbl{font-family:Georgia,sans-serif;font-size:8pt;letter-spacing:.6px
 <div class="page">
   <div class="letterhead">
     <div class="brand">
-      <div class="mark">S</div>
+      <img src="data:image/jpeg;base64,${LOGO_B64}" style="width:44pt;height:36pt;object-fit:contain;flex:none;" alt="SHC">
       <div>
         <div class="co">S.C. SMART HOUSE COLOR S.R.L.</div>
         <div class="sub">Str. Timotei Cipariu nr. 3, Arad · CUI RO37283429 · J2017000477024 · office@shc-group.ro</div>
@@ -1647,7 +1676,8 @@ table.spec .lbl{font-family:Georgia,sans-serif;font-size:8pt;letter-spacing:.6px
   <p class="art">Pentru prestator, orice întârziere produsă, de la începerea și până la finalizarea contractului (vezi Cap.2), va reprezenta obligația pecuniară de a achita o penalitate de 0,02%/zi întârziere.</p>
 
   <h2><span class="num">5</span><span class="txt">Componența sistemului</span></h2>
-  <p class="art">Componența sistemului de panouri fotovoltaice este descrisă la Anexa "PROCES-VERBAL DE PREDARE-PRIMIRE", care va fi întocmit ulterior finalizării și punerii în funcțiune a sistemului, precum și instruirea beneficiarului.</p>
+  ${compTable}
+  <p class="art">Componența detaliată a sistemului este descrisă la Anexa "PROCES-VERBAL DE PREDARE-PRIMIRE", care va fi întocmit ulterior finalizării și punerii în funcțiune a sistemului, precum și instruirea beneficiarului.</p>
 
   <h2><span class="num">6</span><span class="txt">Garanții</span></h2>
   <p class="art"><b class="n">6.1.</b> Garanțiile aferente componentelor sistemului de panouri fotovoltaice, oferite de către furnizori/producători, vor fi ulterior cesionate de către prestator în favoarea beneficiarului.</p>
