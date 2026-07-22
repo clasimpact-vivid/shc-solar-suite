@@ -1483,6 +1483,7 @@ function renderMap(){
 function populateExportUsers(){
   const sel=document.getElementById('exportUser'); if(!sel) return;
   sel.innerHTML='';
+  const oAll=document.createElement('option'); oAll.value='__ALL__'; oAll.textContent='Toată echipa'; sel.appendChild(oAll);
   loginUsers.filter(u=>u.id!=='_admin').forEach(u=>{ const o=document.createElement('option'); o.value=u.id; o.textContent=u.name; sel.appendChild(o); });
 }
 function initExportForm(){
@@ -1497,16 +1498,17 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
   const dateTo=dmyToIso(document.getElementById('exportTo').value);
   if(!dateFrom||!dateTo){ alert('Selectează ambele date (de la / până la).'); return; }
   const targetUserId = canViewTeam() ? document.getElementById('exportUser').value : currentUser.id;
-  const u=getUserById(targetUserId);
-  const mine=Object.values(records).filter(r=>r.userId===targetUserId && r.date>=dateFrom && r.date<=dateTo);
-  mine.sort((a,b)=>a.date.localeCompare(b.date));
+  const exportAll = targetUserId==='__ALL__';
+  const u=exportAll?null:getUserById(targetUserId);
+  const mine=Object.values(records).filter(r=>(exportAll||r.userId===targetUserId) && r.date>=dateFrom && r.date<=dateTo);
+  mine.sort((a,b)=>a.date.localeCompare(b.date)||(getUserById(a.userId)?.name||'').localeCompare(getUserById(b.userId)?.name||''));
   // Cereri de concediu/învoire aprobate, pentru a marca zilele fără pontaj dar cu absență motivată
-  const approvedLeaves=leaveReqs.filter(l=>l.userId===targetUserId && l.status==='A');
-  function leaveTypeFor(dateIso){
-    const lv=approvedLeaves.find(l=>dateIso>=l.from && dateIso<=l.to);
+  const approvedLeaves=leaveReqs.filter(l=>(exportAll||l.userId===targetUserId) && l.status==='A');
+  function leaveTypeFor(dateIso,userId){
+    const lv=approvedLeaves.find(l=>(exportAll?l.userId===userId:true) && dateIso>=l.from && dateIso<=l.to);
     return lv ? (LEAVE_LABELS[lv.type]||lv.type) : '';
   }
-  let csv='Data,Tip zi,Intrare,Ora intrare,Editat,Ieșire,Ora ieșire,Editat,Ore lucrate,Deplasare (km)\n';
+  let csv=(exportAll?'Angajat,':'')+'Data,Tip zi,Intrare,Ora intrare,Editat,Ieșire,Ora ieșire,Editat,Ore lucrate,Deplasare (km)\n';
   let workedDays=0, leaveDaysCount=0;
   mine.forEach(r=>{
     let hrs='';
@@ -1514,21 +1516,21 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
       const [h1,m1]=r.checkIn.time.split(':').map(Number), [h2,m2]=r.checkOut.time.split(':').map(Number);
       const mins=(h2*60+m2)-(h1*60+m1); if(mins>=0) hrs=(mins/60).toFixed(2);
     }
-    const lvType=leaveTypeFor(r.date);
+    const lvType=leaveTypeFor(r.date,r.userId);
     const tipZi = r.checkIn ? 'Lucrat' : (lvType || 'Absent');
     if(r.checkIn) workedDays++; else if(lvType) leaveDaysCount++;
     const dist = r.checkIn&&r.checkIn.distKm!=null ? r.checkIn.distKm : '';
-    csv+=[r.date, tipZi, r.checkIn?'Da':'Nu', r.checkIn?r.checkIn.time:'', r.checkIn&&r.checkIn.editedManually?'Da':'Nu', r.checkOut?'Da':'Nu', r.checkOut?r.checkOut.time:'', r.checkOut&&r.checkOut.editedManually?'Da':'Nu', hrs, dist].join(',')+'\n';
+    csv+=(exportAll?(getUserById(r.userId)?.name||r.userId)+',':'')+[r.date, tipZi, r.checkIn?'Da':'Nu', r.checkIn?r.checkIn.time:'', r.checkIn&&r.checkIn.editedManually?'Da':'Nu', r.checkOut?'Da':'Nu', r.checkOut?r.checkOut.time:'', r.checkOut&&r.checkOut.editedManually?'Da':'Nu', hrs, dist].join(',')+'\n';
   });
   // Zile de concediu aprobate care nu au niciun record de pontaj (ex: concediu întreaga zi, fără logare)
-  const recordedDates=new Set(mine.map(r=>r.date));
+  const recordedDates=new Set(mine.map(r=>r.userId+'|'+r.date));
   approvedLeaves.forEach(lv=>{
     let d=new Date(lv.from);
     const end=new Date(lv.to);
     while(d<=end){
       const iso=d.toISOString().slice(0,10);
-      if(iso>=dateFrom && iso<=dateTo && !recordedDates.has(iso)){
-        csv+=[iso, LEAVE_LABELS[lv.type]||lv.type, 'Nu','','Nu','Nu','','Nu','',''].join(',')+'\n';
+      if(iso>=dateFrom && iso<=dateTo && !recordedDates.has(lv.userId+'|'+iso)){
+        csv+=(exportAll?(getUserById(lv.userId)?.name||lv.userId)+',':'')+[iso, LEAVE_LABELS[lv.type]||lv.type, 'Nu','','Nu','Nu','','Nu','',''].join(',')+'\n';
         leaveDaysCount++;
       }
       d.setDate(d.getDate()+1);
@@ -1540,7 +1542,7 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download='Pontaj_'+(u?u.name.replace(/\s+/g,'_'):targetUserId)+'_'+dateFrom+'_'+dateTo+'.csv';
+  a.download='Pontaj_'+(exportAll?'TOATA_ECHIPA':(u?u.name.replace(/\s+/g,'_'):targetUserId))+'_'+dateFrom+'_'+dateTo+'.csv';
   a.click();
 });
 
