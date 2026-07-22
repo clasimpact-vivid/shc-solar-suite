@@ -188,9 +188,9 @@ async function render(){
   function crmLogFor(dISO){
     const [s,e]=dayBounds(dISO); const out=[];
     projects.forEach(p=>{
-      toArray(p.auditLog).filter(ev=>ev.timestamp && ev.timestamp>=s && ev.timestamp<e).forEach(ev=>{
+      toArray(p.auditLog).filter(ev=>ev.timestamp && new Date(ev.timestamp).getTime()>=s && new Date(ev.timestamp).getTime()<e).forEach(ev=>{
         if(agentFilter && ev.user!==agentFilter) return;
-        out.push({client:p.client||'Client', action:ev.action||'actualizare', reason:ev.reason||'', by:ev.user||'', time:ev.timestamp, day:dISO});
+        out.push({client:p.client||'Client', action:ev.action||'actualizare', reason:ev.reason||'', by:ev.user||ev.userName||'', time:new Date(ev.timestamp).getTime(), day:dISO});
       });
     });
     return out.sort((a,b)=>b.time-a.time);
