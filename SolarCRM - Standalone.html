@@ -1533,50 +1533,86 @@ function buildContractHTML(p, company) {
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Georgia&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Georgia','Times New Roman',serif;font-size:11.5pt;line-height:1.65;color:#111;padding:0;counter-reset:page 1;}
-.page{padding:2.4cm 2.6cm 2.8cm;position:relative;}
-.letterhead{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px double #0f172a;padding-bottom:10pt;margin-bottom:22pt;}
-.letterhead .co{font-family:Georgia,serif;font-weight:700;font-size:13pt;letter-spacing:.5px;color:#0f172a;}
-.letterhead .sub{font-size:8.5pt;color:#475569;margin-top:2pt;}
-.letterhead .doc-tag{font-size:8.5pt;color:#94a3b8;text-align:right;letter-spacing:1px;text-transform:uppercase;}
-h1{text-align:center;font-size:16pt;letter-spacing:3px;font-weight:700;margin-bottom:2pt;}
-h1.sub1{font-size:11pt;letter-spacing:1px;font-weight:400;margin-bottom:14pt;color:#334155;}
-.nr-line{text-align:center;font-size:10.5pt;color:#334155;margin-bottom:22pt;}
-h2{font-size:12pt;margin:20pt 0 8pt;text-transform:uppercase;letter-spacing:.6px;font-weight:700;color:#0f172a;border-bottom:1.5px solid #0f172a;padding-bottom:4pt;}
-p{margin-bottom:7pt;text-align:justify;}
-.art{margin-bottom:7pt;text-align:justify;}
-.art b.n{font-weight:700;}
-table.spec{width:100%;border-collapse:collapse;margin:10pt 0 14pt;}
-table.spec td{padding:6pt 10pt;border:1px solid #94a3b8;font-size:10.5pt;vertical-align:top;}
-table.spec .lbl{font-weight:700;width:220px;background:#f1f5f9;}
-.sigs{display:flex;justify-content:space-between;margin-top:60pt;}
-.sig{text-align:center;width:44%;font-size:10.5pt;}
-.sigline{border-top:1px solid #000;padding-top:5pt;margin-top:56pt;}
-.pagenum:after{content:counter(page);}
-.footer-note{margin-top:30pt;font-size:8.5pt;color:#94a3b8;text-align:center;border-top:1px solid #e2e8f0;padding-top:6pt;}
-.pagebreak{page-break-before:always;}
+body{font-family:'Georgia','Times New Roman',serif;font-size:11.5pt;line-height:1.7;color:#1e293b;background:#e5e7eb;}
+.page{width:21cm;min-height:29.7cm;margin:0 auto 14pt;background:#fff;padding:1.8cm 2.6cm 2.2cm;position:relative;box-shadow:0 1px 8px rgba(0,0,0,.15);}
+.slimhead{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #cbd5e1;padding-bottom:8pt;margin-bottom:20pt;font-family:Georgia,sans-serif;font-size:8.5pt;color:#64748b;letter-spacing:.4px;text-transform:uppercase;}
+.slimhead b{color:#0f172a;}
+.letterhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:26pt;}
+.brand{display:flex;align-items:center;gap:12pt;}
+.brand .mark{width:40pt;height:40pt;background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:8pt;color:#f59e0b;font-family:Georgia,serif;font-weight:700;font-size:17pt;display:flex;align-items:center;justify-content:center;}
+.brand .co{font-family:Georgia,serif;font-weight:700;font-size:14pt;letter-spacing:.3px;color:#0f172a;}
+.brand .sub{font-family:Georgia,sans-serif;font-size:8pt;color:#64748b;margin-top:2pt;letter-spacing:.2px;}
+.doc-chip{font-family:Georgia,sans-serif;font-size:8pt;letter-spacing:1.5px;text-transform:uppercase;color:#fff;background:#0f172a;padding:5pt 12pt;border-radius:20pt;}
+h1{text-align:center;font-size:19pt;letter-spacing:2.5px;font-weight:700;color:#0f172a;margin-bottom:4pt;}
+.title-rule{width:70pt;height:2.5pt;background:#f59e0b;margin:8pt auto 18pt;}
+.infobar{display:flex;justify-content:space-between;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8pt;padding:10pt 18pt;margin-bottom:24pt;font-family:Georgia,sans-serif;}
+.infobar .cell{text-align:center;flex:1;}
+.infobar .cell .k{font-size:7.5pt;letter-spacing:1px;text-transform:uppercase;color:#94a3b8;margin-bottom:3pt;}
+.infobar .cell .v{font-size:11pt;font-weight:700;color:#0f172a;}
+.infobar .div{width:1px;background:#e2e8f0;}
+h2{font-size:11.5pt;margin:24pt 0 10pt;letter-spacing:.5px;font-weight:700;color:#0f172a;display:flex;align-items:center;gap:8pt;}
+h2 .num{width:20pt;height:20pt;border-radius:50%;background:#0f172a;color:#fff;font-size:9.5pt;display:inline-flex;align-items:center;justify-content:center;flex:none;font-family:Georgia,sans-serif;}
+h2 .txt{text-transform:uppercase;border-bottom:1.5px solid #e2e8f0;flex:1;padding-bottom:6pt;}
+.parties{display:flex;gap:14pt;margin-bottom:6pt;}
+.party{flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-left:3px solid #0f172a;border-radius:6pt;padding:12pt 14pt;}
+.party .role{font-family:Georgia,sans-serif;font-size:7.5pt;letter-spacing:1.2px;text-transform:uppercase;color:#f59e0b;font-weight:700;margin-bottom:5pt;}
+.party p{font-size:10.3pt;margin:0;text-align:left;}
+p{margin-bottom:8pt;text-align:justify;}
+.art{margin-bottom:8pt;text-align:justify;}
+.art b.n{font-weight:700;color:#0f172a;}
+table.spec{width:100%;border-collapse:collapse;margin:6pt 0 16pt;}
+table.spec td{padding:8pt 12pt;border-bottom:1px solid #e2e8f0;font-size:10.3pt;vertical-align:top;}
+table.spec .lbl{font-family:Georgia,sans-serif;font-size:8pt;letter-spacing:.6px;text-transform:uppercase;color:#94a3b8;width:200px;font-weight:700;}
+.sigs{display:flex;justify-content:space-between;margin-top:56pt;}
+.sig{text-align:center;width:44%;font-size:10.3pt;}
+.sigline{border-top:1px solid #0f172a;padding-top:6pt;margin-top:54pt;font-family:Georgia,sans-serif;font-size:8.5pt;color:#64748b;letter-spacing:.3px;}
+.pagefoot{position:absolute;left:2.6cm;right:2.6cm;bottom:1.1cm;display:flex;justify-content:space-between;border-top:1px solid #e2e8f0;padding-top:6pt;font-family:Georgia,sans-serif;font-size:8pt;color:#94a3b8;letter-spacing:.3px;}
 @media print{
-  @page{margin:0;size:A4;}
-  .page{page-break-after:always;}
+  body{background:#fff;}
+  .page{box-shadow:none;margin:0;width:auto;min-height:auto;}
+  @page{margin:1.8cm 2.6cm 2.2cm;size:A4;}
+  .pagebreak{page-break-before:always;}
 }
+@media screen{ .pagebreak{margin-top:14pt;} }
 </style></head><body>
 <div class="page">
   <div class="letterhead">
-    <div>
-      <div class="co">${company.name||'S.C. SMART HOUSE COLOR S.R.L.'}</div>
-      <div class="sub">${company.address||'Str. Timotei Cipariu nr. 3, Arad'} · CUI ${company.cui||'RO37283429'} · office@shc-group.ro</div>
+    <div class="brand">
+      <div class="mark">S</div>
+      <div>
+        <div class="co">S.C. SMART HOUSE COLOR S.R.L.</div>
+        <div class="sub">Str. Timotei Cipariu nr. 3, Arad · CUI RO37283429 · J2017000477024 · office@shc-group.ro</div>
+      </div>
     </div>
-    <div class="doc-tag">Contract prestări servicii</div>
+    <div class="doc-chip">Contract prestări servicii</div>
   </div>
 
-  <h1>C O N T R A C T&nbsp;&nbsp;&nbsp;D E&nbsp;&nbsp;&nbsp;P R E S T Ă R I&nbsp;&nbsp;&nbsp;S E R V I C I I</h1>
-  <div class="nr-line">Nr. <strong>${nr}</strong>/${dd}.${mm}.${yyyy}</div>
+  <h1>C O N T R A C T&nbsp;&nbsp;D E&nbsp;&nbsp;P R E S T Ă R I&nbsp;&nbsp;S E R V I C I I</h1>
+  <div class="title-rule"></div>
 
-  <h2>Părțile contractante</h2>
-  <p class="art">S.C. "SMART HOUSE COLOR" S.R.L., sediul social în municipiul Arad, Str. Timotei Cipariu nr. 3, Arad, Nr.Registrul Comerțului Arad: J2017000477024, CUI RO37283429, cu contul bancar nr. RO97BTRLRONCRT0CR5559901, deschis la Banca Transilvania, reprezentată prin administrator domnul NICORAȘ IONUȚ VASILE, cetățean român, născut la data de 5 octombrie 1993, în municipiul Zalău, jud.Sălaj, domiciliat în municipiul Arad, str.Smochinului, nr.6, jud.Arad, identificat prin C.I. seria ZR nr.160351/15.10.2024 SPCLEP Arad, având CNP 1931005314023, denumit în continuare <strong>PRESTATOR</strong>.</p>
-  <p class="art"><strong>${p.client||clientBlank}</strong>, cetățean român, domiciliat în ${addr}, jud. ______________, identificat prin C.I. seria ______ nr.______________, având CNP ________________, denumit în continuare <strong>BENEFICIAR</strong>.</p>
+  <div class="infobar">
+    <div class="cell"><div class="k">Număr contract</div><div class="v">${nr}</div></div>
+    <div class="div"></div>
+    <div class="cell"><div class="k">Data emiterii</div><div class="v">${dd}.${mm}.${yyyy}</div></div>
+    <div class="div"></div>
+    <div class="cell"><div class="k">Beneficiar</div><div class="v">${p.client||'—'}</div></div>
+    <div class="div"></div>
+    <div class="cell"><div class="k">Valoare</div><div class="v">${valFmt} LEI</div></div>
+  </div>
 
-  <h2>1. Obiectul contractului</h2>
+  <h2><span class="num">§</span><span class="txt">Părțile contractante</span></h2>
+  <div class="parties">
+    <div class="party">
+      <div class="role">Prestator</div>
+      <p>S.C. "SMART HOUSE COLOR" S.R.L., sediul social în municipiul Arad, Str. Timotei Cipariu nr. 3, Arad, Nr.Registrul Comerțului Arad: J2017000477024, CUI RO37283429, cu contul bancar nr. RO97BTRLRONCRT0CR5559901, deschis la Banca Transilvania, reprezentată prin administrator domnul NICORAȘ IONUȚ VASILE, cetățean român, născut la data de 5 octombrie 1993, în municipiul Zalău, jud.Sălaj, domiciliat în municipiul Arad, str.Smochinului, nr.6, jud.Arad, identificat prin C.I. seria ZR nr.160351/15.10.2024 SPCLEP Arad, având CNP 1931005314023.</p>
+    </div>
+    <div class="party">
+      <div class="role">Beneficiar</div>
+      <p><strong>${p.client||clientBlank}</strong>, cetățean român, domiciliat în ${addr}, jud. ______________, identificat prin C.I. seria ______ nr.______________, având CNP ________________.</p>
+    </div>
+  </div>
+
+  <h2><span class="num">1</span><span class="txt">Obiectul contractului</span></h2>
   <p class="art"><b class="n">1.1.</b> Obiectul contractului îl reprezintă atât montarea, livrarea cât și punerea în funcțiune a unor sisteme de panouri fotovoltaice având următoarele caracteristici: <strong>${nrPanouri}</strong> panouri fotovoltaice cu puterea de <strong>${wpPanou}</strong> Wp, marca ______________________, Invertor ______________________ de <strong>${kwInvertor}</strong> kW, structură metalică cu prindere pe acoperiș tip ________________, ________________________________________________ și accesorii.</p>
   <p class="art"><b class="n">1.2.</b> Beneficiarul își va asuma orice neplăcere creată de către sistem, având în vedere faptul că acest sistem va fi pus în funcțiunea de „AUTOCONSUM" pe răspunderea acestuia din urmă.</p>
   <p class="art"><b class="n">1.3.</b> Prestatorul se va ocupa atât de întocmirea, cât și de depunerea dosarului de prosumator pe platforma RETELE ELECTRICE.</p>
@@ -1586,32 +1622,34 @@ table.spec .lbl{font-weight:700;width:220px;background:#f1f5f9;}
     <tr><td class="lbl">Responsabil lucrare</td><td>${p.responsabil||'—'}</td></tr>
   </table>
 
-  <h2>2. Durata</h2>
+  <h2><span class="num">2</span><span class="txt">Durata</span></h2>
   <p class="art">Durata de executare a lucrărilor este de <strong>30 zile calendaristice</strong>, aferente montării și punerii în funcțiune, de la data semnării contractului.</p>
 
-  <h2>3. Începerea, finalizarea și amplasamentul</h2>
+  <h2><span class="num">3</span><span class="txt">Începerea, finalizarea și amplasamentul</span></h2>
   <p class="art"><b class="n">3.1.</b> Începerea lucrărilor se va face în termen de maxim 30 de zile calendaristice, după îndeplinirea tuturor cerințelor și condițiilor, respectiv: achitarea tranșei nr.1 la acceptarea ofertei financiare și semnarea prezentului contract, dovedit prin chitanță/OP.</p>
   <p class="art"><b class="n">3.2.</b> Ulterior finalizării și punerii în funcțiune a lucrărilor se va achita tranșa nr.2 a prezentului contract, dovedită prin chitanță/OP.</p>
   <p class="art"><b class="n">3.3.</b> Locul amplasamentului lucrării se va face în ${p.address?('<strong>'+p.address+'</strong>'):'________________________, str. ____________________________ nr. ________, jud.______________'}.</p>
+  <div class="pagefoot"><span>SMART HOUSE COLOR · Contract nr. ${nr}</span><span>Pagina 1 din 4</span></div>
 </div>
 
 <div class="page pagebreak">
-  <h2>4. Prețul contractului, modalitate de plată, penalități</h2>
+  <div class="slimhead"><span><b>S.C. SMART HOUSE COLOR S.R.L.</b> · CUI RO37283429 · J2017000477024</span><span>Contract nr. ${nr} / ${dd}.${mm}.${yyyy}</span></div>
+  <h2><span class="num">4</span><span class="txt">Prețul contractului, modalitate de plată, penalități</span></h2>
   <p class="art"><b class="n">4.1.</b> Prețul contractului este de <strong>${valFmt} LEI</strong> inclusiv TVA (prețul contractului cuprinde atât materialele, manopera cât și TVA-ul).</p>
   <p class="art"><b class="n">4.2.</b> Modalitatea de plată este, după cum urmează:</p>
   <table class="spec">
-    <tr><td class="lbl">TRANȘA NR.1</td><td><strong>${transa1} LEI</strong>, inclusiv TVA — se achită în termen de 1-2 zile lucrătoare de la acceptarea ofertei financiare și semnării prezentului act, dovedită prin chitanță/OP.</td></tr>
-    <tr><td class="lbl">TRANȘA NR.2</td><td><strong>${transa2} LEI</strong>, inclusiv TVA — se achită după finalizarea lucrării, dovedită prin chitanță/OP.</td></tr>
+    <tr><td class="lbl">Tranșa nr.1</td><td><strong>${transa1} LEI</strong>, inclusiv TVA — se achită în termen de 1-2 zile lucrătoare de la acceptarea ofertei financiare și semnării prezentului act, dovedită prin chitanță/OP.</td></tr>
+    <tr><td class="lbl">Tranșa nr.2</td><td><strong>${transa2} LEI</strong>, inclusiv TVA — se achită după finalizarea lucrării, dovedită prin chitanță/OP.</td></tr>
   </table>
   <p class="art"><b class="n">4.3.</b> Penalitățile sunt de 0,02%/zi întârziere, pentru ambele părți, respectiv:</p>
   <p class="art">Pentru beneficiar, în situația neachitării obligației pecuniare într-un termen maxim de 5 (cinci) zile lucrătoare de la acceptarea ofertei și semnării prezentului act, nu se vor mai calcula penalități de întârziere, ci penalități de renunțare de 0,02% din valoarea ofertei contractului, având drept temei prestarea serviciilor de consultanță oferite de către prestator, ulterior începerii execuției lucrărilor. Aceste penalități au caracter de acoperire a cheltuielilor efectuate de către prestator, contractul reziliindu-se de drept.</p>
   <p class="art">În situația neachitării tranșei nr.2 în termen de maxim 5 (cinci) zile lucrătoare de la semnarea procesului verbal de finalizare a lucrărilor și punere în funcțiune, beneficiarul va suporta o penalizare de 0,02%/zi întârziere, dar nu mai târziu de 14 (paisprezece) zile lucrătoare, situație în care prestatorul este îndreptățit la ridicarea elementelor componente ale sistemului pus în operă.</p>
   <p class="art">Pentru prestator, orice întârziere produsă, de la începerea și până la finalizarea contractului (vezi Cap.2), va reprezenta obligația pecuniară de a achita o penalitate de 0,02%/zi întârziere.</p>
 
-  <h2>5. Componența sistemului de panouri fotovoltaice</h2>
+  <h2><span class="num">5</span><span class="txt">Componența sistemului</span></h2>
   <p class="art">Componența sistemului de panouri fotovoltaice este descrisă la Anexa "PROCES-VERBAL DE PREDARE-PRIMIRE", care va fi întocmit ulterior finalizării și punerii în funcțiune a sistemului, precum și instruirea beneficiarului.</p>
 
-  <h2>6. Garanții</h2>
+  <h2><span class="num">6</span><span class="txt">Garanții</span></h2>
   <p class="art"><b class="n">6.1.</b> Garanțiile aferente componentelor sistemului de panouri fotovoltaice, oferite de către furnizori/producători, vor fi ulterior cesionate de către prestator în favoarea beneficiarului.</p>
   <p class="art"><b class="n">6.2.</b> Garanția aferentă executării montării, cât și punerii în funcțiune a sistemului de panouri fotovoltaice oferită de către prestator este de <strong>24 luni</strong>.</p>
   <p class="art">Dacă sistemul fotovoltaic se degradează din pricina intemperiilor meteorologice (grindină, căderi pe panourile fotovoltaice a unor elemente distructive) instalatorul/montatorul nu este răspunzător.</p>
@@ -1619,10 +1657,12 @@ table.spec .lbl{font-weight:700;width:220px;background:#f1f5f9;}
   <p class="art">Instalatorul/montatorul se va racorda la instalația electrică a locuinței/clădirii printr-un tablou electric IP-65 montat separat față de tabloul electric general al casei, nefiind răspunzător de instalația electrică existentă a casei.</p>
   <p class="art">Instalatorul/montatorul se va racorda la priza de pământ existentă a clădirii/locuinței atât cu panourile fotovoltaice/structura fotovoltaică cât și cu tabloul montat ulterior, urmând a se efectua o măsurătoare a prizei de pământ, iar dacă valorile nu vor corespunde se va întocmi un raport care se va transmite beneficiarului pentru a se pune în legalitate cu priza de pământ.</p>
   <p class="art">Orice intervenție în sistemul fotovoltaic existent al beneficiarului, efectuată de către o altă persoană decât personalul autorizat al firmei de montaj (panouri fotovoltaice, structură fotovoltaică, cablu de alimentare DC+AC, tablou electric DC+AC), garanția se va anula.</p>
+  <div class="pagefoot"><span>SMART HOUSE COLOR · Contract nr. ${nr}</span><span>Pagina 2 din 4</span></div>
 </div>
 
 <div class="page pagebreak">
-  <h2>7. Obligațiile părților</h2>
+  <div class="slimhead"><span><b>S.C. SMART HOUSE COLOR S.R.L.</b> · CUI RO37283429 · J2017000477024</span><span>Contract nr. ${nr} / ${dd}.${mm}.${yyyy}</span></div>
+  <h2><span class="num">7</span><span class="txt">Obligațiile părților</span></h2>
   <p class="art"><b class="n">7.1. Obligațiile prestatorului</b></p>
   <p class="art">a. vizitarea locației/amplasamentului și efectuarea de măsurători pentru evaluarea condițiilor de implementare, respectiv montajul și punerea în funcțiune;<br>
   b. elaborarea proiectului tehnic și întocmirea documentației specifice, precum și a ofertei financiare;<br>
@@ -1640,22 +1680,22 @@ table.spec .lbl{font-weight:700;width:220px;background:#f1f5f9;}
   e. achitarea prețului contractului, în condițiile Cap.4 din prezentul contract;<br>
   f. în situația în care apar cheltuieli neprevăzute (cauzate de către beneficiar, respectiv structura de lemn a șarpantei nu corespunde, etc.), beneficiarul se va obliga să le suporte (act adițional la prezentul contract).</p>
 
-  <h2>8. Încetarea contractului</h2>
+  <h2><span class="num">8</span><span class="txt">Încetarea contractului</span></h2>
   <p class="art">a. La finalizarea acestuia, prin montarea și punerea în funcțiune, dar și la predarea către beneficiar a procesului verbal de predare-primire;<br>
   b. Prin denunțarea unilaterală a contractului de către beneficiar, anterior efectuării cheltuielilor de materiale pentru înfăptuirea acestuia;<br>
   c. În caz de forță majoră, cu respectarea legii (notificare, etc.);<br>
   d. În cazul neachitării ulterior finalizării executării lucrării, după expirarea celor 14 (paisprezece) zile lucrătoare în care prestatorul are dreptul la penalitățile de întârziere, aceasta atrage atât ridicarea elementelor componente ale sistemului pus în operă, cât și rezilierea de drept a prezentului act.</p>
 
-  <h2>9. Litigii</h2>
+  <h2><span class="num">9</span><span class="txt">Litigii</span></h2>
   <p class="art">Încercarea rezolvării pe cale amiabilă; în caz contrar, prin intermediul judecății, la instanța competentă din punct de vedere material și teritorial de la domiciliul prestatorului.</p>
 
-  <h2>10. Comunicări</h2>
+  <h2><span class="num">10</span><span class="txt">Comunicări</span></h2>
   <p class="art">Orice comunicare va avea loc numai în scris, prin intermediul email-ului.</p>
 
-  <h2>11. Legea aplicabilă a contractului</h2>
+  <h2><span class="num">11</span><span class="txt">Legea aplicabilă a contractului</span></h2>
   <p class="art">Contractul va fi interpretat conform legilor aplicabile din România.</p>
 
-  <h2>12. Dispoziții finale</h2>
+  <h2><span class="num">12</span><span class="txt">Dispoziții finale</span></h2>
   <p class="art">Prezentul contract s-a semnat astăzi ${dd}.${mm}.${yyyy}, într-un număr de 2 (două) exemplare, câte unul pentru fiecare parte.</p>
 
   <div class="sigs">
@@ -1663,22 +1703,33 @@ table.spec .lbl{font-weight:700;width:220px;background:#f1f5f9;}
       <div><strong>P R E S T A T O R,</strong></div>
       <div style="margin-top:4pt">S.C. SMART HOUSE COLOR S.R.L.</div>
       <div style="margin-top:2pt">ING. NICORAȘ IONUȚ-VASILE</div>
-      <div class="sigline"></div>
+      <div class="sigline">Semnătură și ștampilă</div>
     </div>
     <div class="sig">
       <div><strong>B E N E F I C I A R,</strong></div>
       <div style="margin-top:4pt">${p.client||''}</div>
-      <div class="sigline"></div>
+      <div class="sigline">Semnătură</div>
     </div>
   </div>
+  <div class="pagefoot"><span>SMART HOUSE COLOR · Contract nr. ${nr}</span><span>Pagina 3 din 4</span></div>
 </div>
 
 <div class="page pagebreak">
-  <h1 style="font-size:13pt;">ANEXA NR. 1 LA CONTRACTUL NR. ${nr} DATA ${dd}.${mm}.${yyyy}</h1>
-  <h2 style="text-align:center;border:none;">CLAUZĂ STANDARD PRIVIND PROTECȚIA DATELOR PERSONALE</h2>
-  <h2>Părțile contractante</h2>
-  <p class="art">S.C. "SMART HOUSE COLOR" S.R.L., sediul social în municipiul Arad, Str. Timotei Cipariu nr. 3, Arad, Nr.Registrul Comerțului Arad: J2017000477024, CUI RO37283429, cu contul bancar nr. RO97BTRLRONCRT0CR5559901, deschis la Banca Transilvania, reprezentată prin administrator domnul NICORAȘ IONUȚ VASILE, cetățean român, născut la data de 5 octombrie 1993, în municipiul Zalău, jud.Sălaj, domiciliat în municipiul Arad, str.Smochinului, nr.6, jud.Arad, identificat prin C.I. seria ZR nr.160351/15.10.2024 SPCLEP Arad, având CNP 1931005314023, denumit în continuare <strong>PRESTATOR</strong>.</p>
-  <p class="art"><strong>${p.client||clientBlank}</strong>, cetățean român, domiciliat în ${addr}, jud. ______________, identificat prin C.I. seria ______ nr.______________, având CNP ________________, denumit în continuare <strong>BENEFICIAR</strong>.</p>
+  <div class="slimhead"><span><b>S.C. SMART HOUSE COLOR S.R.L.</b> · CUI RO37283429 · J2017000477024</span><span>Anexă protecția datelor · Nr. ${nr} / ${dd}.${mm}.${yyyy}</span></div>
+  <h1 style="font-size:14pt;">ANEXA NR. 1</h1>
+  <div class="title-rule"></div>
+  <h2 style="justify-content:center;"><span class="txt" style="border:none;text-align:center;">Clauză standard privind protecția datelor personale</span></h2>
+
+  <div class="parties">
+    <div class="party">
+      <div class="role">Prestator</div>
+      <p>S.C. "SMART HOUSE COLOR" S.R.L., sediul social în municipiul Arad, Str. Timotei Cipariu nr. 3, Arad, Nr.Registrul Comerțului Arad: J2017000477024, CUI RO37283429, cu contul bancar nr. RO97BTRLRONCRT0CR5559901, deschis la Banca Transilvania, reprezentată prin administrator domnul NICORAȘ IONUȚ VASILE, cetățean român, identificat prin C.I. seria ZR nr.160351/15.10.2024 SPCLEP Arad, având CNP 1931005314023.</p>
+    </div>
+    <div class="party">
+      <div class="role">Beneficiar</div>
+      <p><strong>${p.client||clientBlank}</strong>, cetățean român, domiciliat în ${addr}, jud. ______________, identificat prin C.I. seria ______ nr.______________, având CNP ________________.</p>
+    </div>
+  </div>
 
   <p class="art"><b class="n">Art. 1.</b> Părțile trebuie să respecte normele și obligațiile impuse de dispozițiile în vigoare, privind protecția datelor cu caracter personal.</p>
   <p class="art"><b class="n">Art. 2.</b> Părțile sunt conștiente de faptul că normele europene din Regulamentul 679/2016 se aplică oricărui operator de date sau împuternicit situat în Uniunea Europeană și oricărei persoane care prelucrează date cu caracter personal ale persoanelor vizate situate în Uniunea Europeană sau care le furnizează servicii. Prin urmare, părțile confirmă respectarea deplină a următoarelor prevederi, inclusiv dar fără a se limita la:</p>
@@ -1691,16 +1742,16 @@ table.spec .lbl{font-weight:700;width:220px;background:#f1f5f9;}
   <div class="sigs">
     <div class="sig">
       <div><strong>P R E S T A T O R,</strong></div>
-      <div class="sigline"></div>
+      <div class="sigline">Semnătură și ștampilă</div>
     </div>
     <div class="sig">
       <div><strong>B E N E F I C I A R,</strong></div>
-      <div class="sigline"></div>
+      <div class="sigline">Semnătură</div>
     </div>
   </div>
-  <div class="footer-note">Document generat automat de SolarCRM · Smart House Color · ${todayFmt}</div>
+  <div class="pagefoot"><span>SMART HOUSE COLOR · Contract nr. ${nr}</span><span>Pagina 4 din 4</span></div>
 </div>
-<script>window.onload=()=>{setTimeout(()=>window.print(),400);};<\/script>
+<script>window.onload=()=>{setTimeout(()=>window.print(),500);};<\/script>
 </body></html>`;
 }
 
@@ -2437,7 +2488,7 @@ class Component extends DCLogic {
     const statusButtons=[]; let auditEntries=[],hasAuditEntries=false,noAuditEntries=true,attachmentItems=[],hasAttachments=false,noAttachments=true;
     if(selected){
       const f=this.fmt(selected); const sc=STATUS_COLORS[selected.status]||STATUS_COLORS.Lead;
-      sel={...selected,...f,phone:selected.phone||'—',email:selected.email||'—',responsabil:selected.responsabil||'—',date_start:fmtDate(selected.date_start)||'—',date_executie:fmtDate(selected.date_executie)||'—',date_end:fmtDate(selected.date_end)||'—',statusBg:sc.statusBg,statusColor:sc.statusColor,isPV:(selected.types||[]).includes('PV'),hasEquipment:!!(selected.equipment&&selected.equipment.trim()),hasNotes:!!(selected.notes&&selected.notes.trim()),prosumatorText:selected.prosumator?'Da ✓':'Nu',kwp:selected.kwp!=null?String(selected.kwp):'—',panels:selected.panels!=null?String(selected.panels):'—',mounting:selected.mounting||'—',typeBadges:(selected.types||[]).map(t=>({label:t,bg:(TYPE_COLORS[t]||{}).bg||'#f1f5f9',color:(TYPE_COLORS[t]||{}).color||'#475569'})),canContract:CONTRACT_STATUSES.includes(selected.status),hasBESS:(selected.types||[]).includes('BESS'),bessKwhDisplay:selected.bessKwh!=null?String(selected.bessKwh)+' kWh':'—',hasStages:!!(selected.stages&&selected.stages.length),stagesSummary:(selected.stages||[]).map(s=>({label:STAGE_TYPE_LABELS[s.type]||s.type,color:STATUS_STAGE_COLORS[s.status]||'#475569',dateRange:(s.startDate&&s.endDate)?(fmtDateShort(s.startDate)+' – '+fmtDateShort(s.endDate)):''}))};
+      sel={...selected,...f,phone:selected.phone||'—',email:selected.email||'—',responsabil:selected.responsabil||'—',date_start:fmtDate(selected.date_start)||'—',date_executie:fmtDate(selected.date_executie)||'—',date_end:fmtDate(selected.date_end)||'—',statusBg:sc.statusBg,statusColor:sc.statusColor,isPV:(selected.types||[]).includes('PV'),hasEquipment:!!(selected.equipment&&selected.equipment.trim()),hasNotes:!!(selected.notes&&selected.notes.trim()),prosumatorText:selected.prosumator?'Da ✓':'Nu',kwp:selected.kwp!=null?String(selected.kwp):'—',panels:selected.panels!=null?String(selected.panels):'—',mounting:selected.mounting||'—',typeBadges:(selected.types||[]).map(t=>({label:t,bg:(TYPE_COLORS[t]||{}).bg||'#f1f5f9',color:(TYPE_COLORS[t]||{}).color||'#475569'})),canContract:true,hasBESS:(selected.types||[]).includes('BESS'),bessKwhDisplay:selected.bessKwh!=null?String(selected.bessKwh)+' kWh':'—',hasStages:!!(selected.stages&&selected.stages.length),stagesSummary:(selected.stages||[]).map(s=>({label:STAGE_TYPE_LABELS[s.type]||s.type,color:STATUS_STAGE_COLORS[s.status]||'#475569',dateRange:(s.startDate&&s.endDate)?(fmtDateShort(s.startDate)+' – '+fmtDateShort(s.endDate)):''}))};
       // Follow-up
       if(selected.nextFollowUp){
         const today0=new Date(); today0.setHours(0,0,0,0);
