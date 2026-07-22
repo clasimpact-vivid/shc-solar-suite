@@ -253,7 +253,7 @@ async function render(){
 
   const pontajItems = pontajRecords.filter(r=>r.checkIn).map(r=>{
     const km = r.checkIn.distKm!=null?r.checkIn.distKm:null;
-    return `<li><strong>${esc(r.userName||'?')}</strong> — intrare ${r.checkIn.time?fmtTime(r.checkIn.time):''}${r.checkOut?', ieșire '+fmtTime(r.checkOut.time):''} ${km!=null&&km>50?'<span class="badge-up">🚗 '+km+' km</span>':''}${dTag(r.date)}</li>`;
+    return `<li><strong>${esc(r.userName||'?')}</strong> — intrare ${r.checkIn.time||''}${r.checkOut?', ieșire '+(r.checkOut.time||''):''} ${km!=null&&km>50?'<span class="badge-up">🚗 '+km+' km</span>':''}${dTag(r.date)}</li>`;
   });
   html += section('🕐 Pontaj — prezențe', pontajItems.length, pontajItems);
 
