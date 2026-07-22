@@ -164,8 +164,8 @@ async function render(){
   }
   document.getElementById('refreshFooter').textContent = 'se încarcă...';
 
-  const [crmData, planningData, visitsData, pontajData] = await Promise.all([
-    fetchJson('solarcrm_v2'), fetchJson('shc_planning'), fetchJson('shc_visits'), fetchJson('shc_pontaj')
+  const [crmData, planningData, visitsData, pontajData, leaveData] = await Promise.all([
+    fetchJson('solarcrm_v2'), fetchJson('shc_planning'), fetchJson('shc_visits'), fetchJson('shc_pontaj'), fetchJson('solarcrm_v2/pontajLeave')
   ]);
   const cfg = crmData.config || {};
   const users = toArray(cfg.users);
@@ -174,6 +174,7 @@ async function render(){
   const planningProjects = toArray(planningData.projects);
   const allVisits = toArray(visitsData.visits);
   const allPontaj = toArray(pontajData.records);
+  const allLeaves = toArray(leaveData);
 
   const agentSel = document.getElementById('agentSel');
   if(!agentSel.dataset.filled){
@@ -198,12 +199,14 @@ async function render(){
   function offersFor(dISO){ const [s,e]=dayBounds(dISO); return allOffers.filter(o=>o.timestamp&&o.timestamp>=s&&o.timestamp<e&&(!agentFilter||o.user===agentFilter||o.creatDe===agentFilter)).map(o=>({...o,day:dISO})); }
   function visitsFor(dISO){ const [s,e]=dayBounds(dISO); return allVisits.filter(v=>v.createdAt&&v.createdAt>=s&&v.createdAt<e&&(!agentFilter||v.createdBy===agentFilter)).map(v=>({...v,day:dISO})); }
   function pontajFor(dISO){ return allPontaj.filter(r=>r.date===dISO&&(!agentFilter||r.userName===agentFilter)); }
+  function leavesFor(dISO){ const [s,e]=dayBounds(dISO); return allLeaves.filter(l=>l.ts&&l.ts>=s&&l.ts<e&&(!agentFilter||l.userName===agentFilter)); }
   const flat = (fn) => rangeDays.flatMap(fn);
 
   const crmLog = flat(crmLogFor).sort((a,b)=>b.time-a.time);
   const offers = flat(offersFor).sort((a,b)=>b.timestamp-a.timestamp);
   const visits = flat(visitsFor);
   const pontajRecords = flat(pontajFor);
+  const leaves = flat(leavesFor).sort((a,b)=>b.ts-a.ts);
 
   let html = '';
 
@@ -256,6 +259,10 @@ async function render(){
     return `<li><strong>${esc(r.userName||'?')}</strong> — intrare ${r.checkIn.time||''}${r.checkOut?', ieșire '+(r.checkOut.time||''):''} ${km!=null&&km>50?'<span class="badge-up">🚗 '+km+' km</span>':''}${dTag(r.date)}</li>`;
   });
   html += section('🕐 Pontaj — prezențe', pontajItems.length, pontajItems);
+
+  const LEAVE_LABELS_R={CO:'Concediu de odihnă',CM:'Concediu medical',IV:'Învoire / liber o zi',LN:'Liber neplătit'};
+  const leaveItems = leaves.map(l=>`<li><strong>${esc(l.userName||'?')}</strong> — ${esc(LEAVE_LABELS_R[l.type]||l.type||'cerere')} · ${esc(l.from||'')}${l.to&&l.to!==l.from?' – '+esc(l.to):''} <span class="muted">· ${l.status==='A'?'aprobat':l.status==='R'?'respins':'în așteptare'}</span></li>`);
+  html += section('🌴 Cereri concediu / învoire', leaveItems.length, leaveItems);
 
   document.getElementById('content').innerHTML = html || `<div class="empty">Nicio activitate în ${viewMode==='saptamana'?'această săptămână':'această zi'}.</div>`;
 
