@@ -1517,84 +1517,190 @@ function migrate(p){
 }
 
 function buildContractHTML(p, company) {
-  const nr = p.id + '/' + new Date().getFullYear();
-  const today = fmtDate(new Date().toISOString().slice(0,10));
-  const types = (p.types||[]).join(', ');
-  const valFmt = p.value ? p.value.toLocaleString('ro-RO') : '—';
-  const valTVA = p.value ? Math.round(p.value*1.19).toLocaleString('ro-RO') : '—';
-  const pvSection = (p.types||[]).includes('PV') ? `
-    <tr><td class="lbl">Putere instalată</td><td>${p.kwp||'—'} kWp (${p.panels||'—'} panouri)</td></tr>
-    <tr><td class="lbl">Tip montaj</td><td style="text-transform:capitalize">${p.mounting||'—'}</td></tr>
-    <tr><td class="lbl">Prosumator</td><td>${p.prosumator?'Da':'Nu'}</td></tr>` : '';
-  const regCom = company.regCom ? `, Nr. Reg. Com.: ${company.regCom}` : '';
-  const repLine = (company.repName) ? `, reprezentată prin <strong>${company.repName}</strong>${company.repRole?', '+company.repRole:''}` : '';
+  const nr = p.id;
+  const today = new Date();
+  const todayFmt = fmtDate(today.toISOString().slice(0,10));
+  const dd=String(today.getDate()).padStart(2,'0'), mm=String(today.getMonth()+1).padStart(2,'0'), yyyy=today.getFullYear();
+  const valFmt = p.value ? Number(p.value).toLocaleString('ro-RO') : '______________';
+  const transa1 = p.value ? Math.round(p.value*0.5).toLocaleString('ro-RO') : '______________';
+  const transa2 = p.value ? (Number(p.value)-Math.round(p.value*0.5)).toLocaleString('ro-RO') : '______________';
+  const nrPanouri = p.panels || '____';
+  const wpPanou = (p.kwp && p.panels) ? Math.round((p.kwp*1000)/p.panels) : '_______';
+  const kwInvertor = p.kwp || '_______';
+  const clientBlank = '_'.repeat(28);
+  const addr = p.address || '________________________________________________';
   return `<!DOCTYPE html><html lang="ro"><head><meta charset="utf-8"><title>Contract ${nr}</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Georgia&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Times New Roman',serif;font-size:12pt;line-height:1.7;color:#000;padding:2.5cm 2.5cm 3cm;}
-h1{text-align:center;font-size:13pt;margin-bottom:4pt;letter-spacing:1px;}
-h2{font-size:11pt;margin:18pt 0 6pt;text-transform:uppercase;border-bottom:1px solid #000;padding-bottom:3pt;}
-p{margin-bottom:5pt;text-align:justify;}
-table{width:100%;border-collapse:collapse;margin:8pt 0;}
-td{padding:4pt 8pt;border:1px solid #666;font-size:11pt;vertical-align:top;}
-.lbl{font-weight:bold;width:200px;background:#f5f5f5;}
-.sigs{display:flex;justify-content:space-between;margin-top:50pt;}
-.sig{text-align:center;width:44%;}
-.sigline{border-top:1px solid #000;padding-top:4pt;margin-top:48pt;font-size:10pt;}
-@media print{@page{margin:2cm;size:A4;}}
+body{font-family:'Georgia','Times New Roman',serif;font-size:11.5pt;line-height:1.65;color:#111;padding:0;counter-reset:page 1;}
+.page{padding:2.4cm 2.6cm 2.8cm;position:relative;}
+.letterhead{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px double #0f172a;padding-bottom:10pt;margin-bottom:22pt;}
+.letterhead .co{font-family:Georgia,serif;font-weight:700;font-size:13pt;letter-spacing:.5px;color:#0f172a;}
+.letterhead .sub{font-size:8.5pt;color:#475569;margin-top:2pt;}
+.letterhead .doc-tag{font-size:8.5pt;color:#94a3b8;text-align:right;letter-spacing:1px;text-transform:uppercase;}
+h1{text-align:center;font-size:16pt;letter-spacing:3px;font-weight:700;margin-bottom:2pt;}
+h1.sub1{font-size:11pt;letter-spacing:1px;font-weight:400;margin-bottom:14pt;color:#334155;}
+.nr-line{text-align:center;font-size:10.5pt;color:#334155;margin-bottom:22pt;}
+h2{font-size:12pt;margin:20pt 0 8pt;text-transform:uppercase;letter-spacing:.6px;font-weight:700;color:#0f172a;border-bottom:1.5px solid #0f172a;padding-bottom:4pt;}
+p{margin-bottom:7pt;text-align:justify;}
+.art{margin-bottom:7pt;text-align:justify;}
+.art b.n{font-weight:700;}
+table.spec{width:100%;border-collapse:collapse;margin:10pt 0 14pt;}
+table.spec td{padding:6pt 10pt;border:1px solid #94a3b8;font-size:10.5pt;vertical-align:top;}
+table.spec .lbl{font-weight:700;width:220px;background:#f1f5f9;}
+.sigs{display:flex;justify-content:space-between;margin-top:60pt;}
+.sig{text-align:center;width:44%;font-size:10.5pt;}
+.sigline{border-top:1px solid #000;padding-top:5pt;margin-top:56pt;}
+.pagenum:after{content:counter(page);}
+.footer-note{margin-top:30pt;font-size:8.5pt;color:#94a3b8;text-align:center;border-top:1px solid #e2e8f0;padding-top:6pt;}
+.pagebreak{page-break-before:always;}
+@media print{
+  @page{margin:0;size:A4;}
+  .page{page-break-after:always;}
+}
 </style></head><body>
-<h1>CONTRACT DE PRESTĂRI SERVICII</h1>
-<h1>Instalare Sistem Fotovoltaic / Energetic</h1>
-<p style="text-align:center;margin:8pt 0 18pt;font-size:11pt;">Nr. <strong>${nr}</strong> din data <strong>${today}</strong></p>
-
-<h2>Capitolul I – Părțile contractante</h2>
-<p>Art. 1. <strong>${company.name}</strong>, CUI: ${company.cui}${regCom}, cu sediul în ${company.address}, tel: ${company.phone}, email: ${company.email}${repLine}, denumită în continuare <strong>PRESTATOR</strong>,</p>
-<p>și</p>
-<p>Art. 2. <strong>${p.client||'—'}</strong>, domiciliat/ă în <strong>${p.address||'—'}</strong>, tel: ${p.phone||'—'}, email: ${p.email||'—'}, denumit/ă în continuare <strong>BENEFICIAR</strong>.</p>
-
-<h2>Capitolul II – Obiectul contractului</h2>
-<p>Art. 3. Prestatorul se obligă să execute lucrările de instalare sistem <strong>${types}</strong> la adresa indicată de beneficiar, conform specificațiilor tehnice agreate.</p>
-<table>
-  <tr><td class="lbl">Echipamente</td><td>${p.equipment||'Conform ofertei tehnice'}</td></tr>
-  ${pvSection}
-  <tr><td class="lbl">Adresa instalare</td><td>${p.address||'—'}</td></tr>
-  <tr><td class="lbl">Responsabil lucrare</td><td>${p.responsabil||'—'}</td></tr>
-</table>
-
-<h2>Capitolul III – Valoarea și plata</h2>
-<p>Art. 4. Valoarea totală a contractului: <strong>${valFmt} RON fără TVA</strong> (TVA 19% = ${p.value?Math.round(p.value*0.19).toLocaleString('ro-RO'):'—'} RON).</p>
-<p>Total cu TVA: <strong>${valTVA} RON</strong>.</p>
-<p>Art. 5. Modalitate de plată: 50% avans la semnarea contractului, 50% la recepția și punerea în funcțiune a instalației.</p>
-<p>Cont bancar Prestator: ${company.iban}, ${company.bank}.</p>
-
-<h2>Capitolul IV – Termene de execuție</h2>
-<p>Art. 6. Termenul de execuție: ${p.date_executie ? '<strong>'+fmtDate(p.date_executie)+'</strong>' : '___ zile lucrătoare de la plata avansului'}.</p>
-<p>Art. 7. Data semnării contractului: <strong>${fmtDate(p.date_start)||today}</strong>.</p>
-
-<h2>Capitolul V – Obligațiile prestatorului</h2>
-<p>Art. 8. Prestatorul se obligă: a) Să execute lucrările conform normativelor tehnice în vigoare; b) Să utilizeze echipamente cu certificate de conformitate CE; c) Să acorde garanție <strong>2 ani</strong> pentru lucrările de montaj; d) Să asiste la obținerea avizelor de prosumator (dacă este cazul).</p>
-
-<h2>Capitolul VI – Obligațiile beneficiarului</h2>
-<p>Art. 9. Beneficiarul se obligă: a) Să asigure accesul nestingherit la locul de instalare; b) Să achite contravaloarea conform art. 5; c) Să nu intervină asupra instalației pe perioada de garanție fără acordul prestatorului.</p>
-
-<h2>Capitolul VII – Garanții</h2>
-<p>Art. 10. Echipamentele beneficiază de garanție conform specificațiilor producătorilor: minimum <strong>10 ani panouri</strong>, <strong>5 ani invertor</strong>, <strong>10 ani baterii</strong>. Garanție montaj: 2 ani.</p>
-
-<h2>Capitolul VIII – Dispoziții finale</h2>
-<p>Art. 11. Prezentul contract este guvernat de legislația română. Litigiile se soluționează pe cale amiabilă sau la instanțele judecătorești competente.</p>
-<p>Art. 12. Prezentul contract s-a încheiat în data de <strong>${today}</strong>, în două exemplare originale, câte unul pentru fiecare parte.</p>
-
-<div class="sigs">
-  <div class="sig">
-    <div><strong>${company.name}</strong></div>
-    ${company.repName?`<div style="font-size:10pt">${company.repName}${company.repRole?', '+company.repRole:''}</div>`:''}
-    <div class="sigline">Semnătură și ștampilă PRESTATOR</div>
+<div class="page">
+  <div class="letterhead">
+    <div>
+      <div class="co">${company.name||'S.C. SMART HOUSE COLOR S.R.L.'}</div>
+      <div class="sub">${company.address||'Str. Timotei Cipariu nr. 3, Arad'} · CUI ${company.cui||'RO37283429'} · office@shc-group.ro</div>
+    </div>
+    <div class="doc-tag">Contract prestări servicii</div>
   </div>
-  <div class="sig">
-    <div><strong>${p.client||'BENEFICIAR'}</strong></div>
-    <div class="sigline">Semnătură BENEFICIAR</div>
+
+  <h1>C O N T R A C T&nbsp;&nbsp;&nbsp;D E&nbsp;&nbsp;&nbsp;P R E S T Ă R I&nbsp;&nbsp;&nbsp;S E R V I C I I</h1>
+  <div class="nr-line">Nr. <strong>${nr}</strong>/${dd}.${mm}.${yyyy}</div>
+
+  <h2>Părțile contractante</h2>
+  <p class="art">S.C. "SMART HOUSE COLOR" S.R.L., sediul social în municipiul Arad, Str. Timotei Cipariu nr. 3, Arad, Nr.Registrul Comerțului Arad: J2017000477024, CUI RO37283429, cu contul bancar nr. RO97BTRLRONCRT0CR5559901, deschis la Banca Transilvania, reprezentată prin administrator domnul NICORAȘ IONUȚ VASILE, cetățean român, născut la data de 5 octombrie 1993, în municipiul Zalău, jud.Sălaj, domiciliat în municipiul Arad, str.Smochinului, nr.6, jud.Arad, identificat prin C.I. seria ZR nr.160351/15.10.2024 SPCLEP Arad, având CNP 1931005314023, denumit în continuare <strong>PRESTATOR</strong>.</p>
+  <p class="art"><strong>${p.client||clientBlank}</strong>, cetățean român, domiciliat în ${addr}, jud. ______________, identificat prin C.I. seria ______ nr.______________, având CNP ________________, denumit în continuare <strong>BENEFICIAR</strong>.</p>
+
+  <h2>1. Obiectul contractului</h2>
+  <p class="art"><b class="n">1.1.</b> Obiectul contractului îl reprezintă atât montarea, livrarea cât și punerea în funcțiune a unor sisteme de panouri fotovoltaice având următoarele caracteristici: <strong>${nrPanouri}</strong> panouri fotovoltaice cu puterea de <strong>${wpPanou}</strong> Wp, marca ______________________, Invertor ______________________ de <strong>${kwInvertor}</strong> kW, structură metalică cu prindere pe acoperiș tip ________________, ________________________________________________ și accesorii.</p>
+  <p class="art"><b class="n">1.2.</b> Beneficiarul își va asuma orice neplăcere creată de către sistem, având în vedere faptul că acest sistem va fi pus în funcțiunea de „AUTOCONSUM" pe răspunderea acestuia din urmă.</p>
+  <p class="art"><b class="n">1.3.</b> Prestatorul se va ocupa atât de întocmirea, cât și de depunerea dosarului de prosumator pe platforma RETELE ELECTRICE.</p>
+
+  <table class="spec">
+    <tr><td class="lbl">Adresa amplasament</td><td>${addr}</td></tr>
+    <tr><td class="lbl">Responsabil lucrare</td><td>${p.responsabil||'—'}</td></tr>
+  </table>
+
+  <h2>2. Durata</h2>
+  <p class="art">Durata de executare a lucrărilor este de <strong>30 zile calendaristice</strong>, aferente montării și punerii în funcțiune, de la data semnării contractului.</p>
+
+  <h2>3. Începerea, finalizarea și amplasamentul</h2>
+  <p class="art"><b class="n">3.1.</b> Începerea lucrărilor se va face în termen de maxim 30 de zile calendaristice, după îndeplinirea tuturor cerințelor și condițiilor, respectiv: achitarea tranșei nr.1 la acceptarea ofertei financiare și semnarea prezentului contract, dovedit prin chitanță/OP.</p>
+  <p class="art"><b class="n">3.2.</b> Ulterior finalizării și punerii în funcțiune a lucrărilor se va achita tranșa nr.2 a prezentului contract, dovedită prin chitanță/OP.</p>
+  <p class="art"><b class="n">3.3.</b> Locul amplasamentului lucrării se va face în ${p.address?('<strong>'+p.address+'</strong>'):'________________________, str. ____________________________ nr. ________, jud.______________'}.</p>
+</div>
+
+<div class="page pagebreak">
+  <h2>4. Prețul contractului, modalitate de plată, penalități</h2>
+  <p class="art"><b class="n">4.1.</b> Prețul contractului este de <strong>${valFmt} LEI</strong> inclusiv TVA (prețul contractului cuprinde atât materialele, manopera cât și TVA-ul).</p>
+  <p class="art"><b class="n">4.2.</b> Modalitatea de plată este, după cum urmează:</p>
+  <table class="spec">
+    <tr><td class="lbl">TRANȘA NR.1</td><td><strong>${transa1} LEI</strong>, inclusiv TVA — se achită în termen de 1-2 zile lucrătoare de la acceptarea ofertei financiare și semnării prezentului act, dovedită prin chitanță/OP.</td></tr>
+    <tr><td class="lbl">TRANȘA NR.2</td><td><strong>${transa2} LEI</strong>, inclusiv TVA — se achită după finalizarea lucrării, dovedită prin chitanță/OP.</td></tr>
+  </table>
+  <p class="art"><b class="n">4.3.</b> Penalitățile sunt de 0,02%/zi întârziere, pentru ambele părți, respectiv:</p>
+  <p class="art">Pentru beneficiar, în situația neachitării obligației pecuniare într-un termen maxim de 5 (cinci) zile lucrătoare de la acceptarea ofertei și semnării prezentului act, nu se vor mai calcula penalități de întârziere, ci penalități de renunțare de 0,02% din valoarea ofertei contractului, având drept temei prestarea serviciilor de consultanță oferite de către prestator, ulterior începerii execuției lucrărilor. Aceste penalități au caracter de acoperire a cheltuielilor efectuate de către prestator, contractul reziliindu-se de drept.</p>
+  <p class="art">În situația neachitării tranșei nr.2 în termen de maxim 5 (cinci) zile lucrătoare de la semnarea procesului verbal de finalizare a lucrărilor și punere în funcțiune, beneficiarul va suporta o penalizare de 0,02%/zi întârziere, dar nu mai târziu de 14 (paisprezece) zile lucrătoare, situație în care prestatorul este îndreptățit la ridicarea elementelor componente ale sistemului pus în operă.</p>
+  <p class="art">Pentru prestator, orice întârziere produsă, de la începerea și până la finalizarea contractului (vezi Cap.2), va reprezenta obligația pecuniară de a achita o penalitate de 0,02%/zi întârziere.</p>
+
+  <h2>5. Componența sistemului de panouri fotovoltaice</h2>
+  <p class="art">Componența sistemului de panouri fotovoltaice este descrisă la Anexa "PROCES-VERBAL DE PREDARE-PRIMIRE", care va fi întocmit ulterior finalizării și punerii în funcțiune a sistemului, precum și instruirea beneficiarului.</p>
+
+  <h2>6. Garanții</h2>
+  <p class="art"><b class="n">6.1.</b> Garanțiile aferente componentelor sistemului de panouri fotovoltaice, oferite de către furnizori/producători, vor fi ulterior cesionate de către prestator în favoarea beneficiarului.</p>
+  <p class="art"><b class="n">6.2.</b> Garanția aferentă executării montării, cât și punerii în funcțiune a sistemului de panouri fotovoltaice oferită de către prestator este de <strong>24 luni</strong>.</p>
+  <p class="art">Dacă sistemul fotovoltaic se degradează din pricina intemperiilor meteorologice (grindină, căderi pe panourile fotovoltaice a unor elemente distructive) instalatorul/montatorul nu este răspunzător.</p>
+  <p class="art">Dacă din punct de vedere al pătrunderii zăpezii sau a altor elemente distructive sub panourile fotovoltaice acestea se degradează, instalatorul/montatorul nu este răspunzător.</p>
+  <p class="art">Instalatorul/montatorul se va racorda la instalația electrică a locuinței/clădirii printr-un tablou electric IP-65 montat separat față de tabloul electric general al casei, nefiind răspunzător de instalația electrică existentă a casei.</p>
+  <p class="art">Instalatorul/montatorul se va racorda la priza de pământ existentă a clădirii/locuinței atât cu panourile fotovoltaice/structura fotovoltaică cât și cu tabloul montat ulterior, urmând a se efectua o măsurătoare a prizei de pământ, iar dacă valorile nu vor corespunde se va întocmi un raport care se va transmite beneficiarului pentru a se pune în legalitate cu priza de pământ.</p>
+  <p class="art">Orice intervenție în sistemul fotovoltaic existent al beneficiarului, efectuată de către o altă persoană decât personalul autorizat al firmei de montaj (panouri fotovoltaice, structură fotovoltaică, cablu de alimentare DC+AC, tablou electric DC+AC), garanția se va anula.</p>
+</div>
+
+<div class="page pagebreak">
+  <h2>7. Obligațiile părților</h2>
+  <p class="art"><b class="n">7.1. Obligațiile prestatorului</b></p>
+  <p class="art">a. vizitarea locației/amplasamentului și efectuarea de măsurători pentru evaluarea condițiilor de implementare, respectiv montajul și punerea în funcțiune;<br>
+  b. elaborarea proiectului tehnic și întocmirea documentației specifice, precum și a ofertei financiare;<br>
+  c. furnizarea echipamentelor;<br>
+  d. instalarea și punerea în funcțiune a sistemului de panouri fotovoltaice;<br>
+  e. cesionarea garanțiilor pentru echipamente, acordate de către furnizori/producători, precum și acordarea garanției pentru montare și punere în funcțiune;<br>
+  f. servicii de mentenanță anuale, aferente contractului de mentenanță, care se vor face ulterior la dorința beneficiarului;<br>
+  g. servicii de asistență tehnică, în cazul defectării sistemului fotovoltaic (atât în perioada de garanție, cât și după consumarea acesteia — echipamente, manoperă). Se va ține cont de faptul că asistența tehnică se va face contra-cost, având în vedere că termenul de garanție de 24 de luni se referă la structura de rezistență a panourilor;<br>
+  h. să înlocuiască și să repare orice daună provocată cu ocazia instalării sistemului de panouri fotovoltaice, întocmindu-se în acest sens un proces-verbal pentru acoperiș. Dacă la plecarea echipei de montaj și anterior semnării procesului-verbal de recepție nu s-au făcut constatări, beneficiarul își va asuma orice daună materială ulterioară.</p>
+  <p class="art"><b class="n">7.2. Obligațiile beneficiarului</b></p>
+  <p class="art">a. asigurarea condițiilor necesare bunei desfășurări a operațiunilor de montare a sistemului PV;<br>
+  b. asigurarea accesului prestatorului la toate utilitățile necesare (curent, apă, etc.);<br>
+  c. punerea la dispoziția prestatorului a tuturor autorizațiilor și avizelor necesare;<br>
+  d. punerea la dispoziția prestatorului, cu titlu gratuit, a amplasamentului lucrării, liber de orice sarcină, anterior începerii lucrărilor, cât și a suprafețelor de teren necesare pentru depozitare și pentru organizarea de șantier;<br>
+  e. achitarea prețului contractului, în condițiile Cap.4 din prezentul contract;<br>
+  f. în situația în care apar cheltuieli neprevăzute (cauzate de către beneficiar, respectiv structura de lemn a șarpantei nu corespunde, etc.), beneficiarul se va obliga să le suporte (act adițional la prezentul contract).</p>
+
+  <h2>8. Încetarea contractului</h2>
+  <p class="art">a. La finalizarea acestuia, prin montarea și punerea în funcțiune, dar și la predarea către beneficiar a procesului verbal de predare-primire;<br>
+  b. Prin denunțarea unilaterală a contractului de către beneficiar, anterior efectuării cheltuielilor de materiale pentru înfăptuirea acestuia;<br>
+  c. În caz de forță majoră, cu respectarea legii (notificare, etc.);<br>
+  d. În cazul neachitării ulterior finalizării executării lucrării, după expirarea celor 14 (paisprezece) zile lucrătoare în care prestatorul are dreptul la penalitățile de întârziere, aceasta atrage atât ridicarea elementelor componente ale sistemului pus în operă, cât și rezilierea de drept a prezentului act.</p>
+
+  <h2>9. Litigii</h2>
+  <p class="art">Încercarea rezolvării pe cale amiabilă; în caz contrar, prin intermediul judecății, la instanța competentă din punct de vedere material și teritorial de la domiciliul prestatorului.</p>
+
+  <h2>10. Comunicări</h2>
+  <p class="art">Orice comunicare va avea loc numai în scris, prin intermediul email-ului.</p>
+
+  <h2>11. Legea aplicabilă a contractului</h2>
+  <p class="art">Contractul va fi interpretat conform legilor aplicabile din România.</p>
+
+  <h2>12. Dispoziții finale</h2>
+  <p class="art">Prezentul contract s-a semnat astăzi ${dd}.${mm}.${yyyy}, într-un număr de 2 (două) exemplare, câte unul pentru fiecare parte.</p>
+
+  <div class="sigs">
+    <div class="sig">
+      <div><strong>P R E S T A T O R,</strong></div>
+      <div style="margin-top:4pt">S.C. SMART HOUSE COLOR S.R.L.</div>
+      <div style="margin-top:2pt">ING. NICORAȘ IONUȚ-VASILE</div>
+      <div class="sigline"></div>
+    </div>
+    <div class="sig">
+      <div><strong>B E N E F I C I A R,</strong></div>
+      <div style="margin-top:4pt">${p.client||''}</div>
+      <div class="sigline"></div>
+    </div>
   </div>
 </div>
+
+<div class="page pagebreak">
+  <h1 style="font-size:13pt;">ANEXA NR. 1 LA CONTRACTUL NR. ${nr} DATA ${dd}.${mm}.${yyyy}</h1>
+  <h2 style="text-align:center;border:none;">CLAUZĂ STANDARD PRIVIND PROTECȚIA DATELOR PERSONALE</h2>
+  <h2>Părțile contractante</h2>
+  <p class="art">S.C. "SMART HOUSE COLOR" S.R.L., sediul social în municipiul Arad, Str. Timotei Cipariu nr. 3, Arad, Nr.Registrul Comerțului Arad: J2017000477024, CUI RO37283429, cu contul bancar nr. RO97BTRLRONCRT0CR5559901, deschis la Banca Transilvania, reprezentată prin administrator domnul NICORAȘ IONUȚ VASILE, cetățean român, născut la data de 5 octombrie 1993, în municipiul Zalău, jud.Sălaj, domiciliat în municipiul Arad, str.Smochinului, nr.6, jud.Arad, identificat prin C.I. seria ZR nr.160351/15.10.2024 SPCLEP Arad, având CNP 1931005314023, denumit în continuare <strong>PRESTATOR</strong>.</p>
+  <p class="art"><strong>${p.client||clientBlank}</strong>, cetățean român, domiciliat în ${addr}, jud. ______________, identificat prin C.I. seria ______ nr.______________, având CNP ________________, denumit în continuare <strong>BENEFICIAR</strong>.</p>
+
+  <p class="art"><b class="n">Art. 1.</b> Părțile trebuie să respecte normele și obligațiile impuse de dispozițiile în vigoare, privind protecția datelor cu caracter personal.</p>
+  <p class="art"><b class="n">Art. 2.</b> Părțile sunt conștiente de faptul că normele europene din Regulamentul 679/2016 se aplică oricărui operator de date sau împuternicit situat în Uniunea Europeană și oricărei persoane care prelucrează date cu caracter personal ale persoanelor vizate situate în Uniunea Europeană sau care le furnizează servicii. Prin urmare, părțile confirmă respectarea deplină a următoarelor prevederi, inclusiv dar fără a se limita la:</p>
+  <p class="art">● capacitatea de a respecta drepturile persoanelor vizate privind ștergerea, corectarea sau transferul informațiilor personale;<br>
+  ● informarea în caz de breșă de date a tuturor destinatarilor relevanți, într-un interval maxim de 72 ore și, în cazul prestatorului nu mai târziu de 24 ore de la momentul în care o astfel de încălcare a securității datelor a ajuns în atenția acestuia;<br>
+  ● îndeplinirea tuturor îndatoririlor obligatorii privind documentarea conformării cu Regulamentul 679/2016.</p>
+  <p class="art"><b class="n">Art. 3.</b> Părțile pot utiliza datele personale ale semnatarilor în limita contractului pe care îl au încheiat, acesta fiind baza legală a prelucrării; orice prelucrare suplimentară sau în alt scop face obiectul unui acord separat de prelucrare a datelor, încheiat între părți. De asemenea, perioada de stocare a datelor personale prelucrate prin contract este limitată la perioada corespondentă realizării obiectului principal al contractului.</p>
+  <p class="art"><b class="n">Art. 4.</b> Datele cu caracter personal schimbate între părți nu pot deveni accesibile sau comunicate unor terțe părți neautorizate sau puse la dispoziție spre utilizare într-un alt mod. Prin urmare, părțile vor lua toate măsurile tehnice și în special organizatorice necesare, în ceea ce privește obligațiile asumate prin această clauză: vor împiedica persoanele neautorizate să obțină acces la sistemele de prelucrare a datelor cu care sunt prelucrate sau utilizate datele cu caracter personal.</p>
+
+  <div class="sigs">
+    <div class="sig">
+      <div><strong>P R E S T A T O R,</strong></div>
+      <div class="sigline"></div>
+    </div>
+    <div class="sig">
+      <div><strong>B E N E F I C I A R,</strong></div>
+      <div class="sigline"></div>
+    </div>
+  </div>
+  <div class="footer-note">Document generat automat de SolarCRM · Smart House Color · ${todayFmt}</div>
+</div>
+<script>window.onload=()=>{setTimeout(()=>window.print(),400);};<\/script>
 </body></html>`;
 }
 
