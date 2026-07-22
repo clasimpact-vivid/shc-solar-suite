@@ -1917,6 +1917,8 @@ class Component extends DCLogic {
       if(!this._initialized){
         this._initialized=true;
         clearTimeout(this._fbTimeout);
+        const hashMatch = window.location.hash.match(/project-(\d+)/);
+        if(hashMatch){ const pid=Number(hashMatch[1]); setTimeout(()=>{ if(this.state.projects.some(p=>p.id===pid)) this.setState({selectedId:pid}); },50); }
         // Recuperare: dacă acest browser are local (localStorage) proiecte care nu au ajuns niciodată pe server
         // (scrieri pierdute din trecut), le retrimitem acum și le includem imediat în listă.
         try {

@@ -202,7 +202,7 @@ async function renderInner(iso){
     projects.forEach(p=>{
       toArray(p.auditLog).filter(ev=>ev.timestamp && new Date(ev.timestamp).getTime()>=s && new Date(ev.timestamp).getTime()<e).forEach(ev=>{
         if(agentFilter && ev.user!==agentFilter) return;
-        out.push({client:p.client||'Client', action:ev.action||'actualizare', reason:ev.reason||'', by:ev.user||ev.userName||'', time:new Date(ev.timestamp).getTime(), day:dISO});
+        out.push({pid:p.id, client:p.client||'Client', action:ev.action||'actualizare', reason:ev.reason||'', by:ev.user||ev.userName||'', time:new Date(ev.timestamp).getTime(), day:dISO});
       });
     });
     return out.sort((a,b)=>b.time-a.time);
@@ -214,6 +214,17 @@ async function renderInner(iso){
   const flat = (fn) => rangeDays.flatMap(fn);
 
   const crmLog = flat(crmLogFor).sort((a,b)=>b.time-a.time);
+  const crmGroups = [];
+  { const byPid = new Map();
+    crmLog.forEach(a=>{
+      const key = a.pid!=null ? a.pid : a.client;
+      if(!byPid.has(key)) byPid.set(key, {pid:a.pid, client:a.client, events:[], lastTime:a.time});
+      const g = byPid.get(key);
+      g.events.push(a);
+      if(a.time>g.lastTime) g.lastTime=a.time;
+    });
+    crmGroups.push(...[...byPid.values()].sort((x,y)=>y.lastTime-x.lastTime));
+  }
   const offers = flat(offersFor).sort((a,b)=>b.timestamp-a.timestamp);
   const visits = flat(visitsFor);
   const pontajRecords = flat(pontajFor);
@@ -221,8 +232,11 @@ async function renderInner(iso){
 
   let html = '';
 
-  html += section('📋 SolarCRM — activitate', crmLog.length, crmLog.map(a=>
-    `<li><strong>${esc(a.client)}</strong> — ${esc(a.action)}${a.reason?' ('+esc(a.reason)+')':''} <span class="muted">· ${a.by?esc(a.by)+' · ':''}${fmtTime(a.time)}</span>${dTag(a.day)}</li>`));
+  html += section('📋 SolarCRM — activitate', crmLog.length, crmGroups.map(g=>{
+    const link = g.pid!=null ? `./SolarCRM - Standalone.html#project-${g.pid}` : './SolarCRM - Standalone.html';
+    const evList = g.events.map(a=>`${esc(a.action)}${a.reason?' ('+esc(a.reason)+')':''} <span class="muted">· ${a.by?esc(a.by)+' · ':''}${fmtTime(a.time)}${dTag(a.day)}</span>`).join('<br>');
+    return `<li><a href="${link}" target="_blank" style="color:inherit;text-decoration:none;"><strong style="text-decoration:underline;">${esc(g.client)}</strong></a> <span class="muted">(${g.events.length})</span><br>${evList}</li>`;
+  }));
 
   // Follow-up restante (calculat la ultima zi din interval) — nu se filtreaza pe zi, doar pe agent
   const overdue = [], stale = [];
