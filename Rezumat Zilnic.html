@@ -123,7 +123,10 @@ a{color:#f59e0b;}
 const FIREBASE_BASE = 'https://solarcrm-ba919-default-rtdb.firebaseio.com';
 async function fetchJson(path){
   try{
-    const res = await fetch(`${FIREBASE_BASE}/${path}.json`);
+    const ctrl = new AbortController();
+    const t = setTimeout(()=>ctrl.abort(), 8000);
+    const res = await fetch(`${FIREBASE_BASE}/${path}.json`, {signal: ctrl.signal});
+    clearTimeout(t);
     if(!res.ok) return {};
     return (await res.json()) || {};
   }catch(e){ return {}; }
@@ -156,13 +159,21 @@ function weekDaysOf(iso){
 async function render(){
   const iso = dateInput.value || todayIso;
   syncDisplay();
+  document.getElementById('refreshFooter').textContent = 'se încarcă...';
+  try{
+    await renderInner(iso);
+  } catch(e){
+    document.getElementById('content').innerHTML = `<div class="empty">Eroare la încărcare. Reîncearcă.</div>`;
+    document.getElementById('refreshFooter').textContent = 'eroare';
+  }
+}
+async function renderInner(iso){
   const rangeDays = viewMode==='saptamana' ? weekDaysOf(iso) : [iso];
   if(viewMode==='saptamana'){
     document.getElementById('dateLabel').textContent = `${dmy(rangeDays[0])} – ${dmy(rangeDays[6])}`;
   } else {
     document.getElementById('dateLabel').textContent = fmtDateLabel(iso);
   }
-  document.getElementById('refreshFooter').textContent = 'se încarcă...';
 
   const [crmData, planningData, visitsData, pontajData, leaveData] = await Promise.all([
     fetchJson('solarcrm_v2'), fetchJson('shc_planning'), fetchJson('shc_visits'), fetchJson('shc_pontaj'), fetchJson('solarcrm_v2/pontajLeave')
