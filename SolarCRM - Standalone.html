@@ -2182,7 +2182,6 @@ class Component extends DCLogic {
       }
       this.shcRegisterSuccess();
       setTimeout(()=>{
-        this.setState({pinMode:false,pinBuffer:''});
         this.loginUser(match.id===ADMIN_ID?{...ADMIN_USER,password:this.adminPassword}:match);
       },150);
     }
@@ -2190,7 +2189,7 @@ class Component extends DCLogic {
   loginUser(user){
     try { sessionStorage.setItem('solarcrm_uid_v3',user.id); localStorage.removeItem('solarcrm_uid_v3'); } catch(e){}
     this.shcAudit(user.name,user.role||'');
-    this.setState({currentUser:user,showUserModal:false,pwStep:null,pwInput:''});
+    this.setState({currentUser:user,showUserModal:false,pwStep:null,pwInput:'',pinMode:true,pinBuffer:''});
   }
   tryLogin(user){
     if(user.apps && user.apps.crm===false){ window.alert('Nu ai acces la SolarCRM. Contactează administratorul.'); return; }
