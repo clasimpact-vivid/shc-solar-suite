@@ -1946,6 +1946,7 @@ class Component extends DCLogic {
   componentWillUnmount(){ if(this._fbRef) this._fbRef.off(); if(this._fbTimeout) clearTimeout(this._fbTimeout); }
 
   _initAuth(){
+    if(this.state.currentUser) return;
     this.setState({showUserModal:true,userModalMode:'login'});
   }
 

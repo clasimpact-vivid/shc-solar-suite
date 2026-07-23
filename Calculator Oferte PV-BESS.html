@@ -4419,7 +4419,7 @@ function buildOfferHTML(r){
       '</div>'+
     '</div>'+
   foot(9)+'</div>';
-  var doc='<!DOCTYPE html><html lang="ro"><head><meta charset="UTF-8"><title>Ofertă '+esc(nrOferta)+(client?(' · '+esc(client)):'')+'</title>'+
+  var doc='<!DOCTYPE html><html lang="ro"><head><meta charset="UTF-8"><title>Oferta'+(client?('_'+client.replace(/[^a-zA-Z0-9ăâîșțĂÂÎȘȚ]+/g,'_')):'')+'_'+(dataOferta||'').replace(/\//g,'-')+'_'+esc(nrOferta)+'</title>'+
     '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'+
     '<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">'+
     '<style>*{box-sizing:border-box}html,body{margin:0;padding:0}body{background:#e7e5df;font-family:\'IBM Plex Sans\',sans-serif;font-variant-numeric:tabular-nums;color:'+INK+'}'+
