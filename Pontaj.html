@@ -53,6 +53,7 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',system-ui,sans-serif
 .checkin-in{background:linear-gradient(135deg,#16a34a,#15803d);}
 .checkin-out{background:linear-gradient(135deg,#dc2626,#b91c1c);}
 .checkin-done{background:#1e293b;color:#64748b;cursor:default;}
+.checkin-pending{background:linear-gradient(135deg,#d97706,#b45309);}
 
 .status-row{display:flex;gap:16px;margin-top:16px;flex-wrap:wrap;}
 .status-item{flex:1;min-width:140px;background:#0d1b2e;border-radius:10px;padding:14px 16px;}
@@ -905,11 +906,11 @@ function renderToday(){
   if(!rec || !rec.checkIn){
     btn.className='checkin-btn checkin-in';
     btn.textContent='● Intrare';
-    btn.onclick=()=>doCheck('in');
+    btn.onclick=()=>confirmCheck('in');
   } else if(!rec.checkOut){
     btn.className='checkin-btn checkin-out';
     btn.textContent='■ Ieșire';
-    btn.onclick=()=>doCheck('out');
+    btn.onclick=()=>confirmCheck('out');
   } else {
     btn.className='checkin-btn checkin-done';
     btn.textContent='✓ Program încheiat azi';
@@ -928,6 +929,29 @@ function renderToday(){
   document.getElementById('statHours').textContent=hours;
 
   renderMyHistory();
+}
+let _pendingCheckTimer=null, _pendingCheckKind=null;
+function confirmCheck(kind){
+  const btn=document.getElementById('btnCheckAction');
+  const gpsStatus=document.getElementById('gpsStatus');
+  if(_pendingCheckTimer){ clearInterval(_pendingCheckTimer); _pendingCheckTimer=null; }
+  _pendingCheckKind=kind;
+  let secondsLeft=10;
+  const label=kind==='in'?'Intrare':'Ieșire';
+  btn.disabled=false;
+  btn.className='checkin-btn checkin-pending';
+  btn.textContent='Anulează '+label+' ('+secondsLeft+'s)';
+  btn.onclick=()=>{ clearInterval(_pendingCheckTimer); _pendingCheckTimer=null; _pendingCheckKind=null; gpsStatus.textContent=''; renderToday(); };
+  gpsStatus.textContent='Apasă din nou ca să anulezi — altfel se confirmă automat.';
+  _pendingCheckTimer=setInterval(()=>{
+    secondsLeft--;
+    if(secondsLeft<=0){
+      clearInterval(_pendingCheckTimer); _pendingCheckTimer=null;
+      doCheck(kind);
+    } else {
+      btn.textContent='Anulează '+label+' ('+secondsLeft+'s)';
+    }
+  },1000);
 }
 async function doCheck(kind){
   const btn=document.getElementById('btnCheckAction');
