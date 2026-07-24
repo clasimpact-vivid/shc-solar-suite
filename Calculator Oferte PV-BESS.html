@@ -4245,7 +4245,7 @@ function buildOfferHTML(r){
     foot(2)+'</div>';
 
   var p3='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
-    '<div style="border-bottom:2px solid '+AC+';padding-bottom:9px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+AC+';margin:0">Analiză financiară</h2></div>'+
+    hdr('03','Analiză financiară','Randamentul investiției pe durata sistemului')+
     '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px">'+
       '<div style="border:1px solid '+LINE+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Economii anuale (An 1)</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:21px;color:'+AC+';margin-top:8px">'+(ronShow?fmt0(r.economiiAn1*curs)+' lei':'€ '+fmt(r.economiiAn1))+'</div><div style="font-size:10px;color:'+MUT+';margin-top:4px">'+(ronShow?'€ '+fmt(r.economiiAn1)+' /an · brut':'brut, înainte de O&M')+'</div></div>'+
       '<div style="border:1px solid '+LINE+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Autoconsumție</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:21px;color:'+AC+';margin-top:8px">'+Math.round(r.effAutoconsum*100)+'%</div><div style="font-size:10px;color:'+MUT+';margin-top:4px">'+(bessIncl?'cu stocare BESS':'fără stocare')+'</div></div>'+
@@ -4259,8 +4259,7 @@ function buildOfferHTML(r){
     foot(3)+'</div>';
 
   var p4='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
-    '<div style="border-bottom:2px solid '+AC+';padding-bottom:9px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+AC+';margin:0">Proiecție cash-flow cumulat — '+durata+' ani</h2></div>'+
-    '<p style="font-size:12px;color:'+MUT+';margin:14px 0 0;line-height:1.55">Evoluția cash-flow-ului cumulat: de la investiția inițială (CAPEX negativ) până la valoarea netă finală. Linia depășește pragul zero în punctul de payback.</p>'+
+    hdr('04','Proiecție cash-flow cumulat — '+durata+' ani','Evoluția recuperării investiției an cu an')+
     '<div style="margin-top:22px;border:1px solid '+LINE+';border-radius:9px;padding:18px 16px 10px;background:#fcfcfd"><svg viewBox="0 0 1000 320" style="width:100%;height:auto" preserveAspectRatio="xMidYMid meet">'+cfGrid+'<path d="'+cfArea+'" fill="'+AC+'" fill-opacity="0.08"></path><line x1="60" y1="'+cfZeroY+'" x2="980" y2="'+cfZeroY+'" stroke="#c0392b" stroke-width="1.4" stroke-dasharray="5 4"></line>'+cfPay+'<polyline points="'+cfPoints+'" fill="none" stroke="'+AC+'" stroke-width="2.6" stroke-linejoin="round"></polyline>'+cfXlab+cfYlab+'</svg></div>'+
     '<div style="display:flex;gap:24px;margin-top:18px"><div style="display:flex;align-items:center;gap:8px"><span style="width:18px;height:3px;background:'+AC+';border-radius:2px"></span><span style="font-size:11px;color:'+MUT+'">Cash-flow cumulat</span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:18px;border-top:2px dashed #c0392b"></span><span style="font-size:11px;color:'+MUT+'">Prag recuperare investiție</span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:11px;height:11px;border-radius:50%;background:'+GOLD+'"></span><span style="font-size:11px;color:'+MUT+'">Punct payback · '+paybackStr+'</span></div></div>'+
     '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:26px">'+
@@ -4271,14 +4270,13 @@ function buildOfferHTML(r){
 
   var p5hdr='<tr style="background:'+AC+';color:#fff"><th style="text-align:left;padding:7px 6px;font-weight:600;font-size:9px">An</th><th style="text-align:right;padding:7px 6px;font-weight:600;font-size:9px">Prod. MWh</th><th style="text-align:right;padding:7px 6px;font-weight:600;font-size:9px">Ven. PV €</th>'+(bessHasArb?'<th style="text-align:right;padding:7px 6px;font-weight:600;font-size:9px">Ven. BESS €</th>':'')+'<th style="text-align:right;padding:7px 6px;font-weight:600;font-size:9px">Total € </th><th style="text-align:right;padding:7px 6px;font-weight:600;font-size:9px">O&M €</th><th style="text-align:right;padding:7px 6px;font-weight:600;font-size:9px">Net €</th><th style="text-align:right;padding:7px 6px;font-weight:600;font-size:9px">Cumulat €</th></tr>';
   var p5='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
-    '<div style="border-bottom:2px solid '+AC+';padding-bottom:9px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+AC+';margin:0">Proiecție Financiară Anuală — '+durata+' Ani</h2></div>'+
+    hdr('05','Proiecție Financiară Anuală — '+durata+' Ani','Detaliu an cu an al producției, economiilor și cash-flow-ului')+
     '<table style="width:100%;border-collapse:collapse;margin-top:12px;font-size:9.5px"><thead>'+p5hdr+'</thead><tbody>'+amortHTML+'</tbody></table>'+
     '<div style="display:flex;gap:20px;margin-top:14px;font-size:10px;color:'+MUT+'"><span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:#fff6e6;border:1px solid #ecd9a8"></span>An payback</span><span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:#f1f8f3"></span>Cumulat pozitiv</span></div>'+
     foot(5)+'</div>';
 
   var p6='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
-    '<div style="border-bottom:2px solid '+AC+';padding-bottom:9px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+AC+';margin:0">Producție lunară estimată (An 1)</h2></div>'+
-    '<p style="font-size:12px;color:'+MUT+';margin:14px 0 0">Distribuție sezonală tipică pentru România — producție maximă vara, minimă iarna.</p>'+
+    hdr('06','Producție lunară estimată (An 1)','Distribuție sezonieră tipică pentru România')+
     '<div style="margin-top:18px;border:1px solid '+LINE+';border-radius:9px;padding:18px 16px 8px;background:#fcfcfd"><svg viewBox="0 0 1000 280" style="width:100%;height:auto" preserveAspectRatio="xMidYMid meet"><line x1="60" y1="230" x2="980" y2="230" stroke="#d8dde4" stroke-width="1"></line>'+monthsHTML+'</svg></div>'+
     '<div style="border-bottom:2px solid '+AC+';padding-bottom:9px;margin-top:30px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+AC+';margin:0">Impact de mediu · CO₂ evitat</h2></div>'+
     '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px">'+
@@ -4389,7 +4387,7 @@ function buildOfferHTML(r){
   // ─── TERMENI & CONDIȚII ───────────────────────────────────────────────────
   var tcR=function(lbl,val){return '<tr style="border-bottom:1px solid '+LINE+'"><td style="padding:7px 10px;font-size:11px;color:'+MUT+';font-weight:600;width:44%">'+lbl+'</td><td style="padding:7px 10px;font-size:11px;color:'+INK+';font-weight:600">'+val+'</td></tr>';};
   var pTermeni='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
-    hdr('05','De ce lucrați cu noi & pașii următori','Condiții comerciale, garanții și informații despre contractant')+
+    hdr('07','De ce lucrați cu noi & pașii următori','Condiții comerciale, garanții și informații despre contractant')+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1">'+
       '<div>'+
         '<div style="background:'+AC+';color:#fff;font-family:Archivo,sans-serif;font-weight:700;font-size:12px;padding:10px 12px;border-radius:8px 8px 0 0">Termeni &amp; Condiții Comerciale</div>'+
