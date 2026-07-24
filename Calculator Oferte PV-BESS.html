@@ -1320,8 +1320,9 @@ function compute(){
   for(var i=1;i<rows.length;i++){
     if(rows[i].cumulative >= 0){
       var prev = rows[i-1].cumulative;
+      var prev = rows[i-1].cumulative;
       var curr = rows[i].cumulative;
-      var frac = (0 - prev) / (curr - prev);
+      var frac = (curr === prev) ? 0 : (0 - prev) / (curr - prev);
       paybackYear = (i-1) + frac;
       break;
     }
@@ -4133,29 +4134,30 @@ function buildOfferHTML(r){
   if(bessIncl) eqCards.push(eqCard('Stocare BESS',EQ_IMG.bess));
   var echipPage='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column"><div style="border-bottom:2px solid '+AC+';padding-bottom:9px"><h2 style="font-family:Archivo,sans-serif;font-weight:700;font-size:17px;color:'+AC+';margin:0">Echipamente propuse</h2></div><p style="font-size:12px;color:'+MUT+';margin:14px 0 0">Imagini orientative ale echipamentelor principale incluse in oferta.</p><div style="display:flex;gap:16px;margin-top:24px">'+eqCards.join('')+'</div><div style="flex:1"></div><div style="border-top:1px solid '+LINE+';padding-top:12px;display:flex;justify-content:space-between;font-size:9px;color:'+MUT+'"><span>© 2026 '+esc(firma)+' · Software proprietar · Legea nr. 8/1996</span><span>'+esc(nrOferta)+'</span></div></div>';
   var legItems=[
-    ['CAPEX','Capital Expenditure — investiția inițială totală (echipamente + instalare).'],
-    ['OPEX','Operational Expenditure — costuri anuale de operare și mentenanță.'],
-    ['O&M','Operations & Maintenance — verificări periodice, curățarea panourilor, monitorizare, înlocuiri minore.'],
-    ['ROI','Return on Investment — câștigul total raportat la investiția inițială, în %.'],
-    ['kWp','Kilowatt-peak — puterea maximă a sistemului în condiții optime.'],
-    ['kWh','Kilowatt-oră — unitatea de măsură a energiei produse/consumate.'],
+    ['ATS','Automatic Transfer Switch — comută automat consumul între rețea și sursa de backup (BESS/invertor).'],
     ['BESS','Battery Energy Storage System — sistem de stocare a energiei în baterii.'],
     ['BMS','Battery Management System — electronica ce protejează și echilibrează celulele bateriei; inclusă standard în orice BESS modern.'],
-    ['STS','Stație de Transformare & Siguranță — echipament electric ce asigură protecția și transformarea tensiunii între instalație și rețea.'],
-    ['ATS','Automatic Transfer Switch — comută automat consumul între rețea și sursa de backup (BESS/invertor).'],
+    ['C&I','Commercial & Industrial — segment de clienți comerciali/industriali (persoane juridice), cu regim TVA distinct de rezidențial.'],
+    ['CAPEX','Capital Expenditure — investiția inițială totală (echipamente + instalare).'],
+    ['DC / AC','Curent continuu (de la panouri) / curent alternativ (spre rețea). Raportul DC/AC = supradimensionarea câmpului PV față de invertor.'],
     ['EMS','Energy Management System — orchestrează fluxurile PV + BESS + rețea + consumatori la nivel de sistem.'],
     ['EPC','Engineering, Procurement, Construction — contract complet „la cheie".'],
-    ['Payback','Perioada de recuperare a investiției din economiile generate.'],
-    ['PV','Photovoltaic — tehnologia de conversie a luminii solare în energie electrică.'],
-    ['MPPT','Maximum Power Point Tracking — circuitul invertorului care extrage puterea maximă din fiecare string de panouri.'],
-    ['DC / AC','Curent continuu (de la panouri) / curent alternativ (spre rețea). Raportul DC/AC = supradimensionarea câmpului PV față de invertor.'],
     ['EPS','Emergency Power Supply — ieșirea de backup a invertorului, alimentează consumatori esențiali la pană de rețea (necesită BESS).'],
-    ['TVA','Taxa pe Valoarea Adăugată — cota standard 21%, aplicabilă tuturor ofertelor.'],
-    ['C&I','Commercial & Industrial — segment de clienți comerciali/industriali (persoane juridice), cu regim TVA distinct de rezidențial.'],
     ['kW / MW','Kilowatt / Megawatt — unități de putere; 1 MW = 1.000 kW.'],
-    ['Voc','Voltage open-circuit — tensiunea în gol a unui panou; determină câte module se pot lega în serie pe un string.'],
+    ['kWh','Kilowatt-oră — unitatea de măsură a energiei produse/consumate.'],
+    ['kWp','Kilowatt-peak — puterea maximă a sistemului în condiții optime.'],
+    ['MPPT','Maximum Power Point Tracking — circuitul invertorului care extrage puterea maximă din fiecare string de panouri.'],
+    ['O&M','Operations & Maintenance — verificări periodice, curățarea panourilor, monitorizare, înlocuiri minore.'],
+    ['OPEX','Operational Expenditure — costuri anuale de operare și mentenanță.'],
+    ['Payback','Perioada de recuperare a investiției din economiile generate.'],
+    ['PCS','Power Conversion System — convertorul de putere al bateriei (AC-DC/DC-AC); la sistemele AC-coupled mari poate fi separat de invertorul hibrid.'],
+    ['PV','Photovoltaic — tehnologia de conversie a luminii solare în energie electrică.'],
+    ['ROI','Return on Investment — câștigul total raportat la investiția inițială, în %.'],
+    ['STC','Standard Test Conditions — condițiile standard (1000 W/m², 25 °C) la care se declară puterea nominală a panoului.'],
     ['String','Șir de panouri legate în serie, conectat la o intrare MPPT a invertorului.'],
-    ['STC','Standard Test Conditions — condițiile standard (1000 W/m², 25 °C) la care se declară puterea nominală a panoului.']
+    ['STS','Stație de Transformare & Siguranță — echipament electric ce asigură protecția și transformarea tensiunii între instalație și rețea.'],
+    ['TVA','Taxa pe Valoarea Adăugată — cota standard 21%, aplicabilă tuturor ofertelor.'],
+    ['Voc','Voltage open-circuit — tensiunea în gol a unui panou; determină câte module se pot lega în serie pe un string.']
   ];
   var legCol=function(arr){return arr.map(function(it){return '<div style="margin-bottom:12px"><span style="font-family:Archivo,sans-serif;font-weight:700;color:'+AC+';font-size:12px">'+it[0]+'</span> <span style="font-size:11px;color:'+INK+';line-height:1.5">— '+esc(it[1])+'</span></div>';}).join('');};
   var legendPage='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
@@ -4445,8 +4447,7 @@ function buildOfferHTML(r){
     '.page{width:210mm;min-height:297mm;background:#fff;box-shadow:0 4px 24px rgba(20,30,50,.12);display:flex;flex-direction:column}'+
     '@media screen and (max-width:900px){.pages{padding:16px 0 24px;gap:16px}.page{transform:scale(var(--pgscale,1));transform-origin:top center;margin-bottom:calc((var(--pgscale,1) - 1) * 297mm)}.bar{flex-wrap:wrap;padding:10px 14px}.bar span{font-size:12px}}'+
     '@page{size:A4;margin:0}@media print{*,*::before,*::after{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}body{background:#fff}.bar{display:none}.pages{padding:0;gap:0}.page{transform:none!important;margin:0!important}.page{box-shadow:none;page-break-after:always;break-after:page}.page:last-child{page-break-after:auto}}</style></head>'+
-    '<body><div class="bar"><span>Ofertă '+esc(nrOferta)+' — previzualizare. Apasă „Printează" și alege „Salvează ca PDF".</span><button onclick="window.print()">🖨 Printează / Salvează PDF</button></div>'+
-    '<div class="pages">'+p1+pSumar+pSpecs+p3+p4+p5+p6+equipPage+p2+pTermeni+legendPage+'</div>'+
+    '<body><div class="pages">'+p1+pSumar+pSpecs+p3+p4+p5+p6+equipPage+p2+pTermeni+legendPage+'</div>'+
     '<script>window.addEventListener(\'load\',function(){var go=function(){setTimeout(function(){try{window.print();}catch(e){}},400);};if(document.fonts&&document.fonts.ready){document.fonts.ready.then(go);}else{go();}});<\/script>'+
     '<script>function fitPages(){if(window.innerWidth>900)return;var w=window.innerWidth-16;var s=Math.min(1,w/793.7);document.documentElement.style.setProperty(\'--pgscale\',s);}fitPages();window.addEventListener(\'resize\',fitPages);<\/script>'+
     '</body></html>';
