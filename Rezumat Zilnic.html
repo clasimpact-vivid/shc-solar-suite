@@ -210,7 +210,7 @@ async function renderInner(iso){
   function offersFor(dISO){ const [s,e]=dayBounds(dISO); return allOffers.filter(o=>o.timestamp&&o.timestamp>=s&&o.timestamp<e&&(!agentFilter||o.user===agentFilter||o.creatDe===agentFilter)).map(o=>({...o,day:dISO})); }
   function visitsFor(dISO){ const [s,e]=dayBounds(dISO); return allVisits.filter(v=>v.createdAt&&v.createdAt>=s&&v.createdAt<e&&(!agentFilter||v.createdBy===agentFilter)).map(v=>({...v,day:dISO})); }
   function pontajFor(dISO){ return allPontaj.filter(r=>r.date===dISO&&(!agentFilter||r.userName===agentFilter)); }
-  function leavesFor(dISO){ const [s,e]=dayBounds(dISO); return allLeaves.filter(l=>l.ts&&l.ts>=s&&l.ts<e&&(!agentFilter||l.userName===agentFilter)); }
+  function leavesFor(dISO){ return allLeaves.filter(l=>l.from&&l.to&&dISO>=l.from&&dISO<=l.to&&(!agentFilter||l.userName===agentFilter)); }
   const flat = (fn) => rangeDays.flatMap(fn);
 
   const crmLog = flat(crmLogFor).sort((a,b)=>b.time-a.time);
@@ -228,7 +228,8 @@ async function renderInner(iso){
   const offers = flat(offersFor).sort((a,b)=>b.timestamp-a.timestamp);
   const visits = flat(visitsFor);
   const pontajRecords = flat(pontajFor);
-  const leaves = flat(leavesFor).sort((a,b)=>b.ts-a.ts);
+  const leaves = flat(leavesFor);
+  const leavesDedup = [...new Map(leaves.map(l=>[l.id||l.userName+l.from+l.to,l])).values()].sort((a,b)=>(b.ts||0)-(a.ts||0));
 
   let html = '';
 
@@ -286,7 +287,7 @@ async function renderInner(iso){
   html += section('🕐 Pontaj — prezențe', pontajItems.length, pontajItems);
 
   const LEAVE_LABELS_R={CO:'Concediu de odihnă',CM:'Concediu medical',IV:'Învoire / liber o zi',LN:'Liber neplătit'};
-  const leaveItems = leaves.map(l=>`<li><strong>${esc(l.userName||'?')}</strong> — ${esc(LEAVE_LABELS_R[l.type]||l.type||'cerere')} · ${esc(l.from||'')}${l.to&&l.to!==l.from?' – '+esc(l.to):''} <span class="muted">· ${l.status==='A'?'aprobat':l.status==='R'?'respins':'în așteptare'}</span></li>`);
+  const leaveItems = leavesDedup.map(l=>`<li><strong>${esc(l.userName||'?')}</strong> — ${esc(LEAVE_LABELS_R[l.type]||l.type||'cerere')} · ${esc(l.from||'')}${l.to&&l.to!==l.from?' – '+esc(l.to):''} <span class="muted">· trimisă ${l.ts?fmtTime(l.ts)+' '+dTag(isoDate(new Date(l.ts))):''} · ${l.status==='A'?'aprobat':l.status==='R'?'respins':'în așteptare'}</span></li>`);
   html += section('🌴 Cereri concediu / învoire', leaveItems.length, leaveItems);
 
   document.getElementById('content').innerHTML = html || `<div class="empty">Nicio activitate în ${viewMode==='saptamana'?'această săptămână':'această zi'}.</div>`;
