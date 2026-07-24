@@ -290,6 +290,14 @@ async function renderInner(iso){
   const leaveItems = leavesDedup.map(l=>`<li><strong>${esc(l.userName||'?')}</strong> — ${esc(LEAVE_LABELS_R[l.type]||l.type||'cerere')} · ${esc(l.from||'')}${l.to&&l.to!==l.from?' – '+esc(l.to):''} <span class="muted">· trimisă ${l.ts?fmtTime(l.ts)+' '+dTag(isoDate(new Date(l.ts))):''} · ${l.status==='A'?'aprobat':l.status==='R'?'respins':'în așteptare'}</span></li>`);
   html += section('🌴 Cereri concediu / învoire', leaveItems.length, leaveItems);
 
+  if(!agentFilter){
+    const pending = allLeaves.filter(l=>l.status==='P').sort((a,b)=>(b.ts||0)-(a.ts||0));
+    if(pending.length){
+      const pendingItems = pending.map(l=>`<li><strong>${esc(l.userName||'?')}</strong> — ${esc(LEAVE_LABELS_R[l.type]||l.type||'cerere')} · ${esc(l.from||'')}${l.to&&l.to!==l.from?' – '+esc(l.to):''} <span class="muted">· trimisă ${l.ts?fmtTime(l.ts)+' '+isoDate(new Date(l.ts)):''}</span></li>`);
+      html += section('⏳ Cereri concediu în așteptare (toate, indiferent de dată)', pendingItems.length, pendingItems);
+    }
+  }
+
   document.getElementById('content').innerHTML = html || `<div class="empty">Nicio activitate în ${viewMode==='saptamana'?'această săptămână':'această zi'}.</div>`;
 
   // ── Fără activitate (doar agenti, nu admin) ──

@@ -1038,7 +1038,13 @@
             <th style="text-align:right;padding:9px 6px;font-size:9px;color:#fff;font-weight:700;letter-spacing:.8px;text-transform:uppercase;width:96px">Cantitate</th>
             <th style="text-align:right;padding:9px 6px;font-size:9px;color:#fff;font-weight:700;letter-spacing:.8px;text-transform:uppercase;width:110px">Preț unitar (lei)</th>
             <th style="text-align:right;padding:9px 6px;font-size:9px;color:#fff;font-weight:700;letter-spacing:.8px;text-transform:uppercase;width:120px">Valoare total (lei)</th>
-            <th style="text-align:center;padding:9px 6px;font-size:9px;color:#fbbf24;font-weight:700;letter-spacing:.8px;text-transform:uppercase;width:64px" title="Bifează rândurile care NU sunt de bază în modulele PV/Invertor/BESS/STS — suma lor se adaugă automat la CAPEX (Cost alte elemente)"><div>+ CAPEX</div><button type="button" id="btnToggleAllCapex" title="Bifează / debifează tot" style="margin-top:3px;padding:2px 6px;font-size:8px;border:1px solid rgba(251,191,36,.5);background:transparent;color:#fbbf24;border-radius:4px;cursor:pointer">Tot</button></th>
+            <th style="text-align:center;padding:9px 6px;font-size:9px;color:#fbbf24;font-weight:700;letter-spacing:.8px;text-transform:uppercase;width:88px" title="Bifează rândurile care NU sunt de bază în modulele PV/Invertor/BESS/STS — suma lor se adaugă automat la CAPEX (Cost alte elemente)">
+              <div style="margin-bottom:4px">+ CAPEX</div>
+              <div style="display:flex;gap:3px;justify-content:center">
+                <button type="button" id="btnCheckAllCapex" title="Bifează tot" style="padding:2px 7px;font-size:11px;line-height:1;border:1px solid rgba(74,222,128,.6);background:rgba(74,222,128,.12);color:#4ade80;border-radius:4px;cursor:pointer">✓</button>
+                <button type="button" id="btnUncheckAllCapex" title="Debifează tot" style="padding:2px 7px;font-size:11px;line-height:1;border:1px solid rgba(248,113,113,.6);background:rgba(248,113,113,.12);color:#f87171;border-radius:4px;cursor:pointer">✕</button>
+              </div>
+            </th>
             <th style="width:34px;background:#0b1e3d"></th>
           </tr>
         </thead>
@@ -3200,12 +3206,10 @@ function renderDeviz(){
     });
   }
   var add=document.getElementById('btnAddDevizRow');
-  var toggleAll=document.getElementById('btnToggleAllCapex');
-  if(toggleAll) toggleAll.addEventListener('click', function(){
-    var allChecked = devizRows.every(function(r){return r.inCapex;});
-    devizRows.forEach(function(r){ r.inCapex=!allChecked; });
-    renderDeviz();
-  });
+  var checkAll=document.getElementById('btnCheckAllCapex');
+  var uncheckAll=document.getElementById('btnUncheckAllCapex');
+  if(checkAll) checkAll.addEventListener('click', function(){ devizRows.forEach(function(r){ r.inCapex=true; }); renderDeviz(); });
+  if(uncheckAll) uncheckAll.addEventListener('click', function(){ devizRows.forEach(function(r){ r.inCapex=false; }); renderDeviz(); });
   if(add) add.addEventListener('click', function(){
     devizRows.push({grup:'',cod:'',capitol:'',um:'',cant:'',pret:'',inCapex:false});
     renderDeviz();
