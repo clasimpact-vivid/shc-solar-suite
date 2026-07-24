@@ -716,8 +716,7 @@
         <label>TVA (%)</label>
         <input type="number" id="tva" value="21" step="0.5">
         <div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;">
-          <button type="button" onclick="document.getElementById('tva').value=0;document.getElementById('tva').dispatchEvent(new Event('input',{bubbles:true}));" style="font-size:11px;padding:2px 8px;background:var(--green);color:#fff;border:1px solid var(--green);border-radius:4px;cursor:pointer;">0% rezidențial (PF)</button>
-          <button type="button" onclick="document.getElementById('tva').value=21;document.getElementById('tva').dispatchEvent(new Event('input',{bubbles:true}));" style="font-size:11px;padding:2px 8px;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:4px;cursor:pointer;">21% C&amp;I (PJ)</button>
+          <button type="button" onclick="document.getElementById('tva').value=21;document.getElementById('tva').dispatchEvent(new Event('input',{bubbles:true}));" style="font-size:11px;padding:2px 8px;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:4px;cursor:pointer;">21%</button>
         </div>
       </div>
       <input type="hidden" id="marjaComercial" value="0">
@@ -1104,7 +1103,7 @@
         <p><strong>STC</strong> — Standard Test Conditions. Condițiile standard (1000 W/m², 25 °C) la care se declară puterea nominală a panoului.</p>
         <p><strong>String</strong> — Șir de panouri legate în serie, conectat la o intrare MPPT a invertorului.</p>
         <p><strong>STS</strong> — Stație de Transformare &amp; Siguranță. Echipament electric ce asigură protecția și transformarea tensiunii între instalație și rețea.</p>
-        <p><strong>TVA</strong> — Taxa pe Valoarea Adăugată. Cota standard 21%; 0% pentru rezidențial persoană fizică conform legii în vigoare.</p>
+        <p><strong>TVA</strong> — Taxa pe Valoarea Adăugată. Cota standard 21%, aplicabilă tuturor ofertelor.</p>
         <p style="margin-bottom:0"><strong>Voc</strong> — Voltage open-circuit. Tensiunea în gol a unui panou; determină câte module se pot lega în serie pe un string.</p>
       </div>
     </div>
@@ -4151,7 +4150,7 @@ function buildOfferHTML(r){
     ['MPPT','Maximum Power Point Tracking — circuitul invertorului care extrage puterea maximă din fiecare string de panouri.'],
     ['DC / AC','Curent continuu (de la panouri) / curent alternativ (spre rețea). Raportul DC/AC = supradimensionarea câmpului PV față de invertor.'],
     ['EPS','Emergency Power Supply — ieșirea de backup a invertorului, alimentează consumatori esențiali la pană de rețea (necesită BESS).'],
-    ['TVA','Taxa pe Valoarea Adăugată — cota standard 21%; 0% pentru rezidențial persoană fizică conform legii în vigoare.'],
+    ['TVA','Taxa pe Valoarea Adăugată — cota standard 21%, aplicabilă tuturor ofertelor.'],
     ['C&I','Commercial & Industrial — segment de clienți comerciali/industriali (persoane juridice), cu regim TVA distinct de rezidențial.'],
     ['kW / MW','Kilowatt / Megawatt — unități de putere; 1 MW = 1.000 kW.'],
     ['Voc','Voltage open-circuit — tensiunea în gol a unui panou; determină câte module se pot lega în serie pe un string.'],
