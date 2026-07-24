@@ -4190,12 +4190,11 @@ function buildOfferHTML(r){
 
   var p1='<div class="page" style="display:flex;flex-direction:column;background:'+AC+'">'+
     '<div style="padding:26px 18mm 0;display:flex;justify-content:space-between;align-items:flex-start">'+
-      '<div style="display:flex;align-items:center;gap:14px"><div style="width:46px;height:46px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px">🏠</div><div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:19px;color:#fff;letter-spacing:.3px">'+esc(firma.toUpperCase())+'</div><div style="font-size:9.5px;letter-spacing:1.8px;color:rgba(255,255,255,.5);margin-top:4px;font-weight:600">EPC · FOTOVOLTAIC · STOCARE · ANRE A3/E1/E2</div></div></div>'+
+      '<div style="display:flex;align-items:center;gap:14px"><div style="width:46px;height:46px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:6px"><img src="data:image/jpeg;base64,'+OFFER_LOGO_B64+'" style="width:100%;height:100%;object-fit:contain"></div><div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:19px;color:#fff;letter-spacing:.3px">'+esc(firma.toUpperCase())+'</div><div style="font-size:9.5px;letter-spacing:1.8px;color:rgba(255,255,255,.5);margin-top:4px;font-weight:600">EPC · FOTOVOLTAIC · STOCARE · ANRE A3/E1/E2</div></div></div>'+
       '<div style="border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:7px 16px;font-family:monospace;font-size:10px;color:rgba(255,255,255,.7);letter-spacing:.5px;white-space:nowrap">ISO 9001 · 14001 · 45001 · 27001</div>'+
     '</div>'+
     '<div style="height:22mm"></div>'+
     '<div style="padding:0 18mm">'+
-      '<img src="data:image/jpeg;base64,'+OFFER_LOGO_B64+'" style="height:32px;margin-bottom:14px;display:block">'+
       '<div style="font-family:monospace;font-size:11px;letter-spacing:2.5px;color:'+GOLD+';font-weight:700;text-transform:uppercase">OFERTĂ TEHNICO-ECONOMICĂ · '+(bessIncl?'SISTEM DE STOCARE A ENERGIEI (BESS)':(r.kwp>0?'SISTEM FOTOVOLTAIC':'SOLUȚIE ENERGETICĂ'))+'</div>'+
       '<h1 style="font-family:Archivo,sans-serif;font-weight:800;font-size:34px;line-height:1.1;color:#fff;margin:10px 0 12px;letter-spacing:-.6px">'+esc(sysTitle)+'</h1>'+
       '<p style="font-size:12.5px;color:rgba(255,255,255,.6);margin:0 0 16px;max-width:150mm;line-height:1.5">Soluție EPC completă „la cheie": proiectare, aprovizionare echipamente, instalare, testare și punere în funcțiune, integrate în instalația existentă.</p>'+
