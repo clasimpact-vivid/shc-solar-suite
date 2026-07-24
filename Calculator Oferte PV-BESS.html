@@ -1038,7 +1038,7 @@
             <th style="text-align:right;padding:9px 6px;font-size:9px;color:#fff;font-weight:700;letter-spacing:.8px;text-transform:uppercase;width:96px">Cantitate</th>
             <th style="text-align:right;padding:9px 6px;font-size:9px;color:#fff;font-weight:700;letter-spacing:.8px;text-transform:uppercase;width:110px">Preț unitar (lei)</th>
             <th style="text-align:right;padding:9px 6px;font-size:9px;color:#fff;font-weight:700;letter-spacing:.8px;text-transform:uppercase;width:120px">Valoare total (lei)</th>
-            <th style="text-align:center;padding:9px 6px;font-size:9px;color:#fbbf24;font-weight:700;letter-spacing:.8px;text-transform:uppercase;width:64px" title="Bifează rândurile care NU sunt deja în modulele PV/Invertor/BESS/STS — suma lor se adaugă automat la CAPEX (Cost alte elemente)">+ CAPEX</th>
+            <th style="text-align:center;padding:9px 6px;font-size:9px;color:#fbbf24;font-weight:700;letter-spacing:.8px;text-transform:uppercase;width:64px" title="Bifează rândurile care NU sunt de<div>+ CAPEX</div><button type="button" id="btnToggleAllCapex" title="Bifează / debifează tot" style="margin-top:3px;padding:2px 6px;font-size:8px;border:1px solid rgba(251,191,36,.5);background:transparent;color:#fbbf24;border-radius:4px;cursor:pointer">Tot</button></th>ja în modulele PV/Invertor/BESS/STS — suma lor se adaugă automat la CAPEX (Cost alte elemente)">+ CAPEX</th>
             <th style="width:34px;background:#0b1e3d"></th>
           </tr>
         </thead>
@@ -3200,6 +3200,12 @@ function renderDeviz(){
     });
   }
   var add=document.getElementById('btnAddDevizRow');
+  var toggleAll=document.getElementById('btnToggleAllCapex');
+  if(toggleAll) toggleAll.addEventListener('click', function(){
+    var allChecked = devizRows.every(function(r){return r.inCapex;});
+    devizRows.forEach(function(r){ r.inCapex=!allChecked; });
+    renderDeviz();
+  });
   if(add) add.addEventListener('click', function(){
     devizRows.push({grup:'',cod:'',capitol:'',um:'',cant:'',pret:'',inCapex:false});
     renderDeviz();

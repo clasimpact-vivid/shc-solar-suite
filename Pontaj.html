@@ -1344,10 +1344,12 @@ function renderCereri(){
   const mine=admin?leaveReqs:leaveReqs.filter(l=>l.userId===currentUser.id);
   if(!mine.length){ tbl.innerHTML='<tr><td style="color:#475569;padding:12px 0;">Nicio cerere.</td></tr>'; }
   else{
-    let html='<thead><tr>'+(admin?'<th>Coleg</th>':'')+'<th>Tip</th><th>Perioadă</th><th>Motiv</th><th>Status</th>'+(admin?'<th></th>':'')+'</tr></thead><tbody>';
+    let html='<thead><tr>'+(admin?'<th>Coleg</th>':'')+'<th>Tip</th><th>Perioadă</th><th>Trimisă</th><th>Motiv</th><th>Status</th>'+(admin?'<th></th>':'')+'</tr></thead><tbody>';
     mine.forEach(l=>{
       const st=l.status==='A'?'<span class="badge badge-green">Aprobat</span>':l.status==='R'?'<span class="badge badge-red">Respins</span>':'<span class="badge badge-amber">În așteptare</span>';
-      html+='<tr>'+(admin?'<td>'+(l.userName||'—')+'</td>':'')+'<td>'+(LEAVE_LABELS[l.type]||l.type)+'</td><td>'+isoToDmy(l.from)+' – '+isoToDmy(l.to)+'</td><td>'+(l.reason||'—')+'</td><td>'+st+'</td>';
+      const sentDt=l.ts?new Date(l.ts):null;
+      const sentStr=sentDt?(sentDt.toLocaleDateString('ro-RO',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+sentDt.toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit',hour12:false})):'—';
+      html+='<tr>'+(admin?'<td>'+(l.userName||'—')+'</td>':'')+'<td>'+(LEAVE_LABELS[l.type]||l.type)+'</td><td>'+isoToDmy(l.from)+' – '+isoToDmy(l.to)+'</td><td style="white-space:nowrap;color:#94a3b8;font-size:12px;">'+sentStr+'</td><td>'+(l.reason||'—')+'</td><td>'+st+'</td>';
       if(admin&&l.status==='P'){
         html+='<td style="white-space:nowrap;"><button class="btn btn-sm" data-approve="'+l.id+'" style="background:#16a34a;color:#fff;margin-right:4px;">✓</button><button class="btn btn-sm" data-reject="'+l.id+'" style="background:#dc2626;color:#fff;">✕</button></td>';
       } else if(admin) html+='<td></td>';
