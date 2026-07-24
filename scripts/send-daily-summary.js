@@ -24,8 +24,8 @@ async function main() {
   const dayStart = new Date(todayISO + 'T00:00:00+03:00').getTime();
   const inDay = ts => ts >= dayStart;
 
-  const [crmData, planningData, visitsData, pontajData] = await Promise.all([
-    fetchJson('solarcrm_v2'), fetchJson('shc_planning'), fetchJson('shc_visits'), fetchJson('shc_pontaj'),
+  const [crmData, planningData, visitsData, pontajData, leaveData] = await Promise.all([
+    fetchJson('solarcrm_v2'), fetchJson('shc_planning'), fetchJson('shc_visits'), fetchJson('shc_pontaj'), fetchJson('solarcrm_v2/pontajLeave'),
   ]);
   const cfg = crmData.config || {};
   const users = toArray(cfg.users);
@@ -34,6 +34,8 @@ async function main() {
   const planningProjects = toArray(planningData.projects);
   const visits = toArray(visitsData.visits).filter(v => v.createdAt && inDay(v.createdAt));
   const pontajRecords = toArray(pontajData.records).filter(r => r.date === todayISO);
+  const allLeaves = toArray(leaveData);
+  const LEAVE_LABELS = { CO: 'Concediu de odihnă', CM: 'Concediu medical', IV: 'Învoire / liber o zi', LN: 'Liber neplătit' };
 
   let body = '';
 
@@ -81,6 +83,11 @@ async function main() {
     return `<li><strong>${esc(r.userName || '?')}</strong> — intrare ${r.checkIn.time ? fmtTime(r.checkIn.time) : ''}${r.checkOut ? ', ieșire ' + fmtTime(r.checkOut.time) : ''}${km != null && km > 50 ? ' <span style="color:#d97706;font-weight:600">🚗 ' + km + ' km</span>' : ''}</li>`;
   });
   if (pontajRows.length) body += `<h3 style="color:#f59e0b;margin:18px 0 8px;">🕐 Pontaj — prezențe (${pontajRows.length})</h3><ul style="margin:0;padding-left:20px;">${pontajRows.join('')}</ul>`;
+
+  const leavesToday = allLeaves.filter(l => l.from && l.to && todayISO >= l.from && todayISO <= l.to);
+  const pendingLeaves = allLeaves.filter(l => l.status === 'P');
+  if (leavesToday.length) body += `<h3 style="color:#f59e0b;margin:18px 0 8px;">🌴 Concedii/învoiri active azi (${leavesToday.length})</h3><ul style="margin:0;padding-left:20px;">${leavesToday.map(l => `<li><strong>${esc(l.userName || '?')}</strong> — ${esc(LEAVE_LABELS[l.type] || l.type)} · ${esc(l.from)}${l.to !== l.from ? ' – ' + esc(l.to) : ''} <span style="color:#94a3b8">· ${l.status === 'A' ? 'aprobat' : l.status === 'R' ? 'respins' : 'în așteptare'}</span></li>`).join('')}</ul>`;
+  if (pendingLeaves.length) body += `<h3 style="color:#dc2626;margin:18px 0 8px;">⏳ Cereri concediu în așteptare de aprobare (${pendingLeaves.length})</h3><ul style="margin:0;padding-left:20px;">${pendingLeaves.map(l => `<li><strong>${esc(l.userName || '?')}</strong> — ${esc(LEAVE_LABELS[l.type] || l.type)} · ${esc(l.from)}${l.to !== l.from ? ' – ' + esc(l.to) : ''}</li>`).join('')}</ul>`;
 
   if (!body.trim()) body = '<p style="color:#64748b;">Nicio activitate înregistrată azi.</p>';
 
