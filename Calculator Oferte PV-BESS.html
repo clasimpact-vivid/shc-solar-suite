@@ -623,6 +623,10 @@
         <p style="font-size:11px;color:var(--text3);margin:6px 0 0">BMS (Battery Management System) — protecția/monitorizarea celulelor e responsabilitatea bateriei, inclusă standard de producător în orice BESS modern. Nu necesită cost separat, decât la sisteme industriale cu BMS extern dedicat.</p>
       </div>
       <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:400"><input type="checkbox" id="pcsCheck" style="width:auto"> PCS separat (Power Conversion System — doar dacă nu e integrat în invertorul hibrid)</label>
+        <input type="number" id="capexPcs" value="0" step="1" placeholder="ex: 25000" style="display:none;margin-top:8px">
+      </div>
+      <div class="field">
         <label style="display:flex;align-items:center;gap:8px;font-weight:400"><input type="checkbox" id="bmsExternCheck" style="width:auto"> BMS extern separat (rar necesar, doar industrial)</label>
         <input type="number" id="capexBmsExtern" value="0" step="1" placeholder="ex: 15000" style="display:none;margin-top:8px">
       </div>
@@ -1076,31 +1080,32 @@
     <h2 class="section">📖 Legendă acronime</h2>
     <div class="grid2" style="font-size:13px;line-height:1.6">
       <div>
-        <p style="margin-top:0"><strong>CAPEX</strong> — Capital Expenditure. Investiția inițială totală (echipamente + instalare).</p>
-        <p><strong>OPEX</strong> — Operational Expenditure. Costuri anuale de operare și mentenanță (O&amp;M).</p>
-        <p><strong>O&amp;M</strong> — Operations &amp; Maintenance. Costuri anuale cu mentenanța sistemului: verificări periodice, curățarea panourilor, monitorizare, înlocuiri minore de componente. În calculator, se scade din economiile anuale înainte de calculul payback-ului.</p>
-        <p><strong>ROI</strong> — Return on Investment. Câștigul total raportat la investiția inițială, în %.</p>
-        <p><strong>kWp</strong> — Kilowatt-peak. Puterea maximă pe care o poate produce sistemul în condiții optime.</p>
-        <p><strong>kWh</strong> — Kilowatt-oră. Unitatea de măsură a energiei produse/consumate.</p>
+        <p style="margin-top:0"><strong>ATS</strong> — Automatic Transfer Switch. Comută automat consumul între rețea și sursa de backup (BESS/invertor).</p>
         <p><strong>BESS</strong> — Battery Energy Storage System. Sistem de stocare a energiei în baterii.</p>
         <p><strong>BMS</strong> — Battery Management System. Electronica ce protejează și echilibrează celulele bateriei; inclusă standard în orice BESS modern.</p>
-        <p><strong>STS</strong> — Stație de Transformare & Siguranță. Echipament electric ce asigură protecția și transformarea tensiunii între instalație și rețea.</p>
-        <p><strong>ATS</strong> — Automatic Transfer Switch. Comută automat consumul între rețea și sursa de backup (BESS/invertor).</p>
+        <p><strong>C&amp;I</strong> — Commercial &amp; Industrial. Segment de clienți comerciali/industriali (persoane juridice), cu regim TVA distinct de rezidențial.</p>
+        <p><strong>CAPEX</strong> — Capital Expenditure. Investiția inițială totală (echipamente + instalare).</p>
+        <p><strong>DC / AC</strong> — Curent continuu (de la panouri) / curent alternativ (spre rețea). Raportul DC/AC = supradimensionarea câmpului PV față de invertor.</p>
         <p><strong>EMS</strong> — Energy Management System. Orchestrează fluxurile PV + BESS + rețea + consumatori la nivel de sistem.</p>
-        <p style="margin-bottom:0"><strong>EPC</strong> — Engineering, Procurement, Construction. Contract complet "la cheie".</p>
+        <p><strong>EPC</strong> — Engineering, Procurement, Construction. Contract complet "la cheie".</p>
+        <p><strong>EPS</strong> — Emergency Power Supply. Ieșirea de backup a invertorului, alimentează consumatori esențiali la pană de rețea (necesită BESS).</p>
+        <p><strong>kW / MW</strong> — Kilowatt / Megawatt. Unități de putere; 1 MW = 1.000 kW, folosite pentru puterea instalată sau contractată.</p>
+        <p><strong>kWh</strong> — Kilowatt-oră. Unitatea de măsură a energiei produse/consumate.</p>
+        <p style="margin-bottom:0"><strong>kWp</strong> — Kilowatt-peak. Puterea maximă pe care o poate produce sistemul în condiții optime.</p>
       </div>
       <div>
-        <p style="margin-top:0"><strong>Payback</strong> — Perioada de recuperare a investiției din economiile generate.</p>
+        <p style="margin-top:0"><strong>MPPT</strong> — Maximum Power Point Tracking. Circuitul invertorului care extrage puterea maximă din fiecare string de panouri.</p>
+        <p><strong>O&amp;M</strong> — Operations &amp; Maintenance. Costuri anuale cu mentenanța sistemului: verificări periodice, curățarea panourilor, monitorizare, înlocuiri minore de componente. În calculator, se scade din economiile anuale înainte de calculul payback-ului.</p>
+        <p><strong>OPEX</strong> — Operational Expenditure. Costuri anuale de operare și mentenanță (O&amp;M).</p>
+        <p><strong>Payback</strong> — Perioada de recuperare a investiției din economiile generate.</p>
+        <p><strong>PCS</strong> — Power Conversion System. Convertorul de putere al bateriei (AC-DC/DC-AC); la sistemele AC-coupled mari poate fi separat de invertorul hibrid.</p>
         <p><strong>PV</strong> — Photovoltaic. Tehnologia de conversie a luminii solare în energie electrică.</p>
-        <p><strong>MPPT</strong> — Maximum Power Point Tracking. Circuitul invertorului care extrage puterea maximă din fiecare string de panouri.</p>
-        <p><strong>DC / AC</strong> — Curent continuu (de la panouri) / curent alternativ (spre rețea). Raportul DC/AC = supradimensionarea câmpului PV față de invertor.</p>
-        <p><strong>EPS</strong> — Emergency Power Supply. Ieșirea de backup a invertorului, alimentează consumatori esențiali la pană de rețea (necesită BESS).</p>
-        <p><strong>TVA</strong> — Taxa pe Valoarea Adăugată. Cota standard 21%; 0% pentru rezidențial persoană fizică conform legii în vigoare.</p>
-        <p><strong>C&amp;I</strong> — Commercial & Industrial. Segment de clienți comerciali/industriali (persoane juridice), cu regim TVA distinct de rezidențial.</p>
-        <p><strong>kW / MW</strong> — Kilowatt / Megawatt. Unități de putere; 1 MW = 1.000 kW, folosite pentru puterea instalată sau contractată.</p>
-        <p><strong>Voc</strong> — Voltage open-circuit. Tensiunea în gol a unui panou; determină câte module se pot lega în serie pe un string.</p>
+        <p><strong>ROI</strong> — Return on Investment. Câștigul total raportat la investiția inițială, în %.</p>
+        <p><strong>STC</strong> — Standard Test Conditions. Condițiile standard (1000 W/m², 25 °C) la care se declară puterea nominală a panoului.</p>
         <p><strong>String</strong> — Șir de panouri legate în serie, conectat la o intrare MPPT a invertorului.</p>
-        <p style="margin-bottom:0"><strong>STC</strong> — Standard Test Conditions. Condițiile standard (1000 W/m², 25 °C) la care se declară puterea nominală a panoului.</p>
+        <p><strong>STS</strong> — Stație de Transformare &amp; Siguranță. Echipament electric ce asigură protecția și transformarea tensiunii între instalație și rețea.</p>
+        <p><strong>TVA</strong> — Taxa pe Valoarea Adăugată. Cota standard 21%; 0% pentru rezidențial persoană fizică conform legii în vigoare.</p>
+        <p style="margin-bottom:0"><strong>Voc</strong> — Voltage open-circuit. Tensiunea în gol a unui panou; determină câte module se pot lega în serie pe un string.</p>
       </div>
     </div>
   </div>
@@ -1183,7 +1188,7 @@ var defaults = {
   firmaTa: 'SC Smart House Color SRL', numeClient: '', nrOfertaSuffix: '', valabilitate: 30, curs: 5.2, notesArea: ''
 };
 
-var ids = ['numPanouri','customPower','garantiePanouri','spacingFactor','capexPv','yieldZilnic','zileFunctionare','pretEnergie','pretInjectie','autoconsum','capexBess','autoconsumBess','tva','degradare','escaladare','om','durata','curs','valabilitate','dataOferta','putereContractata','atrValue','capexInvertor','costAlteElemente','costMontaj','costComisionare','alteCheltuieliPct','puterInvertor','garantieInvertor','invertorMarcaCustom','targetKwp','correctionPctCustom','financingPct','financingRate','financingYears','avansPct','transa2Pct','pretPerPanou','pretMontajPerKw','consumZilnic','capacitateBaterie','loanComision','leasingAvans','leasingLuni','leasingRate','leasingRezidual','euGrantPct','euProgram','euDurataImpl','mixedGrantPct','mixedLoanPct','mixedRate','mixedYears','bessKwh','capexSTS','marjaComercial','bessCicluriAn','bessArbitrajSpread','bessDegrade1','rataDiscontare','existingKwp','existingInvertor','existingProductie','capexBackup','capexAts','capexEms','capexBmsExtern'];
+var ids = ['numPanouri','customPower','garantiePanouri','spacingFactor','capexPv','yieldZilnic','zileFunctionare','pretEnergie','pretInjectie','autoconsum','capexBess','autoconsumBess','capexPcs','tva','degradare','escaladare','om','durata','curs','valabilitate','dataOferta','putereContractata','atrValue','capexInvertor','costAlteElemente','costMontaj','costComisionare','alteCheltuieliPct','puterInvertor','garantieInvertor','invertorMarcaCustom','targetKwp','correctionPctCustom','financingPct','financingRate','financingYears','avansPct','transa2Pct','pretPerPanou','pretMontajPerKw','consumZilnic','capacitateBaterie','loanComision','leasingAvans','leasingLuni','leasingRate','leasingRezidual','euGrantPct','euProgram','euDurataImpl','mixedGrantPct','mixedLoanPct','mixedRate','mixedYears','bessKwh','capexSTS','marjaComercial','bessCicluriAn','bessArbitrajSpread','bessDegrade1','rataDiscontare','existingKwp','existingInvertor','existingProductie','capexBackup','capexAts','capexEms','capexBmsExtern'];
 
 function getVal(id){
   var el = document.getElementById(id);
@@ -1249,6 +1254,8 @@ function compute(){
   var capexBackup = backupActive ? getVal('capexBackup')/cursC : 0;
   var bmsExternOn = document.getElementById('bmsExternCheck').checked;
   var capexBmsExtern = bmsExternOn ? getVal('capexBmsExtern')/cursC : 0;
+  var pcsOn = document.getElementById('pcsCheck').checked;
+  var capexPcs = pcsOn ? getVal('capexPcs')/cursC : 0;
   var tva = getVal('tva')/100;
   var degradare = getVal('degradare')/100;
   var escaladare = getVal('escaladare')/100;
@@ -1266,7 +1273,7 @@ function compute(){
   var costComisionare = getVal('costComisionare')/cursC;
   var alteCheltuieliPct = getVal('alteCheltuieliPct')/100;
 
-  var capexEchipamente = capexPv + capexInvertor + (bessActive ? capexBess : 0) + capexSTS + capexAts + capexEms + capexBackup + capexBmsExtern;
+  var capexEchipamente = capexPv + capexInvertor + (bessActive ? capexBess : 0) + capexSTS + capexAts + capexEms + capexBackup + capexBmsExtern + capexPcs;
   var alteCheltuieli = capexEchipamente * alteCheltuieliPct;
 
   var capexTotal = capexEchipamente + atrValue + costAlteElemente + costMontaj + costComisionare + alteCheltuieli;
@@ -1356,6 +1363,7 @@ function compute(){
     capexEms: capexEms, emsMode: emsMode,
     capexBackup: capexBackup, backupMode: backupMode,
     capexBmsExtern: capexBmsExtern, bmsExternOn: bmsExternOn,
+    capexPcs: capexPcs, pcsOn: pcsOn,
     marjaComercial: getVal('marjaComercial'),
     pretVanzare: capexTotal * (1 + getVal('marjaComercial')/100),
     tvaAmount: capexTotal*tva,
@@ -2012,6 +2020,9 @@ function render(){
   if(r.bmsExternOn && r.capexBmsExtern > 0){
     summaryRows.push(['Cost total BMS extern (fără TVA)', LE(r.capexBmsExtern)]);
   }
+  if(r.pcsOn && r.capexPcs > 0){
+    summaryRows.push(['Cost total PCS — Power Conversion System (fără TVA)', LE(r.capexPcs)]);
+  }
   if(r.costAlteElemente > 0){
     summaryRows.push(['Cost alte elemente (fără TVA)', LE(r.costAlteElemente)]);
   }
@@ -2103,6 +2114,10 @@ document.getElementById('backupMode').addEventListener('change', function(){
 });
 document.getElementById('bmsExternCheck').addEventListener('change', function(){
   document.getElementById('capexBmsExtern').style.display = this.checked ? 'block' : 'none';
+  render();
+});
+document.getElementById('pcsCheck').addEventListener('change', function(){
+  document.getElementById('capexPcs').style.display = this.checked ? 'block' : 'none';
   render();
 });
 document.getElementById('panelBrand').addEventListener('change', function(){
@@ -2658,6 +2673,7 @@ document.getElementById('btnPdf').addEventListener('click', function(){
   if(r.emsMode==='included') tableRow('EMS - Energy Management System (fara TVA)', eur(r.capexEms), curs>0 ? fmtEur2.format(r.capexEms*curs)+' lei' : '');
   if(r.backupMode==='included') tableRow('Backup / EPS (fara TVA)', eur(r.capexBackup), curs>0 ? fmtEur2.format(r.capexBackup*curs)+' lei' : '');
   if(r.bmsExternOn && r.capexBmsExtern>0) tableRow('BMS extern (fara TVA)', eur(r.capexBmsExtern), curs>0 ? fmtEur2.format(r.capexBmsExtern*curs)+' lei' : '');
+  if(r.pcsOn && r.capexPcs>0) tableRow('PCS - Power Conversion System (fara TVA)', eur(r.capexPcs), curs>0 ? fmtEur2.format(r.capexPcs*curs)+' lei' : '');
   if(r.costAlteElemente>0) tableRow('Alte elemente (fara TVA)', eur(r.costAlteElemente), curs>0 ? fmtEur2.format(r.costAlteElemente*curs)+' lei' : '');
   if(r.costMontaj>0) tableRow('Montaj (fara TVA)', eur(r.costMontaj), curs>0 ? fmtEur2.format(r.costMontaj*curs)+' lei' : '');
   if(r.costComisionare>0) tableRow('Comisionare (fara TVA)', eur(r.costComisionare), curs>0 ? fmtEur2.format(r.costComisionare*curs)+' lei' : '');
@@ -3135,18 +3151,7 @@ var defaultDeviz = [
   {capitol:'Tablouri electrice AC/DC + protecții', um:'set', cant:1, pret:40000},
   {capitol:'Montaj, testare și punere în funcțiune', um:'serviciu', cant:1, pret:90000}
 ];
-var devizRows = [
-  {grup:'Locația 1',capitol:'Sistem stocare AC-coupled — baterie 120 kWh',um:'set',cant:1,pret:210000,inCapex:true},
-  {grup:'Locația 1',capitol:'Invertor hibrid AC-coupled 60 kW',um:'buc',cant:1,pret:48000,inCapex:true},
-  {grup:'Locația 1',capitol:'Releu limitare export / zero-export (ATR 65 kW)',um:'set',cant:1,pret:9500,inCapex:true},
-  {grup:'Locația 1',capitol:'Protecții AC, tablou și cablare locală',um:'set',cant:1,pret:18500,inCapex:true},
-  {grup:'Locația 1',capitol:'Manoperă montaj și punere în funcțiune',um:'set',cant:1,pret:14000,inCapex:true},
-  {grup:'Locația 2',capitol:'Sistem stocare AC-coupled — baterie 85 kWh',um:'set',cant:1,pret:155000,inCapex:true},
-  {grup:'Locația 2',capitol:'Invertor hibrid AC-coupled 45 kW',um:'buc',cant:1,pret:38000,inCapex:true},
-  {grup:'Locația 2',capitol:'Releu limitare export / zero-export (ATR 50 kW)',um:'set',cant:1,pret:9500,inCapex:true},
-  {grup:'Locația 2',capitol:'Protecții AC, tablou și cablare locală',um:'set',cant:1,pret:15500,inCapex:true},
-  {grup:'Locația 2',capitol:'Manoperă montaj și punere în funcțiune',um:'set',cant:1,pret:11000,inCapex:true}
-];
+var devizRows = [];
 function devizNum(s){ var n=parseFloat(String(s==null?'':s).replace(',','.')); return isNaN(n)?0:n; }
 function devizSubtotal(){ var s=0; devizRows.forEach(function(r){ s+=devizNum(r.cant)*devizNum(r.pret); }); return s; }
 function updateDevizFoot(){
@@ -4004,6 +4009,7 @@ function buildOfferHTML(r){
   if(r.emsMode==='included') costDefs.push(['EMS - Energy Management System', r.capexEms]);
   if(r.backupMode==='included') costDefs.push(['Backup la pană (EPS)', r.capexBackup]);
   if(r.bmsExternOn && r.capexBmsExtern>0) costDefs.push(['BMS extern', r.capexBmsExtern]);
+  if(r.pcsOn && r.capexPcs>0) costDefs.push(['PCS — Power Conversion System', r.capexPcs]);
   if(r.costAlteElemente>0) costDefs.push(['Structuri & alte elemente', r.costAlteElemente]);
   if(r.costMontaj>0) costDefs.push(['Montaj & punere în funcțiune', r.costMontaj]);
   if(r.costComisionare>0) costDefs.push(['Comisionare & documentație', r.costComisionare]);
@@ -4277,8 +4283,8 @@ function buildOfferHTML(r){
     '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px">'+
       '<div style="border:1px solid '+LINE+';border-top:3px solid '+GRN+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">CO₂ evitat / an</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:20px;color:#1f7a47;margin-top:8px">'+fmt0(co2AnnualKg/1000)+' tone</div><div style="font-size:9.5px;color:'+MUT+';margin-top:5px">factor rețea RO ~0,3 kg/kWh</div></div>'+
       '<div style="border:1px solid '+LINE+';border-top:3px solid '+GRN+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">CO₂ pe '+durata+' ani</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:20px;color:#1f7a47;margin-top:8px">'+fmt0(co2TotalT)+' tone</div><div style="font-size:9.5px;color:'+MUT+';margin-top:5px">cu degradare inclusă</div></div>'+
-      '<div style="border:1px solid '+LINE+';border-top:3px solid '+GRN+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Echiv. copaci</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:20px;color:'+GRN+';margin-top:8px">'+fmt0(co2AnnualKg/21)+' /an</div><div style="font-size:9.5px;color:'+MUT+';margin-top:5px">~21 kg CO₂/copac/an</div></div>'+
-      '<div style="border:1px solid '+LINE+';border-top:3px solid '+GRN+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Echiv. km auto</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:20px;color:'+GRN+';margin-top:8px">'+fmt0(co2AnnualKg/0.12)+' /an</div><div style="font-size:9.5px;color:'+MUT+';margin-top:5px">~0,12 kg CO₂/km</div></div>'+
+      '<div style="border:1px solid '+LINE+';border-top:3px solid '+GRN+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Echiv. copaci</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:20px;color:#1f7a47;margin-top:8px">'+fmt0(co2AnnualKg/21)+' /an</div><div style="font-size:9.5px;color:'+MUT+';margin-top:5px">~21 kg CO₂/copac/an</div></div>'+
+      '<div style="border:1px solid '+LINE+';border-top:3px solid '+GRN+';border-radius:8px;padding:15px"><div style="font-size:9px;letter-spacing:1px;color:'+MUT+';font-weight:700;text-transform:uppercase">Echiv. km auto</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:20px;color:#1f7a47;margin-top:8px">'+fmt0(co2AnnualKg/0.12)+' /an</div><div style="font-size:9.5px;color:'+MUT+';margin-top:5px">~0,12 kg CO₂/km</div></div>'+
     '</div>'+foot(6)+'</div>';
 
 
