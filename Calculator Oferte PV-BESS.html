@@ -4504,7 +4504,7 @@ document.getElementById('btnOfertaPdf').addEventListener('click', function(){
   ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(10,20,40,.55);display:flex;flex-direction:column';
   var bar = document.createElement('div');
   bar.style.cssText = 'background:#0b1e3d;color:#fff;display:flex;align-items:center;gap:12px;padding:10px 16px;font-family:inherit;font-size:13px;flex-wrap:wrap';
-  bar.innerHTML = '<span style="flex:1;min-width:160px">📄 Ofertă '+(client?esc(client)+' — ':'')+'<strong>'+nrOferta+'</strong></span>';
+  bar.innerHTML = '<span style="flex:1;min-width:160px">📄 Ofertă '+(client?client+' — ':'')+'<strong>'+nrOferta+'</strong></span>';
   var btnPrint = document.createElement('button');
   btnPrint.textContent = '🖨 Printează / Salvează PDF';
   btnPrint.style.cssText = 'background:#e7b53b;color:#0b1e3d;border:0;font-weight:700;padding:8px 14px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:13px';
