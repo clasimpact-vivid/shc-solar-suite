@@ -2239,6 +2239,22 @@ function requireSavedConfig(actionLabel, proceedFn){
   modal.addEventListener('click', function(e){ if(e.target===modal) close(); });
 }
 
+function collectFullConfig(){
+  var config = {};
+  ids.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) config[id] = el.type==='checkbox' ? el.checked : el.value;
+  });
+  ['panelBrand','bessMode','stsMode','atsMode','emsMode','backupMode','stsTip','firmaTa','firmaCUI','firmaRegCom','firmaAdresa','firmaTelefon','firmaEmail','firmaRepLegal','numeClient','notesArea','sizingMode','nrOfertaSuffix','dataOferta','valabilitate'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) config[id] = el.value;
+  });
+  var bmsEl = document.getElementById('bmsExternCheck'); if(bmsEl) config.bmsExternCheck = bmsEl.checked;
+  config.yearSlider = document.getElementById('yearSlider').value;
+  config.devizRows = devizRows;
+  return config;
+}
+
 document.getElementById('btnSave').addEventListener('click', function(){
   var config = {};
   ids.forEach(function(id){
@@ -3281,7 +3297,8 @@ function logOffer(action, nrOferta, client, valoareLei, extra){
     timestamp:new Date().toISOString(), action:action,
     nrOferta:nrOferta||'—', client:client||'—', valoareLei:valoareLei||0,
     kwp:extra.kwp||null, capexTotalEur:extra.capexTotalEur||null,
-    payback:extra.payback||'—', irr:extra.irr||'—', offerHtml:extra.offerHtml||''};
+    payback:extra.payback||'—', irr:extra.irr||'—', offerHtml:extra.offerHtml||'',
+    fullConfig: (typeof collectFullConfig==='function') ? collectFullConfig() : null};
   var j=getJournal();
   j.unshift(entry);
   if(j.length>1000) j=j.slice(0,1000);
@@ -3313,7 +3330,8 @@ function openOferteColegi(){
       var d=new Date(e.timestamp);
       var dStr=('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
       var hasHtml = e.offerHtml && e.offerHtml.length>50;
-      html+='<tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 6px;white-space:nowrap;color:#0f172a">'+dStr+'</td><td style="padding:7px 6px;color:#0f172a">'+(e.userName||'—')+'</td><td style="padding:7px 6px;color:#0f172a">'+(e.client||'—')+'</td><td style="padding:7px 6px;color:#0f172a">'+(e.nrOferta||'—')+'</td><td style="padding:7px 6px;text-align:right;font-weight:600;color:#0f172a">'+Math.round(e.valoareLei||0).toLocaleString('ro-RO')+'</td><td style="padding:7px 6px;text-align:center">'+(hasHtml?'<button data-jidx="'+idx+'" class="ofertaDlBtn" style="border:1px solid #dbeafe;background:#fff;border-radius:5px;font-size:11px;cursor:pointer;color:#2563eb;padding:4px 8px">⬇</button>':'')+'</td></tr>';
+      var hasConfig = e.fullConfig && typeof e.fullConfig==='object';
+      html+='<tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 6px;white-space:nowrap;color:#0f172a">'+dStr+'</td><td style="padding:7px 6px;color:#0f172a">'+(e.userName||'—')+'</td><td style="padding:7px 6px;color:#0f172a">'+(e.client||'—')+'</td><td style="padding:7px 6px;color:#0f172a">'+(e.nrOferta||'—')+'</td><td style="padding:7px 6px;text-align:right;font-weight:600;color:#0f172a">'+Math.round(e.valoareLei||0).toLocaleString('ro-RO')+'</td><td style="padding:7px 6px;text-align:center;white-space:nowrap">'+(hasConfig?'<button data-jidx="'+idx+'" class="ofertaLoadBtn" style="border:1px solid #fde68a;background:#fffbeb;border-radius:5px;font-size:11px;cursor:pointer;color:#b45309;padding:4px 8px;margin-right:4px">✎ Preia</button>':'')+(hasHtml?'<button data-jidx="'+idx+'" class="ofertaDlBtn" style="border:1px solid #dbeafe;background:#fff;border-radius:5px;font-size:11px;cursor:pointer;color:#2563eb;padding:4px 8px">⬇</button>':'')+'</td></tr>';
     });
     html+='</tbody></table>';
     list.innerHTML=html;
@@ -3323,9 +3341,19 @@ function openOferteColegi(){
         var blob=new Blob([e.offerHtml],{type:'text/html'});
         var url=URL.createObjectURL(blob);
         var a=document.createElement('a');
-        a.href=url; a.download='Oferta-'+(e.nrOferta||'SHC')+'.html';
+        a.href=url; a.download='Oferta-'+(e.client||'Client').replace(/[^a-zA-Z0-9ăâîșțĂÂÎȘȚ]+/g,'_')+'-'+(e.nrOferta||'SHC')+'.html';
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
         setTimeout(function(){URL.revokeObjectURL(url);},2000);
+      });
+    });
+    list.querySelectorAll('.ofertaLoadBtn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var e=entries[+btn.dataset.jidx];
+        if(!e.fullConfig){ alert('Această ofertă nu are configurație salvată.'); return; }
+        if(!confirm('Preiei oferta lui '+(e.userName||'—')+' pentru '+(e.client||'—')+' în Calculator? Configurația actuală va fi înlocuită.')) return;
+        window.applyConfig(e.fullConfig);
+        window._hasSavedConfig = true;
+        document.body.removeChild(document.getElementById('closeOferteColegi').closest('div').parentElement);
       });
     });
   }
@@ -4476,7 +4504,7 @@ document.getElementById('btnOfertaPdf').addEventListener('click', function(){
   ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(10,20,40,.55);display:flex;flex-direction:column';
   var bar = document.createElement('div');
   bar.style.cssText = 'background:#0b1e3d;color:#fff;display:flex;align-items:center;gap:12px;padding:10px 16px;font-family:inherit;font-size:13px;flex-wrap:wrap';
-  bar.innerHTML = '<span style="flex:1;min-width:160px">📄 Previzualizare ofertă — <strong>'+nrOferta+'</strong></span>';
+  bar.innerHTML = '<span style="flex:1;min-width:160px">📄 Ofertă '+(client?esc(client)+' — ':'')+'<strong>'+nrOferta+'</strong></span>';
   var btnPrint = document.createElement('button');
   btnPrint.textContent = '🖨 Printează / Salvează PDF';
   btnPrint.style.cssText = 'background:#e7b53b;color:#0b1e3d;border:0;font-weight:700;padding:8px 14px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:13px';
