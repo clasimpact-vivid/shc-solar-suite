@@ -3296,7 +3296,7 @@ function openOferteColegi(){
   modal.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(10,20,40,.6);display:flex;align-items:center;justify-content:center;padding:24px;';
   var box=document.createElement('div');
   box.style.cssText='background:#fff;border-radius:12px;max-width:820px;width:100%;max-height:80vh;display:flex;flex-direction:column;padding:22px;font-family:inherit;';
-  box.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><h2 style="font-size:16px;margin:0">👥 Oferte generate de echipă</h2><button id="closeOferteColegi" style="border:0;background:none;font-size:18px;cursor:pointer">✕</button></div><div id="oferteColegiList" style="overflow-y:auto;flex:1"><p style="color:#888;font-size:13px">Se încarcă...</p></div>';
+  box.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><h2 style="font-size:16px;margin:0;color:#0f172a">👥 Oferte generate de echipă</h2><button id="closeOferteColegi" style="border:0;background:none;font-size:18px;cursor:pointer;color:#0f172a">✕</button></div><div id="oferteColegiList" style="overflow-y:auto;flex:1;color:#0f172a"><p style="color:#888;font-size:13px">Se încarcă...</p></div>';
   modal.appendChild(box);
   document.body.appendChild(modal);
   modal.addEventListener('click',function(e){ if(e.target===modal) document.body.removeChild(modal); });
@@ -3307,13 +3307,13 @@ function openOferteColegi(){
     if(!list) return;
     if(!entries.length){ list.innerHTML='<p style="color:#888;font-size:13px">Nicio ofertă generată încă.</p>'; return; }
     entries.sort(function(a,b){ return new Date(b.timestamp)-new Date(a.timestamp); });
-    var html='<table style="width:100%;border-collapse:collapse;font-size:12.5px"><thead><tr style="text-align:left;border-bottom:2px solid #eee">'+
-      '<th style="padding:8px 6px">Data</th><th style="padding:8px 6px">Utilizator</th><th style="padding:8px 6px">Client</th><th style="padding:8px 6px">Nr. ofertă</th><th style="padding:8px 6px;text-align:right">Valoare (lei)</th><th style="padding:8px 6px"></th></tr></thead><tbody>';
+    var html='<table style="width:100%;border-collapse:collapse;font-size:12.5px;color:#0f172a"><thead><tr style="text-align:left;border-bottom:2px solid #e2e8f0">'+
+      '<th style="padding:8px 6px;color:#334155">Data</th><th style="padding:8px 6px;color:#334155">Utilizator</th><th style="padding:8px 6px;color:#334155">Client</th><th style="padding:8px 6px;color:#334155">Nr. ofertă</th><th style="padding:8px 6px;text-align:right;color:#334155">Valoare (lei)</th><th style="padding:8px 6px"></th></tr></thead><tbody>';
     entries.forEach(function(e,idx){
       var d=new Date(e.timestamp);
       var dStr=('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
       var hasHtml = e.offerHtml && e.offerHtml.length>50;
-      html+='<tr style="border-bottom:1px solid #f0f0f0"><td style="padding:7px 6px;white-space:nowrap">'+dStr+'</td><td style="padding:7px 6px">'+(e.userName||'—')+'</td><td style="padding:7px 6px">'+(e.client||'—')+'</td><td style="padding:7px 6px">'+(e.nrOferta||'—')+'</td><td style="padding:7px 6px;text-align:right;font-weight:600">'+Math.round(e.valoareLei||0).toLocaleString('ro-RO')+'</td><td style="padding:7px 6px;text-align:center">'+(hasHtml?'<button data-jidx="'+idx+'" class="ofertaDlBtn" style="border:1px solid #dbeafe;background:#fff;border-radius:5px;font-size:11px;cursor:pointer;color:#2563eb;padding:4px 8px">⬇</button>':'')+'</td></tr>';
+      html+='<tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 6px;white-space:nowrap;color:#0f172a">'+dStr+'</td><td style="padding:7px 6px;color:#0f172a">'+(e.userName||'—')+'</td><td style="padding:7px 6px;color:#0f172a">'+(e.client||'—')+'</td><td style="padding:7px 6px;color:#0f172a">'+(e.nrOferta||'—')+'</td><td style="padding:7px 6px;text-align:right;font-weight:600;color:#0f172a">'+Math.round(e.valoareLei||0).toLocaleString('ro-RO')+'</td><td style="padding:7px 6px;text-align:center">'+(hasHtml?'<button data-jidx="'+idx+'" class="ofertaDlBtn" style="border:1px solid #dbeafe;background:#fff;border-radius:5px;font-size:11px;cursor:pointer;color:#2563eb;padding:4px 8px">⬇</button>':'')+'</td></tr>';
     });
     html+='</tbody></table>';
     list.innerHTML=html;
