@@ -3355,7 +3355,7 @@ function openOferteColegi(){
         if(!confirm('Preiei oferta lui '+(e.userName||'—')+' pentru '+(e.client||'—')+' în Calculator? Configurația actuală va fi înlocuită.')) return;
         window.applyConfig(e.fullConfig);
         window._hasSavedConfig = true;
-        document.body.removeChild(document.getElementById('closeOferteColegi').closest('div').parentElement);
+        document.body.removeChild(modal);
       });
     });
   }
