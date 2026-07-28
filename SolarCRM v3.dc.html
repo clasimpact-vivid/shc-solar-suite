@@ -174,7 +174,7 @@ try {
     <div style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:10.5px;color:#64748b;">
       <span style="{{ fbDotStyle }}"></span><span>{{ fbStatusText }}</span>
     </div>
-    <a href="./index.html" style="display:inline-block;margin-top:10px;font-size:11px;color:#475569;text-decoration:none;padding:4px 10px;border:1px solid rgba(255,255,255,0.12);border-radius:6px;">← Suite</a>
+    <a href="./index.html" style="display:inline-block;margin-top:10px;font-size:11px;color:#475569;text-decoration:none;padding:4px 10px;border:1px solid rgba(255,255,255,0.12);border-radius:6px;">← Pagina principală</a>
   </div>
   <nav style="padding:10px 8px;flex:1;overflow-y:auto;">
     <div style="color:#334155;font-size:10px;font-weight:600;letter-spacing:0.9px;padding:8px 10px;text-transform:uppercase;">Filtrare tip</div>
@@ -487,7 +487,7 @@ try {
 <!-- DETAIL PANEL -->
 <sc-if value="{{ hasSelected }}" hint-placeholder-val="{{ false }}">
   <div onClick="{{ closeDetail }}" style="position:fixed;inset:0;background:rgba(15,23,41,0.2);z-index:40;animation:fadeIn .18s;"></div>
-  <div class="crm-detail-panel" style="position:fixed;right:0;top:0;height:100vh;width:480px;background:#fff;z-index:50;display:flex;flex-direction:column;animation:slideInRight .22s cubic-bezier(0.16,1,0.3,1);box-shadow:-8px 0 40px rgba(0,0,0,.13);overflow:hidden;">
+  <div class="crm-detail-panel" onClick="{{ stopPanelClick }}" style="position:fixed;right:0;top:0;height:100vh;width:480px;background:#fff;z-index:50;display:flex;flex-direction:column;animation:slideInRight .22s cubic-bezier(0.16,1,0.3,1);box-shadow:-8px 0 40px rgba(0,0,0,.13);overflow:hidden;">
     <div style="padding:18px 20px 14px;border-bottom:1px solid #e2e8f0;flex:none;">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;">
         <div style="min-width:0;">
@@ -512,6 +512,7 @@ try {
       <button onClick="{{ setTabJournal }}" style="padding:10px 16px;border:none;border-bottom:2px solid {{ tabJournalBorder }};background:transparent;font-size:13px;font-weight:{{ tabJournalWeight }};color:{{ tabJournalColor }};cursor:pointer;flex:1;">Jurnal</button>
       <button onClick="{{ setTabAttach }}" style="padding:10px 16px;border:none;border-bottom:2px solid {{ tabAttachBorder }};background:transparent;font-size:13px;font-weight:{{ tabAttachWeight }};color:{{ tabAttachColor }};cursor:pointer;flex:1;">Atașamente</button>
       <button onClick="{{ setTabOffers }}" style="padding:10px 16px;border:none;border-bottom:2px solid {{ tabOffersBorder }};background:transparent;font-size:13px;font-weight:{{ tabOffersWeight }};color:{{ tabOffersColor }};cursor:pointer;flex:1;">📄 Oferte</button>
+      <button onClick="{{ setTabOrders }}" style="padding:10px 16px;border:none;border-bottom:2px solid {{ tabOrdersBorder }};background:transparent;font-size:13px;font-weight:{{ tabOrdersWeight }};color:{{ tabOrdersColor }};cursor:pointer;flex:1;">📦 Comenzi{{ ordersLateBadge }}</button>
     </div>
     <div style="flex:1;overflow-y:auto;padding:20px;">
 
@@ -585,20 +586,34 @@ try {
               </sc-if>
             </div>
           </sc-if>
-          <button onClick="{{ openFollowUpForm }}" style="width:100%;padding:8px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12.5px;font-weight:600;color:#334155;cursor:pointer;display:{{ fuButtonDisplay }};" style-hover="background:#f8fafc;">📞 Notează contact / follow-up</button>
-          <div style="display:{{ fuFormDisplay }};flex-direction:column;gap:8px;">
-              <textarea value="{{ fuNoteInput }}" onChange="{{ onFuNote }}" placeholder="ex: nu poate vorbi acum, revin..." rows="2" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12.5px;font-family:inherit;resize:vertical;"></textarea>
-              <div style="position:relative;">
-                <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ fuDateInputDmy }}" onChange="{{ onFuDateDmy }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12.5px;box-sizing:border-box;">
-                <input type="date" value="{{ fuDateInput }}" onChange="{{ onFuDatePicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;">
-                <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;">📅</span>
-              </div>
-              <div style="display:flex;gap:8px;">
-                <button onClick="{{ cancelFollowUpForm }}" style="flex:1;padding:8px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12.5px;font-weight:600;color:#64748b;cursor:pointer;">Anulează</button>
-                <button onClick="{{ saveFollowUp }}" style="flex:1;padding:8px;border:none;background:#2563eb;color:#fff;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;">Salvează</button>
-              </div>
-          </div>
+          <sc-if value="{{ showFollowUpForm }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                <textarea value="{{ fuNoteInput }}" onChange="{{ onFuNote }}" placeholder="ex: nu poate vorbi acum, revin..." rows="2" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12.5px;font-family:inherit;resize:vertical;"></textarea>
+                <div style="position:relative;">
+                  <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ fuDateInputDmy }}" onChange="{{ onFuDateDmy }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12.5px;box-sizing:border-box;">
+                  <input type="date" value="{{ fuDateInput }}" onChange="{{ onFuDatePicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;">
+                  <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;">📅</span>
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <button onClick="{{ cancelFollowUpForm }}" style="flex:1;padding:8px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12.5px;font-weight:600;color:#64748b;cursor:pointer;">Anulează</button>
+                  <button onClick="{{ saveFollowUp }}" style="flex:1;padding:8px;border:none;background:#2563eb;color:#fff;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;">Salvează</button>
+                </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ showFollowUpFormNot }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ openFollowUpForm }}" type="button" style="width:100%;padding:8px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12.5px;font-weight:600;color:#334155;cursor:pointer;" style-hover="background:#f8fafc;">📞 Notează contact / follow-up</button>
+          </sc-if>
         </div>
+        <!-- Contract button -->
+        <sc-if value="{{ sel.canContract }}" hint-placeholder-val="{{ false }}">
+          <div style="border-top:1px solid #f1f5f9;padding-top:18px;margin-top:18px;">
+            <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Documente</div>
+            <button onClick="{{ generateContract }}" style="display:flex;align-items:center;gap:8px;padding:9px 18px;background:#0f172a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;width:100%;justify-content:center;" style-hover="background:#1e293b;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              Generează Contract
+            </button>
+          </div>
+        </sc-if>
         <!-- Etape șantier -->
         <div style="border-top:1px solid #f1f5f9;padding-top:18px;margin-top:18px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -620,16 +635,6 @@ try {
             <div style="font-size:12px;color:#94a3b8;font-style:italic;">Fără etape planificate încă. Adaugă din Planificare Șantier.</div>
           </sc-if>
         </div>
-        <!-- Contract button -->
-        <sc-if value="{{ sel.canContract }}" hint-placeholder-val="{{ false }}">
-          <div style="border-top:1px solid #f1f5f9;padding-top:18px;margin-top:18px;">
-            <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Documente</div>
-            <button onClick="{{ generateContract }}" style="display:flex;align-items:center;gap:8px;padding:9px 18px;background:#0f172a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;width:100%;justify-content:center;" style-hover="background:#1e293b;">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-              Generează Contract
-            </button>
-          </div>
-        </sc-if>
       </sc-if>
 
       <!-- OFFERS TAB -->
@@ -659,7 +664,56 @@ try {
         </sc-if>
       </sc-if>
 
-      <!-- JOURNAL TAB -->
+      <!-- ORDERS TAB -->
+      <sc-if value="{{ showOrdersTab }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
+          <button onClick="{{ openOrderForm }}" style="padding:8px 14px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;">+ Comandă nouă</button>
+        </div>
+
+        <sc-if value="{{ showOrderForm }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:16px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div><label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Furnizor</label><input type="text" value="{{ orderForm.furnizor }}" onChange="{{ onOrderFurnizor }}" placeholder="ex: Solis, Jinko" style="width:100%;padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;"></div>
+              <div><label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Nr. ofertă furnizor</label><input type="text" value="{{ orderForm.nrOfertaFurnizor }}" onChange="{{ onOrderNrOferta }}" placeholder="ex: OF-4521" style="width:100%;padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;"></div>
+              <div style="grid-column:1/-1;"><label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Articole comandate</label><input type="text" value="{{ orderForm.articole }}" onChange="{{ onOrderArticole }}" placeholder="ex: 24 panouri 590W, 1 invertor Solis 15kW" style="width:100%;padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;"></div>
+              <div><label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Valoare (lei)</label><input type="number" value="{{ orderForm.valoare }}" onChange="{{ onOrderValoare }}" placeholder="0" style="width:100%;padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;"></div>
+              <div><label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Data comandă</label><input type="date" value="{{ orderForm.dataComanda }}" onChange="{{ onOrderDataComanda }}" style="width:100%;padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;"></div>
+              <div><label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Termen livrare</label><input type="date" value="{{ orderForm.termenLivrare }}" onChange="{{ onOrderTermen }}" style="width:100%;padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;"></div>
+              <div style="grid-column:1/-1;"><label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Status</label>
+                <select value="{{ orderForm.status }}" onChange="{{ onOrderStatus }}" style="width:100%;padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;">
+                  <option value="Comandat">Comandat</option>
+                  <option value="In tranzit">În tranzit</option>
+                  <option value="Livrat partial">Livrat parțial</option>
+                  <option value="Livrat">Livrat</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:14px;">
+              <button onClick="{{ saveOrder }}" style="padding:8px 16px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;">Salvează comanda</button>
+              <button onClick="{{ cancelOrderForm }}" style="padding:8px 16px;background:transparent;color:#64748b;border:1px solid #cbd5e1;border-radius:8px;font-size:12.5px;cursor:pointer;">Anulează</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ noOrders }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;padding:32px;color:#94a3b8;font-size:13px;">Nicio comandă înregistrată pentru acest client.</div>
+        </sc-if>
+        <sc-for list="{{ ordersList }}" as="ord" hint-placeholder-count="2">
+          <div style="background:#fff;border:1px solid {{ ord.borderColor }};border-radius:10px;padding:14px 16px;margin-bottom:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+              <div style="flex:1;min-width:0;">
+                <div style="font-weight:700;font-size:14px;color:#0f172a;">{{ ord.furnizor }} <span style="font-weight:500;color:#94a3b8;font-size:12px;">· {{ ord.nrOfertaFurnizor }}</span></div>
+                <div style="font-size:12.5px;color:#374151;margin-top:4px;">{{ ord.articole }}</div>
+                <div style="font-size:11.5px;color:#94a3b8;margin-top:6px;">Comandat: {{ ord.dataComandaDmy }} · Termen livrare: {{ ord.termenLivrareDmy }} · {{ ord.valoareFmt }} lei</div>
+              </div>
+              <div style="text-align:right;flex-shrink:0;">
+                <div style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;background:{{ ord.badgeBg }};color:{{ ord.badgeColor }};">{{ ord.statusLabel }}</div>
+                <button onClick="{{ ord.onDelete }}" style="margin-top:6px;display:block;background:transparent;border:none;color:#dc2626;font-size:11px;cursor:pointer;padding:2px 4px;">Șterge</button>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </sc-if>
       <sc-if value="{{ showJournalTab }}">
         <sc-if value="{{ hasAuditEntries }}">
           <sc-for list="{{ auditEntries }}" as="entry" hint-placeholder-count="3">
@@ -1289,7 +1343,7 @@ AVRAMUT	SORIN-ILIE	Electrician" style="width:100%;min-height:220px;font-family:m
   <div onClick="{{ userModalBgClick }}" style="position: fixed; inset: 0; background: {{ loginBgStyle }}; z-index: 100; animation: fadeIn .18s; backdrop-filter: blur(2px); width: 100%"></div>
   <div style="position:fixed;inset:0;z-index:110;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;overflow-y:auto;padding:24px 0;pointer-events:none;">
     <sc-if value="{{ isLoginMode }}" hint-placeholder-val="{{ false }}">
-      <a href="./index.html" style="flex:none;pointer-events:auto;font-size:11px;color:#94a3b8;text-decoration:none;padding:4px 10px;border:1px solid #334155;border-radius:6px;">← Suite</a>
+      <a href="./index.html" style="flex:none;pointer-events:auto;font-size:11px;color:#94a3b8;text-decoration:none;padding:4px 10px;border:1px solid #334155;border-radius:6px;">← Pagina principală</a>
     </sc-if>
     <div style="flex:none;pointer-events:auto;width:{{ loginModalWidth }};max-height:82vh;background:{{ loginModalBg }};border-radius:16px;display:flex;flex-direction:column;box-shadow:0 24px 72px rgba(0,0,0,.28);animation:scaleIn .18s cubic-bezier(0.16,1,0.3,1);overflow:hidden;border:{{ loginModalBorder }};">
     <div style="padding:20px 20px 16px;border-bottom:1px solid {{ loginDivider }};flex:none;">
@@ -1437,6 +1491,7 @@ const DEFAULT_USERS = [
   {id:'u_gliga', name:'Andreea Gliga', role:'Backoffice', password:'12345', pin:'9999', color:'#db2777', isSuperAdmin:false, segmente:['PV','Inverter','Baterie']},
   {id:'u_cosmin', name:'Cosmin', role:'Vânzări', password:'12345', pin:'3333', color:'#0d9488', isSuperAdmin:false, segmente:['PV','Inverter','Baterie']},
   {id:'u_eszter', name:'Eszter', role:'Contabilitate', password:'12345', pin:'5555', color:'#ea580c', isSuperAdmin:false, segmente:['PV','Inverter','Baterie']},
+  {id:'u_test_beta', name:'TESTUSER', role:'Vânzări', password:'12345', pin:'8888', color:'#64748b', isSuperAdmin:false, segmente:['PV','Inverter','Baterie']},
 ];
 
 const ADMIN_USER = {
@@ -1461,6 +1516,7 @@ const COMPANY_INFO = {
 };
 
 const CONTRACT_STATUSES = ['Contract', 'Programat', 'În execuție', 'Finalizat'];
+const LOGO_B64 = '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';
 
 const SAMPLE_DATA = [];
 
@@ -1508,88 +1564,277 @@ function fmtTypes(types){
 function migrate(p){
   let att=p.attachments;
   if(att && typeof att==='object' && !Array.isArray(att)) att=Object.values(att);
-  return {...p,types:p.types||(p.type?[p.type]:['PV']),responsabil:p.responsabil||p.technician||null,date_executie:p.date_executie||null,date_inserted:p.date_inserted||p.date_start||new Date().toISOString().slice(0,10),auditLog:p.auditLog||[],attachments:att||[],bessKwh:p.bessKwh||null,capexBESS:p.capexBESS||null,capexSTS:p.capexSTS||null};
+  const fixedId=Number.isFinite(Number(p.id))?Number(p.id):Date.now()+Math.floor(Math.random()*1000);
+  return {...p,id:fixedId,types:p.types||(p.type?[p.type]:['PV']),responsabil:p.responsabil||p.technician||null,date_executie:p.date_executie||null,date_inserted:p.date_inserted||p.date_start||new Date().toISOString().slice(0,10),auditLog:p.auditLog||[],attachments:att||[],bessKwh:p.bessKwh||null,capexBESS:p.capexBESS||null,capexSTS:p.capexSTS||null};
 }
 
 function buildContractHTML(p, company) {
-  const nr = p.id + '/' + new Date().getFullYear();
-  const today = fmtDate(new Date().toISOString().slice(0,10));
-  const types = (p.types||[]).join(', ');
-  const valFmt = p.value ? p.value.toLocaleString('ro-RO') : '—';
-  const valTVA = p.value ? Math.round(p.value*1.19).toLocaleString('ro-RO') : '—';
-  const pvSection = (p.types||[]).includes('PV') ? `
-    <tr><td class="lbl">Putere instalată</td><td>${p.kwp||'—'} kWp (${p.panels||'—'} panouri)</td></tr>
-    <tr><td class="lbl">Tip montaj</td><td style="text-transform:capitalize">${p.mounting||'—'}</td></tr>
-    <tr><td class="lbl">Prosumator</td><td>${p.prosumator?'Da':'Nu'}</td></tr>` : '';
-  const regCom = company.regCom ? `, Nr. Reg. Com.: ${company.regCom}` : '';
-  const repLine = (company.repName) ? `, reprezentată prin <strong>${company.repName}</strong>${company.repRole?', '+company.repRole:''}` : '';
+  const nr = p.id;
+  const today = new Date();
+  const todayFmt = fmtDate(today.toISOString().slice(0,10));
+  const dd=String(today.getDate()).padStart(2,'0'), mm=String(today.getMonth()+1).padStart(2,'0'), yyyy=today.getFullYear();
+  const valFmt = p.value ? Number(p.value).toLocaleString('ro-RO') : '______________';
+  const transa1 = p.value ? Math.round(p.value*0.5).toLocaleString('ro-RO') : '______________';
+  const transa2 = p.value ? (Number(p.value)-Math.round(p.value*0.5)).toLocaleString('ro-RO') : '______________';
+  const nrPanouri = p.panels || '____';
+  const wpPanou = (p.kwp && p.panels) ? Math.round((p.kwp*1000)/p.panels) : '_______';
+  const kwInvertor = p.kwp || '_______';
+  const clientBlank = '_'.repeat(28);
+  const addr = p.address || '________________________________________________';
+  const compRows = [];
+  let compIdx = 1;
+  if ((p.types||[]).includes('PV')) {
+    compRows.push({main:true, nr:compIdx, product:'Sistem fotovoltaic '+(p.kwp||'___')+' kWp', desc:nrPanouri+' panouri × '+wpPanou+' Wp, montaj '+(p.mounting||'acoperiș')});
+    compRows.push({nr:compIdx+'.1', product:'Panouri fotovoltaice', desc:'marca ______________________, '+wpPanou+' Wp/buc'});
+    compRows.push({nr:compIdx+'.2', product:'Structură de prindere', desc:'structură metalică, tip ________________'});
+    compIdx++;
+  }
+  if ((p.types||[]).includes('Inverter')) {
+    compRows.push({main:true, nr:compIdx, product:'Invertor', desc:'marca ______________________, '+kwInvertor+' kW'});
+    compIdx++;
+  }
+  if ((p.types||[]).includes('BESS') || (p.types||[]).includes('Baterie')) {
+    compRows.push({main:true, nr:compIdx, product:'Sistem de stocare BESS'+(p.bessKwh?(' '+p.bessKwh+' kWh'):''), desc:'baterii LiFePO4, BMS integrat, PCS, sistem de răcire'});
+    compIdx++;
+  }
+  compRows.push({main:true, nr:compIdx, product:'Cablaje și accesorii', desc:'cablu DC/AC, conectori, tablou electric IP-65, elemente de mascare'});
+  const compTable = `<table class="comptable"><tr><th style="width:34px;">Nr.</th><th>Produs</th><th>Descriere</th></tr>` +
+    compRows.map(r=>`<tr class="${r.main?'main':'sub'}"><td>${r.nr}</td><td>${r.product}</td><td>${r.desc}</td></tr>`).join('') +
+    `</table>`;
   return `<!DOCTYPE html><html lang="ro"><head><meta charset="utf-8"><title>Contract ${nr}</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Georgia&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Times New Roman',serif;font-size:12pt;line-height:1.7;color:#000;padding:2.5cm 2.5cm 3cm;}
-h1{text-align:center;font-size:13pt;margin-bottom:4pt;letter-spacing:1px;}
-h2{font-size:11pt;margin:18pt 0 6pt;text-transform:uppercase;border-bottom:1px solid #000;padding-bottom:3pt;}
-p{margin-bottom:5pt;text-align:justify;}
-table{width:100%;border-collapse:collapse;margin:8pt 0;}
-td{padding:4pt 8pt;border:1px solid #666;font-size:11pt;vertical-align:top;}
-.lbl{font-weight:bold;width:200px;background:#f5f5f5;}
-.sigs{display:flex;justify-content:space-between;margin-top:50pt;}
-.sig{text-align:center;width:44%;}
-.sigline{border-top:1px solid #000;padding-top:4pt;margin-top:48pt;font-size:10pt;}
-@media print{@page{margin:2cm;size:A4;}}
+table.comptable{width:100%;border-collapse:collapse;margin:10pt 0 16pt;font-family:Georgia,sans-serif;font-size:9.5pt;border:1.5px solid #0f172a;}
+table.comptable th{background:#f1f5f9;color:#0f172a;font-weight:700;padding:7pt 10pt;border:1px solid #94a3b8;text-align:center;}
+table.comptable td{padding:7pt 10pt;border:1px solid #cbd5e1;vertical-align:middle;}
+table.comptable tr.main td{background:#f8fafc;font-weight:700;text-align:left;}
+table.comptable tr.main td:first-child{text-align:center;font-weight:400;color:#64748b;}
+table.comptable tr.main td:last-child,table.comptable tr.sub td:last-child{text-align:left;font-weight:400;color:#475569;}
+table.comptable tr.sub td{text-align:left;color:#334155;}
+table.comptable tr.sub td:nth-child(2){text-align:left;color:#94a3b8;}
+body{font-family:'Georgia','Times New Roman',serif;font-size:11.5pt;line-height:1.7;color:#1e293b;background:#e5e7eb;}
+.page{width:21cm;min-height:29.7cm;margin:0 auto 14pt;background:#fff;padding:1.8cm 2.6cm 2.2cm;position:relative;box-shadow:0 1px 8px rgba(0,0,0,.15);}
+.slimhead{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #cbd5e1;padding-bottom:8pt;margin-bottom:20pt;font-family:Georgia,sans-serif;font-size:8.5pt;color:#64748b;letter-spacing:.4px;text-transform:uppercase;}
+.slimhead b{color:#0f172a;}
+.letterhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-bottom:26pt;gap:8pt 14pt;}
+.brand{display:flex;align-items:center;gap:12pt;min-width:0;flex:1 1 320pt;}
+.brand .mark{width:40pt;height:40pt;background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:8pt;color:#f59e0b;font-family:Georgia,serif;font-weight:700;font-size:17pt;display:flex;align-items:center;justify-content:center;flex:none;}
+.brand .co{font-family:Georgia,serif;font-weight:700;font-size:13.5pt;letter-spacing:.3px;color:#0f172a;}
+.brand .sub{font-family:Georgia,sans-serif;font-size:7.8pt;color:#64748b;margin-top:2pt;letter-spacing:.2px;}
+.doc-chip{display:none;}
+h1{text-align:center;font-size:16pt;letter-spacing:1.8px;font-weight:700;color:#0f172a;margin-bottom:4pt;white-space:nowrap;}-left:auto;}
+h1{text-align:center;font-size:19pt;letter-spacing:2.5px;font-weight:700;color:#0f172a;margin-bottom:4pt;}
+.title-rule{width:70pt;height:2.5pt;background:#f59e0b;margin:8pt auto 18pt;}
+.infobar{display:flex;justify-content:space-between;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8pt;padding:10pt 18pt;margin-bottom:24pt;font-family:Georgia,sans-serif;}
+.infobar .cell{text-align:center;flex:1;}
+.infobar .cell .k{font-size:7.5pt;letter-spacing:1px;text-transform:uppercase;color:#94a3b8;margin-bottom:3pt;}
+.infobar .cell .v{font-size:11pt;font-weight:700;color:#0f172a;}
+.infobar .div{width:1px;background:#e2e8f0;}
+h2{font-size:11.5pt;margin:24pt 0 10pt;letter-spacing:.5px;font-weight:700;color:#0f172a;display:flex;align-items:center;gap:8pt;}
+h2 .num{width:20pt;height:20pt;border-radius:50%;background:#0f172a;color:#fff;font-size:9.5pt;display:inline-flex;align-items:center;justify-content:center;flex:none;font-family:Georgia,sans-serif;}
+h2 .txt{text-transform:uppercase;border-bottom:1.5px solid #e2e8f0;flex:1;padding-bottom:6pt;}
+.parties{display:flex;flex-direction:column;gap:10pt;margin-bottom:6pt;}
+.party{border-left:3px solid #0f172a;padding:2pt 0 2pt 14pt;}
+.party .role{font-family:Georgia,sans-serif;font-size:7.5pt;letter-spacing:1.2px;text-transform:uppercase;color:#f59e0b;font-weight:700;margin-bottom:5pt;}
+.party p{font-size:10.3pt;margin:0;text-align:left;}
+p{margin-bottom:8pt;text-align:justify;}
+.art{margin-bottom:8pt;text-align:justify;}
+.art b.n{font-weight:700;color:#0f172a;}
+.art b{font-weight:700;}
+table.spec{width:100%;border-collapse:collapse;margin:6pt 0 16pt;}
+table.spec td{padding:8pt 12pt;border-bottom:1px solid #e2e8f0;font-size:10.3pt;vertical-align:top;}
+table.spec .lbl{font-family:Georgia,sans-serif;font-size:8pt;letter-spacing:.6px;text-transform:uppercase;color:#94a3b8;width:200px;font-weight:700;}
+.sigs{display:flex;justify-content:space-between;margin-top:56pt;}
+.sig{text-align:center;width:44%;font-size:10.3pt;}
+.sigline{border-top:1px solid #0f172a;padding-top:6pt;margin-top:54pt;font-family:Georgia,sans-serif;font-size:8.5pt;color:#64748b;letter-spacing:.3px;}
+.pagefoot{position:absolute;left:2.6cm;right:2.6cm;bottom:1.1cm;display:flex;justify-content:space-between;border-top:1px solid #e2e8f0;padding-top:6pt;font-family:Georgia,sans-serif;font-size:8pt;color:#94a3b8;letter-spacing:.3px;}
+@media print{
+  body{background:#fff;}
+  .page{box-shadow:none;margin:0;width:auto;min-height:auto;}
+  @page{margin:1.8cm 2.6cm 2.2cm;size:A4;}
+  .pagebreak{page-break-before:always;}
+}
+@media screen{ .pagebreak{margin-top:14pt;} }
 </style></head><body>
-<h1>CONTRACT DE PRESTĂRI SERVICII</h1>
-<h1>Instalare Sistem Fotovoltaic / Energetic</h1>
-<p style="text-align:center;margin:8pt 0 18pt;font-size:11pt;">Nr. <strong>${nr}</strong> din data <strong>${today}</strong></p>
-
-<h2>Capitolul I – Părțile contractante</h2>
-<p>Art. 1. <strong>${company.name}</strong>, CUI: ${company.cui}${regCom}, cu sediul în ${company.address}, tel: ${company.phone}, email: ${company.email}${repLine}, denumită în continuare <strong>PRESTATOR</strong>,</p>
-<p>și</p>
-<p>Art. 2. <strong>${p.client||'—'}</strong>, domiciliat/ă în <strong>${p.address||'—'}</strong>, tel: ${p.phone||'—'}, email: ${p.email||'—'}, denumit/ă în continuare <strong>BENEFICIAR</strong>.</p>
-
-<h2>Capitolul II – Obiectul contractului</h2>
-<p>Art. 3. Prestatorul se obligă să execute lucrările de instalare sistem <strong>${types}</strong> la adresa indicată de beneficiar, conform specificațiilor tehnice agreate.</p>
-<table>
-  <tr><td class="lbl">Echipamente</td><td>${p.equipment||'Conform ofertei tehnice'}</td></tr>
-  ${pvSection}
-  <tr><td class="lbl">Adresa instalare</td><td>${p.address||'—'}</td></tr>
-  <tr><td class="lbl">Responsabil lucrare</td><td>${p.responsabil||'—'}</td></tr>
-</table>
-
-<h2>Capitolul III – Valoarea și plata</h2>
-<p>Art. 4. Valoarea totală a contractului: <strong>${valFmt} RON fără TVA</strong> (TVA 19% = ${p.value?Math.round(p.value*0.19).toLocaleString('ro-RO'):'—'} RON).</p>
-<p>Total cu TVA: <strong>${valTVA} RON</strong>.</p>
-<p>Art. 5. Modalitate de plată: 50% avans la semnarea contractului, 50% la recepția și punerea în funcțiune a instalației.</p>
-<p>Cont bancar Prestator: ${company.iban}, ${company.bank}.</p>
-
-<h2>Capitolul IV – Termene de execuție</h2>
-<p>Art. 6. Termenul de execuție: ${p.date_executie ? '<strong>'+fmtDate(p.date_executie)+'</strong>' : '___ zile lucrătoare de la plata avansului'}.</p>
-<p>Art. 7. Data semnării contractului: <strong>${fmtDate(p.date_start)||today}</strong>.</p>
-
-<h2>Capitolul V – Obligațiile prestatorului</h2>
-<p>Art. 8. Prestatorul se obligă: a) Să execute lucrările conform normativelor tehnice în vigoare; b) Să utilizeze echipamente cu certificate de conformitate CE; c) Să acorde garanție <strong>2 ani</strong> pentru lucrările de montaj; d) Să asiste la obținerea avizelor de prosumator (dacă este cazul).</p>
-
-<h2>Capitolul VI – Obligațiile beneficiarului</h2>
-<p>Art. 9. Beneficiarul se obligă: a) Să asigure accesul nestingherit la locul de instalare; b) Să achite contravaloarea conform art. 5; c) Să nu intervină asupra instalației pe perioada de garanție fără acordul prestatorului.</p>
-
-<h2>Capitolul VII – Garanții</h2>
-<p>Art. 10. Echipamentele beneficiază de garanție conform specificațiilor producătorilor: minimum <strong>10 ani panouri</strong>, <strong>5 ani invertor</strong>, <strong>10 ani baterii</strong>. Garanție montaj: 2 ani.</p>
-
-<h2>Capitolul VIII – Dispoziții finale</h2>
-<p>Art. 11. Prezentul contract este guvernat de legislația română. Litigiile se soluționează pe cale amiabilă sau la instanțele judecătorești competente.</p>
-<p>Art. 12. Prezentul contract s-a încheiat în data de <strong>${today}</strong>, în două exemplare originale, câte unul pentru fiecare parte.</p>
-
-<div class="sigs">
-  <div class="sig">
-    <div><strong>${company.name}</strong></div>
-    ${company.repName?`<div style="font-size:10pt">${company.repName}${company.repRole?', '+company.repRole:''}</div>`:''}
-    <div class="sigline">Semnătură și ștampilă PRESTATOR</div>
+<div class="page">
+  <div class="letterhead">
+    <div class="brand">
+      <img src="data:image/jpeg;base64,${LOGO_B64}" style="width:44pt;height:36pt;object-fit:contain;flex:none;" alt="SHC">
+      <div>
+        <div class="co">S.C. SMART HOUSE COLOR S.R.L.</div>
+        <div class="sub">Str. Timotei Cipariu nr. 3, Arad · CUI RO37283429 · J2017000477024 · office@shc-group.ro</div>
+      </div>
+    </div>
+    <div class="doc-chip">Contract prestări servicii</div>
   </div>
-  <div class="sig">
-    <div><strong>${p.client||'BENEFICIAR'}</strong></div>
-    <div class="sigline">Semnătură BENEFICIAR</div>
+
+  <h1>C O N T R A C T&nbsp;&nbsp;D E&nbsp;&nbsp;P R E S T Ă R I&nbsp;&nbsp;S E R V I C I I</h1>
+  <div class="title-rule"></div>
+
+  <div class="infobar">
+    <div class="cell"><div class="k">Număr contract</div><div class="v">${nr}</div></div>
+    <div class="div"></div>
+    <div class="cell"><div class="k">Data emiterii</div><div class="v">${dd}.${mm}.${yyyy}</div></div>
+    <div class="div"></div>
+    <div class="cell"><div class="k">Beneficiar</div><div class="v">${p.client||'—'}</div></div>
+    <div class="div"></div>
+    <div class="cell"><div class="k">Valoare</div><div class="v">${valFmt} LEI</div></div>
   </div>
+
+  <h2><span class="num">§</span><span class="txt">Părțile contractante</span></h2>
+  <div class="parties">
+    <div class="party">
+      <div class="role">Prestator</div>
+      <p>S.C. "SMART HOUSE COLOR" S.R.L., sediul social în municipiul Arad, Str. Timotei Cipariu nr. 3, Arad, Nr.Registrul Comerțului Arad: J2017000477024, CUI RO37283429, cu contul bancar nr. RO97BTRLRONCRT0CR5559901, deschis la Banca Transilvania, reprezentată prin administrator domnul NICORAȘ IONUȚ VASILE, cetățean român, născut la data de 5 octombrie 1993, în municipiul Zalău, jud.Sălaj, domiciliat în municipiul Arad, str.Smochinului, nr.6, jud.Arad, identificat prin C.I. seria ZR nr.160351/15.10.2024 SPCLEP Arad, având CNP 1931005314023.</p>
+    </div>
+    <div class="party">
+      <div class="role">Beneficiar</div>
+      <p><strong>${p.client||clientBlank}</strong>, cetățean român, domiciliat în ${addr}, jud. ______________, identificat prin C.I. seria ______ nr.______________, având CNP ________________.</p>
+    </div>
+  </div>
+
+  <h2><span class="num">1</span><span class="txt">Obiectul contractului</span></h2>
+  <p class="art"><b class="n">1.1.</b> Obiectul contractului îl reprezintă atât montarea, livrarea cât și punerea în funcțiune a unor sisteme de panouri fotovoltaice având următoarele caracteristici: <strong>${nrPanouri}</strong> panouri fotovoltaice cu puterea de <strong>${wpPanou}</strong> Wp, marca ______________________, Invertor ______________________ de <strong>${kwInvertor}</strong> kW, structură metalică cu prindere pe acoperiș tip ________________, ________________________________________________ și accesorii.</p>
+  <p class="art"><b class="n">1.2.</b> Beneficiarul își va asuma orice neplăcere creată de către sistem, având în vedere faptul că acest sistem va fi pus în funcțiunea de „AUTOCONSUM" pe răspunderea acestuia din urmă.</p>
+  <p class="art"><b class="n">1.3.</b> Prestatorul se va ocupa atât de întocmirea, cât și de depunerea dosarului de prosumator pe platforma RETELE ELECTRICE.</p>
+
+  <table class="spec">
+    <tr><td class="lbl">Adresa amplasament</td><td>${addr}</td></tr>
+    <tr><td class="lbl">Responsabil lucrare</td><td>${p.responsabil||'—'}</td></tr>
+  </table>
+
+  <h2><span class="num">2</span><span class="txt">Durata</span></h2>
+  <p class="art">Durata de executare a lucrărilor este de <strong>30 zile calendaristice</strong>, aferente montării și punerii în funcțiune, de la data semnării contractului.</p>
+
+  <h2><span class="num">3</span><span class="txt">Începerea, finalizarea și amplasamentul</span></h2>
+  <p class="art"><b class="n">3.1.</b> Începerea lucrărilor se va face în termen de maxim 30 de zile calendaristice, după îndeplinirea tuturor cerințelor și condițiilor, respectiv: achitarea tranșei nr.1 la acceptarea ofertei financiare și semnarea prezentului contract, dovedit prin chitanță/OP.</p>
+  <p class="art"><b class="n">3.2.</b> Ulterior finalizării și punerii în funcțiune a lucrărilor se va achita tranșa nr.2 a prezentului contract, dovedită prin chitanță/OP.</p>
+  <p class="art"><b class="n">3.3.</b> Locul amplasamentului lucrării se va face în ${p.address?('<strong>'+p.address+'</strong>'):'________________________, str. ____________________________ nr. ________, jud.______________'}.</p>
+  <div class="pagefoot"><span>SMART HOUSE COLOR · Contract nr. ${nr}</span><span>Pagina 1 din 4</span></div>
 </div>
+
+<div class="page pagebreak">
+  <div class="slimhead"><span><b>S.C. SMART HOUSE COLOR S.R.L.</b> · CUI RO37283429 · J2017000477024</span><span>Contract nr. ${nr} / ${dd}.${mm}.${yyyy}</span></div>
+  <h2><span class="num">4</span><span class="txt">Prețul contractului, modalitate de plată, penalități</span></h2>
+  <p class="art"><b class="n">4.1.</b> Prețul contractului este de <strong>${valFmt} LEI</strong> inclusiv TVA (prețul contractului cuprinde atât materialele, manopera cât și TVA-ul).</p>
+  <p class="art"><b class="n">4.2.</b> Modalitatea de plată este, după cum urmează:</p>
+  <table class="spec">
+    <tr><td class="lbl">Tranșa nr.1</td><td><strong>${transa1} LEI</strong>, inclusiv TVA — se achită în termen de 1-2 zile lucrătoare de la acceptarea ofertei financiare și semnării prezentului act, dovedită prin chitanță/OP.</td></tr>
+    <tr><td class="lbl">Tranșa nr.2</td><td><strong>${transa2} LEI</strong>, inclusiv TVA — se achită după finalizarea lucrării, dovedită prin chitanță/OP.</td></tr>
+  </table>
+  <p class="art"><b class="n">4.3.</b> Penalitățile sunt de 0,02%/zi întârziere, pentru ambele părți, respectiv:</p>
+  <p class="art">Pentru beneficiar, în situația neachitării obligației pecuniare într-un termen maxim de 5 (cinci) zile lucrătoare de la acceptarea ofertei și semnării prezentului act, nu se vor mai calcula penalități de întârziere, ci penalități de renunțare de 0,02% din valoarea ofertei contractului, având drept temei prestarea serviciilor de consultanță oferite de către prestator, ulterior începerii execuției lucrărilor. Aceste penalități au caracter de acoperire a cheltuielilor efectuate de către prestator, contractul reziliindu-se de drept.</p>
+  <p class="art">În situația neachitării tranșei nr.2 în termen de maxim 5 (cinci) zile lucrătoare de la semnarea procesului verbal de finalizare a lucrărilor și punere în funcțiune, beneficiarul va suporta o penalizare de 0,02%/zi întârziere, dar nu mai târziu de 14 (paisprezece) zile lucrătoare, situație în care prestatorul este îndreptățit la ridicarea elementelor componente ale sistemului pus în operă.</p>
+  <p class="art">Pentru prestator, orice întârziere produsă, de la începerea și până la finalizarea contractului (vezi Cap.2), va reprezenta obligația pecuniară de a achita o penalitate de 0,02%/zi întârziere.</p>
+
+  <h2><span class="num">5</span><span class="txt">Componența sistemului</span></h2>
+  ${compTable}
+  <p class="art">Componența detaliată a sistemului este descrisă la Anexa "PROCES-VERBAL DE PREDARE-PRIMIRE", care va fi întocmit ulterior finalizării și punerii în funcțiune a sistemului, precum și instruirea beneficiarului.</p>
+
+  <h2><span class="num">6</span><span class="txt">Garanții</span></h2>
+  <p class="art"><b class="n">6.1.</b> Garanțiile aferente componentelor sistemului de panouri fotovoltaice, oferite de către furnizori/producători, vor fi ulterior cesionate de către prestator în favoarea beneficiarului.</p>
+  <p class="art"><b class="n">6.2.</b> Garanția aferentă executării montării, cât și punerii în funcțiune a sistemului de panouri fotovoltaice oferită de către prestator este de <strong>24 luni</strong>.</p>
+  <p class="art">Dacă sistemul fotovoltaic se degradează din pricina intemperiilor meteorologice (grindină, căderi pe panourile fotovoltaice a unor elemente distructive) instalatorul/montatorul nu este răspunzător.</p>
+  <p class="art">Dacă din punct de vedere al pătrunderii zăpezii sau a altor elemente distructive sub panourile fotovoltaice acestea se degradează, instalatorul/montatorul nu este răspunzător.</p>
+  <p class="art">Instalatorul/montatorul se va racorda la instalația electrică a locuinței/clădirii printr-un tablou electric IP-65 montat separat față de tabloul electric general al casei, nefiind răspunzător de instalația electrică existentă a casei.</p>
+  <p class="art">Instalatorul/montatorul se va racorda la priza de pământ existentă a clădirii/locuinței atât cu panourile fotovoltaice/structura fotovoltaică cât și cu tabloul montat ulterior, urmând a se efectua o măsurătoare a prizei de pământ, iar dacă valorile nu vor corespunde se va întocmi un raport care se va transmite beneficiarului pentru a se pune în legalitate cu priza de pământ.</p>
+  <p class="art">Orice intervenție în sistemul fotovoltaic existent al beneficiarului, efectuată de către o altă persoană decât personalul autorizat al firmei de montaj (panouri fotovoltaice, structură fotovoltaică, cablu de alimentare DC+AC, tablou electric DC+AC), garanția se va anula.</p>
+  <div class="pagefoot"><span>SMART HOUSE COLOR · Contract nr. ${nr}</span><span>Pagina 2 din 4</span></div>
+</div>
+
+<div class="page pagebreak">
+  <div class="slimhead"><span><b>S.C. SMART HOUSE COLOR S.R.L.</b> · CUI RO37283429 · J2017000477024</span><span>Contract nr. ${nr} / ${dd}.${mm}.${yyyy}</span></div>
+  <h2><span class="num">7</span><span class="txt">Obligațiile părților</span></h2>
+  <p class="art"><b class="n">7.1. Obligațiile prestatorului</b></p>
+  <p class="art"><b>a.</b> vizitarea locației/amplasamentului și efectuarea de măsurători pentru evaluarea condițiilor de implementare, respectiv montajul și punerea în funcțiune;<br>
+  <b>b.</b> elaborarea proiectului tehnic și întocmirea documentației specifice, precum și a ofertei financiare;<br>
+  <b>c.</b> furnizarea echipamentelor;<br>
+  <b>d.</b> instalarea și punerea în funcțiune a sistemului de panouri fotovoltaice;<br>
+  <b>e.</b> cesionarea garanțiilor pentru echipamente, acordate de către furnizori/producători, precum și acordarea garanției pentru montare și punere în funcțiune;<br>
+  <b>f.</b> servicii de mentenanță anuale, aferente contractului de mentenanță, care se vor face ulterior la dorința beneficiarului;<br>
+  <b>g.</b> servicii de asistență tehnică, în cazul defectării sistemului fotovoltaic (atât în perioada de garanție, cât și după consumarea acesteia — echipamente, manoperă). Se va ține cont de faptul că asistența tehnică se va face contra-cost, având în vedere că termenul de garanție de 24 de luni se referă la structura de rezistență a panourilor;<br>
+  <b>h.</b> să înlocuiască și să repare orice daună provocată cu ocazia instalării sistemului de panouri fotovoltaice, întocmindu-se în acest sens un proces-verbal pentru acoperiș. Dacă la plecarea echipei de montaj și anterior semnării procesului-verbal de recepție nu s-au făcut constatări, beneficiarul își va asuma orice daună materială ulterioară.</p>
+  <p class="art"><b class="n">7.2. Obligațiile beneficiarului</b></p>
+  <p class="art"><b>a.</b> asigurarea condițiilor necesare bunei desfășurări a operațiunilor de montare a sistemului PV;<br>
+  <b>b.</b> asigurarea accesului prestatorului la toate utilitățile necesare (curent, apă, etc.);<br>
+  <b>c.</b> punerea la dispoziția prestatorului a tuturor autorizațiilor și avizelor necesare;<br>
+  <b>d.</b> punerea la dispoziția prestatorului, cu titlu gratuit, a amplasamentului lucrării, liber de orice sarcină, anterior începerii lucrărilor, cât și a suprafețelor de teren necesare pentru depozitare și pentru organizarea de șantier;<br>
+  <b>e.</b> achitarea prețului contractului, în condițiile Cap.4 din prezentul contract;<br>
+  <b>f.</b> în situația în care apar cheltuieli neprevăzute (cauzate de către beneficiar, respectiv structura de lemn a șarpantei nu corespunde, etc.), beneficiarul se va obliga să le suporte (act adițional la prezentul contract).</p>
+
+  <h2><span class="num">8</span><span class="txt">Încetarea contractului</span></h2>
+  <p class="art"><b>a.</b> La finalizarea acestuia, prin montarea și punerea în funcțiune, dar și la predarea către beneficiar a procesului verbal de predare-primire;<br>
+  <b>b.</b> Prin denunțarea unilaterală a contractului de către beneficiar, anterior efectuării cheltuielilor de materiale pentru înfăptuirea acestuia;<br>
+  <b>c.</b> În caz de forță majoră, cu respectarea legii (notificare, etc.);<br>
+  <b>d.</b> În cazul neachitării ulterior finalizării executării lucrării, după expirarea celor 14 (paisprezece) zile lucrătoare în care prestatorul are dreptul la penalitățile de întârziere, aceasta atrage atât ridicarea elementelor componente ale sistemului pus în operă, cât și rezilierea de drept a prezentului act.</p>
+
+  <h2><span class="num">9</span><span class="txt">Litigii</span></h2>
+  <p class="art">Încercarea rezolvării pe cale amiabilă; în caz contrar, prin intermediul judecății, la instanța competentă din punct de vedere material și teritorial de la domiciliul prestatorului.</p>
+
+  <h2><span class="num">10</span><span class="txt">Comunicări</span></h2>
+  <p class="art">Orice comunicare va avea loc numai în scris, prin intermediul email-ului.</p>
+
+  <h2><span class="num">11</span><span class="txt">Legea aplicabilă a contractului</span></h2>
+  <p class="art">Contractul va fi interpretat conform legilor aplicabile din România.</p>
+
+  <h2><span class="num">12</span><span class="txt">Dispoziții finale</span></h2>
+  <p class="art">Prezentul contract s-a semnat astăzi ${dd}.${mm}.${yyyy}, într-un număr de 2 (două) exemplare, câte unul pentru fiecare parte.</p>
+
+  <div class="sigs">
+    <div class="sig">
+      <div><strong>P R E S T A T O R,</strong></div>
+      <div style="margin-top:4pt">S.C. SMART HOUSE COLOR S.R.L.</div>
+      <div style="margin-top:2pt">ING. NICORAȘ IONUȚ-VASILE</div>
+      <div class="sigline">Semnătură și ștampilă</div>
+    </div>
+    <div class="sig">
+      <div><strong>B E N E F I C I A R,</strong></div>
+      <div style="margin-top:4pt">${p.client||''}</div>
+      <div class="sigline">Semnătură</div>
+    </div>
+  </div>
+  <div class="pagefoot"><span>SMART HOUSE COLOR · Contract nr. ${nr}</span><span>Pagina 3 din 4</span></div>
+</div>
+
+<div class="page pagebreak">
+  <div class="slimhead"><span><b>S.C. SMART HOUSE COLOR S.R.L.</b> · CUI RO37283429 · J2017000477024</span><span>Anexă protecția datelor · Nr. ${nr} / ${dd}.${mm}.${yyyy}</span></div>
+  <h1 style="font-size:14pt;">ANEXA NR. 1</h1>
+  <div class="title-rule"></div>
+  <h2 style="justify-content:center;"><span class="txt" style="border:none;text-align:center;">Clauză standard privind protecția datelor personale</span></h2>
+
+  <div class="parties">
+    <div class="party">
+      <div class="role">Prestator</div>
+      <p>S.C. "SMART HOUSE COLOR" S.R.L., sediul social în municipiul Arad, Str. Timotei Cipariu nr. 3, Arad, Nr.Registrul Comerțului Arad: J2017000477024, CUI RO37283429, cu contul bancar nr. RO97BTRLRONCRT0CR5559901, deschis la Banca Transilvania, reprezentată prin administrator domnul NICORAȘ IONUȚ VASILE, cetățean român, identificat prin C.I. seria ZR nr.160351/15.10.2024 SPCLEP Arad, având CNP 1931005314023.</p>
+    </div>
+    <div class="party">
+      <div class="role">Beneficiar</div>
+      <p><strong>${p.client||clientBlank}</strong>, cetățean român, domiciliat în ${addr}, jud. ______________, identificat prin C.I. seria ______ nr.______________, având CNP ________________.</p>
+    </div>
+  </div>
+
+  <p class="art"><b class="n">Art. 1.</b> Părțile trebuie să respecte normele și obligațiile impuse de dispozițiile în vigoare, privind protecția datelor cu caracter personal.</p>
+  <p class="art"><b class="n">Art. 2.</b> Părțile sunt conștiente de faptul că normele europene din Regulamentul 679/2016 se aplică oricărui operator de date sau împuternicit situat în Uniunea Europeană și oricărei persoane care prelucrează date cu caracter personal ale persoanelor vizate situate în Uniunea Europeană sau care le furnizează servicii. Prin urmare, părțile confirmă respectarea deplină a următoarelor prevederi, inclusiv dar fără a se limita la:</p>
+  <p class="art">● capacitatea de a respecta drepturile persoanelor vizate privind ștergerea, corectarea sau transferul informațiilor personale;<br>
+  ● informarea în caz de breșă de date a tuturor destinatarilor relevanți, într-un interval maxim de 72 ore și, în cazul prestatorului nu mai târziu de 24 ore de la momentul în care o astfel de încălcare a securității datelor a ajuns în atenția acestuia;<br>
+  ● îndeplinirea tuturor îndatoririlor obligatorii privind documentarea conformării cu Regulamentul 679/2016.</p>
+  <p class="art"><b class="n">Art. 3.</b> Părțile pot utiliza datele personale ale semnatarilor în limita contractului pe care îl au încheiat, acesta fiind baza legală a prelucrării; orice prelucrare suplimentară sau în alt scop face obiectul unui acord separat de prelucrare a datelor, încheiat între părți. De asemenea, perioada de stocare a datelor personale prelucrate prin contract este limitată la perioada corespondentă realizării obiectului principal al contractului.</p>
+  <p class="art"><b class="n">Art. 4.</b> Datele cu caracter personal schimbate între părți nu pot deveni accesibile sau comunicate unor terțe părți neautorizate sau puse la dispoziție spre utilizare într-un alt mod. Prin urmare, părțile vor lua toate măsurile tehnice și în special organizatorice necesare, în ceea ce privește obligațiile asumate prin această clauză: vor împiedica persoanele neautorizate să obțină acces la sistemele de prelucrare a datelor cu care sunt prelucrate sau utilizate datele cu caracter personal.</p>
+
+  <div class="sigs">
+    <div class="sig">
+      <div><strong>P R E S T A T O R,</strong></div>
+      <div class="sigline">Semnătură și ștampilă</div>
+    </div>
+    <div class="sig">
+      <div><strong>B E N E F I C I A R,</strong></div>
+      <div class="sigline">Semnătură</div>
+    </div>
+  </div>
+  <div class="pagefoot"><span>SMART HOUSE COLOR · Contract nr. ${nr}</span><span>Pagina 4 din 4</span></div>
+</div>
+<script>window.onload=()=>{setTimeout(()=>window.print(),500);};<\/script>
 </body></html>`;
 }
 
@@ -1603,7 +1848,7 @@ class Component extends DCLogic {
     showModal:false, editingId:null, form:{...EMPTY_FORM},
     projects:[],
     currentUser:null, users:[...DEFAULT_USERS],
-    showUserModal:false, userModalMode:'login',
+    showUserModal:true, userModalMode:'login',
     pwStep:null, pwInput:'',
     pinMode:true, pinBuffer:'', pinErr:false,
     statusModal:{show:false,projectId:null,newStatus:'',reason:''},
@@ -1696,7 +1941,7 @@ class Component extends DCLogic {
       const rawP = data.projects;
       if(rawP && typeof rawP === 'object'){
         const arr = Array.isArray(rawP) ? rawP : Object.values(rawP);
-        projects = arr.filter(p=>p!=null&&typeof p==='object').map(migrate);
+        projects = arr.filter(p=>p!=null&&typeof p==='object'&&p.client&&String(p.client).trim()).map(migrate);
       } else {
         projects = [];
       }
@@ -1722,6 +1967,8 @@ class Component extends DCLogic {
       if(!this._initialized){
         this._initialized=true;
         clearTimeout(this._fbTimeout);
+        const hashMatch = window.location.hash.match(/project-(\d+)/);
+        if(hashMatch){ const pid=Number(hashMatch[1]); setTimeout(()=>{ if(this.state.projects.some(p=>p.id===pid)) this.setState({selectedId:pid}); },50); }
         // Recuperare: dacă acest browser are local (localStorage) proiecte care nu au ajuns niciodată pe server
         // (scrieri pierdute din trecut), le retrimitem acum și le includem imediat în listă.
         try {
@@ -1749,6 +1996,7 @@ class Component extends DCLogic {
   componentWillUnmount(){ if(this._fbRef) this._fbRef.off(); if(this._fbTimeout) clearTimeout(this._fbTimeout); }
 
   _initAuth(){
+    if(this.state.currentUser) return;
     this.setState({showUserModal:true,userModalMode:'login'});
   }
 
@@ -1769,10 +2017,12 @@ class Component extends DCLogic {
     } catch(e){ this._initAuth(); }
   }
 
-  persist(onlyId){
+  persist(onlyId,projectsOverride,usersOverride){
     try {
-      const {projects,users,companyInfo}=this.state;
-      localStorage.setItem('solarcrm_v3',JSON.stringify({projects,users,adminPw:this.adminPassword,adminPin:this.adminPin,companyInfo}));
+      const {companyInfo}=this.state;
+      const projects=projectsOverride||this.state.projects;
+      const users=usersOverride||this.state.users;
+      try{ const lsProjects=projects.map(p=>{ const {attachments,...rest}=p; return rest; }); localStorage.setItem('solarcrm_v3',JSON.stringify({projects:lsProjects,users,adminPw:this.adminPassword,adminPin:this.adminPin,companyInfo})); }catch(lsErr){ console.error('[persist] localStorage quota exceeded, continuă cu scrierea pe server',lsErr); }
       let writePromise=null;
       const db=getDb();
       if(!db){
@@ -1899,7 +2149,6 @@ class Component extends DCLogic {
       const fu=new Date(); fu.setDate(fu.getDate()+(isNaN(days)?14:days));
       data.nextFollowUp=fu.toISOString().slice(0,10);
     }
-    let _affectedId;
     this.setState(s=>{
       let projects, affectedId;
       if(editingId){
@@ -1910,14 +2159,14 @@ class Component extends DCLogic {
         projects=s.projects.map(p=>p.id===editingId?{...p,...data,auditLog:[...(p.auditLog||[]),entry]}:p);
         affectedId=editingId;
       } else {
-        const newId=s.projects.length>0?Math.max(...s.projects.map(p=>p.id))+1:1;
+        const newId=(()=>{ const ids=s.projects.map(p=>Number(p.id)).filter(n=>Number.isFinite(n)); return ids.length?Math.max(...ids)+1:1; })();
         const entry=this.buildAuditEntry('create','Lucrare creată');
         projects=[{id:newId,...data,date_inserted:new Date().toISOString().slice(0,10),auditLog:[entry],attachments:[]}, ...s.projects];
         affectedId=newId;
       }
-      _affectedId=affectedId;
+      this.persist(affectedId,projects);
       return {projects,showModal:false,editingId:null};
-    },()=>this.persist(_affectedId));
+    });
   }
 
   openStatusModal(projectId,newStatus){ this.setState({statusModal:{show:true,projectId,newStatus,reason:''}}); }
@@ -1927,8 +2176,9 @@ class Component extends DCLogic {
       const old=s.projects.find(p=>p.id===projectId);
       const entry=this.buildAuditEntry('status_change','Status: '+(old?old.status:'?')+' → '+newStatus,reason.trim()||null);
       const projects=s.projects.map(p=>p.id===projectId?{...p,status:newStatus,auditLog:[...(p.auditLog||[]),entry]}:p);
+      this.persist(projectId,projects);
       return {projects,statusModal:{show:false,projectId:null,newStatus:'',reason:''}};
-    },()=>this.persist(projectId));
+    });
   }
 
   shcGetLock(){try{return JSON.parse(localStorage.getItem('shc_lock_solarcrm')||'{"fails":0,"until":0}');}catch(e){return{fails:0,until:0};}}
@@ -1983,7 +2233,6 @@ class Component extends DCLogic {
       }
       this.shcRegisterSuccess();
       setTimeout(()=>{
-        this.setState({pinMode:false,pinBuffer:''});
         this.loginUser(match.id===ADMIN_ID?{...ADMIN_USER,password:this.adminPassword}:match);
       },150);
     }
@@ -1991,7 +2240,7 @@ class Component extends DCLogic {
   loginUser(user){
     try { sessionStorage.setItem('solarcrm_uid_v3',user.id); localStorage.removeItem('solarcrm_uid_v3'); } catch(e){}
     this.shcAudit(user.name,user.role||'');
-    this.setState({currentUser:user,showUserModal:false,pwStep:null,pwInput:''});
+    this.setState({currentUser:user,showUserModal:false,pwStep:null,pwInput:'',pinMode:true,pinBuffer:''});
   }
   tryLogin(user){
     if(user.apps && user.apps.crm===false){ window.alert('Nu ai acces la SolarCRM. Contactează administratorul.'); return; }
@@ -2043,6 +2292,35 @@ class Component extends DCLogic {
       this.notifyAttachmentAdded(f.name);
     }
   }
+
+  setOrderForm(key,val){
+    this.setState(s=>({orderForm:{...s.orderForm,[key]:val}}));
+  }
+
+  async saveOrderForSelected(){
+    const {selectedId,orderForm}=this.state;
+    if(!selectedId||!orderForm) return;
+    if(!orderForm.furnizor||!orderForm.furnizor.trim()){ window.alert('Introdu furnizorul.'); return; }
+    const ordId=Date.now()+Math.random();
+    const ord={id:ordId,...orderForm,valoare:orderForm.valoare?Number(orderForm.valoare):0,
+      addedBy:this.state.currentUser?this.state.currentUser.name:'Necunoscut',addedAt:new Date().toISOString()};
+    this.setState(s=>{const projects=s.projects.map(p=>p.id===selectedId?{...p,orders:[...(Array.isArray(p.orders)?p.orders:Object.values(p.orders||{})),ord]}:p);return {projects,orderForm:null};});
+    try{
+      const db=getDb();
+      if(db) await db.ref('solarcrm_v2/projects/'+selectedId+'/orders/'+String(ordId).replace(/\./g,'_')).set(ord);
+    }catch(err){ window.alert('Eroare la salvarea comenzii: '+(err&&err.message?err.message:'necunoscută')); }
+  }
+
+  async deleteOrder(ordId){
+    const {selectedId}=this.state;
+    if(!selectedId) return;
+    if(!window.confirm('Ștergi această comandă?')) return;
+    this.setState(s=>{const projects=s.projects.map(p=>p.id===selectedId?{...p,orders:(Array.isArray(p.orders)?p.orders:Object.values(p.orders||{})).filter(o=>o.id!==ordId)}:p);return {projects};});
+    try{
+      const db=getDb();
+      if(db) await db.ref('solarcrm_v2/projects/'+selectedId+'/orders/'+String(ordId).replace(/\./g,'_')).remove();
+    }catch(err){}
+  }
   notifyAttachmentAdded(filename){
     if(!window.emailjs) return;
     const p=this.state.projects.find(x=>x.id===this.state.selectedId);
@@ -2072,7 +2350,7 @@ class Component extends DCLogic {
     w.document.write(html); w.document.close();
     setTimeout(()=>{try{w.print();}catch(e){}},600);
     const entry=this.buildAuditEntry('contract','Contract generat (Nr. '+p.id+'/'+new Date().getFullYear()+')');
-    this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,auditLog:[...(pr.auditLog||[]),entry]}:pr);return {projects:projects2};},()=>this.persist(selectedId));
+    this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,auditLog:[...(pr.auditLog||[]),entry]}:pr);this.persist(selectedId,projects2);return {projects:projects2};});
   }
 
   loadProjectOffers(clientName){
@@ -2122,7 +2400,7 @@ class Component extends DCLogic {
     try{localStorage.setItem('shc_offer_prefill',JSON.stringify(payload));}catch(e){}
     // Navigăm în același tab; butonul Back revine la CRM
     const entry=this.buildAuditEntry('offer','Ofertă PV-BESS generată');
-    this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,auditLog:[...(pr.auditLog||[]),entry]}:pr);this.persist(selectedId);return {projects:projects2};},()=>{
+    this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,auditLog:[...(pr.auditLog||[]),entry]}:pr);this.persist(selectedId,projects2);return {projects:projects2};},()=>{
       window.location.href='./Calculator Oferte PV-BESS.html';
     });
   }
@@ -2176,7 +2454,8 @@ class Component extends DCLogic {
       existingNamesLower.add(fullName.toLowerCase());
       result.push({name:fullName,functie:functie||'—',pin,acces:bucket,status:'creat'});
     });
-    this.setState({users,bulkResult:result},()=>setTimeout(()=>this.persist('users'),0));
+    this.setState({users,bulkResult:result});
+    this.persist('users',null,users);
   }
   umExportBulkCSV(){
     const r=this.state.bulkResult||[];
@@ -2201,7 +2480,8 @@ class Component extends DCLogic {
     const apps={crm:!!umForm.appCrm,calculator:!!umForm.appCalculator,planificare:!!umForm.appPlanificare,vizita:!!umForm.appVizita,pontaj:!!umForm.appPontaj};
     const user={id:'u'+Date.now(),name:umForm.name.trim(),email:umForm.email.trim(),role:umForm.role,color,password:umForm.password.trim(),pin:umForm.pin.trim()||genUniquePin5(users),isSuperAdmin:!!umForm.isSuperAdmin,pontajHR:!!umForm.pontajHR,pontajPlanner:!!umForm.pontajPlanner,segmente,notif,apps};
     const newUsers=[...users,user];
-    this.setState({users:newUsers,userMgmtMode:'list',umForm:{...EMPTY_UM_FORM}},()=>setTimeout(()=>this.persist('users'),0));
+    this.setState({users:newUsers,userMgmtMode:'list',umForm:{...EMPTY_UM_FORM}});
+    this.persist('users',null,newUsers);
   }
 
   umSaveEdit(){
@@ -2219,7 +2499,8 @@ class Component extends DCLogic {
       if(umForm.password.trim())updated.password=umForm.password.trim();
       return updated;
     });
-    this.setState({users:newUsers,userMgmtMode:'list',editingUserId:null,umForm:{...EMPTY_UM_FORM}},()=>setTimeout(()=>this.persist('users'),0));
+    this.setState({users:newUsers,userMgmtMode:'list',editingUserId:null,umForm:{...EMPTY_UM_FORM}});
+    this.persist('users',null,newUsers);
   }
 
   umDeleteUser(userId){
@@ -2227,7 +2508,8 @@ class Component extends DCLogic {
     if(!(cu&&(cu.id==='u_chirila'||cu.id==='u_nicoras'))){ window.alert('Doar Alexandru Chirila și Ionuț Nicoraș pot șterge utilizatori.'); return; }
     if(!window.confirm('Ștergi acest utilizator definitiv?'))return;
     const newUsers=this.state.users.filter(u=>u.id!==userId);
-    this.setState({users:newUsers},()=>setTimeout(()=>this.persist('users'),0));
+    this.setState({users:newUsers});
+    this.persist('users',null,newUsers);
   }
 
   umSaveAdminPw(){
@@ -2237,12 +2519,13 @@ class Component extends DCLogic {
     if(umForm.password!==umForm.password2){this.setState({umErrMsg:'Parolele nu coincid!'});return;}
     this.adminPassword=umForm.password.trim();
     if(umForm.pin && umForm.pin.trim()) this.adminPin=umForm.pin.trim();
-    this.setState({userMgmtMode:'list',umForm:{...EMPTY_UM_FORM},umErrMsg:''},()=>setTimeout(()=>this.persist('users'),0));
+    this.setState({userMgmtMode:'list',umForm:{...EMPTY_UM_FORM},umErrMsg:''});
+    this.persist('users');
   }
 
   // ─── RENDER ────────────────────────────────────────────────────────────────
   renderVals(){
-    const {view,filterType,filterStatus,search,selectedId,detailTab,showModal,editingId,form,projects:allProjects,currentUser,users,showUserModal,userModalMode,pwStep,pwInput,statusModal,showUserMgmt,userMgmtMode,editingUserId,umForm,mobileSidebarOpen,showFollowUpForm}=this.state;
+    const {view,filterType,filterStatus,search,selectedId,detailTab,showModal,editingId,form,projects:allProjects,currentUser,users,showUserModal,userModalMode,pwStep,pwInput,statusModal,showUserMgmt,showFollowUpForm,fuNoteInput,fuDateInput,fuDateInputDmy,userMgmtMode,editingUserId,umForm,mobileSidebarOpen}=this.state;
     let projects = allProjects;
 
     const preFiltered=this.getPreFiltered();
@@ -2319,7 +2602,7 @@ class Component extends DCLogic {
     const statusButtons=[]; let auditEntries=[],hasAuditEntries=false,noAuditEntries=true,attachmentItems=[],hasAttachments=false,noAttachments=true;
     if(selected){
       const f=this.fmt(selected); const sc=STATUS_COLORS[selected.status]||STATUS_COLORS.Lead;
-      sel={...selected,...f,phone:selected.phone||'—',email:selected.email||'—',responsabil:selected.responsabil||'—',date_start:fmtDate(selected.date_start)||'—',date_executie:fmtDate(selected.date_executie)||'—',date_end:fmtDate(selected.date_end)||'—',statusBg:sc.statusBg,statusColor:sc.statusColor,isPV:(selected.types||[]).includes('PV'),hasEquipment:!!(selected.equipment&&selected.equipment.trim()),hasNotes:!!(selected.notes&&selected.notes.trim()),prosumatorText:selected.prosumator?'Da ✓':'Nu',kwp:selected.kwp!=null?String(selected.kwp):'—',panels:selected.panels!=null?String(selected.panels):'—',mounting:selected.mounting||'—',typeBadges:(selected.types||[]).map(t=>({label:t,bg:(TYPE_COLORS[t]||{}).bg||'#f1f5f9',color:(TYPE_COLORS[t]||{}).color||'#475569'})),canContract:CONTRACT_STATUSES.includes(selected.status),hasBESS:(selected.types||[]).includes('BESS'),bessKwhDisplay:selected.bessKwh!=null?String(selected.bessKwh)+' kWh':'—',hasStages:!!(selected.stages&&selected.stages.length),stagesSummary:(selected.stages||[]).map(s=>({label:STAGE_TYPE_LABELS[s.type]||s.type,color:STATUS_STAGE_COLORS[s.status]||'#475569',dateRange:(s.startDate&&s.endDate)?(fmtDateShort(s.startDate)+' – '+fmtDateShort(s.endDate)):''}))};
+      sel={...selected,...f,phone:selected.phone||'—',email:selected.email||'—',responsabil:selected.responsabil||'—',date_start:fmtDate(selected.date_start)||'—',date_executie:fmtDate(selected.date_executie)||'—',date_end:fmtDate(selected.date_end)||'—',statusBg:sc.statusBg,statusColor:sc.statusColor,isPV:(selected.types||[]).includes('PV'),hasEquipment:!!(selected.equipment&&selected.equipment.trim()),hasNotes:!!(selected.notes&&selected.notes.trim()),prosumatorText:selected.prosumator?'Da ✓':'Nu',kwp:selected.kwp!=null?String(selected.kwp):'—',panels:selected.panels!=null?String(selected.panels):'—',mounting:selected.mounting||'—',typeBadges:(selected.types||[]).map(t=>({label:t,bg:(TYPE_COLORS[t]||{}).bg||'#f1f5f9',color:(TYPE_COLORS[t]||{}).color||'#475569'})),canContract:true,hasBESS:(selected.types||[]).includes('BESS'),bessKwhDisplay:selected.bessKwh!=null?String(selected.bessKwh)+' kWh':'—',hasStages:!!(selected.stages&&selected.stages.length),stagesSummary:(selected.stages||[]).map(s=>({label:STAGE_TYPE_LABELS[s.type]||s.type,color:STATUS_STAGE_COLORS[s.status]||'#475569',dateRange:(s.startDate&&s.endDate)?(fmtDateShort(s.startDate)+' – '+fmtDateShort(s.endDate)):''}))};
       // Follow-up
       if(selected.nextFollowUp){
         const today0=new Date(); today0.setHours(0,0,0,0);
@@ -2357,9 +2640,38 @@ class Component extends DCLogic {
       hasAttachments=attachmentItems.length>0; noAttachments=!hasAttachments;
     }
 
+    // Orders (purchase tracking)
+    const orderForm=this.state.orderForm;
+    let ordersList=[],noOrders=true,ordersLateCount=0;
+    const todayIso=new Date().toISOString().slice(0,10);
+    if(selected){
+      const rawOrders=Array.isArray(selected.orders)?selected.orders:Object.values(selected.orders||{});
+      ordersList=rawOrders.map(o=>{
+        const isLate = o.status!=='Livrat' && o.termenLivrare && o.termenLivrare<todayIso;
+        if(isLate) ordersLateCount++;
+        const badgeMap={
+          'Comandat':{bg:'#dbeafe',color:'#1d4ed8'},
+          'In tranzit':{bg:'#fef3c7',color:'#92400e'},
+          'Livrat partial':{bg:'#fef3c7',color:'#92400e'},
+          'Livrat':{bg:'#dcfce7',color:'#15803d'},
+        };
+        const b=isLate?{bg:'#fee2e2',color:'#b91c1c'}:(badgeMap[o.status]||{bg:'#f1f5f9',color:'#64748b'});
+        return {...o,
+          borderColor:isLate?'#fecaca':'#e2e8f0',
+          badgeBg:b.bg,badgeColor:b.color,
+          statusLabel:isLate?'Întârziat':o.status,
+          dataComandaDmy:isoToDmy(o.dataComanda||''),
+          termenLivrareDmy:isoToDmy(o.termenLivrare||''),
+          valoareFmt:o.valoare?Number(o.valoare).toLocaleString('ro-RO'):'0',
+          onDelete:()=>this.deleteOrder(o.id)
+        };
+      }).sort((a,b)=>(a.termenLivrare||'9999').localeCompare(b.termenLivrare||'9999'));
+      noOrders=ordersList.length===0;
+    }
+
     const activeTab=detailTab;
     const tabStyle=t=>({border:activeTab===t?'#2563eb':'transparent',weight:activeTab===t?'700':'500',color:activeTab===t?'#2563eb':'#64748b'});
-    const ti=tabStyle('info'),tj=tabStyle('journal'),ta=tabStyle('attachments'),to=tabStyle('offers');
+    const ti=tabStyle('info'),tj=tabStyle('journal'),ta=tabStyle('attachments'),to=tabStyle('offers'),tord=tabStyle('orders');
     const tv=view==='table',kv=view==='kanban';
     const userColor=currentUser?currentUser.color:'#94a3b8';
     const userName=currentUser?currentUser.name:'—';
@@ -2443,6 +2755,7 @@ class Component extends DCLogic {
       reportActiveCount:totalActive,
       hasSelected:!!selected,sel,statusButtons,
       closeDetail:()=>this.setState({selectedId:null}),
+      stopPanelClick:e=>{ if(e&&e.stopPropagation) e.stopPropagation(); },
       showInfoTab:activeTab==='info',showJournalTab:activeTab==='journal',showAttachTab:activeTab==='attachments',
       tabInfoBorder:ti.border,tabInfoWeight:ti.weight,tabInfoColor:ti.color,
       tabJournalBorder:tj.border,tabJournalWeight:tj.weight,tabJournalColor:tj.color,
@@ -2455,6 +2768,22 @@ class Component extends DCLogic {
       tabOffersBorder:to.border,tabOffersWeight:to.weight,tabOffersColor:to.color,
       projectOffers:this.state.projectOffers||[],projectOffersLoading:this.state.projectOffersLoading||false,
       auditEntries,hasAuditEntries,noAuditEntries,
+      setTabOrders:()=>this.setState({detailTab:'orders'}),
+      showOrdersTab:activeTab==='orders',
+      tabOrdersBorder:tord.border,tabOrdersWeight:tord.weight,tabOrdersColor:tord.color,
+      ordersLateBadge: ordersLateCount>0 ? ' ⚠'+ordersLateCount : '',
+      showOrderForm:!!orderForm,orderForm:orderForm||{furnizor:'',nrOfertaFurnizor:'',articole:'',valoare:'',dataComanda:'',termenLivrare:'',status:'Comandat'},
+      openOrderForm:()=>this.setState({orderForm:{furnizor:'',nrOfertaFurnizor:'',articole:'',valoare:'',dataComanda:new Date().toISOString().slice(0,10),termenLivrare:'',status:'Comandat'}}),
+      cancelOrderForm:()=>this.setState({orderForm:null}),
+      onOrderFurnizor:e=>this.setOrderForm('furnizor',e.target.value),
+      onOrderNrOferta:e=>this.setOrderForm('nrOfertaFurnizor',e.target.value),
+      onOrderArticole:e=>this.setOrderForm('articole',e.target.value),
+      onOrderValoare:e=>this.setOrderForm('valoare',e.target.value),
+      onOrderDataComanda:e=>this.setOrderForm('dataComanda',e.target.value),
+      onOrderTermen:e=>this.setOrderForm('termenLivrare',e.target.value),
+      onOrderStatus:e=>this.setOrderForm('status',e.target.value),
+      saveOrder:()=>this.saveOrderForSelected(),
+      noOrders,ordersList,
       attachmentItems,hasAttachments,noAttachments,
       onFileAdd:e=>this.handleFileAdd(e),
       generateContract:()=>this.generateContractForSelected(),
@@ -2484,7 +2813,10 @@ class Component extends DCLogic {
       canEditResponsabil:isFullAccess,canEditResponsabilNot:!isFullAccess,responsabilOptions,
       fuButtonDisplay: showFollowUpForm?'none':'block',
       fuFormDisplay: showFollowUpForm?'flex':'none',
-      openFollowUpForm:()=>{ const def=new Date(); def.setDate(def.getDate()+10); const defIso=def.toISOString().slice(0,10); this.setState({showFollowUpForm:true,fuNoteInput:'',fuDateInput:defIso,fuDateInputDmy:isoToDmy(defIso)}); },
+      showFollowUpForm,
+      showFollowUpFormNot:!showFollowUpForm,
+      fuNoteInput,fuDateInput,fuDateInputDmy,
+      openFollowUpForm:(e)=>{ if(e&&e.stopPropagation) e.stopPropagation(); const def=new Date(); def.setDate(def.getDate()+10); const defIso=def.toISOString().slice(0,10); this.setState({showFollowUpForm:true,fuNoteInput:'',fuDateInput:defIso,fuDateInputDmy:isoToDmy(defIso)}); },
       cancelFollowUpForm:()=>this.setState({showFollowUpForm:false}),
       onFuNote:e=>this.setState({fuNoteInput:e.target.value}),
       onFuDateDmy:e=>{ const v=maskDmy(this.state.fuDateInputDmy,e.target.value); this.setState({fuDateInputDmy:v,fuDateInput:dmyToIso(v)}); },
@@ -2494,8 +2826,9 @@ class Component extends DCLogic {
         if(!selectedId||!fuDateInput)return;
         this.setState(s=>{
           const projects=s.projects.map(p=>p.id===selectedId?{...p,nextFollowUp:fuDateInput,fuNote:fuNoteInput.trim(),fuLastContactBy:currentUser?currentUser.name:null,fuLastContactAt:new Date().toISOString()}:p);
+          this.persist(selectedId,projects);
           return {projects,showFollowUpForm:false};
-        },()=>setTimeout(()=>this.persist(selectedId),0));
+        });
       },
       onFormDateStart:e=>{ const v=maskDmy(this.state.form.date_start_dmy,e.target.value); this.setState(s=>({form:{...s.form,date_start_dmy:v,date_start:dmyToIso(v)}})); },
       onFormDateExec:e=>{ const v=maskDmy(this.state.form.date_executie_dmy,e.target.value); this.setState(s=>({form:{...s.form,date_executie_dmy:v,date_executie:dmyToIso(v)}})); },
@@ -2564,7 +2897,7 @@ class Component extends DCLogic {
       onUmCoRegCom:e=>this.setState(s=>({companyInfo:{...s.companyInfo,regCom:e.target.value}})),
       onUmCoRepName:e=>this.setState(s=>({companyInfo:{...s.companyInfo,repName:e.target.value}})),
       onUmCoRepRole:e=>this.setState(s=>({companyInfo:{...s.companyInfo,repRole:e.target.value}})),
-      umSaveCompany:()=>{setTimeout(()=>this.persist('users'),0);this.setState({userMgmtMode:'list'});},
+      umSaveCompany:()=>{this.persist('users');this.setState({userMgmtMode:'list'});},
       umHasUsers:users.length>0,umNoUsers:users.length===0,
       umErrMsg:this.state.umErrMsg||'',hasUmErr:!!this.state.umErrMsg,
       umUsersList,
