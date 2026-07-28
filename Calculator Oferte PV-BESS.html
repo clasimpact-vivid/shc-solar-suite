@@ -1408,6 +1408,8 @@ window.setInvPower = function(kw){
 
 function render(){
   var r = compute();
+  var clientName = (document.getElementById('numeClient')||{}).value || '';
+  document.title = clientName ? ('Ofertă '+clientName+' · SHC Group') : 'Calculator Oferte PV & BESS · SHC Group';
   var cursR = getVal('curs') || 5.2;
   function L(eur){ return fmtEur2.format((eur||0)*cursR) + ' lei'; }
   function L0(eur){ return fmtEur.format(Math.round((eur||0)*cursR)) + ' lei'; }
