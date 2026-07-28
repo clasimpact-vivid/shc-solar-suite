@@ -3913,6 +3913,7 @@ window._crmSharedUsers = [];
   });
 
   document.getElementById('btnLogout').addEventListener('click',function(){logout();});
+  document.addEventListener('click', function(e){ if(e.target && e.target.id==='btnLogout') logout(); });
   document.getElementById('btnAdminUsers').addEventListener('click',function(){renderAdminUsers();});
   document.getElementById('btnAdminJournal').addEventListener('click',function(){renderAdminJournal();});
   document.getElementById('btnExportJournal').addEventListener('click',function(){exportJournalCSV();});
