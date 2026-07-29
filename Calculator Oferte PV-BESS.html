@@ -4407,7 +4407,7 @@ function buildOfferHTML(r){
         specR('Autoconsumție', Math.round(r.effAutoconsum*100)+'%'+(bessKwhV>0?' (cu BESS)':''))+
         (bessKwhV>0?specR('BESS cicluri/an', fmt0(bessCicV)):'')+
         (bessKwhV>0?specR('BESS spread arbitraj', getVal('bessArbitrajSpread')+' €/kWh'):'')+
-        specR('Preț energie An 1', fmt(pretEnergie)+' €/kWh')+
+        specR('Preț energie An 1', fmt(getVal('pretEnergie')/(getVal('curs')||5.2))+' €/kWh')+
         specR('Escaladare preț', getVal('escaladare')+'%/an')+
         specR('CO₂ evitat/an', fmt0(r.prodAn1*0.0003)+' tone CO₂e')+
         specR('Echivalent gospodării', fmt0(r.prodAn1/3500)+'/an',true)+
