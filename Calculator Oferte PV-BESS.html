@@ -1784,7 +1784,7 @@ function render(){
   function leiEur(v){ return curs>0 ? (fmtEur.format(v*curs)+' lei') : ('€'+fmtEur.format(v)); }
   var cards = [
     {label:'CAPEX (fără TVA)', value: leiEur(r.capexTotal), sub:'€'+fmtEur.format(r.capexTotal)+' · cu TVA '+leiEur(r.capexTotalTva), cls:''},
-    {label:'Producție anuală', value: fmtInt.format(Math.round(r.prodAn1)) + ' kWh', sub: 'An 1 · ' + r.kwp.toFixed(2) + ' kWp · ' + r.numPanouri + ' panouri', cls:''},
+    {label:'Producție anuală', value: fmtInt.format(Math.round(r.prodAn1+r.existingProductie)) + ' kWh', sub: 'An 1 · ' + r.kwpTotalSistem.toFixed(2) + ' kWp total · ' + r.numPanouri + ' panouri noi', cls:''},
     {label:'Economii anuale (An 1)', value: leiEur(r.economiiAn1), sub: Math.round(r.effAutoconsum*100)+'% autoconsumție', cls:''},
     {label:'Payback simplu', value: payback, sub:'bazat pe CAPEX fără TVA', cls: pbClass}
   ];
