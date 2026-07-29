@@ -4329,7 +4329,7 @@ function buildOfferHTML(r){
   var bessKwhV=getVal('bessKwh')||0, bessCicV=getVal('bessCicluriAn')||0;
   var bessStr2=bessKwhV>0?(bessKwhV>=1000?(bessKwhV/1000).toFixed(2)+' MWh':fmt0(bessKwhV)+' kWh'):'Fără stocare';
   var bessSub2=bessKwhV>0?bessCicV+' cicluri/an':'—';
-  var prodMWh2=(r.prodAn1/1000).toFixed(0);
+  var prodMWh2=((r.prodAn1+r.existingProductie)/1000).toFixed(0);
   var kpiC=function(lbl,val,sub,col,bg){col=col||AC;bg=bg||'#fff';
     return '<div style="background:'+bg+';border:1px solid '+LINE+';border-top:3px solid '+col+';border-radius:8px;padding:14px 12px">'+
       '<div style="font-size:8px;letter-spacing:1.2px;color:'+MUT+';font-weight:700;text-transform:uppercase">'+lbl+'</div>'+
@@ -4339,7 +4339,7 @@ function buildOfferHTML(r){
   var pSumar='<div class="page" style="padding:16mm 18mm;display:flex;flex-direction:column">'+
     hdr('01','Rezumat executiv','Investiția, energia valorificată și randamentul dintr-o privire')+
     '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px">'+
-      kpiC('Putere instalată DC', r.kwp.toFixed(1)+' kWp', r.numPanouri+' panouri', '#f59e0b')+
+      kpiC('Putere instalată DC', r.kwpTotalSistem.toFixed(1)+' kWp', (r.existingKwp>0?'existent+nou':r.numPanouri+' panouri'), '#f59e0b')+
       kpiC('Stocare BESS', bessStr2, bessSub2, '#16a34a')+
       kpiC('Producție An 1', prodMWh2+' MWh', 'degradare inclusă', '#f59e0b')+
       kpiC('Investiție totală', capexLei, capexEur, AC)+
