@@ -4222,7 +4222,7 @@ function buildOfferHTML(r){
   var coverKpi1 = r.kwp>0
     ? ['Putere instalată', fmt(r.kwp,1)+' kWp', r.numPanouri+' panouri']
     : ['Capacitate stocare', fmt0(getVal('bessKwh'))+' kWh', 'baterie BESS'];
-  var coverKpi2 = ['Reducere factură', (ronShow?fmt0(r.economiiAn1+r.bessRevAn1)+' lei':'€ '+fmt(r.economiiAn1+r.bessRevAn1)), 'estimat An 1'];
+  var coverKpi2 = ['Reducere factură', (ronShow?fmt0(r.economiiAn1)+' lei':'€ '+fmt(r.economiiAn1)), 'estimat An 1'];
   var coverKpi3 = ['Investiție fără TVA', (ronShow?fmt0(capexTotal*curs)+' lei':'€ '+fmt(capexTotal)), 'cu TVA: '+(ronShow?fmt0(capexTotalTva*curs)+' lei':'€ '+fmt(capexTotalTva))];
   var coverKpiCard=function(k,dark){return '<div style="flex:1;padding:20px 22px'+(dark?'':';border-right:1px solid rgba(255,255,255,.1)')+'"><div style="font-size:9px;letter-spacing:1.3px;color:rgba(255,255,255,.45);font-weight:700;text-transform:uppercase">'+k[0]+'</div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:26px;color:#fff;margin-top:8px">'+k[1]+'</div><div style="font-size:10.5px;color:rgba(255,255,255,.45);margin-top:5px">'+k[2]+'</div></div>';};
 
