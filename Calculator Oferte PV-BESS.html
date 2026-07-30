@@ -1568,13 +1568,9 @@ function render(){
 
   // Auto-fill CAPEX PV from price-per-panel
   var pretPerPanou = getVal('pretPerPanou');
-  var capexPvCalcEl = document.getElementById('capexPvCalc');
   if(pretPerPanou > 0){
     var calcCapexPv = pretPerPanou * r.numPanouri;
     document.getElementById('capexPv').value = calcCapexPv.toFixed(2);
-    capexPvCalcEl.textContent = 'Calculat: ' + fmtEur2.format(pretPerPanou) + ' lei × ' + r.numPanouri + ' panouri = ' + fmtEur2.format(calcCapexPv) + ' lei';
-  } else {
-    capexPvCalcEl.textContent = '';
   }
 
   // Auto-fill Montaj from price-per-kW
@@ -3319,8 +3315,8 @@ function renderDeviz(){
   var add=document.getElementById('btnAddDevizRow');
   var checkAll=document.getElementById('btnCheckAllCapex');
   var uncheckAll=document.getElementById('btnUncheckAllCapex');
-  if(checkAll) checkAll.addEventListener('click', function(){ devizRows.forEach(function(r){ r.inCapex=true; }); renderDeviz(); });
-  if(uncheckAll) uncheckAll.addEventListener('click', function(){ devizRows.forEach(function(r){ r.inCapex=false; }); renderDeviz(); });
+  if(checkAll) checkAll.addEventListener('click', function(){ devizRows.forEach(function(r){ r.inCapex=true; }); renderDeviz(); render(); });
+  if(uncheckAll) uncheckAll.addEventListener('click', function(){ devizRows.forEach(function(r){ r.inCapex=false; }); renderDeviz(); render(); });
   if(add) add.addEventListener('click', function(){
     devizRows.push({grup:'',cod:'',capitol:'',um:'',cant:'',pret:'',inCapex:false});
     renderDeviz();
