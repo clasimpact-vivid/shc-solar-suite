@@ -1226,7 +1226,7 @@ function compute(){
   var areaNeeded = numPanouriTotal * panelArea * (1+spacing);
 
   var cursC = getVal('curs') || 5.2;
-  var capexPv = getVal('capexPv')/cursC;
+  var capexPv = getVal('capexPv')/cursC + devizCapexByGroupPrefix(['A. Sistem PV'])/cursC;
   var pretPerPanou = getVal('pretPerPanou')/cursC;
   if(pretPerPanou > 0) capexPv = pretPerPanou * numPanouriTotal;
   var yieldZilnic = getVal('yieldZilnic');
@@ -1237,11 +1237,11 @@ function compute(){
   var autoconsum = getVal('autoconsum')/100;
   var bessMode = document.getElementById('bessMode').value;
   var bessActive = (bessMode === 'included');
-  var capexBess = getVal('capexBess')/cursC;
+  var capexBess = getVal('capexBess')/cursC + devizCapexByGroupPrefix(['C. Stocare BESS'])/cursC;
   var autoconsumBess = getVal('autoconsumBess')/100;
   var stsMode = document.getElementById('stsMode').value;
   var stsActive = (stsMode === 'included');
-  var capexSTS = stsActive ? getVal('capexSTS')/cursC : 0;
+  var capexSTS = stsActive ? getVal('capexSTS')/cursC + devizCapexByGroupPrefix(["D. STS"])/cursC : 0;
   var atsMode = document.getElementById('atsMode').value;
   var atsActive = (atsMode === 'included');
   var capexAts = atsActive ? getVal('capexAts')/cursC : 0;
@@ -1264,8 +1264,8 @@ function compute(){
   var effAutoconsum = bessActive ? autoconsumBess : autoconsum;
   var atrValue = getVal('atrValue')/cursC;
   var putereContractata = getVal('putereContractata');
-  var capexInvertor = getVal('capexInvertor')/cursC;
-  var costAlteElemente = getVal('costAlteElemente')/cursC + devizCapexTotal()/cursC;
+  var capexInvertor = getVal('capexInvertor')/cursC + devizCapexByGroupPrefix(['B. Invertor'])/cursC;
+  var costAlteElemente = getVal('costAlteElemente')/cursC + devizCapexOther()/cursC;
   var costMontaj = getVal('costMontaj')/cursC;
   var pretMontajPerKw = getVal('pretMontajPerKw')/cursC;
   if(pretMontajPerKw > 0) costMontaj = pretMontajPerKw * kwp;
@@ -1300,10 +1300,18 @@ function compute(){
   var economiiAn1 = 0;
   var bessRevAn1 = 0;
 
+  var numPanouriTotalEarly = 0; // placeholder, real value defined below via panelsForPayback flag
+  var isNewPvZero = (function(){
+    var np = getVal('numPanouri')||0, tk = getVal('targetKwp')||0;
+    return sizingMode==='manual' ? np<=0 : tk<=0;
+  })();
+
   for(var an=1; an<=durata; an++){
     var prod = prodAn1 * Math.pow(1-degradare, an-1);
     var prodExist = prodExistentaAn1Early * Math.pow(1-degradare, an-1);
-    var prodTotal = prod + prodExist;
+    // Producția din PV-ul deja existent NU e un beneficiu al acestei investiții (exista oricum) —
+    // se contorizează la payback/economie doar când proiectul adaugă PV nou.
+    var prodTotal = prod + (isNewPvZero ? 0 : prodExist);
     var pretAn = pretEnergie * Math.pow(1+escaladare, an-1);
     var pretInjAn = pretInjectie * Math.pow(1+escaladare, an-1);
     var consumat = prodTotal * effAutoconsum;
@@ -3186,6 +3194,28 @@ function updateDevizFoot(){
     '<tr><td colspan="5" style="text-align:right;padding:13px 12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;font-size:12px;color:#fff;background:#0b1e3d;border-radius:6px 0 0 6px">TOTAL cu TVA</td><td style="text-align:right;padding:13px 12px;font-weight:800;color:#e7b53b;white-space:nowrap;background:#0b1e3d">'+fmtEur2.format(total)+' lei'+(curs>0?'<div style="font-size:10px;color:rgba(255,255,255,.6);font-weight:400">€ '+fmtEur2.format(total/curs)+'</div>':'')+'</td><td style="background:#0b1e3d;border-radius:0 6px 6px 0"></td></tr>';
 }
 function devizCapexTotal(){ var s=0; devizRows.forEach(function(r){ if(r.inCapex) s+=devizNum(r.cant)*devizNum(r.pret); }); return s; }
+// Total marcat "Include în CAPEX" dintr-o anumită categorie a devizului (după eticheta grupului),
+// ca sumele bifate să ajungă la categoria corectă din Centralizator, nu toate în "Structuri & alte elemente"
+function devizCapexByGroupPrefix(prefixes){
+  var s=0;
+  devizRows.forEach(function(r){
+    if(!r.inCapex) return;
+    var g=String(r.grup||'');
+    for(var k=0;k<prefixes.length;k++){ if(g.indexOf(prefixes[k])===0){ s+=devizNum(r.cant)*devizNum(r.pret); return; } }
+  });
+  return s;
+}
+function devizCapexOther(){
+  var s=0;
+  var eqPrefixes=['A. Sistem PV','B. Invertor','C. Stocare BESS','D. STS'];
+  devizRows.forEach(function(r){
+    if(!r.inCapex) return;
+    var g=String(r.grup||''); var isEq=false;
+    for(var k=0;k<eqPrefixes.length;k++){ if(g.indexOf(eqPrefixes[k])===0){ isEq=true; break; } }
+    if(!isEq) s+=devizNum(r.cant)*devizNum(r.pret);
+  });
+  return s;
+}
 
 function renderDeviz(){
   var body=document.getElementById('devizBody'); if(!body) return;
