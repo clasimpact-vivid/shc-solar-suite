@@ -475,12 +475,8 @@
         <input type="number" id="pretPerPanou" value="0" step="1" placeholder="ex: 1500">
       </div>
 
-      <!-- 10. CAPEX PV -->
-      <div class="field">
-        <label>CAPEX PV fără TVA (lei)</label>
-        <input type="number" id="capexPv" value="0" step="1">
-        <p id="capexPvCalc" style="font-size:11px;color:var(--text3);margin:6px 0 0"></p>
-      </div>
+      <input type="hidden" id="capexPv" value="0">
+      <p style="font-size:11px;color:var(--text3);margin:0 0 12px">Costul panourilor apare automat în Devizul de lucrări (grupa "A. Sistem PV"), care e sursa unică de cost a ofertei.</p>
 
       <!-- 11. Putere instalată calculată -->
       <div class="field">
@@ -590,10 +586,7 @@
         </select>
         <p id="backupWarn" style="font-size:11px;color:var(--amber);margin:6px 0 0;display:none">⚠ Necesită Stocare BESS activă — altfel backup-ul nu are energie disponibilă la pană.</p>
       </div>
-      <div class="field" style="margin-bottom:0">
-        <label>Cost suplimentar backup/EPS fără TVA (lei, opțional)</label>
-        <input type="number" id="capexBackup" value="0" step="1" placeholder="ex: 8000">
-      </div>
+      <input type="hidden" id="capexBackup" value="0">
       <div id="invertorInfo" style="margin-top:16px;border-top:1px dashed var(--border);padding-top:14px"></div>
     </div>
   </div>
@@ -624,11 +617,11 @@
       </div>
       <div class="field">
         <label style="display:flex;align-items:center;gap:8px;font-weight:400"><input type="checkbox" id="pcsCheck" style="width:auto"> PCS separat (Power Conversion System — doar dacă nu e integrat în invertorul hibrid)</label>
-        <input type="number" id="capexPcs" value="0" step="1" placeholder="ex: 25000" style="display:none;margin-top:8px">
+        <input type="hidden" id="capexPcs" value="0">
       </div>
       <div class="field">
         <label style="display:flex;align-items:center;gap:8px;font-weight:400"><input type="checkbox" id="bmsExternCheck" style="width:auto"> BMS extern separat (rar necesar, doar industrial)</label>
-        <input type="number" id="capexBmsExtern" value="0" step="1" placeholder="ex: 15000" style="display:none;margin-top:8px">
+        <input type="hidden" id="capexBmsExtern" value="0">
       </div>
       <h2 class="section" style="margin-top:16px;">📋 Baterii instalate (poți adăuga mai multe, cu caracteristici diferite)</h2>
       <div id="bessList"></div>
@@ -666,10 +659,7 @@
         </select>
       </div>
       <input type="hidden" id="stsTip" value="">
-      <div class="field" style="margin-bottom:0">
-        <label>CAPEX STS fără TVA (lei)</label>
-        <input type="number" id="capexSTS" value="0" step="1" placeholder="ex: 35000">
-      </div>
+      <input type="hidden" id="capexSTS" value="0">
 
       <h2 class="section" style="margin-top:20px">🔀 ATS — Automatic Transfer Switch</h2>
       <p style="font-size:11px;color:var(--text3);margin:0 0 10px">Comută automat consumul între rețea și sursa de backup (BESS/invertor) — hardware separat de panou/tablou, distinct de STS. La sisteme mici poate fi integrat în invertor; la C&amp;I/industrial e panou dedicat.</p>
@@ -681,10 +671,7 @@
           <option value="included">Inclus în ofertă</option>
         </select>
       </div>
-      <div class="field" style="margin-bottom:0">
-        <label>CAPEX ATS fără TVA (lei)</label>
-        <input type="number" id="capexAts" value="0" step="1" placeholder="ex: 12000">
-      </div>
+      <input type="hidden" id="capexAts" value="0">
 
       <h2 class="section" style="margin-top:20px">🧠 EMS — Energy Management System</h2>
       <p style="font-size:11px;color:var(--text3);margin:0 0 10px">Orchestrează fluxurile PV + BESS + rețea + consumatori (control/optimizare la nivel de sistem) — pe rezidențial e de regulă logica proprie a invertorului hibrid; pe C&amp;I/industrial e adesea controler dedicat, separat.</p>
@@ -696,10 +683,7 @@
           <option value="included">Inclus în ofertă</option>
         </select>
       </div>
-      <div class="field" style="margin-bottom:0">
-        <label>CAPEX EMS fără TVA (lei)</label>
-        <input type="number" id="capexEms" value="0" step="1" placeholder="ex: 20000">
-      </div>
+      <input type="hidden" id="capexEms" value="0">
 
     </div>
 
@@ -1225,7 +1209,7 @@ function compute(){
   var areaNeeded = numPanouriTotal * panelArea * (1+spacing);
 
   var cursC = getVal('curs') || 5.2;
-  var capexPv = getVal('capexPv')/cursC + devizCapexByGroupPrefix(['A. Sistem PV'])/cursC;
+  var capexPv = devizCapexByGroupPrefix(['A. Sistem PV'])/cursC;
   var pretPerPanou = getVal('pretPerPanou')/cursC;
   if(pretPerPanou > 0) capexPv = pretPerPanou * numPanouriTotal;
   var yieldZilnic = getVal('yieldZilnic');
@@ -1240,20 +1224,21 @@ function compute(){
   var autoconsumBess = getVal('autoconsumBess')/100;
   var stsMode = document.getElementById('stsMode').value;
   var stsActive = (stsMode === 'included');
-  var capexSTS = stsActive ? getVal('capexSTS')/cursC + devizCapexByGroupPrefix(["D. STS"])/cursC : 0;
+  var groupSTS = devizCapexByGroupPrefix(['D. STS'])/cursC;
+  var capexSTS = stsActive ? groupSTS : 0;
   var atsMode = document.getElementById('atsMode').value;
   var atsActive = (atsMode === 'included');
-  var capexAts = atsActive ? getVal('capexAts')/cursC : 0;
+  var capexAts = atsActive ? groupSTS : 0;
   var emsMode = document.getElementById('emsMode').value;
   var emsActive = (emsMode === 'included');
-  var capexEms = emsActive ? getVal('capexEms')/cursC : 0;
+  var capexEms = emsActive ? groupSTS : 0;
   var backupMode = document.getElementById('backupMode').value;
   var backupActive = (backupMode === 'included');
-  var capexBackup = backupActive ? getVal('capexBackup')/cursC : 0;
+  var capexBackup = 0; // cost inclus generic în "Alte elemente" (deviz), fără bucket dedicat
   var bmsExternOn = document.getElementById('bmsExternCheck').checked;
-  var capexBmsExtern = bmsExternOn ? getVal('capexBmsExtern')/cursC : 0;
+  var capexBmsExtern = 0; // cost inclus generic în "Alte elemente" (deviz)
   var pcsOn = document.getElementById('pcsCheck').checked;
-  var capexPcs = pcsOn ? getVal('capexPcs')/cursC : 0;
+  var capexPcs = 0; // cost inclus generic în "Alte elemente" (deviz)
   var tva = getVal('tva')/100;
   var degradare = getVal('degradare')/100;
   var escaladare = getVal('escaladare')/100;
@@ -1271,7 +1256,7 @@ function compute(){
   var costComisionare = getVal('costComisionare')/cursC;
   var alteCheltuieliPct = getVal('alteCheltuieliPct')/100;
 
-  var capexEchipamente = capexPv + capexInvertor + (bessActive ? capexBess : 0) + capexSTS + capexAts + capexEms + capexBackup + capexBmsExtern + capexPcs;
+  var capexEchipamente = capexPv + capexInvertor + (bessActive ? capexBess : 0) + (stsActive||atsActive||emsActive ? groupSTS : 0);
   var alteCheltuieli = capexEchipamente * alteCheltuieliPct;
 
   var capexTotal = capexEchipamente + atrValue + costAlteElemente + costMontaj + costComisionare + alteCheltuieli;
