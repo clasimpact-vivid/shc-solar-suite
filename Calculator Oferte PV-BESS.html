@@ -575,10 +575,10 @@
         </div>
       </div>
       <p id="dcAcRatioInfo" style="font-size:12px;margin:0 0 12px"></p>
-      <div class="field">
-        <label>CAPEX invertor fără TVA (lei)</label>
-        <input type="number" id="capexInvertor" value="0" step="1" placeholder="ex: 62000">
-      </div>
+      <h2 class="section" style="margin-top:16px;">📋 Invertoare instalate (poți adăuga mai multe, cu caracteristici diferite)</h2>
+      <div id="invertorList"></div>
+      <button type="button" id="btnAddInvertor" style="margin:6px 0 16px;padding:7px 14px;font-size:12px;">+ Adaugă invertor</button>
+      <p style="font-size:11px;color:var(--text3);margin:0 0 12px">Costul fiecărui invertor apare automat în Devizul de lucrări (grupa "B. Invertor"), care e sursa unică de cost a ofertei — nu se mai introduce separat aici.</p>
       <h2 class="section" style="margin-top:16px;">🔌 Backup la pană (EPS)</h2>
       <p style="font-size:11px;color:var(--text3);margin:0 0 10px">Alimentarea de rezervă în caz de pană e o funcție a invertorului (ieșire EPS/backup) — are nevoie de baterie (BESS) pentru energie. Fără BESS, backup-ul nu are din ce alimenta consumatorii.</p>
       <div class="field">
@@ -618,9 +618,9 @@
       <!-- 3. Capacitate -->
       <div class="field">
         <label>Capacitate stocare BESS (kWh)</label>
-        <input type="number" id="bessKwh" value="0" step="0.5" placeholder="ex: 10">
-        <div id="bessKwhWarn" style="display:none;color:#dc2626;font-size:11.5px;margin-top:4px;font-weight:600">⚠ Capacitate 0 kWh — completează, altfel economiile și payback-ul BESS ies 0.</div>
-        <p style="font-size:11px;color:var(--text3);margin:6px 0 0">BMS (Battery Management System) — protecția/monitorizarea celulelor e responsabilitatea bateriei, inclusă standard de producător în orice BESS modern. Nu necesită cost separat, decât la sisteme industriale cu BMS extern dedicat.</p>
+        <input type="number" id="bessKwh" value="0" step="0.5" placeholder="ex: 10" readonly style="background:var(--card2);color:var(--text2)">
+        <div id="bessKwhWarn" style="display:none;color:#dc2626;font-size:11.5px;margin-top:4px;font-weight:600">⚠ Capacitate 0 kWh — adaugă cel puțin o baterie mai jos.</div>
+        <p style="font-size:11px;color:var(--text3);margin:6px 0 0">Calculată automat din suma bateriilor adăugate mai jos. BMS (Battery Management System) — protecția/monitorizarea celulelor e responsabilitatea bateriei, inclusă standard de producător în orice BESS modern. Nu necesită cost separat, decât la sisteme industriale cu BMS extern dedicat.</p>
       </div>
       <div class="field">
         <label style="display:flex;align-items:center;gap:8px;font-weight:400"><input type="checkbox" id="pcsCheck" style="width:auto"> PCS separat (Power Conversion System — doar dacă nu e integrat în invertorul hibrid)</label>
@@ -630,11 +630,10 @@
         <label style="display:flex;align-items:center;gap:8px;font-weight:400"><input type="checkbox" id="bmsExternCheck" style="width:auto"> BMS extern separat (rar necesar, doar industrial)</label>
         <input type="number" id="capexBmsExtern" value="0" step="1" placeholder="ex: 15000" style="display:none;margin-top:8px">
       </div>
-      <!-- 3. CAPEX -->
-      <div class="field">
-        <label>CAPEX BESS fără TVA (lei)</label>
-        <input type="number" id="capexBess" value="0" step="1">
-      </div>
+      <h2 class="section" style="margin-top:16px;">📋 Baterii instalate (poți adăuga mai multe, cu caracteristici diferite)</h2>
+      <div id="bessList"></div>
+      <button type="button" id="btnAddBess" style="margin:6px 0 16px;padding:7px 14px;font-size:12px;">+ Adaugă baterie</button>
+      <p style="font-size:11px;color:var(--text3);margin:0 0 16px">Costul fiecărei baterii apare automat în Devizul de lucrări (grupa "C. Stocare BESS"), care e sursa unică de cost a ofertei — nu se mai introduce separat aici.</p>
       <!-- 4. Autoconsum -->
       <div class="field" style="margin-bottom:0">
         <label>Autoconsumție cu BESS: <strong id="autoconsumBessOut">95%</strong></label>
@@ -1187,7 +1186,7 @@ var defaults = {
   firmaTa: 'SC Smart House Color SRL', numeClient: '', nrOfertaSuffix: '', valabilitate: 30, curs: 5.2, notesArea: ''
 };
 
-var ids = ['numPanouri','customPower','garantiePanouri','spacingFactor','capexPv','yieldZilnic','zileFunctionare','pretEnergie','pretInjectie','autoconsum','capexBess','autoconsumBess','capexPcs','tva','degradare','escaladare','om','durata','curs','valabilitate','dataOferta','putereContractata','atrValue','capexInvertor','costAlteElemente','costMontaj','costComisionare','alteCheltuieliPct','puterInvertor','garantieInvertor','invertorMarcaCustom','targetKwp','correctionPctCustom','financingPct','financingRate','financingYears','avansPct','transa2Pct','pretPerPanou','pretMontajPerKw','consumZilnic','capacitateBaterie','loanComision','leasingAvans','leasingLuni','leasingRate','leasingRezidual','euGrantPct','euProgram','euDurataImpl','mixedGrantPct','mixedLoanPct','mixedRate','mixedYears','bessKwh','capexSTS','marjaComercial','bessCicluriAn','bessArbitrajSpread','bessDegrade1','rataDiscontare','existingKwp','existingInvertor','existingProductie','capexBackup','capexAts','capexEms','capexBmsExtern'];
+var ids = ['numPanouri','customPower','garantiePanouri','spacingFactor','capexPv','yieldZilnic','zileFunctionare','pretEnergie','pretInjectie','autoconsum','autoconsumBess','capexPcs','tva','degradare','escaladare','om','durata','curs','valabilitate','dataOferta','putereContractata','atrValue','costAlteElemente','costMontaj','costComisionare','alteCheltuieliPct','puterInvertor','garantieInvertor','invertorMarcaCustom','targetKwp','correctionPctCustom','financingPct','financingRate','financingYears','avansPct','transa2Pct','pretPerPanou','pretMontajPerKw','consumZilnic','capacitateBaterie','loanComision','leasingAvans','leasingLuni','leasingRate','leasingRezidual','euGrantPct','euProgram','euDurataImpl','mixedGrantPct','mixedLoanPct','mixedRate','mixedYears','bessKwh','capexSTS','marjaComercial','bessCicluriAn','bessArbitrajSpread','bessDegrade1','rataDiscontare','existingKwp','existingInvertor','existingProductie','capexBackup','capexAts','capexEms','capexBmsExtern'];
 
 function getVal(id){
   var el = document.getElementById(id);
@@ -1237,7 +1236,7 @@ function compute(){
   var autoconsum = getVal('autoconsum')/100;
   var bessMode = document.getElementById('bessMode').value;
   var bessActive = (bessMode === 'included');
-  var capexBess = getVal('capexBess')/cursC + devizCapexByGroupPrefix(['C. Stocare BESS'])/cursC;
+  var capexBess = devizCapexByGroupPrefix(['C. Stocare BESS'])/cursC;
   var autoconsumBess = getVal('autoconsumBess')/100;
   var stsMode = document.getElementById('stsMode').value;
   var stsActive = (stsMode === 'included');
@@ -1264,7 +1263,7 @@ function compute(){
   var effAutoconsum = bessActive ? autoconsumBess : autoconsum;
   var atrValue = getVal('atrValue')/cursC;
   var putereContractata = getVal('putereContractata');
-  var capexInvertor = getVal('capexInvertor')/cursC + devizCapexByGroupPrefix(['B. Invertor'])/cursC;
+  var capexInvertor = devizCapexByGroupPrefix(['B. Invertor'])/cursC;
   var costAlteElemente = getVal('costAlteElemente')/cursC + devizCapexOther()/cursC;
   var costMontaj = getVal('costMontaj')/cursC;
   var pretMontajPerKw = getVal('pretMontajPerKw')/cursC;
@@ -1643,7 +1642,7 @@ function render(){
 
   document.getElementById('alteOut').textContent = getVal('alteCheltuieliPct') + '%';
   // Persist config
-  try { var st={}; ['numPanouri','panelBrand','sizingMode','customPower','customPanelBrand','kwpA','kwpB','capexPv','capexInvertor','bessMode','bessKwh','capexBess','stsMode','capexSTS','atsMode','capexAts','emsMode','capexEms','backupMode','capexBackup','capexBmsExtern','costMontaj','costComisionare','alteCheltuieliPct','om','pretEnergie','pretInjectie','autoconsum','escaladare','degradare','durata','tva','curs','marjaComercial','bessCicluriAn','bessArbitrajSpread','bessDegrade1','rataDiscontare','numeClient','nrOfertaSuffix','dataOferta','valabilitate','firmaTa','firmaCUI','firmaRegCom','firmaAdresa','firmaTelefon','firmaEmail','firmaRepLegal'].forEach(function(k){var el=document.getElementById(k);if(el)st[k]=el.value;}); localStorage.setItem('shc_calc_state',JSON.stringify(st)); } catch(e) {}
+  try { var st={}; ['numPanouri','panelBrand','sizingMode','customPower','customPanelBrand','kwpA','kwpB','capexPv','bessMode','bessKwh','stsMode','capexSTS','atsMode','capexAts','emsMode','capexEms','backupMode','capexBackup','capexBmsExtern','costMontaj','costComisionare','alteCheltuieliPct','om','pretEnergie','pretInjectie','autoconsum','escaladare','degradare','durata','tva','curs','marjaComercial','bessCicluriAn','bessArbitrajSpread','bessDegrade1','rataDiscontare','numeClient','nrOfertaSuffix','dataOferta','valabilitate','firmaTa','firmaCUI','firmaRegCom','firmaAdresa','firmaTelefon','firmaEmail','firmaRepLegal'].forEach(function(k){var el=document.getElementById(k);if(el)st[k]=el.value;}); localStorage.setItem('shc_calc_state',JSON.stringify(st)); } catch(e) {}
   document.getElementById('marjaOut').textContent = Math.round(getVal('marjaComercial')) + '%';
   if(document.getElementById('marjaCalc')) document.getElementById('marjaCalc').textContent = r.marjaComercial>0 ? 'Cost: '+LE(r.capexTotal)+'  →  Preț client: '+LE(r.pretVanzare) : '';
   document.getElementById('alteVal').textContent =
@@ -2008,7 +2007,7 @@ function render(){
   if(r.capexBessMode === 'included'){
     summaryRows.push(['Cost total baterie/i (fără TVA)', LE(r.capexBess)]);
   } else if(r.capexBessMode === 'optional'){
-    summaryRows.push(['Cost baterie/i (opțional, extensie)', fmtEur2.format(getVal('capexBess')) + ' lei — neincludus în total']);
+    summaryRows.push(['Cost baterie/i (opțional, extensie)', fmtEur2.format(devizCapexByGroupPrefix(['C. Stocare BESS'])) + ' lei — neincludus în total']);
   }
   if(r.stsMode === 'included'){
     summaryRows.push(['Cost total STS — Stație Transformare & Siguranță (fără TVA)', LE(r.capexSTS)]);
@@ -3181,6 +3180,77 @@ var defaultDeviz = [
   {capitol:'Montaj, testare și punere în funcțiune', um:'serviciu', cant:1, pret:90000}
 ];
 var devizRows = [];
+
+// ── Liste multi-echipament (mai multe invertoare/baterii pe aceeași lucrare) ──
+var invertoare = [{id:'inv_'+Date.now(), marca:'', putere:0, cantitate:1, pret:0}];
+var baterii = [{id:'bat_'+Date.now(), marca:'', capacitate:0, cantitate:1, pret:0}];
+
+function renderEquipList(containerId, list, fields, onChange){
+  var el=document.getElementById(containerId); if(!el) return;
+  el.innerHTML = list.map(function(row,i){
+    return '<div style="display:grid;grid-template-columns:1.4fr .8fr .5fr .9fr auto;gap:8px;margin-bottom:8px;align-items:end">'+
+      fields.map(function(f){
+        return '<div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">'+f.label+'</label>'+
+          '<input type="'+f.type+'" data-eq="'+containerId+'" data-i="'+i+'" data-f="'+f.key+'" value="'+(row[f.key]!=null?String(row[f.key]).replace(/"/g,'&quot;'):'')+'" step="'+(f.step||'1')+'" placeholder="'+(f.ph||'')+'" style="width:100%;font-size:13px;padding:6px 8px;border:1px solid var(--border);border-radius:6px">'+
+        '</div>';
+      }).join('')+
+      '<button type="button" data-eqdel="'+containerId+'" data-i="'+i+'" style="padding:6px 10px;color:var(--red);border-color:#f0c9c4;height:34px">✕</button>'+
+    '</div>';
+  }).join('');
+}
+
+function wireEquipList(containerId, list, onChange){
+  var el=document.getElementById(containerId); if(!el) return;
+  el.addEventListener('input', function(e){
+    var t=e.target; if(t.dataset.eq!==containerId) return;
+    var i=+t.dataset.i, f=t.dataset.f;
+    list[i][f] = (f==='marca') ? t.value : (parseFloat(t.value)||0);
+    onChange();
+  });
+  el.addEventListener('click', function(e){
+    var t=e.target; if(t.dataset.eqdel!==containerId) return;
+    list.splice(+t.dataset.i,1);
+    renderEquipList(containerId, list, containerId==='invertorList'?INV_FIELDS:BESS_FIELDS, onChange);
+    onChange();
+  });
+}
+var INV_FIELDS=[{key:'marca',label:'Marcă / model',type:'text',ph:'ex: Solis Hibrid'},{key:'putere',label:'Putere (kW)',type:'number',step:'0.5',ph:'15'},{key:'cantitate',label:'Cant.',type:'number',step:'1',ph:'1'},{key:'pret',label:'Preț/buc fără TVA (lei)',type:'number',step:'1',ph:'8900'}];
+var BESS_FIELDS=[{key:'marca',label:'Marcă / model',type:'text',ph:'ex: Solis InteliHouse'},{key:'capacitate',label:'Capacitate (kWh)',type:'number',step:'0.5',ph:'16'},{key:'cantitate',label:'Cant.',type:'number',step:'1',ph:'2'},{key:'pret',label:'Preț/buc fără TVA (lei)',type:'number',step:'1',ph:'8600'}];
+
+function syncEquipToDeviz(){
+  // Sincronizează rândurile de deviz auto-generate (marcate __auto) din listele de invertoare/baterii —
+  // Devizul rămâne sursa unică de cost; rândurile adăugate manual de utilizator nu sunt atinse.
+  devizRows = devizRows.filter(function(r){ return !r.__auto; });
+  invertoare.forEach(function(inv){
+    if(!inv.marca && !inv.putere && !inv.pret) return;
+    devizRows.push({grup:'B. Invertor',cod:'',capitol:(inv.marca||'Invertor')+(inv.putere?(' '+inv.putere+'kW'):''),um:'buc',cant:inv.cantitate||1,pret:inv.pret||0,inCapex:true,__auto:true});
+  });
+  baterii.forEach(function(bat){
+    if(!bat.marca && !bat.capacitate && !bat.pret) return;
+    devizRows.push({grup:'C. Stocare BESS',cod:'',capitol:(bat.marca||'Baterie')+(bat.capacitate?(' '+bat.capacitate+'kWh'):''),um:'buc',cant:bat.cantitate||1,pret:bat.pret||0,inCapex:true,__auto:true});
+  });
+  if(typeof renderDeviz==='function') renderDeviz();
+}
+function equipListChanged(){
+  syncEquipToDeviz();
+  var totalPutereInv = invertoare.reduce(function(s,i){return s+(i.putere||0)*(i.cantitate||1);},0);
+  var totalKwhBat = baterii.reduce(function(s,b){return s+(b.capacitate||0)*(b.cantitate||1);},0);
+  var pI=document.getElementById('puterInvertor'); if(pI) pI.value=totalPutereInv;
+  var bK=document.getElementById('bessKwh'); if(bK) bK.value=totalKwhBat;
+  render();
+}
+function initEquipLists(){
+  renderEquipList('invertorList', invertoare, INV_FIELDS, equipListChanged);
+  renderEquipList('bessList', baterii, BESS_FIELDS, equipListChanged);
+  wireEquipList('invertorList', invertoare, equipListChanged);
+  wireEquipList('bessList', baterii, equipListChanged);
+  var addInv=document.getElementById('btnAddInvertor');
+  if(addInv) addInv.addEventListener('click', function(){ invertoare.push({id:'inv_'+Date.now()+Math.random(),marca:'',putere:0,cantitate:1,pret:0}); renderEquipList('invertorList',invertoare,INV_FIELDS,equipListChanged); wireEquipList('invertorList',invertoare,equipListChanged); });
+  var addBess=document.getElementById('btnAddBess');
+  if(addBess) addBess.addEventListener('click', function(){ baterii.push({id:'bat_'+Date.now()+Math.random(),marca:'',capacitate:0,cantitate:1,pret:0}); renderEquipList('bessList',baterii,BESS_FIELDS,equipListChanged); wireEquipList('bessList',baterii,equipListChanged); });
+  equipListChanged();
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', initEquipLists); else initEquipLists();
 function devizNum(s){ var n=parseFloat(String(s==null?'':s).replace(',','.')); return isNaN(n)?0:n; }
 function devizSubtotal(){ var s=0; devizRows.forEach(function(r){ s+=devizNum(r.cant)*devizNum(r.pret); }); return s; }
 function updateDevizFoot(){
@@ -3510,8 +3580,7 @@ function applyCrmPrefill(){
     if(p.kwp){ var elK=document.getElementById('targetKwp'); if(elK){ elK.value = p.kwp; var sm=document.getElementById('sizingMode'); if(sm){ sm.value='target'; sm.dispatchEvent(new Event('change')); } } }
     if(p.panels){ var elP=document.getElementById('numPanouri'); if(elP) elP.value = p.panels; }
     if(p.hasBESS){ var bm=document.getElementById('bessMode'); if(bm){ bm.value='included'; bm.dispatchEvent(new Event('change')); } }
-    if(p.bessKwh){ var elBk=document.getElementById('bessKwh'); if(elBk) elBk.value = p.bessKwh; }
-    if(p.capexBESS){ var elCb=document.getElementById('capexBess'); if(elCb) elCb.value = p.capexBESS; }
+    if(p.bessKwh){ baterii=[{id:'bat_'+Date.now(),marca:'Import JSON',capacitate:p.bessKwh,cantitate:1,pret:p.capexBESS||0}]; syncEquipToDeviz(); equipListChanged(); }
     if(p.capexSTS){ var stsM=document.getElementById('stsMode'); if(stsM){ stsM.value='included'; stsM.dispatchEvent(new Event('change')); } var elCs=document.getElementById('capexSTS'); if(elCs) elCs.value = p.capexSTS; }
     if(typeof render==='function') render();
   }catch(e){ console.warn('CRM prefill:', e); }
@@ -4667,7 +4736,7 @@ render();
     if(panelPower) sv('customPower',String(panelPower));
     if(panelRow&&panelRow.specificatii) sv('customPanelBrand',(panelRow.specificatii||'').split(',')[0].slice(0,60));
     if(capexPvEur) sv('capexPv',String(Math.round(capexPvEur*cursV)));
-    if(bessKwh||capexBessEur){ sv('bessMode','included'); if(bessKwh) sv('bessKwh',String(bessKwh)); if(capexBessEur) sv('capexBess',String(Math.round(capexBessEur*cursV))); }
+    if(bessKwh||capexBessEur){ sv('bessMode','included'); baterii=[{id:'bat_'+Date.now(),marca:'Import JSON',capacitate:bessKwh||0,cantitate:1,pret:capexBessEur?Math.round(capexBessEur*cursV):0}]; if(typeof syncEquipToDeviz==='function'){ syncEquipToDeviz(); equipListChanged(); } }
     if(hasSTSOpt||capexSTSEur){ sv('stsMode','optional'); if(capexSTSEur) sv('capexSTS',String(Math.round(capexSTSEur*cursV))); }
     if(manoperaEur) sv('costMontaj',String(Math.round(manoperaEur*cursV)));
     if(proiectareEur) sv('costComisionare',String(Math.round(proiectareEur*cursV)));
