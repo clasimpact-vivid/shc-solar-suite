@@ -603,8 +603,9 @@ function startSidebarParticles(){
     });
     requestAnimationFrame(draw);
   }
-  window.addEventListener('resize',resize);
   init(); draw();
+  window.addEventListener('resize',resize);
+  setTimeout(resize,200);
 }
 
 buildPinGrid();

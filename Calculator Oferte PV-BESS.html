@@ -2106,11 +2106,9 @@ document.getElementById('backupMode').addEventListener('change', function(){
   render();
 });
 document.getElementById('bmsExternCheck').addEventListener('change', function(){
-  document.getElementById('capexBmsExtern').style.display = this.checked ? 'block' : 'none';
   render();
 });
 document.getElementById('pcsCheck').addEventListener('change', function(){
-  document.getElementById('capexPcs').style.display = this.checked ? 'block' : 'none';
   render();
 });
 document.getElementById('panelBrand').addEventListener('change', function(){
@@ -3562,7 +3560,7 @@ function applyCrmPrefill(){
     if(p.panels){ var elP=document.getElementById('numPanouri'); if(elP) elP.value = p.panels; }
     if(p.hasBESS){ var bm=document.getElementById('bessMode'); if(bm){ bm.value='included'; bm.dispatchEvent(new Event('change')); } }
     if(p.bessKwh){ baterii=[{id:'bat_'+Date.now(),marca:'Import JSON',capacitate:p.bessKwh,cantitate:1,pret:p.capexBESS||0}]; syncEquipToDeviz(); equipListChanged(); }
-    if(p.capexSTS){ var stsM=document.getElementById('stsMode'); if(stsM){ stsM.value='included'; stsM.dispatchEvent(new Event('change')); } var elCs=document.getElementById('capexSTS'); if(elCs) elCs.value = p.capexSTS; }
+    if(p.capexSTS){ var stsM=document.getElementById('stsMode'); if(stsM){ stsM.value='included'; stsM.dispatchEvent(new Event('change')); } }
     if(typeof render==='function') render();
   }catch(e){ console.warn('CRM prefill:', e); }
   try{ localStorage.removeItem('shc_offer_prefill'); }catch(e){}
