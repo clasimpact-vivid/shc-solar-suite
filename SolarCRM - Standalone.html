@@ -508,8 +508,8 @@ try {
       <button onClick="{{ setTabInfo }}" style="padding:10px 16px;border:none;border-bottom:2px solid {{ tabInfoBorder }};background:transparent;font-size:13px;font-weight:{{ tabInfoWeight }};color:{{ tabInfoColor }};cursor:pointer;flex:1;">Informații</button>
       <button onClick="{{ setTabJournal }}" style="padding:10px 16px;border:none;border-bottom:2px solid {{ tabJournalBorder }};background:transparent;font-size:13px;font-weight:{{ tabJournalWeight }};color:{{ tabJournalColor }};cursor:pointer;flex:1;">Jurnal</button>
       <button onClick="{{ setTabAttach }}" style="padding:10px 16px;border:none;border-bottom:2px solid {{ tabAttachBorder }};background:transparent;font-size:13px;font-weight:{{ tabAttachWeight }};color:{{ tabAttachColor }};cursor:pointer;flex:1;">Atașamente</button>
-      <button onClick="{{ setTabOffers }}" style="padding:10px 16px;border:none;border-bottom:2px solid {{ tabOffersBorder }};background:transparent;font-size:13px;font-weight:{{ tabOffersWeight }};color:{{ tabOffersColor }};cursor:pointer;flex:1;">📄 Oferte</button>
-      <button onClick="{{ setTabOrders }}" style="padding:10px 16px;border:none;border-bottom:2px solid {{ tabOrdersBorder }};background:transparent;font-size:13px;font-weight:{{ tabOrdersWeight }};color:{{ tabOrdersColor }};cursor:pointer;flex:1;">📦 Comenzi{{ ordersLateBadge }}</button>
+      <button onClick="{{ setTabOffers }}" style="padding:10px 16px;border:none;border-bottom:2px solid {{ tabOffersBorder }};background:transparent;font-size:13px;font-weight:{{ tabOffersWeight }};color:{{ tabOffersColor }};cursor:pointer;flex:1;">Oferte</button>
+      <button onClick="{{ setTabOrders }}" style="padding:10px 16px;border:none;border-bottom:2px solid {{ tabOrdersBorder }};background:transparent;font-size:13px;font-weight:{{ tabOrdersWeight }};color:{{ tabOrdersColor }};cursor:pointer;flex:1;">Comenzi{{ ordersLateBadge }}</button>
     </div>
     <div style="flex:1;overflow-y:auto;padding:20px;">
 
@@ -994,44 +994,48 @@ try {
             </div>
             <div style="grid-column:span 2;border-top:1px dashed #e2e8f0;padding-top:14px;margin-top:2px;">
               <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">Mărci & termene de livrare (contract)</div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                <div>
-                  <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Marcă panouri</label>
-                  <input value="{{ form.panelBrand }}" onChange="{{ onFormPanelBrand }}" placeholder="ex: Jinko Solar" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
-                </div>
-                <div>
-                  <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Livrare panouri</label>
+
+              <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Panouri</div>
+              <sc-for list="{{ panelEntriesRows }}" as="row" hint-placeholder-count="1">
+                <div style="display:grid;grid-template-columns:1fr 1fr 28px;gap:8px;margin-bottom:8px;align-items:center;">
+                  <input value="{{ row.brand }}" onChange="{{ row.onBrand }}" placeholder="ex: Jinko Solar" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
                   <div style="position:relative;">
-                    <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ form.deliveryPanouriDmy }}" onChange="{{ onFormDeliveryPanouri }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
-                    <input type="date" value="{{ form.deliveryPanouri }}" onChange="{{ onFormDeliveryPanouriPicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;">
+                    <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ row.deliveryDmy }}" onChange="{{ row.onDelivery }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
+                    <input type="date" value="{{ row.delivery }}" onChange="{{ row.onDeliveryPicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;">
                     <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;">📅</span>
                   </div>
+                  <button type="button" onClick="{{ row.onRemove }}" style="width:28px;height:28px;border:1px solid #fecaca;background:#fff5f5;border-radius:6px;color:#dc2626;cursor:pointer;font-size:13px;">✕</button>
                 </div>
-                <div>
-                  <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Marcă invertor</label>
-                  <input value="{{ form.inverterBrand }}" onChange="{{ onFormInverterBrand }}" placeholder="ex: Huawei" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
-                </div>
-                <div>
-                  <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Livrare invertor</label>
+              </sc-for>
+              <button type="button" onClick="{{ addPanelEntry }}" style="font-size:12px;font-weight:600;color:#2563eb;background:none;border:none;cursor:pointer;padding:0 0 14px;">+ Adaugă tip de panou</button>
+
+              <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Invertoare</div>
+              <sc-for list="{{ inverterEntriesRows }}" as="row" hint-placeholder-count="1">
+                <div style="display:grid;grid-template-columns:1fr 1fr 28px;gap:8px;margin-bottom:8px;align-items:center;">
+                  <input value="{{ row.brand }}" onChange="{{ row.onBrand }}" placeholder="ex: Huawei" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
                   <div style="position:relative;">
-                    <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ form.deliveryInvertorDmy }}" onChange="{{ onFormDeliveryInvertor }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
-                    <input type="date" value="{{ form.deliveryInvertor }}" onChange="{{ onFormDeliveryInvertorPicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;">
+                    <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ row.deliveryDmy }}" onChange="{{ row.onDelivery }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
+                    <input type="date" value="{{ row.delivery }}" onChange="{{ row.onDeliveryPicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;">
                     <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;">📅</span>
                   </div>
+                  <button type="button" onClick="{{ row.onRemove }}" style="width:28px;height:28px;border:1px solid #fecaca;background:#fff5f5;border-radius:6px;color:#dc2626;cursor:pointer;font-size:13px;">✕</button>
                 </div>
-                <div>
-                  <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Marcă baterie</label>
-                  <input value="{{ form.bessBrand }}" onChange="{{ onFormBessBrand }}" placeholder="ex: Pylontech" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
-                </div>
-                <div>
-                  <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Livrare baterie</label>
+              </sc-for>
+              <button type="button" onClick="{{ addInverterEntry }}" style="font-size:12px;font-weight:600;color:#2563eb;background:none;border:none;cursor:pointer;padding:0 0 14px;">+ Adaugă tip de invertor</button>
+
+              <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Baterii</div>
+              <sc-for list="{{ bessEntriesRows }}" as="row" hint-placeholder-count="1">
+                <div style="display:grid;grid-template-columns:1fr 1fr 28px;gap:8px;margin-bottom:8px;align-items:center;">
+                  <input value="{{ row.brand }}" onChange="{{ row.onBrand }}" placeholder="ex: Pylontech" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
                   <div style="position:relative;">
-                    <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ form.deliveryBaterieDmy }}" onChange="{{ onFormDeliveryBaterie }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
-                    <input type="date" value="{{ form.deliveryBaterie }}" onChange="{{ onFormDeliveryBateriePicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;">
+                    <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ row.deliveryDmy }}" onChange="{{ row.onDelivery }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
+                    <input type="date" value="{{ row.delivery }}" onChange="{{ row.onDeliveryPicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;">
                     <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;">📅</span>
                   </div>
+                  <button type="button" onClick="{{ row.onRemove }}" style="width:28px;height:28px;border:1px solid #fecaca;background:#fff5f5;border-radius:6px;color:#dc2626;cursor:pointer;font-size:13px;">✕</button>
                 </div>
-              </div>
+              </sc-for>
+              <button type="button" onClick="{{ addBessEntry }}" style="font-size:12px;font-weight:600;color:#2563eb;background:none;border:none;cursor:pointer;padding:0;">+ Adaugă tip de baterie</button>
             </div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:20px;">
               <input type="checkbox" id="fPros3" checked="{{ form.prosumator }}" onChange="{{ onFormProsumator }}" style="width:16px;height:16px;cursor:pointer;accent-color:#2563eb;flex:none;">
@@ -1700,7 +1704,7 @@ const STATUSES_LIST = ['Lead','Ofertă','Contract','Programat','În execuție','
 const USER_COLORS = ['#2563eb','#16a34a','#7c3aed','#d97706','#0e7490','#9333ea','#c2410c','#0f766e','#b45309','#be185d'];
 const NAV_TYPES = [{key:'all',label:'Toate lucrările',dot:'#94a3b8'},{key:'PV',label:'PV (Fotovoltaic)',dot:'#f59e0b'},{key:'Inverter',label:'Inverter',dot:'#3b82f6'},{key:'Baterie',label:'Baterie',dot:'#8b5cf6'},{key:'BESS',label:'BESS',dot:'#22c55e'}];
 const EMPTY_FORM_DMY_FIELDS = {date_start_dmy:'',date_executie_dmy:'',date_end_dmy:''};
-const EMPTY_FORM = {typePV:true,typeInverter:false,typeBaterie:false,typeBESS:false,status:'Lead',client:'',phonePrefix:'+40',phoneNum:'',email:'',address:'',value:'',responsabil:'',date_start:'',date_executie:'',date_end:'',date_start_dmy:'',date_executie_dmy:'',date_end_dmy:'',equipment:'',kwp:'',panels:'',mounting:'acoperiș',prosumator:false,notes:'',bessKwh:'',capexBESS:'',capexSTS:'',followUpDays:'14',durataZile:'30',numInvertoare:'1',numBaterii:'1',contractNrManual:'',transa1Paid:false,transa2Paid:false,addressStreet:'',addressCity:'',addressJud:'',addressCountry:'România',entityCui:'',entityRegCom:'',entityBank:'',entityIban:'',entityRepLegal:'',entityRepFunctie:'',panelBrand:'',inverterBrand:'',bessBrand:'',deliveryPanouri:'',deliveryInvertor:'',deliveryBaterie:'',deliveryPanouriDmy:'',deliveryInvertorDmy:'',deliveryBaterieDmy:''};
+const EMPTY_FORM = {typePV:true,typeInverter:false,typeBaterie:false,typeBESS:false,status:'Lead',client:'',phonePrefix:'+40',phoneNum:'',email:'',address:'',value:'',responsabil:'',date_start:'',date_executie:'',date_end:'',date_start_dmy:'',date_executie_dmy:'',date_end_dmy:'',equipment:'',kwp:'',panels:'',mounting:'acoperiș',prosumator:false,notes:'',bessKwh:'',capexBESS:'',capexSTS:'',followUpDays:'14',durataZile:'30',numInvertoare:'1',numBaterii:'1',contractNrManual:'',transa1Paid:false,transa2Paid:false,addressStreet:'',addressCity:'',addressJud:'',addressCountry:'România',entityCui:'',entityRegCom:'',entityBank:'',entityIban:'',entityRepLegal:'',entityRepFunctie:'',panelEntries:[{brand:'',delivery:'',deliveryDmy:''}],inverterEntries:[{brand:'',delivery:'',deliveryDmy:''}],bessEntries:[{brand:'',delivery:'',deliveryDmy:''}]};
 const APP_ROLE_TEMPLATES = {
   montator:{appCrm:false,appCalculator:false,appPlanificare:false,appVizita:false,appPontaj:true},
   sefechipa:{appCrm:false,appCalculator:false,appPlanificare:true,appVizita:true,appPontaj:true},
@@ -1768,18 +1772,19 @@ function buildContractHTML(p, company) {
   const sysLabel = sysLabelParts.length ? sysLabelParts.join(', ') : 'PV';
   const compRows = [];
   let compIdx = 1;
+  function brandsStr(entries){ const arr=(entries||[]).filter(function(r){return r&&r.brand;}); return arr.length?arr.map(function(r){return r.brand;}).join(' / '):'______________________'; }
   if ((p.types||[]).includes('PV')) {
     compRows.push({main:true, nr:compIdx, product:'Sistem fotovoltaic '+(p.kwp||'___')+' kWp', desc:nrPanouri+' panouri × '+wpPanou+' Wp, montaj '+(p.mounting||'acoperiș')});
-    compRows.push({nr:compIdx+'.1', product:'Panouri fotovoltaice', desc:'marca '+(p.panelBrand||'______________________')+', '+wpPanou+' Wp/buc'});
+    compRows.push({nr:compIdx+'.1', product:'Panouri fotovoltaice', desc:'marca '+brandsStr(p.panelEntries)+', '+wpPanou+' Wp/buc'});
     compIdx++;
   }
   if ((p.types||[]).includes('Inverter')) {
-    compRows.push({main:true, nr:compIdx, product:nInv>1?(nInv+' × Invertoare'):'Invertor', desc:'marca '+(p.inverterBrand||'______________________')+', '+kwInvertor+' kW'});
+    compRows.push({main:true, nr:compIdx, product:nInv>1?(nInv+' × Invertoare'):'Invertor', desc:'marca '+brandsStr(p.inverterEntries)+', '+kwInvertor+' kW'});
     compIdx++;
   }
   if ((p.types||[]).includes('BESS') || (p.types||[]).includes('Baterie')) {
     compRows.push({main:true, nr:compIdx, product:(nBat>1?(nBat+' × Baterii'):'Sistem de stocare BESS')+(p.bessKwh?(' '+p.bessKwh+' kWh'):''), desc:'baterii LiFePO4, BMS integrat, PCS, sistem de răcire'});
-    compRows.push({nr:compIdx+'.1', product:nBat>1?'Baterii':'Baterie', desc:'marca '+(p.bessBrand||'______________________')+', capacitate '+(p.bessKwh||'________')+' kWh'});
+    compRows.push({nr:compIdx+'.1', product:nBat>1?'Baterii':'Baterie', desc:'marca '+brandsStr(p.bessEntries)+', capacitate '+(p.bessKwh||'________')+' kWh'});
     compRows.push({nr:compIdx+'.2', product:'PCS / Invertor hibrid stocare', desc:'marca ______________________, ________________ kW'});
     compIdx++;
   }
@@ -1897,7 +1902,12 @@ table.spec .lbl{font-family:Georgia,sans-serif;font-size:8pt;letter-spacing:.6px
 
   <h2><span class="num">2</span><span class="txt">Durata</span></h2>
   <p class="art">Durata de executare a lucrărilor este de <strong>${p.durataZile||30} zile calendaristice</strong>, aferente montării și punerii în funcțiune, de la data semnării contractului.</p>
-  ${(p.deliveryPanouri||p.deliveryInvertor||p.deliveryBaterie) ? `<p class="art">Termenele estimate de livrare pe echipamente sunt: ${[p.deliveryPanouri?('panouri fotovoltaice – '+fmtDate(p.deliveryPanouri)):null,p.deliveryInvertor?('invertor'+(nInv>1?'e':'')+' – '+fmtDate(p.deliveryInvertor)):null,p.deliveryBaterie?('baterie'+(nBat>1?'i':'')+' de stocare – '+fmtDate(p.deliveryBaterie)):null].filter(Boolean).join(', ')}, urmând ca montarea și punerea în funcțiune să se realizeze după recepția tuturor echipamentelor.</p>` : ''}
+  ${(function(){
+    function fmtEntries(entries,label){ return (entries||[]).filter(function(r){return r&&r.delivery;}).map(function(r){ return (r.brand?(label+' '+r.brand):label)+' – '+fmtDate(r.delivery); }); }
+    const parts=[].concat(fmtEntries(p.panelEntries,'panouri fotovoltaice'),fmtEntries(p.inverterEntries,nInv>1?'invertoare':'invertor'),fmtEntries(p.bessEntries,nBat>1?'baterii de stocare':'baterie de stocare'));
+    if(!parts.length) return '';
+    return '<p class="art">Termenele estimate de livrare pe echipamente sunt: '+parts.join(', ')+', urmând ca montarea și punerea în funcțiune să se realizeze după recepția tuturor echipamentelor.</p>';
+  })()}
 
   <h2><span class="num">3</span><span class="txt">Începerea, finalizarea și amplasamentul</span></h2>
   <p class="art"><b class="n">3.1.</b> Începerea lucrărilor se va face în termen de maxim 30 de zile calendaristice, după îndeplinirea tuturor cerințelor și condițiilor, respectiv: achitarea tranșei nr.1 la acceptarea ofertei financiare și semnarea prezentului contract, dovedit prin chitanță/OP.</p>
@@ -2297,6 +2307,31 @@ class Component extends DCLogic {
     return {...tf,statusBg:sc.statusBg,statusColor:sc.statusColor,valueFormatted:p.value!=null?p.value.toLocaleString('ro-RO')+' RON':'—',addressShort:p.address||'—',responsabilShort:p.responsabil||'—',dateExec:fmtDate(p.date_executie)||'—',onClick:()=>this.setState({selectedId:p.id,detailTab:'info'})};
   }
   setForm(k,v){ this.setState(s=>({form:{...s.form,[k]:v}})); }
+  setEntry(listKey,idx,patch){
+    this.setState(s=>{
+      const list=[...(s.form[listKey]||[])];
+      list[idx]={...list[idx],...patch};
+      return {form:{...s.form,[listKey]:list}};
+    });
+  }
+  addEntry(listKey){
+    this.setState(s=>({form:{...s.form,[listKey]:[...(s.form[listKey]||[]),{brand:'',delivery:'',deliveryDmy:''}]}}));
+  }
+  removeEntry(listKey,idx){
+    this.setState(s=>{
+      const list=(s.form[listKey]||[]).filter((_,i)=>i!==idx);
+      return {form:{...s.form,[listKey]:list.length?list:[{brand:'',delivery:'',deliveryDmy:''}]}};
+    });
+  }
+  buildEntryRows(listKey){
+    return (this.state.form[listKey]||[]).map((row,idx)=>({
+      brand:row.brand||'', delivery:row.delivery||'', deliveryDmy:row.deliveryDmy||'',
+      onBrand:e=>this.setEntry(listKey,idx,{brand:e.target.value}),
+      onDelivery:e=>{ const v=maskDmy(row.deliveryDmy,e.target.value); this.setEntry(listKey,idx,{deliveryDmy:v,delivery:dmyToIso(v)}); },
+      onDeliveryPicker:e=>{ const iso=e.target.value; this.setEntry(listKey,idx,{delivery:iso,deliveryDmy:isoToDmy(iso)}); },
+      onRemove:()=>this.removeEntry(listKey,idx),
+    }));
+  }
   sendChat(){
     const text=(this.state.chatInput||'').trim();
     const u=this.state.currentUser;
@@ -2322,7 +2357,7 @@ class Component extends DCLogic {
     const cuiFinal=(form.cuiPrefix||'')+(form.cuiNum||'');
     const phoneFinal=(form.phonePrefix||'+40')+(form.phoneNum||'');
     const addrParts=[form.addressStreet.trim(),form.addressCity.trim(),form.addressJud.trim()?('jud. '+form.addressJud.trim()):'',form.addressCountry.trim()&&form.addressCountry.trim().toLowerCase()!=='românia'?form.addressCountry.trim():''].filter(Boolean);
-    const data={types,status:form.status,client:form.client.trim(),phone:phoneFinal||null,email:form.email.trim()||null,address:addrParts.join(', ')||null,addressStreet:form.addressStreet.trim()||null,addressCity:form.addressCity.trim()||null,addressJud:form.addressJud.trim()||null,addressCountry:form.addressCountry.trim()||null,value:form.value!==''?parseFloat(form.value):null,responsabil:form.responsabil.trim()||null,date_start:form.date_start||null,date_executie:form.date_executie||null,date_end:form.date_end||null,equipment:form.equipment.trim()||null,kwp:hasPV&&form.kwp!==''?parseFloat(form.kwp):null,panels:hasPV&&form.panels!==''?parseInt(form.panels):null,mounting:hasPV?(form.mounting||null):null,prosumator:hasPV?!!form.prosumator:false,notes:form.notes.trim()||null,bessKwh:form.bessKwh!==''?parseFloat(form.bessKwh):null,capexBESS:form.capexBESS!==''?parseFloat(form.capexBESS):null,capexSTS:form.capexSTS!==''?parseFloat(form.capexSTS):null,durataZile:form.durataZile!==''?parseInt(form.durataZile):null,numInvertoare:form.numInvertoare!==''?parseInt(form.numInvertoare):1,numBaterii:form.numBaterii!==''?parseInt(form.numBaterii):1,contractNrManual:form.contractNrManual.trim()||null,transa1Paid:!!form.transa1Paid,transa2Paid:!!form.transa2Paid,entityCui:cuiFinal||null,entityRegCom:form.entityRegCom.trim()||null,entityBank:form.entityBank.trim()||null,entityIban:form.entityIban.trim()||null,entityRepLegal:form.entityRepLegal.trim()||null,entityRepFunctie:form.entityRepFunctie.trim()||null,panelBrand:form.panelBrand.trim()||null,inverterBrand:form.inverterBrand.trim()||null,bessBrand:form.bessBrand.trim()||null,deliveryPanouri:form.deliveryPanouri||null,deliveryInvertor:form.deliveryInvertor||null,deliveryBaterie:form.deliveryBaterie||null};
+    const data={types,status:form.status,client:form.client.trim(),phone:phoneFinal||null,email:form.email.trim()||null,address:addrParts.join(', ')||null,addressStreet:form.addressStreet.trim()||null,addressCity:form.addressCity.trim()||null,addressJud:form.addressJud.trim()||null,addressCountry:form.addressCountry.trim()||null,value:form.value!==''?parseFloat(form.value):null,responsabil:form.responsabil.trim()||null,date_start:form.date_start||null,date_executie:form.date_executie||null,date_end:form.date_end||null,equipment:form.equipment.trim()||null,kwp:hasPV&&form.kwp!==''?parseFloat(form.kwp):null,panels:hasPV&&form.panels!==''?parseInt(form.panels):null,mounting:hasPV?(form.mounting||null):null,prosumator:hasPV?!!form.prosumator:false,notes:form.notes.trim()||null,bessKwh:form.bessKwh!==''?parseFloat(form.bessKwh):null,capexBESS:form.capexBESS!==''?parseFloat(form.capexBESS):null,capexSTS:form.capexSTS!==''?parseFloat(form.capexSTS):null,durataZile:form.durataZile!==''?parseInt(form.durataZile):null,numInvertoare:form.numInvertoare!==''?parseInt(form.numInvertoare):1,numBaterii:form.numBaterii!==''?parseInt(form.numBaterii):1,contractNrManual:form.contractNrManual.trim()||null,transa1Paid:!!form.transa1Paid,transa2Paid:!!form.transa2Paid,entityCui:cuiFinal||null,entityRegCom:form.entityRegCom.trim()||null,entityBank:form.entityBank.trim()||null,entityIban:form.entityIban.trim()||null,entityRepLegal:form.entityRepLegal.trim()||null,entityRepFunctie:form.entityRepFunctie.trim()||null,panelEntries:(form.panelEntries||[]).filter(function(r){return r.brand&&r.brand.trim();}).map(function(r){return {brand:r.brand.trim(),delivery:r.delivery||null};}),inverterEntries:(form.inverterEntries||[]).filter(function(r){return r.brand&&r.brand.trim();}).map(function(r){return {brand:r.brand.trim(),delivery:r.delivery||null};}),bessEntries:(form.bessEntries||[]).filter(function(r){return r.brand&&r.brand.trim();}).map(function(r){return {brand:r.brand.trim(),delivery:r.delivery||null};})};
     if(!editingId){
       const days=form.followUpDays!==''?parseInt(form.followUpDays):14;
       const fu=new Date(); fu.setDate(fu.getDate()+(isNaN(days)?14:days));
@@ -2905,6 +2940,12 @@ class Component extends DCLogic {
       toggleMobileSidebar: () => this.setState(s => ({mobileSidebarOpen: !s.mobileSidebarOpen})),
       chatOpenState:chatOpen,
       hasCurrentUserForChat:!!currentUser,
+      panelEntriesRows:this.buildEntryRows('panelEntries'),
+      inverterEntriesRows:this.buildEntryRows('inverterEntries'),
+      bessEntriesRows:this.buildEntryRows('bessEntries'),
+      addPanelEntry:()=>this.addEntry('panelEntries'),
+      addInverterEntry:()=>this.addEntry('inverterEntries'),
+      addBessEntry:()=>this.addEntry('bessEntries'),
       chatMessagesRendered:chatMessages.map(m=>{
         const mine=currentUser&&m.userId===currentUser.id;
         return {id:m.id,alignSelf:mine?'flex-end':'flex-start',bg:mine?'#f59e0b':'#1a2740',color:mine?'#0a1628':'#e2e8f0',
@@ -3031,7 +3072,7 @@ class Component extends DCLogic {
           if(selected.entityCui.startsWith('RO')){ cuiPrefix='RO'; cuiNum=selected.entityCui.slice(2).replace(/\D/g,''); }
           else { cuiPrefix=''; cuiNum=selected.entityCui.replace(/\D/g,''); }
         }
-        const form={typePV:types.includes('PV'),typeInverter:types.includes('Inverter'),typeBaterie:types.includes('Baterie'),typeBESS:types.includes('BESS'),status:selected.status||'Lead',client:selected.client||'',phonePrefix,phoneNum,email:selected.email||'',address:selected.address||'',addressStreet:selected.addressStreet||(selected.address&&!selected.addressJud?selected.address:''),addressCity:selected.addressCity||'',addressJud:selected.addressJud||'',addressCountry:selected.addressCountry||'România',value:selected.value!=null?String(selected.value):'',responsabil:selected.responsabil||'',date_start:selected.date_start||'',date_executie:selected.date_executie||'',date_end:selected.date_end||'',date_start_dmy:isoToDmy(selected.date_start||''),date_executie_dmy:isoToDmy(selected.date_executie||''),date_end_dmy:isoToDmy(selected.date_end||''),equipment:selected.equipment||'',kwp:selected.kwp!=null?String(selected.kwp):'',panels:selected.panels!=null?String(selected.panels):'',mounting:selected.mounting||'acoperiș',prosumator:!!selected.prosumator,notes:selected.notes||'',bessKwh:selected.bessKwh!=null?String(selected.bessKwh):'',capexBESS:selected.capexBESS!=null?String(selected.capexBESS):'',capexSTS:selected.capexSTS!=null?String(selected.capexSTS):'',durataZile:selected.durataZile!=null?String(selected.durataZile):'30',numInvertoare:selected.numInvertoare!=null?String(selected.numInvertoare):'1',numBaterii:selected.numBaterii!=null?String(selected.numBaterii):'1',contractNrManual:selected.contractNrManual||'',transa1Paid:!!selected.transa1Paid,transa2Paid:!!selected.transa2Paid,cuiPrefix,cuiNum,entityRegCom:selected.entityRegCom||'',entityBank:selected.entityBank||'',entityIban:selected.entityIban||'',entityRepLegal:selected.entityRepLegal||'',entityRepFunctie:selected.entityRepFunctie||'',panelBrand:selected.panelBrand||'',inverterBrand:selected.inverterBrand||'',bessBrand:selected.bessBrand||'',deliveryPanouri:selected.deliveryPanouri||'',deliveryPanouriDmy:isoToDmy(selected.deliveryPanouri||''),deliveryInvertor:selected.deliveryInvertor||'',deliveryInvertorDmy:isoToDmy(selected.deliveryInvertor||''),deliveryBaterie:selected.deliveryBaterie||'',deliveryBaterieDmy:isoToDmy(selected.deliveryBaterie||''),deliveryATS:selected.deliveryATS||'',deliveryATSDmy:isoToDmy(selected.deliveryATS||''),atsCapex:selected.atsCapex!=null?String(selected.atsCapex):'',emsCapex:selected.emsCapex!=null?String(selected.emsCapex):'',stsTipBrand:selected.stsTipBrand||'',stsCapex:selected.stsCapex!=null?String(selected.stsCapex):'',backupCapex:selected.backupCapex!=null?String(selected.backupCapex):'',backupType:selected.backupType||''};
+        const form={typePV:types.includes('PV'),typeInverter:types.includes('Inverter'),typeBaterie:types.includes('Baterie'),typeBESS:types.includes('BESS'),status:selected.status||'Lead',client:selected.client||'',phonePrefix,phoneNum,email:selected.email||'',address:selected.address||'',addressStreet:selected.addressStreet||(selected.address&&!selected.addressJud?selected.address:''),addressCity:selected.addressCity||'',addressJud:selected.addressJud||'',addressCountry:selected.addressCountry||'România',value:selected.value!=null?String(selected.value):'',responsabil:selected.responsabil||'',date_start:selected.date_start||'',date_executie:selected.date_executie||'',date_end:selected.date_end||'',date_start_dmy:isoToDmy(selected.date_start||''),date_executie_dmy:isoToDmy(selected.date_executie||''),date_end_dmy:isoToDmy(selected.date_end||''),equipment:selected.equipment||'',kwp:selected.kwp!=null?String(selected.kwp):'',panels:selected.panels!=null?String(selected.panels):'',mounting:selected.mounting||'acoperiș',prosumator:!!selected.prosumator,notes:selected.notes||'',bessKwh:selected.bessKwh!=null?String(selected.bessKwh):'',capexBESS:selected.capexBESS!=null?String(selected.capexBESS):'',capexSTS:selected.capexSTS!=null?String(selected.capexSTS):'',durataZile:selected.durataZile!=null?String(selected.durataZile):'30',numInvertoare:selected.numInvertoare!=null?String(selected.numInvertoare):'1',numBaterii:selected.numBaterii!=null?String(selected.numBaterii):'1',contractNrManual:selected.contractNrManual||'',transa1Paid:!!selected.transa1Paid,transa2Paid:!!selected.transa2Paid,cuiPrefix,cuiNum,entityRegCom:selected.entityRegCom||'',entityBank:selected.entityBank||'',entityIban:selected.entityIban||'',entityRepLegal:selected.entityRepLegal||'',entityRepFunctie:selected.entityRepFunctie||'',panelBrand:selected.panelBrand||'',inverterBrand:selected.inverterBrand||'',bessBrand:selected.bessBrand||'',deliveryPanouri:selected.deliveryPanouri||'',deliveryPanouriDmy:isoToDmy(selected.deliveryPanouri||''),deliveryInvertor:selected.deliveryInvertor||'',deliveryInvertorDmy:isoToDmy(selected.deliveryInvertor||''),deliveryBaterie:selected.deliveryBaterie||'',deliveryBaterieDmy:isoToDmy(selected.deliveryBaterie||''),deliveryATS:selected.deliveryATS||'',deliveryATSDmy:isoToDmy(selected.deliveryATS||''),atsCapex:selected.atsCapex!=null?String(selected.atsCapex):'',emsCapex:selected.emsCapex!=null?String(selected.emsCapex):'',stsTipBrand:selected.stsTipBrand||'',stsCapex:selected.stsCapex!=null?String(selected.stsCapex):'',backupCapex:selected.backupCapex!=null?String(selected.backupCapex):'',backupType:selected.backupType||'',panelEntries:(selected.panelEntries&&selected.panelEntries.length)?selected.panelEntries.map(function(r){return {brand:r.brand||'',delivery:r.delivery||'',deliveryDmy:isoToDmy(r.delivery||'')};}):[{brand:selected.panelBrand||'',delivery:selected.deliveryPanouri||'',deliveryDmy:isoToDmy(selected.deliveryPanouri||'')}],inverterEntries:(selected.inverterEntries&&selected.inverterEntries.length)?selected.inverterEntries.map(function(r){return {brand:r.brand||'',delivery:r.delivery||'',deliveryDmy:isoToDmy(r.delivery||'')};}):[{brand:selected.inverterBrand||'',delivery:selected.deliveryInvertor||'',deliveryDmy:isoToDmy(selected.deliveryInvertor||'')}],bessEntries:(selected.bessEntries&&selected.bessEntries.length)?selected.bessEntries.map(function(r){return {brand:r.brand||'',delivery:r.delivery||'',deliveryDmy:isoToDmy(r.delivery||'')};}):[{brand:selected.bessBrand||'',delivery:selected.deliveryBaterie||'',deliveryDmy:isoToDmy(selected.deliveryBaterie||'')}]};
         this.setState({showModal:true,editingId:selected.id,form});
       },
       deleteSelected:()=>{
@@ -3101,15 +3142,6 @@ class Component extends DCLogic {
       onFormEntityIban:e=>this.setForm('entityIban',e.target.value),
       onFormEntityRepLegal:e=>this.setForm('entityRepLegal',e.target.value),
       onFormEntityRepFunctie:e=>this.setForm('entityRepFunctie',e.target.value),
-      onFormPanelBrand:e=>this.setForm('panelBrand',e.target.value),
-      onFormInverterBrand:e=>this.setForm('inverterBrand',e.target.value),
-      onFormBessBrand:e=>this.setForm('bessBrand',e.target.value),
-      onFormDeliveryPanouri:e=>{ const v=maskDmy(this.state.form.deliveryPanouriDmy,e.target.value); this.setState(s=>({form:{...s.form,deliveryPanouriDmy:v,deliveryPanouri:dmyToIso(v)}})); },
-      onFormDeliveryPanouriPicker:e=>{ const iso=e.target.value; this.setState(s=>({form:{...s.form,deliveryPanouri:iso,deliveryPanouriDmy:isoToDmy(iso)}})); },
-      onFormDeliveryInvertor:e=>{ const v=maskDmy(this.state.form.deliveryInvertorDmy,e.target.value); this.setState(s=>({form:{...s.form,deliveryInvertorDmy:v,deliveryInvertor:dmyToIso(v)}})); },
-      onFormDeliveryInvertorPicker:e=>{ const iso=e.target.value; this.setState(s=>({form:{...s.form,deliveryInvertor:iso,deliveryInvertorDmy:isoToDmy(iso)}})); },
-      onFormDeliveryBaterie:e=>{ const v=maskDmy(this.state.form.deliveryBaterieDmy,e.target.value); this.setState(s=>({form:{...s.form,deliveryBaterieDmy:v,deliveryBaterie:dmyToIso(v)}})); },
-      onFormDeliveryBateriePicker:e=>{ const iso=e.target.value; this.setState(s=>({form:{...s.form,deliveryBaterie:iso,deliveryBaterieDmy:isoToDmy(iso)}})); },
       onFormNotes:e=>this.setForm('notes',e.target.value),
       statusModal:{...statusModal},setStatusReason:e=>this.setState(s=>({statusModal:{...s.statusModal,reason:e.target.value}})),
       confirmStatus:()=>this.confirmStatusChange(),cancelStatus:()=>this.setState(s=>({statusModal:{...s.statusModal,show:false}})),
