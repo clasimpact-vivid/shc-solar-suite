@@ -174,7 +174,7 @@ try {
     <div style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:10.5px;color:#64748b;">
       <span style="{{ fbDotStyle }}"></span><span>{{ fbStatusText }}</span>
     </div>
-    <a href="./index.html" style="display:inline-block;margin-top:10px;font-size:11px;color:#475569;text-decoration:none;padding:4px 10px;border:1px solid rgba(255,255,255,0.12);border-radius:6px;">← Pagina principală</a>
+    <a href="./index.html" onClick="{{ onSuiteLinkClick }}" style="display:inline-block;margin-top:10px;font-size:11px;color:#475569;text-decoration:none;padding:4px 10px;border:1px solid rgba(255,255,255,0.12);border-radius:6px;">← Pagina principală</a>
   </div>
   <nav style="padding:10px 8px;flex:1;overflow-y:auto;">
     <div style="color:#334155;font-size:10px;font-weight:600;letter-spacing:0.9px;padding:8px 10px;text-transform:uppercase;">Filtrare tip</div>
@@ -215,10 +215,7 @@ try {
   <div class="crm-sidebar-backdrop open" onClick="{{ closeMobileSidebar }}" style="position:fixed;inset:0;background:rgba(15,23,41,0.5);z-index:299;"></div>
 </sc-if>
 
-<!-- Particle footer -->
-<div style="position:fixed;bottom:0;left:0;right:0;height:32px;background:#0a1628;border-top:1px solid rgba(255,255,255,0.07);z-index:150;pointer-events:none;overflow:hidden;">
-  <canvas id="crmParticleCanvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
-</div>
+
 
 <!-- MAIN -->
 <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;">
@@ -608,6 +605,10 @@ try {
         <sc-if value="{{ sel.canContract }}" hint-placeholder-val="{{ false }}">
           <div style="border-top:1px solid #f1f5f9;padding-top:18px;margin-top:18px;">
             <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Documente</div>
+            <div style="display:flex;gap:6px;margin-bottom:10px;">
+              <button onClick="{{ setEntityTypePF }}" type="button" style="flex:1;padding:7px;border-radius:7px;font-size:11.5px;font-weight:600;cursor:pointer;{{ entityTypePfStyle }}">Persoană fizică</button>
+              <button onClick="{{ setEntityTypePJ }}" type="button" style="flex:1;padding:7px;border-radius:7px;font-size:11.5px;font-weight:600;cursor:pointer;{{ entityTypePjStyle }}">Persoană juridică</button>
+            </div>
             <button onClick="{{ generateContract }}" style="display:flex;align-items:center;gap:8px;padding:9px 18px;background:#0f172a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;width:100%;justify-content:center;" style-hover="background:#1e293b;">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
               Generează Contract
@@ -677,8 +678,8 @@ try {
               <div><label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Nr. ofertă furnizor</label><input type="text" value="{{ orderForm.nrOfertaFurnizor }}" onChange="{{ onOrderNrOferta }}" placeholder="ex: OF-4521" style="width:100%;padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;"></div>
               <div style="grid-column:1/-1;"><label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Articole comandate</label><input type="text" value="{{ orderForm.articole }}" onChange="{{ onOrderArticole }}" placeholder="ex: 24 panouri 590W, 1 invertor Solis 15kW" style="width:100%;padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;"></div>
               <div><label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Valoare (lei)</label><input type="number" value="{{ orderForm.valoare }}" onChange="{{ onOrderValoare }}" placeholder="0" style="width:100%;padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;"></div>
-              <div><label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Data comandă</label><input type="date" value="{{ orderForm.dataComanda }}" onChange="{{ onOrderDataComanda }}" style="width:100%;padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;"></div>
-              <div><label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Termen livrare</label><input type="date" value="{{ orderForm.termenLivrare }}" onChange="{{ onOrderTermen }}" style="width:100%;padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;"></div>
+              <div><label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Data comandă</label><input type="date" lang="ro" value="{{ orderForm.dataComanda }}" onChange="{{ onOrderDataComanda }}" style="width:100%;padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;"></div>
+              <div><label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Termen livrare</label><input type="date" lang="ro" value="{{ orderForm.termenLivrare }}" onChange="{{ onOrderTermen }}" style="width:100%;padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;"></div>
               <div style="grid-column:1/-1;"><label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Status</label>
                 <select value="{{ orderForm.status }}" onChange="{{ onOrderStatus }}" style="width:100%;padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;">
                   <option value="Comandat">Comandat</option>
@@ -829,7 +830,38 @@ try {
         </div>
         <div>
           <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Telefon</label>
-          <input value="{{ form.phone }}" onChange="{{ onFormPhone }}" placeholder="0721 234 567" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
+          <div style="display:flex;gap:8px;align-items:center;">
+            <select value="{{ form.phonePrefix }}" onChange="{{ onFormPhonePrefix }}" style="width:80px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;">
+              <option value="+40">🇷🇴 +40</option>
+              <option value="+43">🇦🇹 +43</option>
+              <option value="+32">🇧🇪 +32</option>
+              <option value="+359">🇧🇬 +359</option>
+              <option value="+385">🇭🇷 +385</option>
+              <option value="+357">🇨🇾 +357</option>
+              <option value="+420">🇨🇿 +420</option>
+              <option value="+45">🇩🇰 +45</option>
+              <option value="+372">🇪🇪 +372</option>
+              <option value="+358">🇫🇮 +358</option>
+              <option value="+33">🇫🇷 +33</option>
+              <option value="+49">🇩🇪 +49</option>
+              <option value="+30">🇬🇷 +30</option>
+              <option value="+36">🇭🇺 +36</option>
+              <option value="+353">🇮🇪 +353</option>
+              <option value="+39">🇮🇹 +39</option>
+              <option value="+371">🇱🇻 +371</option>
+              <option value="+370">🇱🇹 +370</option>
+              <option value="+352">🇱🇺 +352</option>
+              <option value="+356">🇲🇹 +356</option>
+              <option value="+31">🇳🇱 +31</option>
+              <option value="+48">🇵🇱 +48</option>
+              <option value="+351">🇵🇹 +351</option>
+              <option value="+421">🇸🇰 +421</option>
+              <option value="+386">🇸🇮 +386</option>
+              <option value="+34">🇪🇸 +34</option>
+              <option value="+46">🇸🇪 +46</option>
+            </select>
+            <input type="text" inputMode="numeric" value="{{ form.phoneNum }}" onChange="{{ onFormPhoneNum }}" placeholder="700000000" maxlength="12" style="flex:1;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;" />
+          </div>
         </div>
         <div>
           <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Email</label>
@@ -837,7 +869,47 @@ try {
         </div>
         <div style="grid-column:span 2;">
           <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Adresă</label>
-          <input value="{{ form.address }}" onChange="{{ onFormAddress }}" placeholder="Str. Exemplu 12, Cluj-Napoca" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;">
+          <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:10px;">
+            <input value="{{ form.addressStreet }}" onChange="{{ onFormAddressStreet }}" placeholder="Str. Exemplu, nr. 12" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
+            <input value="{{ form.addressCity }}" onChange="{{ onFormAddressCity }}" placeholder="Oraș" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
+            <input value="{{ form.addressJud }}" onChange="{{ onFormAddressJud }}" placeholder="Județ" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
+            <input value="{{ form.addressCountry }}" onChange="{{ onFormAddressCountry }}" placeholder="Țară" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
+          </div>
+        </div>
+        <div style="grid-column:span 2;border-top:1px dashed #e2e8f0;padding-top:14px;margin-top:2px;">
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">Date firmă (dacă beneficiarul e persoană juridică)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">CUI</label>
+              <div style="display:flex;gap:8px;">
+                <select value="{{ form.cuiPrefix }}" onChange="{{ onFormCuiPrefix }}" style="width:70px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;">
+                  <option value="RO">RO</option>
+                  <option value="">Fără</option>
+                </select>
+                <input type="text" inputMode="numeric" value="{{ form.cuiNum }}" onChange="{{ onFormCuiNum }}" placeholder="12345678" maxlength="8" style="flex:1;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;" />
+              </div>
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Nr. Reg. Comerțului (YAAAAXXXXXXJJC)</label>
+              <input type="text" value="{{ form.entityRegCom }}" onChange="{{ onFormEntityRegCom }}" placeholder="J40123456401" maxlength="14" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;" />
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Bancă</label>
+              <input value="{{ form.entityBank }}" onChange="{{ onFormEntityBank }}" placeholder="ex: BCR" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">IBAN</label>
+              <input value="{{ form.entityIban }}" onChange="{{ onFormEntityIban }}" placeholder="RO49AAAA1B31007593840000" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Reprezentant legal</label>
+              <input value="{{ form.entityRepLegal }}" onChange="{{ onFormEntityRepLegal }}" placeholder="Nume Prenume" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Funcție reprezentant</label>
+              <input value="{{ form.entityRepFunctie }}" onChange="{{ onFormEntityRepFunctie }}" placeholder="Administrator" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
+            </div>
+          </div>
         </div>
         <div>
           <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Valoare (RON)</label>
@@ -893,6 +965,73 @@ try {
               <select value="{{ form.mounting }}" onChange="{{ onFormMounting }}" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;cursor:pointer;">
                 <option value="acoperiș">Acoperiș</option><option value="sol">Sol</option><option value="balcon">Balcon</option><option value="terasă">Terasă</option>
               </select>
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Durată execuție (zile, contract)</label>
+              <input type="number" min="1" value="{{ form.durataZile }}" onChange="{{ onFormDurataZile }}" placeholder="30" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Nr. invertoare (contract)</label>
+              <input type="number" min="1" value="{{ form.numInvertoare }}" onChange="{{ onFormNumInvertoare }}" placeholder="1" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Nr. contract (manual, opțional)</label>
+              <input value="{{ form.contractNrManual }}" onChange="{{ onFormContractNrManual }}" placeholder="ex: SHC-BESS-0011" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Nr. baterii (contract)</label>
+              <input type="number" min="1" value="{{ form.numBaterii }}" onChange="{{ onFormNumBaterii }}" placeholder="1" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
+            </div>
+            <div style="display:flex;gap:16px;align-items:center;grid-column:span 2;">
+              <label style="display:flex;align-items:center;gap:7px;cursor:pointer;">
+                <input type="checkbox" checked="{{ form.transa1Paid }}" onChange="{{ onFormTransa1Paid }}" style="width:16px;height:16px;cursor:pointer;accent-color:#2563eb;">
+                <span style="font-size:13px;font-weight:600;color:#374151;">Tranșa 1 achitată</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:7px;cursor:pointer;">
+                <input type="checkbox" checked="{{ form.transa2Paid }}" onChange="{{ onFormTransa2Paid }}" style="width:16px;height:16px;cursor:pointer;accent-color:#2563eb;">
+                <span style="font-size:13px;font-weight:600;color:#374151;">Tranșa 2 achitată</span>
+              </label>
+            </div>
+            <div style="grid-column:span 2;border-top:1px dashed #e2e8f0;padding-top:14px;margin-top:2px;">
+              <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">Mărci & termene de livrare (contract)</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div>
+                  <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Marcă panouri</label>
+                  <input value="{{ form.panelBrand }}" onChange="{{ onFormPanelBrand }}" placeholder="ex: Jinko Solar" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
+                </div>
+                <div>
+                  <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Livrare panouri</label>
+                  <div style="position:relative;">
+                    <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ form.deliveryPanouriDmy }}" onChange="{{ onFormDeliveryPanouri }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
+                    <input type="date" value="{{ form.deliveryPanouri }}" onChange="{{ onFormDeliveryPanouriPicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;">
+                    <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;">📅</span>
+                  </div>
+                </div>
+                <div>
+                  <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Marcă invertor</label>
+                  <input value="{{ form.inverterBrand }}" onChange="{{ onFormInverterBrand }}" placeholder="ex: Huawei" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
+                </div>
+                <div>
+                  <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Livrare invertor</label>
+                  <div style="position:relative;">
+                    <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ form.deliveryInvertorDmy }}" onChange="{{ onFormDeliveryInvertor }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
+                    <input type="date" value="{{ form.deliveryInvertor }}" onChange="{{ onFormDeliveryInvertorPicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;">
+                    <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;">📅</span>
+                  </div>
+                </div>
+                <div>
+                  <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Marcă baterie</label>
+                  <input value="{{ form.bessBrand }}" onChange="{{ onFormBessBrand }}" placeholder="ex: Pylontech" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
+                </div>
+                <div>
+                  <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Livrare baterie</label>
+                  <div style="position:relative;">
+                    <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ form.deliveryBaterieDmy }}" onChange="{{ onFormDeliveryBaterie }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
+                    <input type="date" value="{{ form.deliveryBaterie }}" onChange="{{ onFormDeliveryBateriePicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;">
+                    <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;">📅</span>
+                  </div>
+                </div>
+              </div>
             </div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:20px;">
               <input type="checkbox" id="fPros3" checked="{{ form.prosumator }}" onChange="{{ onFormProsumator }}" style="width:16px;height:16px;cursor:pointer;accent-color:#2563eb;flex:none;">
@@ -1343,7 +1482,7 @@ AVRAMUT	SORIN-ILIE	Electrician" style="width:100%;min-height:220px;font-family:m
   <div onClick="{{ userModalBgClick }}" style="position: fixed; inset: 0; background: {{ loginBgStyle }}; z-index: 100; animation: fadeIn .18s; backdrop-filter: blur(2px); width: 100%"></div>
   <div style="position:fixed;inset:0;z-index:110;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;overflow-y:auto;padding:24px 0;pointer-events:none;">
     <sc-if value="{{ isLoginMode }}" hint-placeholder-val="{{ false }}">
-      <a href="./index.html" style="flex:none;pointer-events:auto;font-size:11px;color:#94a3b8;text-decoration:none;padding:4px 10px;border:1px solid #334155;border-radius:6px;">← Pagina principală</a>
+      <a href="./index.html" onClick="{{ onSuiteLinkClick }}" style="flex:none;pointer-events:auto;font-size:11px;color:#94a3b8;text-decoration:none;padding:4px 10px;border:1px solid #334155;border-radius:6px;">← Pagina principală</a>
     </sc-if>
     <div style="flex:none;pointer-events:auto;width:{{ loginModalWidth }};max-height:82vh;background:{{ loginModalBg }};border-radius:16px;display:flex;flex-direction:column;box-shadow:0 24px 72px rgba(0,0,0,.28);animation:scaleIn .18s cubic-bezier(0.16,1,0.3,1);overflow:hidden;border:{{ loginModalBorder }};">
     <div style="padding:20px 20px 16px;border-bottom:1px solid {{ loginDivider }};flex:none;">
@@ -1528,7 +1667,7 @@ const STATUSES_LIST = ['Lead','Ofertă','Contract','Programat','În execuție','
 const USER_COLORS = ['#2563eb','#16a34a','#7c3aed','#d97706','#0e7490','#9333ea','#c2410c','#0f766e','#b45309','#be185d'];
 const NAV_TYPES = [{key:'all',label:'Toate lucrările',dot:'#94a3b8'},{key:'PV',label:'PV (Fotovoltaic)',dot:'#f59e0b'},{key:'Inverter',label:'Inverter',dot:'#3b82f6'},{key:'Baterie',label:'Baterie',dot:'#8b5cf6'},{key:'BESS',label:'BESS',dot:'#22c55e'}];
 const EMPTY_FORM_DMY_FIELDS = {date_start_dmy:'',date_executie_dmy:'',date_end_dmy:''};
-const EMPTY_FORM = {typePV:true,typeInverter:false,typeBaterie:false,typeBESS:false,status:'Lead',client:'',phone:'',email:'',address:'',value:'',responsabil:'',date_start:'',date_executie:'',date_end:'',date_start_dmy:'',date_executie_dmy:'',date_end_dmy:'',equipment:'',kwp:'',panels:'',mounting:'acoperiș',prosumator:false,notes:'',bessKwh:'',capexBESS:'',capexSTS:'',followUpDays:'14'};
+const EMPTY_FORM = {typePV:true,typeInverter:false,typeBaterie:false,typeBESS:false,status:'Lead',client:'',phonePrefix:'+40',phoneNum:'',email:'',address:'',value:'',responsabil:'',date_start:'',date_executie:'',date_end:'',date_start_dmy:'',date_executie_dmy:'',date_end_dmy:'',equipment:'',kwp:'',panels:'',mounting:'acoperiș',prosumator:false,notes:'',bessKwh:'',capexBESS:'',capexSTS:'',followUpDays:'14',durataZile:'30',numInvertoare:'1',numBaterii:'1',contractNrManual:'',transa1Paid:false,transa2Paid:false,addressStreet:'',addressCity:'',addressJud:'',addressCountry:'România',entityCui:'',entityRegCom:'',entityBank:'',entityIban:'',entityRepLegal:'',entityRepFunctie:'',panelBrand:'',inverterBrand:'',bessBrand:'',deliveryPanouri:'',deliveryInvertor:'',deliveryBaterie:'',deliveryPanouriDmy:'',deliveryInvertorDmy:'',deliveryBaterieDmy:''};
 const APP_ROLE_TEMPLATES = {
   montator:{appCrm:false,appCalculator:false,appPlanificare:false,appVizita:false,appPontaj:true},
   sefechipa:{appCrm:false,appCalculator:false,appPlanificare:true,appVizita:true,appPontaj:true},
@@ -1569,35 +1708,53 @@ function migrate(p){
 }
 
 function buildContractHTML(p, company) {
-  const nr = p.id;
+  const contractTypeCode = (p.types||[]).includes('BESS')?'BESS':((p.types||[]).includes('Inverter')?'INV':((p.types||[]).includes('PV')?'PV':'BESS'));
+  const nr = p.contractNrManual ? p.contractNrManual : ('SHC-'+contractTypeCode+'-'+String(p.id).padStart(4,'0'));
   const today = new Date();
   const todayFmt = fmtDate(today.toISOString().slice(0,10));
   const dd=String(today.getDate()).padStart(2,'0'), mm=String(today.getMonth()+1).padStart(2,'0'), yyyy=today.getFullYear();
-  const valFmt = p.value ? Number(p.value).toLocaleString('ro-RO') : '______________';
-  const transa1 = p.value ? Math.round(p.value*0.5).toLocaleString('ro-RO') : '______________';
-  const transa2 = p.value ? (Number(p.value)-Math.round(p.value*0.5)).toLocaleString('ro-RO') : '______________';
+  const valFmt = p.value ? Number(p.value).toLocaleString('ro-RO') : '_________';
+  const transa1 = p.value ? (Number(p.value)/2).toLocaleString('ro-RO',{minimumFractionDigits:2,maximumFractionDigits:2}) : '______________';
+  const transa2 = p.value ? (Number(p.value)-Number(p.value)/2).toLocaleString('ro-RO',{minimumFractionDigits:2,maximumFractionDigits:2}) : '______________';
   const nrPanouri = p.panels || '____';
   const wpPanou = (p.kwp && p.panels) ? Math.round((p.kwp*1000)/p.panels) : '_______';
   const kwInvertor = p.kwp || '_______';
+  const bessRow = (p.types||[]).includes('BESS') ? ` și un sistem de stocare a energiei electrice (BESS) cu o capacitate de ______________________ kWh, marca ______________________,` : '';
   const clientBlank = '_'.repeat(28);
   const addr = p.address || '________________________________________________';
+  const hasJud = !!p.addressJud || /jud/i.test(addr);
+  const beneficiaryClause = p.entityType==='pj'
+    ? `<strong>${p.client||clientBlank}</strong>, cu sediul social în ${addr}${hasJud?'':', jud. ______________'}, înregistrată la Registrul Comerțului sub nr. ${p.entityRegCom||'____________'}, având CUI ${p.entityCui||'____________'}, cont bancar ${p.entityIban||'________________'}${p.entityBank?(' deschis la '+p.entityBank):''}, reprezentată legal prin ${p.entityRepLegal||'__________________'}, în calitate de ${p.entityRepFunctie||'______________'}`
+    : `<strong>${p.client||clientBlank}</strong>, cetățean român, domiciliat în ${addr}${hasJud?'':', jud. ______________'}, identificat prin C.I. seria ______ nr.______________, având CNP ________________`;
+  const sysLabelParts = [];
+  const nInv = p.numInvertoare || 1;
+  const nBat = p.numBaterii || 1;
+  if ((p.types||[]).includes('PV')) sysLabelParts.push('fotovoltaic (PV)');
+  if ((p.types||[]).includes('Inverter')) sysLabelParts.push(nInv>1?'invertoarelor':'invertorului');
+  if ((p.types||[]).includes('BESS')||(p.types||[]).includes('Baterie')) sysLabelParts.push(nBat>1?'bateriilor de stocare':'bateriei de stocare');
+  const sysLabel = sysLabelParts.length ? sysLabelParts.join(', ') : 'PV';
   const compRows = [];
   let compIdx = 1;
   if ((p.types||[]).includes('PV')) {
     compRows.push({main:true, nr:compIdx, product:'Sistem fotovoltaic '+(p.kwp||'___')+' kWp', desc:nrPanouri+' panouri × '+wpPanou+' Wp, montaj '+(p.mounting||'acoperiș')});
-    compRows.push({nr:compIdx+'.1', product:'Panouri fotovoltaice', desc:'marca ______________________, '+wpPanou+' Wp/buc'});
-    compRows.push({nr:compIdx+'.2', product:'Structură de prindere', desc:'structură metalică, tip ________________'});
+    compRows.push({nr:compIdx+'.1', product:'Panouri fotovoltaice', desc:'marca '+(p.panelBrand||'______________________')+', '+wpPanou+' Wp/buc'});
     compIdx++;
   }
   if ((p.types||[]).includes('Inverter')) {
-    compRows.push({main:true, nr:compIdx, product:'Invertor', desc:'marca ______________________, '+kwInvertor+' kW'});
+    compRows.push({main:true, nr:compIdx, product:nInv>1?(nInv+' × Invertoare'):'Invertor', desc:'marca '+(p.inverterBrand||'______________________')+', '+kwInvertor+' kW'});
     compIdx++;
   }
   if ((p.types||[]).includes('BESS') || (p.types||[]).includes('Baterie')) {
-    compRows.push({main:true, nr:compIdx, product:'Sistem de stocare BESS'+(p.bessKwh?(' '+p.bessKwh+' kWh'):''), desc:'baterii LiFePO4, BMS integrat, PCS, sistem de răcire'});
+    compRows.push({main:true, nr:compIdx, product:(nBat>1?(nBat+' × Baterii'):'Sistem de stocare BESS')+(p.bessKwh?(' '+p.bessKwh+' kWh'):''), desc:'baterii LiFePO4, BMS integrat, PCS, sistem de răcire'});
+    compRows.push({nr:compIdx+'.1', product:nBat>1?'Baterii':'Baterie', desc:'marca '+(p.bessBrand||'______________________')+', capacitate '+(p.bessKwh||'________')+' kWh'});
+    compRows.push({nr:compIdx+'.2', product:'PCS / Invertor hibrid stocare', desc:'marca ______________________, ________________ kW'});
     compIdx++;
   }
   compRows.push({main:true, nr:compIdx, product:'Cablaje și accesorii', desc:'cablu DC/AC, conectori, tablou electric IP-65, elemente de mascare'});
+  compIdx++;
+  if ((p.types||[]).includes('PV')) {
+    compRows.push({main:true, nr:compIdx, product:'Structură de prindere', desc:'structură metalică, tip ________________'});
+  }
   const compTable = `<table class="comptable"><tr><th style="width:34px;">Nr.</th><th>Produs</th><th>Descriere</th></tr>` +
     compRows.map(r=>`<tr class="${r.main?'main':'sub'}"><td>${r.nr}</td><td>${r.product}</td><td>${r.desc}</td></tr>`).join('') +
     `</table>`;
@@ -1614,7 +1771,7 @@ table.comptable tr.main td:last-child,table.comptable tr.sub td:last-child{text-
 table.comptable tr.sub td{text-align:left;color:#334155;}
 table.comptable tr.sub td:nth-child(2){text-align:left;color:#94a3b8;}
 body{font-family:'Georgia','Times New Roman',serif;font-size:11.5pt;line-height:1.7;color:#1e293b;background:#e5e7eb;}
-.page{width:21cm;min-height:29.7cm;margin:0 auto 14pt;background:#fff;padding:1.8cm 2.6cm 2.2cm;position:relative;box-shadow:0 1px 8px rgba(0,0,0,.15);}
+.page{width:21cm;min-height:29.7cm;margin:0 auto 14pt;background:#fff;padding:1.6cm 1.6cm 1.8cm;position:relative;box-shadow:0 1px 8px rgba(0,0,0,.15);}
 .slimhead{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #cbd5e1;padding-bottom:8pt;margin-bottom:20pt;font-family:Georgia,sans-serif;font-size:8.5pt;color:#64748b;letter-spacing:.4px;text-transform:uppercase;}
 .slimhead b{color:#0f172a;}
 .letterhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-bottom:26pt;gap:8pt 14pt;}
@@ -1626,10 +1783,11 @@ body{font-family:'Georgia','Times New Roman',serif;font-size:11.5pt;line-height:
 h1{text-align:center;font-size:16pt;letter-spacing:1.8px;font-weight:700;color:#0f172a;margin-bottom:4pt;white-space:nowrap;}-left:auto;}
 h1{text-align:center;font-size:19pt;letter-spacing:2.5px;font-weight:700;color:#0f172a;margin-bottom:4pt;}
 .title-rule{width:70pt;height:2.5pt;background:#f59e0b;margin:8pt auto 18pt;}
-.infobar{display:flex;justify-content:space-between;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8pt;padding:10pt 18pt;margin-bottom:24pt;font-family:Georgia,sans-serif;}
-.infobar .cell{text-align:center;flex:1;}
-.infobar .cell .k{font-size:7.5pt;letter-spacing:1px;text-transform:uppercase;color:#94a3b8;margin-bottom:3pt;}
-.infobar .cell .v{font-size:11pt;font-weight:700;color:#0f172a;}
+.infobar{display:flex;justify-content:space-between;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8pt;padding:12pt 16pt;margin-bottom:24pt;font-family:Georgia,sans-serif;gap:10pt;}
+.infobar .cell{text-align:center;flex:1;min-width:0;}
+.infobar .cell.wide{flex:1.6;}
+.infobar .cell .k{font-size:7.5pt;letter-spacing:1px;text-transform:uppercase;color:#94a3b8;margin-bottom:4pt;white-space:nowrap;}
+.infobar .cell .v{font-size:10.5pt;font-weight:700;color:#0f172a;line-height:1.35;word-break:break-word;}
 .infobar .div{width:1px;background:#e2e8f0;}
 h2{font-size:11.5pt;margin:24pt 0 10pt;letter-spacing:.5px;font-weight:700;color:#0f172a;display:flex;align-items:center;gap:8pt;}
 h2 .num{width:20pt;height:20pt;border-radius:50%;background:#0f172a;color:#fff;font-size:9.5pt;display:inline-flex;align-items:center;justify-content:center;flex:none;font-family:Georgia,sans-serif;}
@@ -1637,7 +1795,7 @@ h2 .txt{text-transform:uppercase;border-bottom:1.5px solid #e2e8f0;flex:1;paddin
 .parties{display:flex;flex-direction:column;gap:10pt;margin-bottom:6pt;}
 .party{border-left:3px solid #0f172a;padding:2pt 0 2pt 14pt;}
 .party .role{font-family:Georgia,sans-serif;font-size:7.5pt;letter-spacing:1.2px;text-transform:uppercase;color:#f59e0b;font-weight:700;margin-bottom:5pt;}
-.party p{font-size:10.3pt;margin:0;text-align:left;}
+.party p{font-size:10.3pt;margin:0;text-align:justify;}
 p{margin-bottom:8pt;text-align:justify;}
 .art{margin-bottom:8pt;text-align:justify;}
 .art b.n{font-weight:700;color:#0f172a;}
@@ -1652,7 +1810,7 @@ table.spec .lbl{font-family:Georgia,sans-serif;font-size:8pt;letter-spacing:.6px
 @media print{
   body{background:#fff;}
   .page{box-shadow:none;margin:0;width:auto;min-height:auto;}
-  @page{margin:1.8cm 2.6cm 2.2cm;size:A4;}
+  @page{margin:1.6cm 1.6cm 1.8cm;size:A4;}
   .pagebreak{page-break-before:always;}
 }
 @media screen{ .pagebreak{margin-top:14pt;} }
@@ -1677,9 +1835,9 @@ table.spec .lbl{font-family:Georgia,sans-serif;font-size:8pt;letter-spacing:.6px
     <div class="div"></div>
     <div class="cell"><div class="k">Data emiterii</div><div class="v">${dd}.${mm}.${yyyy}</div></div>
     <div class="div"></div>
-    <div class="cell"><div class="k">Beneficiar</div><div class="v">${p.client||'—'}</div></div>
+    <div class="cell wide"><div class="k">Beneficiar</div><div class="v">${p.client||'—'}</div></div>
     <div class="div"></div>
-    <div class="cell"><div class="k">Valoare</div><div class="v">${valFmt} LEI</div></div>
+    <div class="cell"><div class="k">Valoare</div><div class="v" style="white-space:nowrap;">${valFmt} LEI</div></div>
   </div>
 
   <h2><span class="num">§</span><span class="txt">Părțile contractante</span></h2>
@@ -1690,12 +1848,12 @@ table.spec .lbl{font-family:Georgia,sans-serif;font-size:8pt;letter-spacing:.6px
     </div>
     <div class="party">
       <div class="role">Beneficiar</div>
-      <p><strong>${p.client||clientBlank}</strong>, cetățean român, domiciliat în ${addr}, jud. ______________, identificat prin C.I. seria ______ nr.______________, având CNP ________________.</p>
+      <p>${beneficiaryClause}.</p>
     </div>
   </div>
 
   <h2><span class="num">1</span><span class="txt">Obiectul contractului</span></h2>
-  <p class="art"><b class="n">1.1.</b> Obiectul contractului îl reprezintă atât montarea, livrarea cât și punerea în funcțiune a unor sisteme de panouri fotovoltaice având următoarele caracteristici: <strong>${nrPanouri}</strong> panouri fotovoltaice cu puterea de <strong>${wpPanou}</strong> Wp, marca ______________________, Invertor ______________________ de <strong>${kwInvertor}</strong> kW, structură metalică cu prindere pe acoperiș tip ________________, ________________________________________________ și accesorii.</p>
+  <p class="art"><b class="n">1.1.</b> Obiectul contractului îl reprezintă atât montarea, livrarea cât și punerea în funcțiune a unor sisteme de panouri fotovoltaice având următoarele caracteristici: <strong>${nrPanouri}</strong> panouri fotovoltaice cu puterea de <strong>${wpPanou}</strong> Wp, marca ${p.panelBrand||'______________________'}, Invertor ${p.inverterBrand||'______________________'} de <strong>${kwInvertor}</strong> kW, structură metalică cu prindere pe acoperiș tip ________________, ________________________________________________ și accesorii${(p.types||[]).includes('BESS')?` și un sistem de stocare a energiei electrice (BESS) cu o capacitate de <strong>${p.bessKwh||'________'}</strong> kWh, marca ${p.bessBrand||'______________________'}`:''}.</p>
   <p class="art"><b class="n">1.2.</b> Beneficiarul își va asuma orice neplăcere creată de către sistem, având în vedere faptul că acest sistem va fi pus în funcțiunea de „AUTOCONSUM" pe răspunderea acestuia din urmă.</p>
   <p class="art"><b class="n">1.3.</b> Prestatorul se va ocupa atât de întocmirea, cât și de depunerea dosarului de prosumator pe platforma RETELE ELECTRICE.</p>
 
@@ -1705,7 +1863,8 @@ table.spec .lbl{font-family:Georgia,sans-serif;font-size:8pt;letter-spacing:.6px
   </table>
 
   <h2><span class="num">2</span><span class="txt">Durata</span></h2>
-  <p class="art">Durata de executare a lucrărilor este de <strong>30 zile calendaristice</strong>, aferente montării și punerii în funcțiune, de la data semnării contractului.</p>
+  <p class="art">Durata de executare a lucrărilor este de <strong>${p.durataZile||30} zile calendaristice</strong>, aferente montării și punerii în funcțiune, de la data semnării contractului.</p>
+  ${(p.deliveryPanouri||p.deliveryInvertor||p.deliveryBaterie) ? `<p class="art">Termenele estimate de livrare pe echipamente sunt: ${[p.deliveryPanouri?('panouri fotovoltaice – '+fmtDate(p.deliveryPanouri)):null,p.deliveryInvertor?('invertor'+(nInv>1?'e':'')+' – '+fmtDate(p.deliveryInvertor)):null,p.deliveryBaterie?('baterie'+(nBat>1?'i':'')+' de stocare – '+fmtDate(p.deliveryBaterie)):null].filter(Boolean).join(', ')}, urmând ca montarea și punerea în funcțiune să se realizeze după recepția tuturor echipamentelor.</p>` : ''}
 
   <h2><span class="num">3</span><span class="txt">Începerea, finalizarea și amplasamentul</span></h2>
   <p class="art"><b class="n">3.1.</b> Începerea lucrărilor se va face în termen de maxim 30 de zile calendaristice, după îndeplinirea tuturor cerințelor și condițiilor, respectiv: achitarea tranșei nr.1 la acceptarea ofertei financiare și semnarea prezentului contract, dovedit prin chitanță/OP.</p>
@@ -1720,8 +1879,8 @@ table.spec .lbl{font-family:Georgia,sans-serif;font-size:8pt;letter-spacing:.6px
   <p class="art"><b class="n">4.1.</b> Prețul contractului este de <strong>${valFmt} LEI</strong> inclusiv TVA (prețul contractului cuprinde atât materialele, manopera cât și TVA-ul).</p>
   <p class="art"><b class="n">4.2.</b> Modalitatea de plată este, după cum urmează:</p>
   <table class="spec">
-    <tr><td class="lbl">Tranșa nr.1</td><td><strong>${transa1} LEI</strong>, inclusiv TVA — se achită în termen de 1-2 zile lucrătoare de la acceptarea ofertei financiare și semnării prezentului act, dovedită prin chitanță/OP.</td></tr>
-    <tr><td class="lbl">Tranșa nr.2</td><td><strong>${transa2} LEI</strong>, inclusiv TVA — se achită după finalizarea lucrării, dovedită prin chitanță/OP.</td></tr>
+    <tr><td class="lbl">Tranșa nr.1</td><td><strong>${transa1} LEI</strong>, inclusiv TVA — se achită în termen de 1-2 zile lucrătoare de la acceptarea ofertei financiare și semnării prezentului act, dovedită prin chitanță/OP.${p.transa1Paid?' <strong>(ACHITATĂ)</strong>':''}</td></tr>
+    <tr><td class="lbl">Tranșa nr.2</td><td><strong>${transa2} LEI</strong>, inclusiv TVA — se achită după finalizarea lucrării, dovedită prin chitanță/OP.${p.transa2Paid?' <strong>(ACHITATĂ)</strong>':''}</td></tr>
   </table>
   <p class="art"><b class="n">4.3.</b> Penalitățile sunt de 0,02%/zi întârziere, pentru ambele părți, respectiv:</p>
   <p class="art">Pentru beneficiar, în situația neachitării obligației pecuniare într-un termen maxim de 5 (cinci) zile lucrătoare de la acceptarea ofertei și semnării prezentului act, nu se vor mai calcula penalități de întârziere, ci penalități de renunțare de 0,02% din valoarea ofertei contractului, având drept temei prestarea serviciilor de consultanță oferite de către prestator, ulterior începerii execuției lucrărilor. Aceste penalități au caracter de acoperire a cheltuielilor efectuate de către prestator, contractul reziliindu-se de drept.</p>
@@ -1743,7 +1902,7 @@ table.spec .lbl{font-family:Georgia,sans-serif;font-size:8pt;letter-spacing:.6px
   <div class="pagefoot"><span>SMART HOUSE COLOR · Contract nr. ${nr}</span><span>Pagina 2 din 4</span></div>
 </div>
 
-<div class="page pagebreak">
+<div class="page">
   <div class="slimhead"><span><b>S.C. SMART HOUSE COLOR S.R.L.</b> · CUI RO37283429 · J2017000477024</span><span>Contract nr. ${nr} / ${dd}.${mm}.${yyyy}</span></div>
   <h2><span class="num">7</span><span class="txt">Obligațiile părților</span></h2>
   <p class="art"><b class="n">7.1. Obligațiile prestatorului</b></p>
@@ -1756,7 +1915,7 @@ table.spec .lbl{font-family:Georgia,sans-serif;font-size:8pt;letter-spacing:.6px
   <b>g.</b> servicii de asistență tehnică, în cazul defectării sistemului fotovoltaic (atât în perioada de garanție, cât și după consumarea acesteia — echipamente, manoperă). Se va ține cont de faptul că asistența tehnică se va face contra-cost, având în vedere că termenul de garanție de 24 de luni se referă la structura de rezistență a panourilor;<br>
   <b>h.</b> să înlocuiască și să repare orice daună provocată cu ocazia instalării sistemului de panouri fotovoltaice, întocmindu-se în acest sens un proces-verbal pentru acoperiș. Dacă la plecarea echipei de montaj și anterior semnării procesului-verbal de recepție nu s-au făcut constatări, beneficiarul își va asuma orice daună materială ulterioară.</p>
   <p class="art"><b class="n">7.2. Obligațiile beneficiarului</b></p>
-  <p class="art"><b>a.</b> asigurarea condițiilor necesare bunei desfășurări a operațiunilor de montare a sistemului PV;<br>
+  <p class="art"><b>a.</b> asigurarea condițiilor necesare bunei desfășurări a operațiunilor de montare a sistemului ${sysLabel};<br>
   <b>b.</b> asigurarea accesului prestatorului la toate utilitățile necesare (curent, apă, etc.);<br>
   <b>c.</b> punerea la dispoziția prestatorului a tuturor autorizațiilor și avizelor necesare;<br>
   <b>d.</b> punerea la dispoziția prestatorului, cu titlu gratuit, a amplasamentului lucrării, liber de orice sarcină, anterior începerii lucrărilor, cât și a suprafețelor de teren necesare pentru depozitare și pentru organizarea de șantier;<br>
@@ -1773,7 +1932,7 @@ table.spec .lbl{font-family:Georgia,sans-serif;font-size:8pt;letter-spacing:.6px
   <p class="art">Încercarea rezolvării pe cale amiabilă; în caz contrar, prin intermediul judecății, la instanța competentă din punct de vedere material și teritorial de la domiciliul prestatorului.</p>
 
   <h2><span class="num">10</span><span class="txt">Comunicări</span></h2>
-  <p class="art">Orice comunicare va avea loc numai în scris, prin intermediul email-ului.</p>
+  <p class="art">Orice comunicare va avea loc numai în scris, prin intermediul email-ului, la adresa <strong>office@shc-group.ro</strong>.</p>
 
   <h2><span class="num">11</span><span class="txt">Legea aplicabilă a contractului</span></h2>
   <p class="art">Contractul va fi interpretat conform legilor aplicabile din România.</p>
@@ -1810,7 +1969,7 @@ table.spec .lbl{font-family:Georgia,sans-serif;font-size:8pt;letter-spacing:.6px
     </div>
     <div class="party">
       <div class="role">Beneficiar</div>
-      <p><strong>${p.client||clientBlank}</strong>, cetățean român, domiciliat în ${addr}, jud. ______________, identificat prin C.I. seria ______ nr.______________, având CNP ________________.</p>
+      <p>${beneficiaryClause}.</p>
     </div>
   </div>
 
@@ -1862,45 +2021,7 @@ class Component extends DCLogic {
   adminPassword = ADMIN_DEFAULT_PW;
   adminPin = '1000';
 
-  _startParticles(){
-    // dezactivăm animația decorativă pe mobil — poate încărca inutil CPU-ul pe telefoane mai vechi
-    if(window.innerWidth<=768) return;
-    setTimeout(()=>{
-      const canvas=document.getElementById('crmParticleCanvas');
-      if(!canvas||canvas._particlesStarted) return;
-      canvas._particlesStarted=true;
-      const ctx=canvas.getContext('2d');
-      let W,H,particles=[];
-      function resize(){ const r=canvas.parentElement.getBoundingClientRect(); W=canvas.width=Math.max(r.width||window.innerWidth,50); H=canvas.height=32; }
-      function mkParticle(){
-        return { x:Math.random()*W, y:Math.random()*H, z:Math.random()*600+100, vz:-(Math.random()*0.4+0.1),
-          color:['#3b82f6','#f59e0b','#10b981','#8b5cf6','#06b6d4','#f97316'][Math.floor(Math.random()*6)],
-          pulse:Math.random()*Math.PI*2, pulseSpeed:Math.random()*0.02+0.01 };
-      }
-      function init(){ resize(); particles=[]; for(let i=0;i<55;i++) particles.push(mkParticle()); }
-      function project(p){ const fov=400; const scale=fov/(fov+p.z); return { x:W/2+(p.x-W/2)*scale, y:H/2+(p.y-H/2)*scale, r:Math.max(0.5,(8-p.z/100)*scale*2) }; }
-      function draw(){
-        if(!document.body.contains(canvas)) return;
-        ctx.clearRect(0,0,W,H);
-        particles.sort((a,b)=>b.z-a.z);
-        particles.forEach(p=>{
-          p.z+=p.vz*2; p.pulse+=p.pulseSpeed;
-          if(p.z<50||p.z>700){ Object.assign(p,mkParticle(),{z:650}); return; }
-          const {x,y,r}=project(p);
-          const pulseMod=1+Math.sin(p.pulse)*0.3;
-          const rr=r*pulseMod;
-          const g=ctx.createRadialGradient(x,y,0,x,y,rr*3);
-          g.addColorStop(0,p.color+'cc'); g.addColorStop(0.4,p.color+'44'); g.addColorStop(1,'transparent');
-          ctx.beginPath(); ctx.arc(x,y,rr*3,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
-          ctx.beginPath(); ctx.arc(x,y,rr,0,Math.PI*2); ctx.fillStyle=p.color; ctx.fill();
-        });
-        requestAnimationFrame(draw);
-      }
-      init(); draw();
-      window.addEventListener('resize',resize);
-      setTimeout(resize,300);
-    },150);
-  }
+  
 
   componentDidMount(){
     this._pendingWrites = new Set();
@@ -1909,7 +2030,6 @@ class Component extends DCLogic {
         e.preventDefault(); e.returnValue='';
       }
     });
-    this._startParticles();
     this.shcResetIdle();
     ['click','keydown','mousemove','touchstart','scroll'].forEach(ev=>document.addEventListener(ev,()=>this.shcResetIdle(),{passive:true}));
     this._fbInitAttempts = 0;
@@ -2143,7 +2263,10 @@ class Component extends DCLogic {
     if(!form.client.trim()){window.alert('Numele clientului este obligatoriu!');return;}
     const types=[]; if(form.typePV)types.push('PV'); if(form.typeInverter)types.push('Inverter'); if(form.typeBaterie)types.push('Baterie'); if(form.typeBESS)types.push('BESS'); if(types.length===0)types.push('PV');
     const hasPV=types.includes('PV');
-    const data={types,status:form.status,client:form.client.trim(),phone:form.phone.trim()||null,email:form.email.trim()||null,address:form.address.trim()||null,value:form.value!==''?parseFloat(form.value):null,responsabil:form.responsabil.trim()||null,date_start:form.date_start||null,date_executie:form.date_executie||null,date_end:form.date_end||null,equipment:form.equipment.trim()||null,kwp:hasPV&&form.kwp!==''?parseFloat(form.kwp):null,panels:hasPV&&form.panels!==''?parseInt(form.panels):null,mounting:hasPV?(form.mounting||null):null,prosumator:hasPV?!!form.prosumator:false,notes:form.notes.trim()||null,bessKwh:form.bessKwh!==''?parseFloat(form.bessKwh):null,capexBESS:form.capexBESS!==''?parseFloat(form.capexBESS):null,capexSTS:form.capexSTS!==''?parseFloat(form.capexSTS):null};
+    const cuiFinal=(form.cuiPrefix||'')+(form.cuiNum||'');
+    const phoneFinal=(form.phonePrefix||'+40')+(form.phoneNum||'');
+    const addrParts=[form.addressStreet.trim(),form.addressCity.trim(),form.addressJud.trim()?('jud. '+form.addressJud.trim()):'',form.addressCountry.trim()&&form.addressCountry.trim().toLowerCase()!=='românia'?form.addressCountry.trim():''].filter(Boolean);
+    const data={types,status:form.status,client:form.client.trim(),phone:phoneFinal||null,email:form.email.trim()||null,address:addrParts.join(', ')||null,addressStreet:form.addressStreet.trim()||null,addressCity:form.addressCity.trim()||null,addressJud:form.addressJud.trim()||null,addressCountry:form.addressCountry.trim()||null,value:form.value!==''?parseFloat(form.value):null,responsabil:form.responsabil.trim()||null,date_start:form.date_start||null,date_executie:form.date_executie||null,date_end:form.date_end||null,equipment:form.equipment.trim()||null,kwp:hasPV&&form.kwp!==''?parseFloat(form.kwp):null,panels:hasPV&&form.panels!==''?parseInt(form.panels):null,mounting:hasPV?(form.mounting||null):null,prosumator:hasPV?!!form.prosumator:false,notes:form.notes.trim()||null,bessKwh:form.bessKwh!==''?parseFloat(form.bessKwh):null,capexBESS:form.capexBESS!==''?parseFloat(form.capexBESS):null,capexSTS:form.capexSTS!==''?parseFloat(form.capexSTS):null,durataZile:form.durataZile!==''?parseInt(form.durataZile):null,numInvertoare:form.numInvertoare!==''?parseInt(form.numInvertoare):1,numBaterii:form.numBaterii!==''?parseInt(form.numBaterii):1,contractNrManual:form.contractNrManual.trim()||null,transa1Paid:!!form.transa1Paid,transa2Paid:!!form.transa2Paid,entityCui:cuiFinal||null,entityRegCom:form.entityRegCom.trim()||null,entityBank:form.entityBank.trim()||null,entityIban:form.entityIban.trim()||null,entityRepLegal:form.entityRepLegal.trim()||null,entityRepFunctie:form.entityRepFunctie.trim()||null,panelBrand:form.panelBrand.trim()||null,inverterBrand:form.inverterBrand.trim()||null,bessBrand:form.bessBrand.trim()||null,deliveryPanouri:form.deliveryPanouri||null,deliveryInvertor:form.deliveryInvertor||null,deliveryBaterie:form.deliveryBaterie||null};
     if(!editingId){
       const days=form.followUpDays!==''?parseInt(form.followUpDays):14;
       const fu=new Date(); fu.setDate(fu.getDate()+(isNaN(days)?14:days));
@@ -2277,12 +2400,14 @@ class Component extends DCLogic {
           reader.readAsDataURL(f);
         });
       }catch(err){ window.alert('Eroare la citirea fișierului "'+f.name+'".'); continue; }
-      const att={id:attId,filename:f.name,type:f.type,size:f.size,data:dataUrl,addedBy:this.state.currentUser?this.state.currentUser.name:'Necunoscut',addedAt:new Date().toISOString()};
+      const att={id:attId,filename:f.name,type:f.type,size:f.size,addedBy:this.state.currentUser?this.state.currentUser.name:'Necunoscut',addedAt:new Date().toISOString()};
       this.setState(s=>{const projects=s.projects.map(p=>p.id===sid?{...p,attachments:[...(p.attachments||[]),att]}:p);return {projects};});
-      // Scriere pe cheia proprie a fișierului — uploadurile simultane ale colegilor nu se pot suprascrie reciproc
+      // Fișierul (base64, greu) merge într-un nod SEPARAT de root-ul ascultat live —
+      // evită descărcarea repetată a tuturor atașamentelor la fiecare update oricărui coleg
       try{
         const db=getDb();
         if(db){
+          await db.ref('solarcrm_v2_files/'+sid+'/'+String(attId).replace(/\./g,'_')).set(dataUrl);
           await db.ref('solarcrm_v2/projects/'+sid+'/attachments/'+String(attId).replace(/\./g,'_')).set(att);
           try{ localStorage.setItem('solarcrm_v3',JSON.stringify({projects:this.state.projects,users:this.state.users,adminPw:this.adminPassword,adminPin:this.adminPin,companyInfo:this.state.companyInfo})); }catch(e){}
         }
@@ -2337,19 +2462,29 @@ class Component extends DCLogic {
     this.setState(s=>{const projects=s.projects.map(p=>p.id===projectId?{...p,attachments:(p.attachments||[]).filter(a=>a.id!==attId)}:p);return {projects};});
     try{
       const db=getDb();
-      if(db) db.ref('solarcrm_v2/projects/'+projectId+'/attachments/'+String(attId).replace(/\./g,'_')).remove();
+      if(db){
+        db.ref('solarcrm_v2/projects/'+projectId+'/attachments/'+String(attId).replace(/\./g,'_')).remove();
+        db.ref('solarcrm_v2_files/'+projectId+'/'+String(attId).replace(/\./g,'_')).remove();
+      }
     }catch(e){}
+  }
+
+  setEntityType(type){
+    const {selectedId}=this.state;
+    if(!selectedId)return;
+    this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,entityType:type}:pr);this.persist(selectedId,projects2);return {projects:projects2};});
   }
 
   generateContractForSelected(){
     const {selectedId,projects}=this.state;
     const p=projects.find(pr=>pr.id===selectedId); if(!p)return;
-    const html=buildContractHTML(p,this.state.companyInfo);
+    const html=buildContractHTML({...p,entityType:p.entityType||'pf'},this.state.companyInfo);
     const w=window.open('about:blank','_blank');
     if(!w){window.alert('Permiteți ferestrele pop-up în browser pentru a genera contractul.');return;}
     w.document.write(html); w.document.close();
     setTimeout(()=>{try{w.print();}catch(e){}},600);
-    const entry=this.buildAuditEntry('contract','Contract generat (Nr. '+p.id+'/'+new Date().getFullYear()+')');
+    const contractTypeCode2 = (p.types||[]).includes('BESS')?'BESS':((p.types||[]).includes('Inverter')?'INV':((p.types||[]).includes('PV')?'PV':'BESS'));
+    const entry=this.buildAuditEntry('contract','Contract generat (Nr. SHC-'+contractTypeCode2+'-'+String(p.id).padStart(4,'0')+')');
     this.setState(s=>{const projects2=s.projects.map(pr=>pr.id===selectedId?{...pr,auditLog:[...(pr.auditLog||[]),entry]}:pr);this.persist(selectedId,projects2);return {projects:projects2};});
   }
 
@@ -2625,7 +2760,17 @@ class Component extends DCLogic {
       hasAuditEntries=auditEntries.length>0; noAuditEntries=!hasAuditEntries;
       attachmentItems=(selected.attachments||[]).map(a=>{
         const sid=selected.id,aid=a.id;
-        const src=a.url||a.data;
+        const cached=this.state.fileCache&&this.state.fileCache[sid+'_'+aid];
+        const src=a.url||a.data||cached;
+        if(!src && !this._filesLoading){ this._filesLoading={}; }
+        if(!src && this._filesLoading && !this._filesLoading[sid]){
+          this._filesLoading[sid]=true;
+          const db=getDb();
+          if(db) db.ref('solarcrm_v2_files/'+sid).once('value').then(snap=>{
+            const val=snap.val()||{};
+            this.setState(s=>({fileCache:{...(s.fileCache||{}),...Object.keys(val).reduce((acc,k)=>{acc[sid+'_'+k]=val[k];return acc;},{})}}));
+          }).catch(()=>{});
+        }
         const isImg=!!(a.type&&a.type.startsWith('image/')&&src);        const imgEl=isImg
           ?React.createElement('img',{src:src,style:{width:'52px',height:'52px',objectFit:'cover',borderRadius:'6px',flex:'none',border:'1px solid #e2e8f0'}})
           :React.createElement('div',{style:{width:'52px',height:'52px',background:'#f1f5f9',borderRadius:'6px',flex:'none',display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid #e2e8f0'}},
@@ -2733,6 +2878,7 @@ class Component extends DCLogic {
         this.setState({showChangePwModal:true,cpOld:'',cpNew:'',cpConfirm:'',cpErr:''});
       },
       doLogout:()=>{try{sessionStorage.removeItem('solarcrm_uid_v3');}catch(e){}this.setState({currentUser:null,showUserModal:true,userModalMode:'login',pinMode:true,pinBuffer:'',pinErr:false});},
+      onSuiteLinkClick:()=>{try{sessionStorage.removeItem('solarcrm_uid_v3');}catch(e){}},
       showChangePwModal:this.state.showChangePwModal||false,
       cpOldVal:this.state.cpOld||'',cpNewVal:this.state.cpNew||'',cpConfirmVal:this.state.cpConfirm||'',cpErrMsg:this.state.cpErr||'',
       onCpOld:e=>this.setState({cpOld:e.target.value}),
@@ -2787,11 +2933,27 @@ class Component extends DCLogic {
       attachmentItems,hasAttachments,noAttachments,
       onFileAdd:e=>this.handleFileAdd(e),
       generateContract:()=>this.generateContractForSelected(),
+      setEntityTypePF:()=>this.setEntityType('pf'),
+      setEntityTypePJ:()=>this.setEntityType('pj'),
+      entityTypePfStyle:(selected&&selected.entityType!=='pj')?'background:#0f172a;color:#fff;border:1px solid #0f172a;':'background:#fff;color:#64748b;border:1px solid #e2e8f0;',
+      entityTypePjStyle:(selected&&selected.entityType==='pj')?'background:#0f172a;color:#fff;border:1px solid #0f172a;':'background:#fff;color:#64748b;border:1px solid #e2e8f0;',
       generateOffer:()=>this.generateOfferForSelected(),
       openEdit:()=>{
         if(!selected)return;
         const types=selected.types||[selected.type||'PV'];
-        this.setState({showModal:true,editingId:selected.id,form:{typePV:types.includes('PV'),typeInverter:types.includes('Inverter'),typeBaterie:types.includes('Baterie'),typeBESS:types.includes('BESS'),status:selected.status||'Lead',client:selected.client||'',phone:selected.phone||'',email:selected.email||'',address:selected.address||'',value:selected.value!=null?String(selected.value):'',responsabil:selected.responsabil||'',date_start:selected.date_start||'',date_executie:selected.date_executie||'',date_end:selected.date_end||'',date_start_dmy:isoToDmy(selected.date_start||''),date_executie_dmy:isoToDmy(selected.date_executie||''),date_end_dmy:isoToDmy(selected.date_end||''),equipment:selected.equipment||'',kwp:selected.kwp!=null?String(selected.kwp):'',panels:selected.panels!=null?String(selected.panels):'',mounting:selected.mounting||'acoperiș',prosumator:!!selected.prosumator,notes:selected.notes||'',bessKwh:selected.bessKwh!=null?String(selected.bessKwh):'',capexBESS:selected.capexBESS!=null?String(selected.capexBESS):'',capexSTS:selected.capexSTS!=null?String(selected.capexSTS):''}});
+        let phonePrefix='+40',phoneNum='';
+        if(selected.phone){
+          const m=selected.phone.match(/^\+?(\d{1,3})(.*)$/);
+          if(m){ phonePrefix='+'+m[1].replace(/^\+/,''); phoneNum=m[2].replace(/\D/g,''); }
+          else { phoneNum=selected.phone.replace(/\D/g,''); }
+        }
+        let cuiPrefix='RO',cuiNum='';
+        if(selected.entityCui){
+          if(selected.entityCui.startsWith('RO')){ cuiPrefix='RO'; cuiNum=selected.entityCui.slice(2).replace(/\D/g,''); }
+          else { cuiPrefix=''; cuiNum=selected.entityCui.replace(/\D/g,''); }
+        }
+        const form={typePV:types.includes('PV'),typeInverter:types.includes('Inverter'),typeBaterie:types.includes('Baterie'),typeBESS:types.includes('BESS'),status:selected.status||'Lead',client:selected.client||'',phonePrefix,phoneNum,email:selected.email||'',address:selected.address||'',addressStreet:selected.addressStreet||(selected.address&&!selected.addressJud?selected.address:''),addressCity:selected.addressCity||'',addressJud:selected.addressJud||'',addressCountry:selected.addressCountry||'România',value:selected.value!=null?String(selected.value):'',responsabil:selected.responsabil||'',date_start:selected.date_start||'',date_executie:selected.date_executie||'',date_end:selected.date_end||'',date_start_dmy:isoToDmy(selected.date_start||''),date_executie_dmy:isoToDmy(selected.date_executie||''),date_end_dmy:isoToDmy(selected.date_end||''),equipment:selected.equipment||'',kwp:selected.kwp!=null?String(selected.kwp):'',panels:selected.panels!=null?String(selected.panels):'',mounting:selected.mounting||'acoperiș',prosumator:!!selected.prosumator,notes:selected.notes||'',bessKwh:selected.bessKwh!=null?String(selected.bessKwh):'',capexBESS:selected.capexBESS!=null?String(selected.capexBESS):'',capexSTS:selected.capexSTS!=null?String(selected.capexSTS):'',durataZile:selected.durataZile!=null?String(selected.durataZile):'30',numInvertoare:selected.numInvertoare!=null?String(selected.numInvertoare):'1',numBaterii:selected.numBaterii!=null?String(selected.numBaterii):'1',contractNrManual:selected.contractNrManual||'',transa1Paid:!!selected.transa1Paid,transa2Paid:!!selected.transa2Paid,cuiPrefix,cuiNum,entityRegCom:selected.entityRegCom||'',entityBank:selected.entityBank||'',entityIban:selected.entityIban||'',entityRepLegal:selected.entityRepLegal||'',entityRepFunctie:selected.entityRepFunctie||'',panelBrand:selected.panelBrand||'',inverterBrand:selected.inverterBrand||'',bessBrand:selected.bessBrand||'',deliveryPanouri:selected.deliveryPanouri||'',deliveryPanouriDmy:isoToDmy(selected.deliveryPanouri||''),deliveryInvertor:selected.deliveryInvertor||'',deliveryInvertorDmy:isoToDmy(selected.deliveryInvertor||''),deliveryBaterie:selected.deliveryBaterie||'',deliveryBaterieDmy:isoToDmy(selected.deliveryBaterie||''),deliveryATS:selected.deliveryATS||'',deliveryATSDmy:isoToDmy(selected.deliveryATS||''),atsCapex:selected.atsCapex!=null?String(selected.atsCapex):'',emsCapex:selected.emsCapex!=null?String(selected.emsCapex):'',stsTipBrand:selected.stsTipBrand||'',stsCapex:selected.stsCapex!=null?String(selected.stsCapex):'',backupCapex:selected.backupCapex!=null?String(selected.backupCapex):'',backupType:selected.backupType||''};
+        this.setState({showModal:true,editingId:selected.id,form});
       },
       deleteSelected:()=>{
         if(!selected)return;
@@ -2807,7 +2969,11 @@ class Component extends DCLogic {
       onFormTypePV:e=>this.setForm('typePV',e.target.checked),onFormTypeInverter:e=>this.setForm('typeInverter',e.target.checked),
       onFormTypeBaterie:e=>this.setForm('typeBaterie',e.target.checked),onFormTypeBESS:e=>this.setForm('typeBESS',e.target.checked),
       onFormStatus:e=>this.setForm('status',e.target.value),onFormClient:e=>this.setForm('client',e.target.value),
-      onFormPhone:e=>this.setForm('phone',e.target.value),onFormEmail:e=>this.setForm('email',e.target.value),
+      onFormPhonePrefix:e=>this.setForm('phonePrefix',e.target.value),
+      onFormPhoneNum:e=>{const v=e.target.value.replace(/\D/g,''); if(v.length<=12) this.setForm('phoneNum',v);},
+      onFormCuiPrefix:e=>this.setForm('cuiPrefix',e.target.value),
+      onFormCuiNum:e=>{const v=e.target.value.replace(/\D/g,''); if(v.length<=8) this.setForm('cuiNum',v);},
+      onFormEmail:e=>this.setForm('email',e.target.value),
       onFormAddress:e=>this.setForm('address',e.target.value),onFormValue:e=>this.setForm('value',e.target.value),
       onFormResponsabil:e=>this.setForm('responsabil',e.target.value),
       canEditResponsabil:isFullAccess,canEditResponsabilNot:!isFullAccess,responsabilOptions,
@@ -2839,7 +3005,32 @@ class Component extends DCLogic {
       onFormFollowUpDays:e=>this.setForm('followUpDays',e.target.value),
       onFormEquipment:e=>this.setForm('equipment',e.target.value),
       onFormKwp:e=>this.setForm('kwp',e.target.value),onFormPanels:e=>this.setForm('panels',e.target.value),onFormBessKwh:e=>this.setForm('bessKwh',e.target.value),onFormCapexBESS:e=>this.setForm('capexBESS',e.target.value),onFormCapexSTS:e=>this.setForm('capexSTS',e.target.value),
+      onFormAddressStreet:e=>this.setForm('addressStreet',e.target.value),
+      onFormAddressCity:e=>this.setForm('addressCity',e.target.value),
+      onFormAddressJud:e=>this.setForm('addressJud',e.target.value),
+      onFormAddressCountry:e=>this.setForm('addressCountry',e.target.value),
       onFormMounting:e=>this.setForm('mounting',e.target.value),onFormProsumator:e=>this.setForm('prosumator',e.target.checked),
+      onFormDurataZile:e=>this.setForm('durataZile',e.target.value),
+      onFormNumInvertoare:e=>this.setForm('numInvertoare',e.target.value),
+      onFormNumBaterii:e=>this.setForm('numBaterii',e.target.value),
+      onFormContractNrManual:e=>this.setForm('contractNrManual',e.target.value),
+      onFormTransa1Paid:e=>this.setForm('transa1Paid',e.target.checked),
+      onFormTransa2Paid:e=>this.setForm('transa2Paid',e.target.checked),
+      onFormEntityCui:e=>this.setForm('entityCui',e.target.value),
+      onFormEntityRegCom:e=>this.setForm('entityRegCom',e.target.value),
+      onFormEntityBank:e=>this.setForm('entityBank',e.target.value),
+      onFormEntityIban:e=>this.setForm('entityIban',e.target.value),
+      onFormEntityRepLegal:e=>this.setForm('entityRepLegal',e.target.value),
+      onFormEntityRepFunctie:e=>this.setForm('entityRepFunctie',e.target.value),
+      onFormPanelBrand:e=>this.setForm('panelBrand',e.target.value),
+      onFormInverterBrand:e=>this.setForm('inverterBrand',e.target.value),
+      onFormBessBrand:e=>this.setForm('bessBrand',e.target.value),
+      onFormDeliveryPanouri:e=>{ const v=maskDmy(this.state.form.deliveryPanouriDmy,e.target.value); this.setState(s=>({form:{...s.form,deliveryPanouriDmy:v,deliveryPanouri:dmyToIso(v)}})); },
+      onFormDeliveryPanouriPicker:e=>{ const iso=e.target.value; this.setState(s=>({form:{...s.form,deliveryPanouri:iso,deliveryPanouriDmy:isoToDmy(iso)}})); },
+      onFormDeliveryInvertor:e=>{ const v=maskDmy(this.state.form.deliveryInvertorDmy,e.target.value); this.setState(s=>({form:{...s.form,deliveryInvertorDmy:v,deliveryInvertor:dmyToIso(v)}})); },
+      onFormDeliveryInvertorPicker:e=>{ const iso=e.target.value; this.setState(s=>({form:{...s.form,deliveryInvertor:iso,deliveryInvertorDmy:isoToDmy(iso)}})); },
+      onFormDeliveryBaterie:e=>{ const v=maskDmy(this.state.form.deliveryBaterieDmy,e.target.value); this.setState(s=>({form:{...s.form,deliveryBaterieDmy:v,deliveryBaterie:dmyToIso(v)}})); },
+      onFormDeliveryBateriePicker:e=>{ const iso=e.target.value; this.setState(s=>({form:{...s.form,deliveryBaterie:iso,deliveryBaterieDmy:isoToDmy(iso)}})); },
       onFormNotes:e=>this.setForm('notes',e.target.value),
       statusModal:{...statusModal},setStatusReason:e=>this.setState(s=>({statusModal:{...s.statusModal,reason:e.target.value}})),
       confirmStatus:()=>this.confirmStatusChange(),cancelStatus:()=>this.setState(s=>({statusModal:{...s.statusModal,show:false}})),
