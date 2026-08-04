@@ -175,16 +175,16 @@ a:hover{color:#fbbf24;}
   </div>
 
   <div id="tabBar">
-    <button class="tab-btn active" data-tab="today">Pontaj azi</button>
+    <button class="tab-btn active" data-tab="today">🕐 Pontaj azi</button>
     <button class="tab-btn" data-tab="taskuri">📌 Task-uri<span id="taskBadge" style="display:none;background:#dc2626;color:#fff;font-size:10px;font-weight:800;border-radius:10px;padding:1px 6px;margin-left:5px;"></span></button>
-    <button class="tab-btn" data-tab="pv">Proces verbal</button>
-    <button class="tab-btn" data-tab="cereri">Cereri</button>
-    <button class="tab-btn" data-tab="myweek" id="tabMyWeekBtn" style="display:none;">Programul meu</button>
-    <button class="tab-btn" data-tab="planner" id="tabPlannerBtn" style="display:none;">Planificator</button>
-    <button class="tab-btn" data-tab="team" id="tabTeamBtn" style="display:none;">Listă echipă</button>
-    <button class="tab-btn" data-tab="map" id="tabMapBtn" style="display:none;">Hartă live</button>
+    <button class="tab-btn" data-tab="pv">📝 Proces verbal</button>
+    <button class="tab-btn" data-tab="cereri">🌴 Cereri</button>
+    <button class="tab-btn" data-tab="myweek" id="tabMyWeekBtn" style="display:none;">📆 Programul meu</button>
+    <button class="tab-btn" data-tab="planner" id="tabPlannerBtn" style="display:none;">🗓️ Planificator</button>
+    <button class="tab-btn" data-tab="team" id="tabTeamBtn" style="display:none;">👥 Listă echipă</button>
+    <button class="tab-btn" data-tab="map" id="tabMapBtn" style="display:none;">📍 Hartă live</button>
     <button class="tab-btn" data-tab="alerte" id="tabAlerteBtn" style="display:none;">🔔 Alerte<span id="alerteBadge" style="display:none;background:#dc2626;color:#fff;font-size:10px;font-weight:800;border-radius:999px;padding:1px 6px;margin-left:5px;"></span></button>
-    <button class="tab-btn" data-tab="export" id="tabExportBtn">Export</button>
+    <button class="tab-btn" data-tab="export" id="tabExportBtn">📤 Export</button>
   </div>
 
   <div id="main">
@@ -211,21 +211,6 @@ a:hover{color:#fbbf24;}
         <div class="field" style="margin-bottom:10px;"><label>Motiv (opțional)</label><textarea id="leaveReason" class="form-input" rows="2" style="width:100%;"></textarea></div>
         <button class="btn btn-sm" id="btnSubmitLeave" style="background:#f59e0b;color:#fff;">Trimite cererea</button>
         <div style="margin-top:16px;overflow-x:auto"><table id="leaveTable"></table></div>
-      </div>
-      <div class="card">
-        <div class="section-title">Raportează o problemă de pe șantier</div>
-        <div class="row2" style="margin-bottom:10px;">
-          <div class="field"><label>Categorie</label>
-            <select id="probCat" class="form-select">
-              <option>Material lipsă</option><option>Sculă / utilaj defect</option><option>Mașină / transport</option>
-              <option>Siguranță în muncă</option><option>Beneficiar / acces</option><option>Altele</option>
-            </select>
-          </div>
-          <div class="field"><label>Poză (opțional)</label><input type="file" id="probPhoto" accept="image/*" class="form-input"></div>
-        </div>
-        <div class="field" style="margin-bottom:10px;"><label>Descriere</label><textarea id="probDesc" class="form-input" rows="2" style="width:100%;"></textarea></div>
-        <button class="btn btn-sm" id="btnSubmitProb" style="background:#f59e0b;color:#fff;">Trimite raportul</button>
-        <div style="margin-top:16px;" id="probList"></div>
       </div>
     </div>
 
@@ -275,6 +260,21 @@ a:hover{color:#fbbf24;}
       <div class="card">
         <div class="section-title">Procese verbale salvate</div>
         <div id="pvList"></div>
+      </div>
+      <div class="card">
+        <div class="section-title">Raportează o problemă de pe șantier</div>
+        <div class="row2" style="margin-bottom:10px;">
+          <div class="field"><label>Categorie</label>
+            <select id="probCat" class="form-select">
+              <option>Material lipsă</option><option>Sculă / utilaj defect</option><option>Mașină / transport</option>
+              <option>Siguranță în muncă</option><option>Beneficiar / acces</option><option>Altele</option>
+            </select>
+          </div>
+          <div class="field"><label>Poză (opțional)</label><input type="file" id="probPhoto" accept="image/*" class="form-input"></div>
+        </div>
+        <div class="field" style="margin-bottom:10px;"><label>Descriere</label><textarea id="probDesc" class="form-input" rows="2" style="width:100%;"></textarea></div>
+        <button class="btn btn-sm" id="btnSubmitProb" style="background:#f59e0b;color:#fff;">Trimite raportul</button>
+        <div style="margin-top:16px;" id="probList"></div>
       </div>
     </div>
 
@@ -576,7 +576,7 @@ function loadFirebase(){
   });
   db.ref('solarcrm_v2/pontajProbs').on('value', snap=>{
     const raw=snap.val()||{}; probReports=Object.values(raw).filter(Boolean).sort((a,b)=>b.ts-a.ts);
-    if(activeTab==='cereri') renderCereri();
+    if(activeTab==='pv') renderCereri();
   });
   db.ref('solarcrm_v2/pontajTasks').on('value', snap=>{
     const raw=snap.val()||{}; tasks=Object.values(raw).filter(Boolean).sort((a,b)=>b.ts-a.ts);
@@ -863,7 +863,7 @@ function renderCurrentTab(){
   else if(activeTab==='planner') renderPlanner();
   else if(activeTab==='cereri') renderCereri();
   else if(activeTab==='taskuri') renderTasks();
-  else if(activeTab==='pv') renderPv();
+  else if(activeTab==='pv'){ renderPv(); renderCereri(); }
   else if(activeTab==='alerte') renderAlerte();
 }
 
@@ -1399,10 +1399,10 @@ function renderTasks(){
   });
   wrap.innerHTML=html;
   wrap.querySelectorAll('input[data-task-done]').forEach(cb=>cb.addEventListener('change',()=>{
-    const t=tasks.find(x=>x.id===cb.dataset.taskDone); if(t){ t.done=cb.checked; if(t.done) t.progress=100; saveTask(t); }
+    const t=tasks.find(x=>x.id===cb.dataset.taskDone); if(t){ t.done=cb.checked; if(t.done) t.progress=100; saveTask(t); renderTasks(); }
   }));
   wrap.querySelectorAll('select[data-task-status]').forEach(sel=>sel.addEventListener('change',()=>{
-    const t=tasks.find(x=>x.id===sel.dataset.taskStatus); if(t){ t.progress=parseInt(sel.value); saveTask(t); }
+    const t=tasks.find(x=>x.id===sel.dataset.taskStatus); if(t){ t.progress=parseInt(sel.value); saveTask(t); renderTasks(); }
   }));
   wrap.querySelectorAll('button[data-task-del]').forEach(b=>b.addEventListener('click',()=>{
     if(db) db.ref('solarcrm_v2/pontajTasks/'+b.dataset.taskDel).remove(); else { tasks=tasks.filter(x=>x.id!==b.dataset.taskDel); renderTasks(); }
