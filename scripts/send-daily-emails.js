@@ -117,6 +117,19 @@ async function main() {
     return html;
   }
 
+  // ── Task-uri neterminate (asignate din Pontaj) ──
+  const pontajTasksAll = toArray(pontajData.pontajTasks || crmData.pontajTasks);
+  function tasksSectionFor(user, isFull) {
+    const relevant = pontajTasksAll.filter(t => !t.done && (isFull || t.assigneeId === user.id));
+    if (!relevant.length) return '';
+    const sorted = [...relevant].sort((a,b)=>(a.due||'').localeCompare(b.due||''));
+    const rows = sorted.map(t => {
+      const overdue = t.due && t.due < todayISO;
+      return `<li>${t.priority==='urgent'?'<strong style="color:#dc2626;">[Urgent]</strong> ':''}${overdue?'<strong style="color:#dc2626;">[Restant]</strong> ':''}${isFull?'<strong>'+(t.assigneeName||'?')+'</strong> — ':''}${t.desc||''}${t.due?' <span style="color:#94a3b8">· termen '+t.due.split('-').reverse().join('/')+'</span>':''}</li>`;
+    }).join('');
+    return `<h3 style="color:#f59e0b;margin:18px 0 8px;">📌 Task-uri neterminate</h3><ul style="margin:0;padding-left:20px;">${rows}</ul>`;
+  }
+
   // ── Pontaj: deplasări >50km de Arad azi (pentru ordin de deplasare + diurnă) ──
   const HQ_LAT = 46.1866, HQ_LNG = 21.3123;
   function distFromHQ(lat, lng) {
@@ -177,6 +190,7 @@ async function main() {
     if (isFull || notif.planificare) body += planningSectionFor(user, isFull);
     if (isFull || notif.vizita) body += visitsSectionFor(isFull);
     if (isFull || notif.pontaj) body += pontajSectionFor(isFull);
+    body += tasksSectionFor(user, isFull);
     body += deplasariSectionFor(user, isFull);
 
     if (!body.trim()) { console.log(`Fără noutăți pentru ${user.name}, nu trimit.`); continue; }
