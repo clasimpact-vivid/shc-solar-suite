@@ -320,6 +320,7 @@ a:hover{color:#93c5fd;}
 <div class="modal-overlay" id="importModal">
   <div class="modal-card">
     <div class="modal-title">Import proiecte din SolarCRM</div>
+    <input type="text" id="importSearch" placeholder="Caută client, adresă..." style="width:100%;padding:9px 12px;border:1px solid #334155;border-radius:8px;background:#1e293b;color:#f1f5f9;font-size:13px;outline:none;margin-bottom:10px;box-sizing:border-box;">
     <div id="importList" style="max-height:360px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
       <button class="btn btn-ghost" id="btnCancelImport">Anulează</button>
@@ -959,24 +960,34 @@ document.getElementById('btnImportCRM').addEventListener('click',()=>{
   db.ref('solarcrm_v2/projects').once('value',snap=>{
     const raw=snap.val()||{};
     crmProjects=Object.values(raw).filter(p=>p&&p.id);
-    const list=document.getElementById('importList');
-    if(!crmProjects.length){
-      list.innerHTML='<p style="color:#475569;text-align:center;padding:20px;">Niciun proiect în SolarCRM.</p>';
-    } else {
-      list.innerHTML=crmProjects.map((p,i)=>{
-        const already=Object.values(projects).some(pp=>pp.crmId===String(p.id));
-        return `<label style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;background:#1e293b;${already?'opacity:.4;pointer-events:none;':'cursor:pointer;'}">
-          <input type="checkbox" value="${i}" style="width:15px;height:15px;accent-color:#3b82f6;" ${already?'disabled':''}>
-          <div>
-            <div style="font-size:13px;font-weight:700;color:#f1f5f9;">${p.client||'Fără client'}</div>
-            <div style="font-size:11px;color:#64748b;">${p.address||''} ${p.kwp?'· '+p.kwp+' kWp':''} ${p.status?'· '+p.status:''} ${already?'<em style="color:#f59e0b;">· deja importat</em>':''}</div>
-          </div>
-        </label>`;
-      }).join('');
-    }
+    document.getElementById('importSearch').value='';
+    renderImportList();
     document.getElementById('importModal').classList.add('show');
   });
 });
+function renderImportList(){
+  const list=document.getElementById('importList');
+  const q=(document.getElementById('importSearch').value||'').trim().toLowerCase();
+  const filtered=q?crmProjects.filter((p,i)=>((p.client||'')+' '+(p.address||'')).toLowerCase().includes(q)):crmProjects;
+  if(!crmProjects.length){
+    list.innerHTML='<p style="color:#475569;text-align:center;padding:20px;">Niciun proiect în SolarCRM.</p>';
+  } else if(!filtered.length){
+    list.innerHTML='<p style="color:#475569;text-align:center;padding:20px;">Niciun rezultat pentru căutarea ta.</p>';
+  } else {
+    list.innerHTML=filtered.map((p)=>{
+      const i=crmProjects.indexOf(p);
+      const already=Object.values(projects).some(pp=>pp.crmId===String(p.id));
+      return `<label style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;background:#1e293b;${already?'opacity:.4;pointer-events:none;':'cursor:pointer;'}">
+        <input type="checkbox" value="${i}" style="width:15px;height:15px;accent-color:#3b82f6;" ${already?'disabled':''}>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#f1f5f9;">${p.client||'Fără client'}</div>
+          <div style="font-size:11px;color:#64748b;">${p.address||''} ${p.kwp?'· '+p.kwp+' kWp':''} ${p.status?'· '+p.status:''} ${already?'<em style="color:#f59e0b;">· deja importat</em>':''}</div>
+        </div>
+      </label>`;
+    }).join('');
+  }
+}
+document.getElementById('importSearch').addEventListener('input',renderImportList);
 document.getElementById('btnConfirmImport').addEventListener('click',()=>{
   document.getElementById('importList').querySelectorAll('input:checked').forEach(cb=>{
     const p=crmProjects[parseInt(cb.value)]; if(!p) return;
