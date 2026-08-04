@@ -2068,7 +2068,7 @@ class Component extends DCLogic {
     ['click','keydown','mousemove','touchstart','scroll'].forEach(ev=>document.addEventListener(ev,()=>this.shcResetIdle(),{passive:true}));
     const db=getDb();
     if(db){
-      db.ref('shc_chat/messages').limitToLast(200).on('value',snap=>{
+      db.ref('shc_chat/messages').on('value',snap=>{
         const raw=snap.val()||{};
         const msgs=Object.values(raw).filter(Boolean).sort((a,b)=>a.ts-b.ts);
         const u=this.state.currentUser;
