@@ -181,6 +181,7 @@ a:hover{color:#fbbf24;}
     <button class="tab-btn" data-tab="team" id="tabTeamBtn" style="display:none;">Listă echipă</button>
     <button class="tab-btn" data-tab="map" id="tabMapBtn" style="display:none;">Hartă live</button>
     <button class="tab-btn" data-tab="cereri">Cereri</button>
+    <button class="tab-btn" data-tab="taskuri">📌 Task-uri<span id="taskBadge" style="display:none;background:#dc2626;color:#fff;font-size:10px;font-weight:800;border-radius:10px;padding:1px 6px;margin-left:5px;"></span></button>
     <button class="tab-btn" data-tab="pv">Proces verbal</button>
     <button class="tab-btn" data-tab="alerte" id="tabAlerteBtn" style="display:none;">🔔 Alerte<span id="alerteBadge" style="display:none;background:#dc2626;color:#fff;font-size:10px;font-weight:800;border-radius:999px;padding:1px 6px;margin-left:5px;"></span></button>
     <button class="tab-btn" data-tab="export" id="tabExportBtn">Export</button>
@@ -225,6 +226,29 @@ a:hover{color:#fbbf24;}
         <div class="field" style="margin-bottom:10px;"><label>Descriere</label><textarea id="probDesc" class="form-input" rows="2" style="width:100%;"></textarea></div>
         <button class="btn btn-sm" id="btnSubmitProb" style="background:#f59e0b;color:#fff;">Trimite raportul</button>
         <div style="margin-top:16px;" id="probList"></div>
+      </div>
+    </div>
+
+    <!-- TAB: TASK-URI -->
+    <div id="tab-taskuri" class="tab-panel" style="display:none;">
+      <div class="card" id="taskAssignCard" style="display:none;">
+        <div class="section-title">Atribuie task nou</div>
+        <div class="row2" style="margin-bottom:10px;">
+          <div class="field"><label>Către</label><select id="taskAssignee" class="form-select"></select></div>
+          <div class="field"><label>Termen</label><input type="text" id="taskDue" class="form-input" placeholder="dd/mm/yyyy" maxlength="10"></div>
+        </div>
+        <div class="field" style="margin-bottom:10px;"><label>Descriere task</label><textarea id="taskDesc" class="form-input" rows="2" style="width:100%;"></textarea></div>
+        <div class="field" style="margin-bottom:10px;"><label>Prioritate</label>
+          <select id="taskPriority" class="form-select">
+            <option value="normal">Normală</option>
+            <option value="urgent">Urgentă</option>
+          </select>
+        </div>
+        <button class="btn btn-sm" id="btnSubmitTask" style="background:#f59e0b;color:#fff;">Atribuie task</button>
+      </div>
+      <div class="card">
+        <div class="section-title">Task-urile mele</div>
+        <div id="taskList"></div>
       </div>
     </div>
 
@@ -388,9 +412,7 @@ a:hover{color:#fbbf24;}
     </div>
 
   </div>
-  <div style="height:32px;flex-shrink:0;position:relative;overflow:hidden;background:#0a1628;border-top:1px solid #1e3a5f;">
-    <canvas id="sidebarParticleCanvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
-  </div>
+
 </div>
 
 <!-- Manual edit modal -->
@@ -553,6 +575,10 @@ function loadFirebase(){
     const raw=snap.val()||{}; probReports=Object.values(raw).filter(Boolean).sort((a,b)=>b.ts-a.ts);
     if(activeTab==='cereri') renderCereri();
   });
+  db.ref('solarcrm_v2/pontajTasks').on('value', snap=>{
+    const raw=snap.val()||{}; tasks=Object.values(raw).filter(Boolean).sort((a,b)=>b.ts-a.ts);
+    if(activeTab==='taskuri') renderTasks(); else if(currentUser) updateTaskBadge();
+  });
   db.ref('solarcrm_v2/pontajPv').on('value', snap=>{
     const raw=snap.val()||{}; pvRecords=Object.values(raw).filter(Boolean).sort((a,b)=>b.ts-a.ts);
     if(activeTab==='pv') renderPv();
@@ -577,6 +603,8 @@ let leaveReqs=[], probReports=[];
 const LEAVE_LABELS={CO:'Concediu de odihnă',CM:'Concediu medical',IV:'Învoire / liber o zi',LN:'Liber neplătit'};
 function saveLeave(l){ if(db) db.ref('solarcrm_v2/pontajLeave/'+l.id).set(l); else { leaveReqs=[l,...leaveReqs.filter(x=>x.id!==l.id)]; renderCereri(); } }
 function saveProb(p){ if(db) db.ref('solarcrm_v2/pontajProbs/'+p.id).set(p); else { probReports=[p,...probReports.filter(x=>x.id!==p.id)]; renderCereri(); } }
+let tasks=[];
+function saveTask(t){ if(db) db.ref('solarcrm_v2/pontajTasks/'+t.id).set(t); else { tasks=[t,...tasks.filter(x=>x.id!==t.id)]; renderTasks(); } }
 let pvRecords=[];
 function savePv(pv){ if(db) db.ref('solarcrm_v2/pontajPv/'+pv.id).set(pv); else { pvRecords=[pv,...pvRecords.filter(x=>x.id!==pv.id)]; renderPv(); } }
 let notifs=[];
@@ -653,7 +681,6 @@ function completeLoginAsOffice(u){
   const av=document.getElementById('userAvatar');
   av.style.background=u.color||'#f59e0b'; av.textContent=initials(u.name);
   document.getElementById('userName').textContent=u.name;
-  startSidebarParticles();
   resetRestrictedTabs();
   if(canViewTeam()){
     document.getElementById('tabTeamBtn').style.display='';
@@ -782,7 +809,6 @@ function pinPress(k){
       const av=document.getElementById('userAvatar');
       av.style.background=currentUser.color; av.textContent=initials(currentUser.name);
       document.getElementById('userName').textContent=currentUser.name;
-      startSidebarParticles();
       resetRestrictedTabs();
       document.getElementById('tabMyWeekBtn').style.display='';
       document.getElementById('tabMapBtn').style.display='';
@@ -833,6 +859,7 @@ function renderCurrentTab(){
   else if(activeTab==='myweek') renderMyWeek();
   else if(activeTab==='planner') renderPlanner();
   else if(activeTab==='cereri') renderCereri();
+  else if(activeTab==='taskuri') renderTasks();
   else if(activeTab==='pv') renderPv();
   else if(activeTab==='alerte') renderAlerte();
 }
@@ -1317,6 +1344,65 @@ document.getElementById('btnPublishPlan').addEventListener('click',()=>{
 
 // ── CERERI TAB (concedii + probleme) ──
 function canApproveLeave(){ return isFullAccess() || (!!currentUser && currentUser.pontajHR===true); }
+function canAssignTasks(){ return isFullAccess(); }
+function renderTasks(){
+  const admin=canAssignTasks();
+  document.getElementById('taskAssignCard').style.display=admin?'block':'none';
+  if(admin){
+    const sel=document.getElementById('taskAssignee');
+    if(!sel.dataset.filled){
+      loginUsers.filter(u=>u.id!=='_admin').forEach(u=>{ const o=document.createElement('option'); o.value=u.id; o.textContent=u.name; sel.appendChild(o); });
+      sel.dataset.filled='1';
+    }
+  }
+  const mine=admin?tasks:tasks.filter(t=>t.assigneeId===currentUser.id);
+  const wrap=document.getElementById('taskList');
+  if(!mine.length){ wrap.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun task.</div>'; updateTaskBadge(); return; }
+  const todayIso=todayISO();
+  const sorted=[...mine].sort((a,b)=>(a.done===b.done?0:a.done?1:-1)||(a.due||'').localeCompare(b.due||''));
+  let html='';
+  sorted.forEach(t=>{
+    const overdue=!t.done && t.due && t.due<todayIso;
+    const urgent=t.priority==='urgent';
+    html+=`<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #1e293b;${t.done?'opacity:0.5;':''}">
+      <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} style="margin-top:3px;width:18px;height:18px;flex-shrink:0;cursor:pointer;">
+      <div style="flex:1;">
+        <div style="font-size:13.5px;${t.done?'text-decoration:line-through;':''}">${t.desc||''}</div>
+        <div style="font-size:11.5px;color:#94a3b8;margin-top:3px;">
+          ${admin?('către <strong>'+(t.assigneeName||'—')+'</strong> · '):''}
+          ${t.due?('termen '+isoToDmy(t.due)+' '):''}
+          ${urgent?'<span class="badge badge-red">Urgent</span>':''}
+          ${overdue?'<span class="badge badge-red">⚠ Restant</span>':''}
+        </div>
+      </div>
+      ${admin?'<button data-task-del="'+t.id+'" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:15px;">✕</button>':''}
+    </div>`;
+  });
+  wrap.innerHTML=html;
+  wrap.querySelectorAll('input[data-task-done]').forEach(cb=>cb.addEventListener('change',()=>{
+    const t=tasks.find(x=>x.id===cb.dataset.taskDone); if(t){ t.done=cb.checked; saveTask(t); }
+  }));
+  wrap.querySelectorAll('button[data-task-del]').forEach(b=>b.addEventListener('click',()=>{
+    if(db) db.ref('solarcrm_v2/pontajTasks/'+b.dataset.taskDel).remove(); else { tasks=tasks.filter(x=>x.id!==b.dataset.taskDel); renderTasks(); }
+  }));
+  updateTaskBadge();
+}
+function updateTaskBadge(){
+  const badge=document.getElementById('taskBadge');
+  const mine=tasks.filter(t=>t.assigneeId===currentUser.id && !t.done);
+  if(mine.length){ badge.style.display='inline-block'; badge.textContent=mine.length; } else badge.style.display='none';
+}
+document.getElementById('btnSubmitTask').addEventListener('click',()=>{
+  const assigneeId=document.getElementById('taskAssignee').value;
+  const assigneeName=(loginUsers.find(u=>u.id===assigneeId)||{}).name||'';
+  const desc=document.getElementById('taskDesc').value.trim();
+  const dueDmy=document.getElementById('taskDue').value.trim();
+  const priority=document.getElementById('taskPriority').value;
+  if(!assigneeId||!desc){ alert('Completează colegul și descrierea task-ului.'); return; }
+  const t={id:'task_'+Date.now(),assigneeId,assigneeName,desc,due:dueDmy?dmyToIso(dueDmy):null,priority,done:false,ts:Date.now(),createdBy:currentUser.name};
+  saveTask(t);
+  document.getElementById('taskDesc').value=''; document.getElementById('taskDue').value='';
+});
 function sendLeaveEmail(l, decision){
   if(!window.emailjs) return;
   const requester = loginUsers.find(u=>u.id===l.userId);
@@ -1640,41 +1726,6 @@ function addCalendarPicker(textId){
 addCalendarPicker('teamDate'); addCalendarPicker('exportFrom'); addCalendarPicker('exportTo');
 addCalendarPicker('leaveFrom'); addCalendarPicker('leaveTo');
 
-function startSidebarParticles(){
-  if(window.innerWidth<=768) return;
-  const canvas=document.getElementById('sidebarParticleCanvas');
-  if(!canvas||canvas._started) return; canvas._started=true;
-  const ctx=canvas.getContext('2d');
-  let W,H,particles=[];
-  function resize(){ const r=canvas.parentElement.getBoundingClientRect(); W=canvas.width=Math.max(r.width||window.innerWidth,50); H=canvas.height=32; }
-  function mkParticle(){
-    return { x:Math.random()*W, y:Math.random()*H, z:Math.random()*600+100, vz:-(Math.random()*0.4+0.1),
-      color:['#3b82f6','#f59e0b','#10b981','#8b5cf6','#06b6d4','#f97316','#ec4899'][Math.floor(Math.random()*7)],
-      pulse:Math.random()*Math.PI*2, pulseSpeed:Math.random()*0.02+0.01 };
-  }
-  function init(){ resize(); particles=[]; for(let i=0;i<55;i++) particles.push(mkParticle()); }
-  function project(p){ const fov=400; const scale=fov/(fov+p.z); return { x:W/2+(p.x-W/2)*scale, y:H/2+(p.y-H/2)*scale, r:Math.max(0.5,(8-p.z/100)*scale*2) }; }
-  function draw(){
-    if(!document.body.contains(canvas)) return;
-    ctx.clearRect(0,0,W,H);
-    particles.sort((a,b)=>b.z-a.z);
-    particles.forEach(p=>{
-      p.z+=p.vz*2; p.pulse+=p.pulseSpeed;
-      if(p.z<50||p.z>700){ Object.assign(p,mkParticle(),{z:650}); return; }
-      const {x,y,r}=project(p);
-      const pulseMod=1+Math.sin(p.pulse)*0.3;
-      const rr=r*pulseMod;
-      const g=ctx.createRadialGradient(x,y,0,x,y,rr*3);
-      g.addColorStop(0,p.color+'cc'); g.addColorStop(0.4,p.color+'44'); g.addColorStop(1,'transparent');
-      ctx.beginPath(); ctx.arc(x,y,rr*3,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
-      ctx.beginPath(); ctx.arc(x,y,rr,0,Math.PI*2); ctx.fillStyle=p.color; ctx.fill();
-    });
-    requestAnimationFrame(draw);
-  }
-  init(); draw();
-  window.addEventListener('resize',resize);
-  setTimeout(resize,200);
-}
 populateLoginUsers();
 loadFirebase();
 </script>
