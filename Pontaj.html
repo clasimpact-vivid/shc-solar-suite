@@ -1379,14 +1379,20 @@ function renderTasks(){
           ${urgent?'<span class="badge badge-red">Urgent</span>':''}
           ${overdue?'<span class="badge badge-red">⚠ Restant</span>':''}
         </div>
-        ${!t.done?`<div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+        ${!t.done?`<div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <select data-task-status="${t.id}" class="form-select" style="font-size:11.5px;padding:3px 6px;width:auto;">
             <option value="0" ${(!t.progress||t.progress==0)?'selected':''}>Neînceput</option>
             <option value="25" ${t.progress==25?'selected':''}>25% — pornit</option>
             <option value="50" ${t.progress==50?'selected':''}>50% — pe jumătate</option>
             <option value="75" ${t.progress==75?'selected':''}>75% — aproape gata</option>
           </select>
-        </div>`:''}
+          <div style="flex:1;min-width:80px;max-width:160px;height:7px;background:#1e293b;border-radius:4px;overflow:hidden;">
+            <div style="width:${t.progress||0}%;height:100%;background:${(t.progress||0)>=75?'#eab308':(t.progress||0)>=50?'#3b82f6':(t.progress||0)>=25?'#f97316':'#475569'};border-radius:4px;transition:width .2s;"></div>
+          </div>
+        </div>`:`<div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+          <div style="flex:1;max-width:160px;height:7px;background:#1e293b;border-radius:4px;overflow:hidden;"><div style="width:100%;height:100%;background:#16a34a;border-radius:4px;"></div></div>
+          <span style="font-size:11px;color:#16a34a;font-weight:700;">100% ✓</span>
+        </div>`}
       </div>
       ${admin?'<button data-task-del="'+t.id+'" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:15px;">✕</button>':''}
     </div>`;
