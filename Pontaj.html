@@ -1358,7 +1358,7 @@ function renderTasks(){
       sel.dataset.filled='1';
     }
   }
-  const mine=admin?tasks:tasks.filter(t=>t.assigneeId===currentUser.id);
+  const mine=tasks;
   const wrap=document.getElementById('taskList');
   if(!mine.length){ wrap.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun task.</div>'; updateTaskBadge(); return; }
   const todayIso=todayISO();
@@ -1368,18 +1368,18 @@ function renderTasks(){
     const overdue=!t.done && t.due && t.due<todayIso;
     const urgent=t.priority==='urgent';
     html+=`<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #1e293b;${t.done?'opacity:0.5;':''}">
-      <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} style="margin-top:3px;width:18px;height:18px;flex-shrink:0;cursor:pointer;">
+      <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} ${t.assigneeId!==currentUser.id?'disabled':''} style="margin-top:3px;width:18px;height:18px;flex-shrink:0;cursor:${t.assigneeId===currentUser.id?'pointer':'not-allowed'};">
       <div style="flex:1;">
         <div style="font-size:13.5px;${t.done?'text-decoration:line-through;':''}">${t.desc||''}</div>
         <div style="font-size:11.5px;color:#94a3b8;margin-top:3px;">
-          ${admin?('către <strong>'+(t.assigneeName||'—')+'</strong> · '):''}
-          ${(!admin&&!t.done&&t.progress)?('<span class="badge badge-amber">'+t.progress+'%</span> '):''}
+          către <strong>${t.assigneeName||'—'}</strong> ·
+          ${(!admin&&t.assigneeId!==currentUser.id&&!t.done&&t.progress)?('<span class="badge badge-amber">'+t.progress+'%</span> '):''}
           atribuit de <strong>${t.createdBy||'—'}</strong>
           ${t.due?(' · termen '+isoToDmy(t.due)+(t.dueTime?' ora '+t.dueTime:'')):''}
           ${urgent?'<span class="badge badge-red">Urgent</span>':''}
           ${overdue?'<span class="badge badge-red">⚠ Restant</span>':''}
         </div>
-        ${!t.done?`<div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        ${(!t.done&&t.assigneeId===currentUser.id)?`<div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <select data-task-status="${t.id}" class="form-select" style="font-size:11.5px;padding:3px 6px;width:auto;">
             <option value="0" ${(!t.progress||t.progress==0)?'selected':''}>Neînceput</option>
             <option value="25" ${t.progress==25?'selected':''}>25% — pornit</option>
@@ -1389,6 +1389,9 @@ function renderTasks(){
           <div style="flex:1;min-width:80px;max-width:160px;height:7px;background:#1e293b;border-radius:4px;overflow:hidden;">
             <div style="width:${t.progress||0}%;height:100%;background:${(t.progress||0)>=75?'#eab308':(t.progress||0)>=50?'#3b82f6':(t.progress||0)>=25?'#f97316':'#475569'};border-radius:4px;transition:width .2s;"></div>
           </div>
+        </div>`:!t.done?`<div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+          <div style="flex:1;max-width:160px;height:7px;background:#1e293b;border-radius:4px;overflow:hidden;"><div style="width:${t.progress||0}%;height:100%;background:${(t.progress||0)>=75?'#eab308':(t.progress||0)>=50?'#3b82f6':(t.progress||0)>=25?'#f97316':'#475569'};border-radius:4px;"></div></div>
+          <span style="font-size:11px;color:#94a3b8;">${t.progress||0}%</span>
         </div>`:`<div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
           <div style="flex:1;max-width:160px;height:7px;background:#1e293b;border-radius:4px;overflow:hidden;"><div style="width:100%;height:100%;background:#16a34a;border-radius:4px;"></div></div>
           <span style="font-size:11px;color:#16a34a;font-weight:700;">100% ✓</span>
