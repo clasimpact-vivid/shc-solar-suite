@@ -1736,8 +1736,8 @@ function addTimeMask(id){
     this._prev=this.value;
   });
 }
-addDateMask('teamDate'); addDateMask('exportFrom'); addDateMask('exportTo');
-addTimeMask('editInTime'); addTimeMask('editOutTime');
+addDateMask('teamDate'); addDateMask('exportFrom'); addDateMask('exportTo'); addDateMask('taskDue');
+addTimeMask('editInTime'); addTimeMask('editOutTime'); addTimeMask('taskDueTime');
 function addCalendarPicker(textId){
   const textEl=document.getElementById(textId);
   if(!textEl) return;
@@ -1761,7 +1761,7 @@ function addCalendarPicker(textId){
     if(hidden.value){ textEl.value=isoToDmy(hidden.value); textEl.dispatchEvent(new Event('input',{bubbles:true})); }
   });
 }
-addCalendarPicker('teamDate'); addCalendarPicker('exportFrom'); addCalendarPicker('exportTo');
+addCalendarPicker('teamDate'); addCalendarPicker('exportFrom'); addCalendarPicker('exportTo'); addCalendarPicker('taskDue');
 addCalendarPicker('leaveFrom'); addCalendarPicker('leaveTo');
 
 populateLoginUsers();
