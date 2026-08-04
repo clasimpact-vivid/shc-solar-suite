@@ -99,9 +99,10 @@ a:hover{color:#93c5fd;}
 
 /* Print */
 @media print{
-  body *{visibility:hidden;}
-  #printArea,#printArea *{visibility:visible;}
-  #printArea{position:absolute;top:0;left:0;width:100%;}
+  body{margin:0;padding:0;}
+  body *{display:none;}
+  #printArea{display:block !important;position:static;width:100%;margin:0;padding:0;}
+  #printArea *{display:block !important;visibility:visible;}
 }
 #printArea{display:none;}
 [style*="cursor:pointer"], [style*="cursor: pointer"] { -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:rgba(0,0,0,0.06); }
@@ -655,7 +656,7 @@ document.getElementById('btnSaveVisit').addEventListener('click',()=>{
   document.getElementById('visitTitleDisplay').textContent=v.address||v.client||'Vizită nouă';
   alert('Vizită salvată!');
 });
-function canDelete(){ return !!currentUser && (currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'||currentUser.role==='Manager'); }
+function canDelete(){ return !!currentUser && (currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'); }
 
 document.getElementById('btnDeleteVisit').addEventListener('click',()=>{
   if(!canDelete()){ alert('Doar Alexandru Chirila și Ionuț Nicoraș pot șterge vizite.'); return; }
