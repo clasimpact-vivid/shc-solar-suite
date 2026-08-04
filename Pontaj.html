@@ -235,15 +235,18 @@ a:hover{color:#fbbf24;}
         <div class="section-title">Atribuie task nou</div>
         <div class="row2" style="margin-bottom:10px;">
           <div class="field"><label>Către</label><select id="taskAssignee" class="form-select"></select></div>
-          <div class="field"><label>Termen</label><input type="text" id="taskDue" class="form-input" placeholder="dd/mm/yyyy" maxlength="10"></div>
+          <div class="field"><label>Termen (dată)</label><input type="text" id="taskDue" class="form-input" placeholder="dd/mm/yyyy" maxlength="10"></div>
+        </div>
+        <div class="row2" style="margin-bottom:10px;">
+          <div class="field"><label>Ora (24h)</label><input type="text" id="taskDueTime" class="form-input" placeholder="14:30" maxlength="5"></div>
+          <div class="field"><label>Prioritate</label>
+            <select id="taskPriority" class="form-select">
+              <option value="normal">Normală</option>
+              <option value="urgent">Urgentă</option>
+            </select>
+          </div>
         </div>
         <div class="field" style="margin-bottom:10px;"><label>Descriere task</label><textarea id="taskDesc" class="form-input" rows="2" style="width:100%;"></textarea></div>
-        <div class="field" style="margin-bottom:10px;"><label>Prioritate</label>
-          <select id="taskPriority" class="form-select">
-            <option value="normal">Normală</option>
-            <option value="urgent">Urgentă</option>
-          </select>
-        </div>
         <button class="btn btn-sm" id="btnSubmitTask" style="background:#f59e0b;color:#fff;">Atribuie task</button>
       </div>
       <div class="card">
@@ -1370,17 +1373,30 @@ function renderTasks(){
         <div style="font-size:13.5px;${t.done?'text-decoration:line-through;':''}">${t.desc||''}</div>
         <div style="font-size:11.5px;color:#94a3b8;margin-top:3px;">
           ${admin?('către <strong>'+(t.assigneeName||'—')+'</strong> · '):''}
-          ${t.due?('termen '+isoToDmy(t.due)+' '):''}
+          ${(!admin&&!t.done&&t.progress)?('<span class="badge badge-amber">'+t.progress+'%</span> '):''}
+          atribuit de <strong>${t.createdBy||'—'}</strong>
+          ${t.due?(' · termen '+isoToDmy(t.due)+(t.dueTime?' ora '+t.dueTime:'')):''}
           ${urgent?'<span class="badge badge-red">Urgent</span>':''}
           ${overdue?'<span class="badge badge-red">⚠ Restant</span>':''}
         </div>
+        ${!t.done?`<div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+          <select data-task-status="${t.id}" class="form-select" style="font-size:11.5px;padding:3px 6px;width:auto;">
+            <option value="0" ${(!t.progress||t.progress==0)?'selected':''}>Neînceput</option>
+            <option value="25" ${t.progress==25?'selected':''}>25% — pornit</option>
+            <option value="50" ${t.progress==50?'selected':''}>50% — pe jumătate</option>
+            <option value="75" ${t.progress==75?'selected':''}>75% — aproape gata</option>
+          </select>
+        </div>`:''}
       </div>
       ${admin?'<button data-task-del="'+t.id+'" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:15px;">✕</button>':''}
     </div>`;
   });
   wrap.innerHTML=html;
   wrap.querySelectorAll('input[data-task-done]').forEach(cb=>cb.addEventListener('change',()=>{
-    const t=tasks.find(x=>x.id===cb.dataset.taskDone); if(t){ t.done=cb.checked; saveTask(t); }
+    const t=tasks.find(x=>x.id===cb.dataset.taskDone); if(t){ t.done=cb.checked; if(t.done) t.progress=100; saveTask(t); }
+  }));
+  wrap.querySelectorAll('select[data-task-status]').forEach(sel=>sel.addEventListener('change',()=>{
+    const t=tasks.find(x=>x.id===sel.dataset.taskStatus); if(t){ t.progress=parseInt(sel.value); saveTask(t); }
   }));
   wrap.querySelectorAll('button[data-task-del]').forEach(b=>b.addEventListener('click',()=>{
     if(db) db.ref('solarcrm_v2/pontajTasks/'+b.dataset.taskDel).remove(); else { tasks=tasks.filter(x=>x.id!==b.dataset.taskDel); renderTasks(); }
@@ -1394,15 +1410,28 @@ function updateTaskBadge(){
 }
 document.getElementById('btnSubmitTask').addEventListener('click',()=>{
   const assigneeId=document.getElementById('taskAssignee').value;
-  const assigneeName=(loginUsers.find(u=>u.id===assigneeId)||{}).name||'';
+  const assignee=loginUsers.find(u=>u.id===assigneeId)||{};
+  const assigneeName=assignee.name||'';
   const desc=document.getElementById('taskDesc').value.trim();
   const dueDmy=document.getElementById('taskDue').value.trim();
+  const dueTime=document.getElementById('taskDueTime').value.trim();
   const priority=document.getElementById('taskPriority').value;
   if(!assigneeId||!desc){ alert('Completează colegul și descrierea task-ului.'); return; }
-  const t={id:'task_'+Date.now(),assigneeId,assigneeName,desc,due:dueDmy?dmyToIso(dueDmy):null,priority,done:false,ts:Date.now(),createdBy:currentUser.name};
+  const t={id:'task_'+Date.now(),assigneeId,assigneeName,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,done:false,ts:Date.now(),createdBy:currentUser.name};
   saveTask(t);
-  document.getElementById('taskDesc').value=''; document.getElementById('taskDue').value='';
+  sendTaskEmail(t,assignee);
+  document.getElementById('taskDesc').value=''; document.getElementById('taskDue').value=''; document.getElementById('taskDueTime').value='';
 });
+function sendTaskEmail(t,assignee){
+  if(!window.emailjs||!assignee.email) return;
+  const subject='Task nou de la '+t.createdBy;
+  const message='Bună, '+ (assignee.name||'').split(' ')[0] +'!\n\n'+
+    t.createdBy+' ți-a atribuit un task nou'+(t.priority==='urgent'?' (URGENT)':'')+':\n\n'+
+    t.desc+'\n\n'+
+    (t.due?('Termen: '+isoToDmy(t.due)+(t.dueTime?' ora '+t.dueTime:'')+'\n\n'):'')+
+    'Îl poți vedea și bifa în aplicația Pontaj, tab Task-uri.\n\nSHC Solar Suite — Pontaj';
+  emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:assignee.email, subject, message}).catch(()=>{});
+}
 function sendLeaveEmail(l, decision){
   if(!window.emailjs) return;
   const requester = loginUsers.find(u=>u.id===l.userId);
