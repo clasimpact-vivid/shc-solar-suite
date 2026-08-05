@@ -1533,7 +1533,7 @@ AVRAMUT	SORIN-ILIE	Electrician" style="width:100%;min-height:220px;font-family:m
           <div style="font-size:12px;color:#94a3b8;margin-top:3px;">{{ pinUserErrMsg }}</div>
         </div>
         <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;">
-          <sc-for list="{{ pinUserDots }}" as="d" hint-placeholder-count="5">
+          <sc-for list="{{ pinUserDots }}" as="d" hint-placeholder-count="4">
             <div style="width:14px;height:14px;border-radius:50%;border:2px solid {{ d.color }};background:{{ d.bg }};"></div>
           </sc-for>
         </div>
@@ -2504,7 +2504,7 @@ class Component extends DCLogic {
   pinStepDigit(d){
     this.setState(s=>{
       const buf=(s.pinStepBuffer||'')+d;
-      if(buf.length>=5){ setTimeout(()=>this.confirmPinStep(),50); return {pinStepBuffer:buf.slice(0,5),pinStepErr:false}; }
+      if(buf.length>=4){ setTimeout(()=>this.confirmPinStep(),50); return {pinStepBuffer:buf.slice(0,4),pinStepErr:false}; }
       return {pinStepBuffer:buf,pinStepErr:false};
     });
   }
@@ -3224,7 +3224,7 @@ class Component extends DCLogic {
       showPinUserStep:!!pinStepUser,
       pinStepUserName:pinUserObj?pinUserObj.name:'',pinStepColor:pinUserObj?pinUserObj.color:'#94a3b8',pinStepInitials:pinUserObj?initials(pinUserObj.name):'?',
       pinUserErrMsg:pinStepErr?'Cod greșit — încearcă din nou':'Introdu codul PIN personal',
-      pinUserDots:[0,1,2,3,4].map(i=>({color:pinStepErr?'#ef4444':'#2563eb',bg:i<(pinStepBuffer||'').length?(pinStepErr?'#ef4444':'#2563eb'):'transparent'})),
+      pinUserDots:[0,1,2,3].map(i=>({color:pinStepErr?'#ef4444':'#2563eb',bg:i<(pinStepBuffer||'').length?(pinStepErr?'#ef4444':'#2563eb'):'transparent'})),
       pinUserKeys:['1','2','3','4','5','6','7','8','9','clear','0','del'].map(k=>({label:k==='del'?'⌫':(k==='clear'?'C':k),visible:true,onClick:()=>{ if(k==='del')this.pinStepBack(); else if(k==='clear')this.setState({pinStepBuffer:''}); else this.pinStepDigit(k); }})),
       cancelPinUserStep:()=>this.setState({pinStepUser:null,pinStepBuffer:''}),      pwInput,onPwInput:e=>this.setState({pwInput:e.target.value}),
       onPwKeyDown:e=>{ if(e.key==='Enter')this.confirmPassword(); },
