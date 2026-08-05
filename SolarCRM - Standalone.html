@@ -2464,7 +2464,7 @@ class Component extends DCLogic {
       const users=this.state.users;
       const allForLogin=[{...ADMIN_USER,password:this.adminPassword,pin:this.adminPin},...users];
       const match=allForLogin.find(u=>u.pin && u.pin===buf);
-      if(!match){
+      if(!match || (match.apps && match.apps.crm===false)){
         this.shcRegisterFail();
         this.setState({pinErr:true});
         if(this.shcIsLocked()){ this.setState({pinBuffer:''}); this.shcStartLockCountdown(); return; }
