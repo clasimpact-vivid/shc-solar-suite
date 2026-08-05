@@ -1,0 +1,50 @@
+Nicoras	Ionut-Vasile	administrator
+Boit	Dorin - Sebastian	birou
+Simon	Eszter	contabil intern
+Dobre	Cristian-Adrian	dir. vanz
+Jivan	Mihai-Adrian	economist
+Palcu	Cristian	economist
+Avramut	Sorin-Ilie	electrician
+Botas	Ronel	electrician
+Buliga	Adrian	electrician
+Cimpan	Calin-Florin	electrician
+Cosacu	Cristian	electrician
+Costea	Calin-Alexandru	electrician
+Demeter	Sergiu - Ionel	electrician
+Deznan	Adrian-Dorin	electrician
+Dorobantu	Denis-Madalin	electrician
+Halasz	Catalin-Ioan	electrician
+Ilies	Marius - Ionut	electrician
+Mois	Vasile	electrician
+Ardelean	Stefan-Dumitru	gestionar depozit
+Gircsis	Raul	inginer
+Lengyel	Leonard-Levente	inginer
+Takats	Cristian-Flavius	inginer
+Lunga	Alexandru	inginer
+Pustea	Aurel-Alin	manager proiect
+Apostol	Romica	montator
+Arsene	Mirel-Adrian	montator
+Bulz	Claudiu-Ilie	montator
+Codau	Danut-Dumitru	montator
+Coroban	Cristian-Ionel	montator
+Costea	Lucian-Cristian	montator
+Deloreanu	Eugen-Cosmin	montator
+Diaconu	Andrei	montator
+Drigla	Robert-Catalin	montator
+Istin	Serafim-Rares	montator
+Lavrincic	Iaroslav	montator
+Lingurar	Cerasel-Razvan	montator
+Mot	Cosmin-Rafael	montator
+Nicoras	Gheorghe	montator
+Peia	Andrei-Giorgian	montator
+Pincotan	Ruben-Alexandru	montator
+Sferdian	Alexandru-Denis	montator
+Siclovan	Calin	montator
+Stamate	Ion	montator
+Tomuleasa	Andrei-Leonardo	montator
+Vidican	Ioan	montator
+Soltesz	Paul	montator
+Crisan	Daniel	montator
+Nadaban	Anca-Simona	registrator
+Sirb	Beniamin-Sorin	rep vanzari
+Pantea	Sebastian-Adrian	technician instalatii

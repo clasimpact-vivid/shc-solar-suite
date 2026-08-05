@@ -2656,8 +2656,9 @@ class Component extends DCLogic {
   mapFunctieToRoleTemplate(fn){
     const f=(fn||'').toLowerCase();
     if(!f) return 'montator';
-    if(f.indexOf('montator')>=0||f.indexOf('electrician')>=0||f.indexOf('gestionar')>=0||f.indexOf('technician')>=0||f.indexOf('tehnician')>=0) return 'montator';
-    if(f.indexOf('inginer')>=0) return 'sefechipa';
+    if(f.indexOf('administrator')>=0) return 'birou';
+    if(f.indexOf('dir. vanz')>=0||f.indexOf('director vanzari')>=0||f.indexOf('rep vanzari')>=0||f.indexOf('reprezentant vanzari')>=0) return 'agent';
+    if(f.indexOf('montator')>=0||f.indexOf('electrician')>=0||f.indexOf('technician')>=0||f.indexOf('tehnician')>=0) return 'montator';
     return 'birou';
   }
   umSubmitBulk(){
