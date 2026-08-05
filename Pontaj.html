@@ -176,9 +176,9 @@ a:hover{color:#fbbf24;}
 
   <div id="tabBar">
     <button class="tab-btn active" data-tab="today">🕐 Pontaj azi</button>
-    <button class="tab-btn" data-tab="taskuri">📌 Task-uri<span id="taskBadge" style="display:none;background:#dc2626;color:#fff;font-size:10px;font-weight:800;border-radius:10px;padding:1px 6px;margin-left:5px;"></span></button>
-    <button class="tab-btn" data-tab="pv">📝 Proces verbal</button>
-    <button class="tab-btn" data-tab="cereri">🌴 Cereri</button>
+    <button class="tab-btn" data-tab="taskuri" id="tabTaskuriBtn">📌 Task-uri<span id="taskBadge" style="display:none;background:#dc2626;color:#fff;font-size:10px;font-weight:800;border-radius:10px;padding:1px 6px;margin-left:5px;"></span></button>
+    <button class="tab-btn" data-tab="pv" id="tabPvBtn">📝 Proces verbal</button>
+    <button class="tab-btn" data-tab="cereri" id="tabCereriBtn">🌴 Cereri</button>
     <button class="tab-btn" data-tab="myweek" id="tabMyWeekBtn" style="display:none;">📆 Programul meu</button>
     <button class="tab-btn" data-tab="planner" id="tabPlannerBtn" style="display:none;">🗓️ Planificator</button>
     <button class="tab-btn" data-tab="team" id="tabTeamBtn" style="display:none;">👥 Listă echipă</button>
@@ -682,6 +682,8 @@ function resetRestrictedTabs(){
   ['tabTeamBtn','tabMapBtn','tabPlannerBtn','tabMyWeekBtn','tabAlerteBtn'].forEach(id=>{ document.getElementById(id).style.display='none'; });
   document.getElementById('exportUserField').style.display='none';
   document.getElementById('tabExportBtn').style.display='';
+  document.getElementById('tabPvBtn').style.display='';
+  document.getElementById('tabCereriBtn').style.display='';
 }
 function doLogin(){
   const uid2=document.getElementById('loginUser').value;
@@ -831,6 +833,7 @@ function pinPress(k){
       document.getElementById('userName').textContent=currentUser.name;
       resetRestrictedTabs();
       document.getElementById('tabExportBtn').style.display='none';
+      document.getElementById('tabTaskuriBtn').style.display='none';
       populateExportUsers(); initExportForm();
       document.getElementById('todayDateLabel').textContent=new Date().toLocaleDateString('ro-RO',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
       renderCurrentTab();
