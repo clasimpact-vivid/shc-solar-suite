@@ -1525,6 +1525,29 @@ AVRAMUT	SORIN-ILIE	Electrician" style="width:100%;min-height:220px;font-family:m
         </div>
       </sc-if>
 
+      <!-- PIN STEP FOR NON-PASSWORD USER -->
+      <sc-if value="{{ showPinUserStep }}" hint-placeholder-val="{{ false }}">
+        <div style="text-align:center;padding:8px 0 20px;">
+          <div style="width:60px;height:60px;border-radius:50%;background:{{ pinStepColor }};display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:700;margin:0 auto 12px;">{{ pinStepInitials }}</div>
+          <div style="font-size:17px;font-weight:700;color:#0f172a;">{{ pinStepUserName }}</div>
+          <div style="font-size:12px;color:#94a3b8;margin-top:3px;">{{ pinUserErrMsg }}</div>
+        </div>
+        <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;">
+          <sc-for list="{{ pinUserDots }}" as="d" hint-placeholder-count="5">
+            <div style="width:14px;height:14px;border-radius:50%;border:2px solid {{ d.color }};background:{{ d.bg }};"></div>
+          </sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:260px;margin:0 auto 14px;">
+          <sc-for list="{{ pinUserKeys }}" as="k" hint-placeholder-count="12">
+            <sc-if value="{{ k.visible }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ k.onClick }}" style="height:52px;border-radius:12px;border:1px solid #e2e8f0;background:#f8fafc;font-size:19px;font-weight:700;color:#0f172a;cursor:pointer;">{{ k.label }}</button>
+            </sc-if>
+            <sc-if value="{{ !k.visible }}" hint-placeholder-val="{{ false }}"><div></div></sc-if>
+          </sc-for>
+        </div>
+        <button onClick="{{ cancelPinUserStep }}" style="width:100%;padding:10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:#374151;">← Înapoi</button>
+      </sc-if>
+
       <!-- PIN QUICK LOGIN (implicit) -->
       <sc-if value="{{ showPinStep }}" hint-placeholder-val="{{ true }}">
         <div style="text-align:center;padding:4px 0 18px;">
@@ -2055,6 +2078,7 @@ class Component extends DCLogic {
     currentUser:null, users:[...DEFAULT_USERS],
     showUserModal:true, userModalMode:'login',
     pwStep:null, pwInput:'',
+    pinStepUser:null, pinStepBuffer:'', pinStepErr:false,
     pinMode:true, pinBuffer:'', pinErr:false,
     statusModal:{show:false,projectId:null,newStatus:'',reason:''},
     showUserMgmt:false, userMgmtMode:'list', editingUserId:null,
@@ -2461,9 +2485,30 @@ class Component extends DCLogic {
   tryLogin(user){
     if(user.apps && user.apps.crm===false){ window.alert('Nu ai acces la SolarCRM. Contactează administratorul.'); return; }
     const pw = user.id===ADMIN_ID ? this.adminPassword : user.password;
-    if(!pw){ this.loginUser(user); return; }
+    if(!pw){ this.setState({pwStep:null,pinStepUser:user.id,pinStepBuffer:'',pinStepErr:false}); return; }
     this.setState({pwStep:user.id,pwInput:''});
   }
+  confirmPinStep(){
+    const {pinStepUser,pinStepBuffer,users}=this.state;
+    const user=users.find(u=>u.id===pinStepUser);
+    if(!user)return;
+    if(!user.pin || pinStepBuffer!==user.pin){
+      this.setState({pinStepErr:true});
+      setTimeout(()=>this.setState(s=>({pinStepBuffer:'',pinStepErr:false})),700);
+      return;
+    }
+    if(user.apps && user.apps.crm===false){ window.alert('Nu ai acces la SolarCRM. Contactează administratorul.'); return; }
+    this.setState({pinStepUser:null,pinStepBuffer:''});
+    this.loginUser(user);
+  }
+  pinStepDigit(d){
+    this.setState(s=>{
+      const buf=(s.pinStepBuffer||'')+d;
+      if(buf.length>=5){ setTimeout(()=>this.confirmPinStep(),50); return {pinStepBuffer:buf.slice(0,5),pinStepErr:false}; }
+      return {pinStepBuffer:buf,pinStepErr:false};
+    });
+  }
+  pinStepBack(){ this.setState(s=>({pinStepBuffer:(s.pinStepBuffer||'').slice(0,-1),pinStepErr:false})); }
   confirmPassword(){
     const {pwStep,pwInput,users}=this.state;
     if(pwStep===ADMIN_ID){
@@ -2925,6 +2970,8 @@ class Component extends DCLogic {
 
     const pwStepAll=[{...ADMIN_USER,password:this.adminPassword},...users];
     const pwUser=pwStep?pwStepAll.find(u=>u.id===pwStep):null;
+    const {pinStepUser,pinStepBuffer,pinStepErr}=this.state;
+    const pinUserObj=pinStepUser?pwStepAll.find(u=>u.id===pinStepUser):null;
 
     // Form
     const fPV=!!form.typePV,fInv=!!form.typeInverter,fBat=!!form.typeBaterie,fBESS=!!form.typeBESS;
@@ -3150,7 +3197,7 @@ class Component extends DCLogic {
       confirmStatus:()=>this.confirmStatusChange(),cancelStatus:()=>this.setState(s=>({statusModal:{...s.statusModal,show:false}})),
       showUserModal,
       showLoginScreen: showUserModal && userModalMode==='login' && !pwStep,
-      isLoginMode: userModalMode==='login',
+    isLoginMode: userModalMode==='login',
       loginBgStyle: userModalMode==='login' ? 'rgba(9,15,28,0.97)' : 'rgba(15,23,41,0.65)',
       loginModalBg: userModalMode==='login' ? '#111827' : '#fff',
       loginModalWidth: userModalMode==='login' ? '380px' : '420px',
@@ -3164,8 +3211,8 @@ class Component extends DCLogic {
       userModalTitle:pwStep?'Autentificare':(userModalMode==='login'?'Bun venit în SolarCRM':'Schimbă contul'),
       userModalSubtitle:pwStep?'Contul este protejat prin parolă':'Toate conturile sunt protejate prin parolă',
       userModalBgClick:()=>{ if(userModalMode==='switch')this.setState({showUserModal:false,pwStep:null,pwInput:''}); },
-      showPwStep:pwStep!==null && !this.state.pinMode,showNormalStep:pwStep===null && !this.state.pinMode,
-      showPinStep:this.state.pinMode===true,
+      showPwStep:pwStep!==null && !this.state.pinMode && !pinStepUser,showNormalStep:pwStep===null && !this.state.pinMode && !pinStepUser,
+      showPinStep:this.state.pinMode===true && !pinStepUser,
       openPinMode:e=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({pinMode:true,pinBuffer:'',pinErr:false}); },
       closePinMode:e=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({pinMode:false,pinBuffer:'',pinErr:false}); },
       fbWriteError:this.state.fbWriteError||null,
@@ -3174,7 +3221,12 @@ class Component extends DCLogic {
       pinDots:[0,1,2,3].map(i=>({color:this.state.pinErr?'#ef4444':'#f59e0b',bg:i<this.state.pinBuffer.length?(this.state.pinErr?'#ef4444':'#f59e0b'):'transparent'})),
       pinKeys:['1','2','3','4','5','6','7','8','9','clear','0','del'].map(k=>({label:k==='del'?'⌫':(k==='clear'?'C':k),visible:true,blank:false,bg:this.state.pinFlash===k?'#7f1d1d':'#1e293b',onClick:()=>this.pinPress(k)})),
       pwStepUser:pwUser?pwUser.name:'',pwStepColor:pwUser?pwUser.color:'#94a3b8',pwStepInitials:pwUser?initials(pwUser.name):'?',
-      pwInput,onPwInput:e=>this.setState({pwInput:e.target.value}),
+      showPinUserStep:!!pinStepUser,
+      pinStepUserName:pinUserObj?pinUserObj.name:'',pinStepColor:pinUserObj?pinUserObj.color:'#94a3b8',pinStepInitials:pinUserObj?initials(pinUserObj.name):'?',
+      pinUserErrMsg:pinStepErr?'Cod greșit — încearcă din nou':'Introdu codul PIN personal',
+      pinUserDots:[0,1,2,3,4].map(i=>({color:pinStepErr?'#ef4444':'#2563eb',bg:i<(pinStepBuffer||'').length?(pinStepErr?'#ef4444':'#2563eb'):'transparent'})),
+      pinUserKeys:['1','2','3','4','5','6','7','8','9','clear','0','del'].map(k=>({label:k==='del'?'⌫':(k==='clear'?'C':k),visible:true,onClick:()=>{ if(k==='del')this.pinStepBack(); else if(k==='clear')this.setState({pinStepBuffer:''}); else this.pinStepDigit(k); }})),
+      cancelPinUserStep:()=>this.setState({pinStepUser:null,pinStepBuffer:''}),      pwInput,onPwInput:e=>this.setState({pwInput:e.target.value}),
       onPwKeyDown:e=>{ if(e.key==='Enter')this.confirmPassword(); },
       confirmPassword:()=>this.confirmPassword(),cancelPwStep:()=>this.setState({pwStep:null,pwInput:''}),
       allUsersList,noRegularUsers,

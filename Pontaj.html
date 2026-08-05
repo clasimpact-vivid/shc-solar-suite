@@ -830,9 +830,6 @@ function pinPress(k){
       av.style.background=currentUser.color; av.textContent=initials(currentUser.name);
       document.getElementById('userName').textContent=currentUser.name;
       resetRestrictedTabs();
-      document.getElementById('tabMyWeekBtn').style.display='';
-      document.getElementById('tabMapBtn').style.display='';
-      document.getElementById('tabAlerteBtn').style.display='';
       document.getElementById('tabExportBtn').style.display='none';
       populateExportUsers(); initExportForm();
       document.getElementById('todayDateLabel').textContent=new Date().toLocaleDateString('ro-RO',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
