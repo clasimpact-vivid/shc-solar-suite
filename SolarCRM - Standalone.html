@@ -1115,11 +1115,32 @@ try {
     <div style="display:flex;gap:10px;">
       <button onClick="{{ closeCpModal }}" style="flex:1;padding:9px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:13px;cursor:pointer;">Anulează</button>
       <button onClick="{{ submitCpModal }}" style="flex:2;padding:9px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Salvează</button>
+</sc-if>
+
+<!-- CHANGE PIN MODAL (self-service) -->
+<sc-if value="{{ showChangePinModal }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;inset:0;background:rgba(15,23,41,0.65);z-index:200;backdrop-filter:blur(2px);"></div>
+  <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:340px;background:#fff;border-radius:16px;z-index:210;padding:24px;box-shadow:0 24px 72px rgba(0,0,0,.28);">
+    <div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:20px;">🔢 Schimbă PIN-ul</div>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">PIN curent</label>
+      <input type="password" inputMode="numeric" maxlength="4" value="{{ cpinOldVal }}" onChange="{{ onCpinOld }}" placeholder="••••" style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:16px;letter-spacing:6px;outline:none;color:#0f172a;">
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">PIN nou (4 cifre)</label>
+      <input type="password" inputMode="numeric" maxlength="4" value="{{ cpinNewVal }}" onChange="{{ onCpinNew }}" placeholder="••••" style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:16px;letter-spacing:6px;outline:none;color:#0f172a;">
+    </div>
+    <div style="margin-bottom:8px;">
+      <label style="display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Confirmă PIN-ul nou</label>
+      <input type="password" inputMode="numeric" maxlength="4" value="{{ cpinConfirmVal }}" onChange="{{ onCpinConfirm }}" placeholder="••••" style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:16px;letter-spacing:6px;outline:none;color:#0f172a;">
+    </div>
+    <p style="font-size:12px;color:#dc2626;min-height:16px;margin:6px 0 16px;">{{ cpinErrMsg }}</p>
+    <div style="display:flex;gap:10px;">
+      <button onClick="{{ closeCpinModal }}" style="flex:1;padding:9px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:13px;cursor:pointer;">Anulează</button>
+      <button onClick="{{ submitCpinModal }}" style="flex:2;padding:9px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Salvează</button>
     </div>
   </div>
 </sc-if>
-
-<!-- USER MANAGEMENT MODAL (Admin) -->
 <div onClick="{{ closeUserMgmt }}" style="position:fixed;inset:0;background:rgba(15,23,41,0.55);z-index:120;animation:fadeIn 0.18s;display:{{ umOverlayDisplay }};pointer-events:{{ umPointerEvents }};"></div>
 <div class="crm-usermgmt-modal" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:540px;max-height:85vh;background:#fff;border-radius:16px;z-index:130;display:{{ umModalDisplay }};flex-direction:column;box-shadow:0 24px 72px rgba(0,0,0,.28);animation:scaleIn .18s cubic-bezier(0.16,1,0.3,1);overflow:hidden;pointer-events:{{ umPointerEvents }};">
 
@@ -3055,10 +3076,10 @@ class Component extends DCLogic {
       fbDotStyle:'display:inline-block;width:7px;height:7px;border-radius:50%;background:'+(this.state.fbConnected?'#22c55e':'#ef4444'),
       fbStatusText:this.state.fbConnected?'Sincronizat live':'Neconectat — se salvează doar local',
       openUserSwitcher:()=>this.setState({showUserModal:true,userModalMode:'switch',pwStep:null,pwInput:''}),
-      changePwTitle:(currentUser&&(currentUser.id==='_admin'||currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'))?'Schimbă parola':'PIN-ul se schimbă din SolarCRM → Utilizatori',
+      changePwTitle:(currentUser&&(currentUser.id==='_admin'||currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'))?'Schimbă parola':'Schimbă PIN-ul',
       openChangePw:()=>{
         const isPwUser=currentUser&&(currentUser.id==='_admin'||currentUser.id==='u_chirila'||currentUser.id==='u_nicoras');
-        if(!isPwUser){ window.alert('PIN-ul tău se schimbă din secțiunea Utilizatori (îl poate reseta Alexandru Chirila sau Ionuț Nicoraș).'); return; }
+        if(!isPwUser){ this.setState({showChangePinModal:true,cpinOld:'',cpinNew:'',cpinConfirm:'',cpinErr:''}); return; }
         this.setState({showChangePwModal:true,cpOld:'',cpNew:'',cpConfirm:'',cpErr:''});
       },
       doLogout:()=>{try{sessionStorage.removeItem('solarcrm_uid_v3');}catch(e){}this.setState({currentUser:null,showUserModal:true,userModalMode:'login',pinMode:true,pinBuffer:'',pinErr:false});},
@@ -3070,6 +3091,13 @@ class Component extends DCLogic {
       onCpConfirm:e=>this.setState({cpConfirm:e.target.value}),
       closeCpModal:()=>this.setState({showChangePwModal:false}),
       submitCpModal:()=>this.submitChangePw(),
+      showChangePinModal:this.state.showChangePinModal||false,
+      cpinOldVal:this.state.cpinOld||'',cpinNewVal:this.state.cpinNew||'',cpinConfirmVal:this.state.cpinConfirm||'',cpinErrMsg:this.state.cpinErr||'',
+      onCpinOld:e=>this.setState({cpinOld:e.target.value.replace(/\D/g,'').slice(0,4)}),
+      onCpinNew:e=>this.setState({cpinNew:e.target.value.replace(/\D/g,'').slice(0,4)}),
+      onCpinConfirm:e=>this.setState({cpinConfirm:e.target.value.replace(/\D/g,'').slice(0,4)}),
+      closeCpinModal:()=>this.setState({showChangePinModal:false}),
+      submitCpinModal:()=>this.submitChangePin(),
       filtered:filteredRows,isEmpty:filtered.length===0,filteredCount:filtered.length,
       sortByClient:()=>this.toggleSort('client'),
       sortByStatus:()=>this.toggleSort('status'),
