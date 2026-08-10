@@ -1186,6 +1186,10 @@ try {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-8H7v8M7 3v5h8"></path><path d="M21 21V7l-4-4H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2z"></path></svg>
           Import angajați în bloc
         </button>
+        <button onClick="{{ umExportPins }}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px;border:1.5px solid #cbd5e1;background:#fff;border-radius:10px;margin-top:10px;font-size:13px;font-weight:700;color:#334155;cursor:pointer;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3m0 12l-4-4m4 4l4-4M3 17v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"></path></svg>
+          Exportă toate PIN-urile
+        </button>
       </sc-if>
 
       <!-- BULK IMPORT MODE -->
@@ -2697,6 +2701,16 @@ class Component extends DCLogic {
   umGoAdd(){ this.setState({userMgmtMode:'add',editingUserId:null,umErrMsg:'',umForm:{...EMPTY_UM_FORM,pin:genUniquePin5(this.state.users)}}); }
   umGoBack(){ this.setState({userMgmtMode:'list',umErrMsg:'',umForm:{...EMPTY_UM_FORM}}); }
   umGoBulk(){ this.setState({userMgmtMode:'bulk',bulkText:'',bulkResult:null,umErrMsg:''}); }
+  umExportPins(){
+    const users=[...this.state.users].sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    const lines=['Nume\tFuncție\tPIN\tPAROLĂ'];
+    lines.push('Administrator\t—\t'+this.adminPin+'\t(parolă separată)');
+    users.forEach(u=>{ lines.push((u.name||'')+'\t'+(u.functie||'')+'\t'+(u.pin||'—')+'\t'+(u.password?'(setată)':'—')); });
+    const blob=new Blob([lines.join('\n')],{type:'text/plain'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download='PIN-uri_SHC_Solar_Suite.txt'; a.click();
+    URL.revokeObjectURL(url);
+  }
   setBulkText(v){ this.setState({bulkText:v}); }
   mapFunctieToRoleTemplate(fn){
     const f=(fn||'').toLowerCase();
@@ -3236,6 +3250,7 @@ class Component extends DCLogic {
       umShowBack:userMgmtMode!=='list',umGoBack:()=>this.umGoBack(),
       umIsList,umIsAdd,umIsEdit,umIsChangePw,umIsCompany,umIsBulk,
       umGoBulk:()=>this.umGoBulk(),
+      umExportPins:()=>this.umExportPins(),
       bulkText:this.state.bulkText||'',
       onBulkText:e=>this.setBulkText(e.target.value),
       umSubmitBulk:()=>this.umSubmitBulk(),
