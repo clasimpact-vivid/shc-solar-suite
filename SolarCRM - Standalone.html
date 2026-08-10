@@ -2689,6 +2689,19 @@ class Component extends DCLogic {
     this.setState({showChangePwModal:false,cpErr:''});
     alert('✅ Parola a fost schimbată cu succes!');
   }
+  submitChangePin(){
+    const {currentUser,cpinOld,cpinNew,cpinConfirm,users}=this.state;
+    if(!cpinOld||!cpinNew||!cpinConfirm){this.setState({cpinErr:'Completează toate câmpurile.'});return;}
+    if(!currentUser){this.setState({cpinErr:'Nu ești autentificat.'});return;}
+    if(cpinOld!==currentUser.pin){this.setState({cpinErr:'PIN-ul curent este greșit.'});return;}
+    if(cpinNew.length!==4){this.setState({cpinErr:'PIN-ul nou trebuie să aibă 4 cifre.'});return;}
+    if(cpinNew!==cpinConfirm){this.setState({cpinErr:'PIN-urile noi nu coincid.'});return;}
+    const taken=(users||[]).some(u=>u.id!==currentUser.id && u.pin===cpinNew) || cpinNew===this.adminPin;
+    if(taken){this.setState({cpinErr:'Acest PIN este deja folosit de alt utilizator. Alege altul.'});return;}
+    const newUsers=users.map(u=>u.id===currentUser.id?{...u,pin:cpinNew}:u);
+    this.setState({users:newUsers,currentUser:{...currentUser,pin:cpinNew},showChangePinModal:false,cpinErr:''},()=>this.persist('users'));
+    alert('✅ PIN-ul a fost schimbat cu succes!');
+  }
 
   generateOfferForSelected(){
     const {selectedId,projects}=this.state;
