@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Logistică — SHC Solar Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;font-family:'DM Sans',system-ui,sans-serif;background:#090f1c;color:#e2e8f0;}
+.hamburger{display:none;}
+.sidebar-backdrop{display:none;}
+@media(max-width:768px){
+  #sidebar{position:fixed!important;left:0;top:0;height:100%!important;z-index:300;transform:translateX(-105%);transition:transform .25s cubic-bezier(.16,1,.3,1);width:82vw!important;max-width:300px;}
+  #sidebar.open{transform:translateX(0);}
+  .sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:290;}
+  .hamburger{display:flex!important;align-items:center;justify-content:center;width:34px;height:34px;border:1px solid #334155;border-radius:8px;background:transparent;cursor:pointer;flex:none;color:#94a3b8;}
+  #topBar{padding:0 10px!important;gap:6px!important;}
+  #userName{display:none;}
+  #main{padding:14px 14px 60px!important;}
+  .row2,.row3{grid-template-columns:1fr!important;}
+}
+#loginOverlay{position:fixed;inset:0;z-index:9999;background:#090f1c;display:flex;align-items:center;justify-content:center;}
+.pin-dot{width:15px;height:15px;border-radius:50%;border:2px solid #f59e0b;background:transparent;transition:background .15s;}
+.pin-dot.filled{background:#f59e0b;}
+.pin-dot.err{border-color:#ef4444;background:#ef4444;}
+.pin-key{width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:#1e293b;color:#f1f5f9;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .25s;}
+.pin-key:active,.pin-key.pin-key-pressed{background:#7f1d1d;}
+.login-card{background:#111827;border:1px solid #1e3a5f;border-radius:16px;padding:36px 32px;width:380px;max-width:92vw;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+.form-label{font-size:11px;font-weight:700;color:#475569;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+.form-select,.form-input{width:100%;padding:10px 13px;border:1.5px solid #334155;border-radius:10px;font-size:14px;font-family:inherit;background:#1e293b;color:#f1f5f9;outline:none;}
+.form-select:focus,.form-input:focus{border-color:#3b82f6;}
+.btn-login{width:100%;padding:12px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:0;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+.btn-login:hover{opacity:.9;}
+
+#app{display:none;height:100vh;flex-direction:column;}
+#topBar{background:#0d1b2e;border-bottom:1px solid #1e3a5f;padding:0 18px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px;}
+#layout{display:flex;flex:1;overflow:hidden;}
+
+#sidebar{width:270px;background:#0d1b2e;border-right:1px solid #1e3a5f;display:flex;flex-direction:column;flex-shrink:0;}
+#sidebarHeader{padding:12px;border-bottom:1px solid #1e3a5f;display:flex;flex-direction:column;gap:8px;}
+.tab-switch{display:flex;gap:4px;background:#0a1628;border-radius:9px;padding:3px;}
+.tab-btn{flex:1;padding:7px 4px;border:0;background:transparent;color:#64748b;font-size:11.5px;font-weight:700;border-radius:7px;cursor:pointer;font-family:inherit;}
+.tab-btn.active{background:#1e3a5f;color:#f1f5f9;}
+#itemList{flex:1;overflow-y:auto;padding:6px 0;}
+.group-header{padding:8px 14px 4px;font-size:10px;font-weight:800;color:#3b82f6;text-transform:uppercase;letter-spacing:.6px;}
+.list-item{padding:9px 14px;cursor:pointer;border-left:3px solid transparent;transition:background .1s;}
+.list-item:hover{background:rgba(59,130,246,.08);}
+.list-item.active{background:rgba(59,130,246,.12);border-left-color:#3b82f6;}
+.li-name{font-size:12.5px;font-weight:600;color:#cbd5e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.li-meta{font-size:10.5px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+#main{flex:1;overflow-y:auto;padding:22px 26px 60px;}
+.empty-state{padding:90px 20px;text-align:center;color:#334155;}
+
+.section-card{background:#111d35;border:1px solid #1e293b;border-radius:14px;padding:20px 22px;margin-bottom:18px;}
+.section-title{font-size:13px;font-weight:800;color:#f1f5f9;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.field{margin-bottom:12px;}
+.field label{font-size:10px;font-weight:700;color:#475569;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.field input,.field select,.field textarea{width:100%;padding:9px 11px;border:1.5px solid #334155;border-radius:8px;font-size:13px;font-family:inherit;background:#1e293b;color:#f1f5f9;outline:none;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#3b82f6;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+
+.btn{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;border:1px solid transparent;transition:opacity .15s;}
+.btn:hover{opacity:.85;}
+.btn-blue{background:#2563eb;color:#fff;}
+.btn-green{background:#16a34a;color:#fff;}
+.btn-ghost{background:transparent;color:#94a3b8;border-color:#334155;}
+.btn-red{background:#dc2626;color:#fff;}
+.btn-sm{padding:5px 10px;font-size:11px;}
+
+.item-card{background:#0d1b2e;border:1px solid #1e3a5f;border-radius:10px;padding:12px;margin-bottom:10px;}
+.item-card .row3{margin-bottom:8px;}
+.item-card label{font-size:9.5px;font-weight:700;color:#475569;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px;}
+.item-card input,.item-card select,.item-card textarea{width:100%;padding:7px 9px;border:1.5px solid #334155;border-radius:7px;font-size:12.5px;font-family:inherit;background:#1e293b;color:#f1f5f9;outline:none;}
+
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#1e3a5f;border-radius:3px;}
+a{color:#60a5fa;}
+a:hover{color:#93c5fd;}
+
+@media print{
+  html,body{height:auto !important;overflow:visible !important;}
+  #app{display:block !important;height:auto !important;}
+  #layout{display:block !important;height:auto !important;overflow:visible !important;}
+  body{margin:0;padding:0;background:#fff;}
+  #topBar,#sidebar,.sidebar-backdrop,[id^="btn"],[id^="modal"]{display:none !important;}
+  #printArea{display:block !important;position:static;width:100%;margin:0;padding:0;}
+  #printArea *{visibility:visible !important;}
+}
+#printArea{display:none;}
+[style*="cursor:pointer"], [style*="cursor: pointer"] { -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:rgba(0,0,0,0.06); }
+</style>
+</head>
+<body>
+
+<!-- PIN keypad overlay -->
+<div id="officePinOverlay" style="position:fixed;inset:0;z-index:10000;background:#090f1c;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;">
+  <a href="./index.html" style="align-self:center;font-size:11px;color:#64748b;text-decoration:none;padding:4px 10px;border:1px solid #334155;border-radius:6px;">← Pagina principală</a>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div style="width:40px;height:40px;background:linear-gradient(135deg,#64748b,#475569);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+    </div>
+    <div>
+      <div style="font-weight:800;font-size:16px;color:#f1f5f9;">Logistică</div>
+      <div style="font-size:11px;color:#64748b;">Smart House Color · SHC Solar Suite</div>
+    </div>
+  </div>
+  <div style="text-align:center;">
+    <div style="font-weight:800;font-size:16px;color:#f1f5f9;">Login rapid cu PIN</div>
+    <div style="font-size:12px;color:#64748b;margin-top:4px;">Introdu codul de 4 cifre</div>
+  </div>
+  <div class="pin-dots" id="officePinDots" style="display:flex;gap:12px;"></div>
+  <div id="officePinErr" style="color:#f87171;font-size:12.5px;font-weight:700;min-height:16px;"></div>
+  <div class="pin-grid" id="officePinGrid" style="display:grid;grid-template-columns:repeat(3,72px);gap:12px;"></div>
+  <a href="#" id="btnCloseOfficePin" style="font-size:12.5px;margin-top:6px;color:#64748b;">Administrator / Manager — intră cu parolă →</a>
+</div>
+
+<div id="loginOverlay" style="display:none;">
+  <div class="login-card">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:26px;">
+      <div style="width:40px;height:40px;background:linear-gradient(135deg,#64748b,#475569);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+      </div>
+      <div>
+        <div style="font-weight:800;font-size:16px;color:#f1f5f9;">Logistică</div>
+        <div style="font-size:11px;color:#64748b;">Smart House Color · SHC Solar Suite</div>
+      </div>
+    </div>
+    <div class="field"><label>Utilizator</label>
+      <select id="loginUser" class="form-select"><option value="">— Selectează utilizatorul —</option></select>
+    </div>
+    <div class="field" style="margin-bottom:18px;"><label>Parolă</label>
+      <input type="password" id="loginPassword" class="form-input" placeholder="••••••••">
+    </div>
+    <button class="btn-login" id="btnLogin">Intră în aplicație →</button>
+    <div id="loginError" style="color:#f87171;font-size:12px;text-align:center;margin-top:10px;min-height:16px;"></div>
+    <div style="text-align:center;margin-top:16px;padding-top:16px;border-top:1px solid #1e293b;">
+      <a href="#" id="btnOpenOfficePin" style="font-size:12.5px;color:#64748b;">← Înapoi la login cu PIN</a>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+  <div id="topBar">
+    <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+      <button class="hamburger" id="btnHamburger" aria-label="Meniu">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div style="width:32px;height:32px;background:linear-gradient(135deg,#64748b,#475569);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+      </div>
+      <div>
+        <div style="font-size:14px;font-weight:800;color:#f1f5f9;">Logistică</div>
+        <div style="font-size:10px;color:#475569;">SHC Solar Suite</div>
+      </div>
+      <a href="./index.html" style="margin-left:4px;font-size:11px;color:#475569;text-decoration:none;padding:4px 10px;border:1px solid #1e3a5f;border-radius:6px;">← Pagina principală</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <div id="userBadge" style="display:flex;align-items:center;gap:7px;">
+        <div id="userAvatar" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0;"></div>
+        <span id="userName" style="font-size:12px;font-weight:600;color:#94a3b8;white-space:nowrap;"></span>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="btnLogout">Ieși</button>
+    </div>
+  </div>
+
+  <div id="layout">
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <div id="sidebar">
+      <div id="sidebarHeader">
+        <div class="tab-switch">
+          <button class="tab-btn active" id="tabComenzi">🚚 Comenzi Transport</button>
+          <button class="tab-btn" id="tabProcese">📝 Procese Verbale</button>
+        </div>
+        <button class="btn btn-green" id="btnNewItem" style="width:100%;font-size:12px;">+ Comandă nouă</button>
+      </div>
+      <div id="itemList"></div>
+    </div>
+
+    <div id="main">
+      <div id="emptyState" class="empty-state">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="1.5" style="margin-bottom:14px;"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon></svg>
+        <div style="font-size:15px;font-weight:700;color:#475569;margin-bottom:6px;">Niciun element selectat</div>
+        <div style="font-size:12px;color:#334155;">Adaugă din stânga o comandă sau un proces verbal</div>
+      </div>
+
+      <!-- COMANDĂ TRANSPORT EDITOR -->
+      <div id="comandaEditor" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+          <div>
+            <div style="font-size:19px;font-weight:800;color:#f1f5f9;" id="comandaTitleDisplay">Comandă nouă</div>
+            <div style="font-size:12px;color:#475569;" id="comandaMetaDisplay"></div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" id="btnExportPdfComanda">🖨 Export PDF</button>
+            <button class="btn btn-red btn-sm" id="btnDeleteComanda">Șterge</button>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">📋 Date comandă</div>
+          <div class="field"><label>Proiect din SolarCRM (opțional)</label>
+            <select id="cCrmProject"><option value="">— Fără legătură —</option></select>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Nr. comandă</label><input type="text" id="cNrComanda" placeholder="ex: 001"></div>
+            <div class="field"><label>Data comenzii</label><input type="text" id="cDataComanda" placeholder="dd/mm/yyyy" maxlength="10"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Client / proiect</label><input type="text" id="cClient" placeholder="Nume client"></div>
+            <div class="field"><label>Nr. comandă / rezervare transportator</label><input type="text" id="cNrRezervare"></div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">🚚 Transportator</div>
+          <div class="row2">
+            <div class="field"><label>Denumire transportator</label><input type="text" id="cTransportator" placeholder="SC Transport SRL"></div>
+            <div class="field"><label>CUI</label><input type="text" id="cCui" placeholder="RO12345678"></div>
+          </div>
+          <div class="field"><label>Nr. Reg. Comerțului</label><input type="text" id="cRegCom" placeholder="J40/1234/2020"></div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">📦 Detalii transport</div>
+          <div class="row2">
+            <div class="field"><label>Data și ora încărcării</label><input type="text" id="cDataOraIncarcare" placeholder="ex: 15/09/2026, 08:00"></div>
+            <div class="field"><label>Tipul camionului</label><input type="text" id="cTipCamion" placeholder="ex: Prelată 13.6m"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Locul de încărcare</label><input type="text" id="cLocIncarcare" placeholder="Adresă depozit"></div>
+            <div class="field"><label>Tel. loc încărcare</label><input type="text" id="cTelIncarcare"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Tipul mărfii</label><input type="text" id="cTipMarfa" placeholder="ex: Panouri fotovoltaice, paletizat"></div>
+            <div class="field"><label>Nr. camion / remorcă</label><input type="text" id="cNrCamion"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Locul de descărcare</label><input type="text" id="cLocDescarcare" placeholder="Adresa șantier"></div>
+            <div class="field"><label>Data descărcării</label><input type="text" id="cDataDescarcare" placeholder="dd/mm/yyyy"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Preț</label><input type="text" id="cPret" placeholder="ex: 1.500 lei"></div>
+            <div class="field"><label>Modalitate de plată</label><input type="text" id="cModPlata" placeholder="ex: OP 30 zile"></div>
+          </div>
+          <div class="field"><label>Nume șofer, nr. telefon</label><input type="text" id="cSofer" placeholder="Nume Prenume, 07xx xxx xxx"></div>
+          <div class="field" style="margin-bottom:0;"><label>Cerințe speciale</label><textarea id="cCerinte" rows="2"></textarea></div>
+        </div>
+
+        <button class="btn btn-blue" id="btnSaveComanda">💾 Salvează comanda</button>
+      </div>
+
+      <!-- PROCES VERBAL EDITOR -->
+      <div id="procesEditor" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+          <div>
+            <div style="font-size:19px;font-weight:800;color:#f1f5f9;" id="procesTitleDisplay">Proces verbal nou</div>
+            <div style="font-size:12px;color:#475569;" id="procesMetaDisplay"></div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" id="btnExportPdfProces">🖨 Export PDF</button>
+            <button class="btn btn-red btn-sm" id="btnDeleteProces">Șterge</button>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">📋 Date proces verbal</div>
+          <div class="field"><label>Proiect din SolarCRM (opțional)</label>
+            <select id="pCrmProject"><option value="">— Fără legătură —</option></select>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Nr. proces verbal</label><input type="text" id="pNrProces" placeholder="ex: PV-001"></div>
+            <div class="field"><label>Data</label><input type="text" id="pDataProces" placeholder="dd/mm/yyyy" maxlength="10"></div>
+          </div>
+          <div class="field"><label>Beneficiar (client)</label><input type="text" id="pClient" placeholder="Nume client / firmă"></div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">✍️ Predător / Primitor</div>
+          <div class="row2">
+            <div class="field"><label>Predător (reprezentant SHC)</label><input type="text" id="pPredator" placeholder="Nume, funcție"></div>
+            <div class="field"><label>Primitor (reprezentant client)</label><input type="text" id="pPrimitor" placeholder="Nume, funcție"></div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">⚙️ Echipamente predate</div>
+          <div id="itemsHeader" style="font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Pentru fiecare echipament: tip, marcă/model, cod produs, serie, caracteristici, cantitate, stare</div>
+          <div id="itemsRows"></div>
+          <button class="btn btn-ghost btn-sm" id="btnAddItem" style="margin-top:6px;">+ Adaugă echipament</button>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">📝 Observații</div>
+          <textarea id="pObservatii" rows="3" style="width:100%;padding:9px 11px;border:1.5px solid #334155;border-radius:8px;font-size:13px;font-family:inherit;background:#1e293b;color:#f1f5f9;outline:none;" placeholder="Observații suplimentare..."></textarea>
+        </div>
+
+        <button class="btn btn-blue" id="btnSaveProces">💾 Salvează procesul verbal</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="printArea"></div>
+
+<script>
+const FB_CONFIG = {
+  apiKey: "AIzaSyBVElgXbEabUcwjNMa27IEw0YkxaEaXYl0",
+  authDomain: "solarcrm-ba919.firebaseapp.com",
+  databaseURL: "https://solarcrm-ba919-default-rtdb.firebaseio.com",
+  projectId: "solarcrm-ba919",
+  storageBucket: "solarcrm-ba919.firebasestorage.app",
+  messagingSenderId: "349523166308",
+  appId: "1:349523166308:web:0533aa1dae74f9a0b3cb71"
+};
+
+const DEFAULT_USERS = [
+  {id:'_admin',    name:'Administrator',    color:'#dc2626', password:'12345'},
+  {id:'u_nicoras', name:'Ionut Nicoras',    color:'#d97706', password:'12345'},
+  {id:'u_chirila', name:'Alexandru Chirila',color:'#7c3aed', password:'12345'},
+];
+
+let db=null, currentUser=null, loginUsers=[...DEFAULT_USERS], adminPw='12345', adminPin='1000';
+let comenzi={}, procese={}, crmProjects=[];
+let activeTab='comenzi'; // 'comenzi' | 'procese'
+let activeComandaId=null, activeProcesId=null;
+let procesItems=[];
+
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function initials(n){ return (n||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase(); }
+function isoToDmy(s){ if(!s) return ''; const p=s.split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:s; }
+function dmyToIso(s){ if(!s) return ''; const p=s.split('/'); return p.length===3?p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0'):''; }
+function esc(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+try{
+  if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+  db=firebase.database();
+}catch(e){ console.warn('Firebase:',e); }
+
+function loadFirebase(){
+  if(!db) return;
+  db.ref('shc_logistica/comenzi').on('value', snap=>{
+    const raw=snap.val()||{};
+    comenzi={};
+    Object.values(raw).filter(v=>v&&v.id).forEach(v=>{ comenzi[v.id]=v; });
+    renderList();
+  });
+  db.ref('shc_logistica/procese').on('value', snap=>{
+    const raw=snap.val()||{};
+    procese={};
+    Object.values(raw).filter(v=>v&&v.id).forEach(v=>{ procese[v.id]=v; });
+    renderList();
+  });
+  db.ref('solarcrm_v2/config').once('value', snap=>{
+    const cfg=snap.val()||{};
+    if(cfg.users&&Array.isArray(cfg.users)&&cfg.users.length){
+      loginUsers=[{id:'_admin',name:'Administrator',color:'#dc2626',password:cfg.adminPw||'12345'},...cfg.users];
+    }
+    if(cfg.adminPw) adminPw=cfg.adminPw;
+    if(cfg.adminPin) adminPin=cfg.adminPin;
+    populateLoginUsers();
+  });
+  db.ref('solarcrm_v2/projects').on('value', snap=>{
+    const raw=snap.val()||{};
+    crmProjects=Object.values(raw).filter(p=>p&&p.id);
+    populateCrmDropdowns();
+  });
+}
+function saveFirebase(kind,v){
+  if(!db) return;
+  db.ref('shc_logistica/'+kind+'/'+String(v.id)).set(v);
+}
+function deleteFirebase(kind,id){
+  if(db) db.ref('shc_logistica/'+kind+'/'+String(id)).remove().catch(()=>{});
+}
+
+// ── Login ──
+function populateLoginUsers(){
+  const sel=document.getElementById('loginUser'); const cur=sel.value;
+  sel.innerHTML='<option value="">— Selectează utilizatorul —</option>';
+  loginUsers.filter(u=>u.id==='_admin'||u.id==='u_chirila'||u.id==='u_nicoras').forEach(u=>{ const o=document.createElement('option'); o.value=u.id; o.textContent=u.name; sel.appendChild(o); });
+  if(cur) sel.value=cur;
+}
+function doLogin(){
+  const uid2=document.getElementById('loginUser').value;
+  const pw=document.getElementById('loginPassword').value;
+  const err=document.getElementById('loginError');
+  if(!uid2){err.textContent='Selectează un utilizator.';return;}
+  const u=loginUsers.find(x=>x.id===uid2);
+  if(!u){err.textContent='Utilizator negăsit.';return;}
+  const stored=u.id==='_admin'?adminPw:(u.password||'');
+  if(stored&&pw!==stored){err.textContent='Parolă incorectă.';return;}
+  if(u.apps && u.apps.logistica===false){ err.textContent='Nu ai acces la Logistică. Contactează administratorul.'; return; }
+  enterApp(u);
+}
+document.getElementById('btnLogin').addEventListener('click',doLogin);
+
+let officePinBuffer='';
+function shcGetLock(){try{return JSON.parse(localStorage.getItem('shc_lock_logistica')||'{"fails":0,"until":0}');}catch(e){return{fails:0,until:0};}}
+function shcSetLock(s){localStorage.setItem('shc_lock_logistica',JSON.stringify(s));}
+function shcIsLocked(){return shcGetLock().until>Date.now();}
+function shcLockSecondsLeft(){return Math.max(0,Math.ceil((shcGetLock().until-Date.now())/1000));}
+function shcRegisterFail(){const s=shcGetLock();s.fails=(s.fails||0)+1;if(s.fails>=5){s.until=Date.now()+30000;s.fails=0;}shcSetLock(s);}
+function shcRegisterSuccess(){shcSetLock({fails:0,until:0});}
+let shcLockInterval=null;
+function shcShowLockCountdown(){
+  const errEl=document.getElementById('officePinErr');
+  const grid=document.getElementById('officePinGrid');
+  if(grid) grid.querySelectorAll('button').forEach(b=>b.disabled=true);
+  clearInterval(shcLockInterval);
+  shcLockInterval=setInterval(()=>{
+    const left=shcLockSecondsLeft();
+    if(left<=0){ clearInterval(shcLockInterval); if(errEl) errEl.textContent=''; if(grid) grid.querySelectorAll('button').forEach(b=>b.disabled=false); return; }
+    if(errEl) errEl.textContent='Prea multe încercări greșite — blocat '+left+'s';
+  },500);
+}
+function shcAudit(user,role){
+  try{ if(db) db.ref('solarcrm_v2/audit_log').push({t:Date.now(),app:'Logistică',user:user,role:role||''}); }catch(e){}
+}
+let shcIdleTimer=null;
+function shcResetIdle(){
+  clearTimeout(shcIdleTimer);
+  shcIdleTimer=setTimeout(()=>{ if(currentUser){ const b=document.getElementById('btnLogout'); if(b) b.click(); } },20*60*1000);
+}
+['click','keydown','mousemove','touchstart','scroll'].forEach(ev=>document.addEventListener(ev,shcResetIdle,{passive:true}));
+shcResetIdle();
+
+function renderOfficePinDots(err){
+  const wrap=document.getElementById('officePinDots'); wrap.innerHTML='';
+  for(let i=0;i<4;i++){
+    const d=document.createElement('div');
+    d.className='pin-dot'+(i<officePinBuffer.length?(err?' err':' filled'):'');
+    wrap.appendChild(d);
+  }
+}
+function buildOfficePinGrid(){
+  const grid=document.getElementById('officePinGrid'); grid.innerHTML='';
+  ['1','2','3','4','5','6','7','8','9','clear','0','del'].forEach(k=>{
+    const b=document.createElement('button'); b.className='pin-key'; b.type='button';
+    b.textContent=k==='del'?'⌫':(k==='clear'?'C':k);
+    b.addEventListener('click',()=>{ b.classList.add('pin-key-pressed'); setTimeout(()=>b.classList.remove('pin-key-pressed'),250); officePinPress(k); });
+    grid.appendChild(b);
+  });
+}
+function officePinPress(k){
+  if(shcIsLocked()){ shcShowLockCountdown(); return; }
+  document.getElementById('officePinErr').textContent='';
+  if(k==='del'){ officePinBuffer=officePinBuffer.slice(0,-1); renderOfficePinDots(false); return; }
+  if(k==='clear'){ officePinBuffer=''; renderOfficePinDots(false); return; }
+  if(officePinBuffer.length>=4) return;
+  officePinBuffer+=k; renderOfficePinDots(false);
+  if(officePinBuffer.length===4){
+    const u=loginUsers.find(x=>x.pin===officePinBuffer) || (adminPin&&adminPin===officePinBuffer?{id:'_admin',name:'Administrator',role:'Admin',color:'#dc2626'}:null);
+    if(!u){
+      shcRegisterFail();
+      renderOfficePinDots(true);
+      if(shcIsLocked()){ officePinBuffer=''; renderOfficePinDots(false); shcShowLockCountdown(); return; }
+      document.getElementById('officePinErr').textContent='Cod greșit — încearcă din nou';
+      setTimeout(()=>{ officePinBuffer=''; renderOfficePinDots(false); },900);
+      return;
+    }
+    if(u.apps && u.apps.logistica===false){
+      renderOfficePinDots(true);
+      document.getElementById('officePinErr').textContent='Nu ai acces la Logistică.';
+      setTimeout(()=>{ officePinBuffer=''; renderOfficePinDots(false); },1200);
+      return;
+    }
+    shcRegisterSuccess(); shcAudit(u.name,u.role||'');
+    officePinBuffer='';
+    document.getElementById('officePinOverlay').style.display='none';
+    enterApp(u);
+  }
+}
+function enterApp(u){
+  currentUser=u;
+  document.getElementById('loginOverlay').style.display='none';
+  document.getElementById('officePinOverlay').style.display='none';
+  document.getElementById('app').style.display='flex';
+  const av=document.getElementById('userAvatar');
+  av.style.background=u.color||'#64748b'; av.textContent=initials(u.name);
+  document.getElementById('userName').textContent=u.name;
+}
+buildOfficePinGrid();
+document.getElementById('btnOpenOfficePin').addEventListener('click',e=>{
+  e.preventDefault();
+  document.getElementById('loginOverlay').style.display='none';
+  officePinBuffer=''; renderOfficePinDots(false); document.getElementById('officePinErr').textContent='';
+  document.getElementById('officePinOverlay').style.display='flex';
+});
+document.getElementById('btnCloseOfficePin').addEventListener('click',e=>{
+  e.preventDefault(); officePinBuffer=''; renderOfficePinDots(false); document.getElementById('officePinErr').textContent='';
+  document.getElementById('officePinOverlay').style.display='none';
+  document.getElementById('loginOverlay').style.display='flex';
+});
+document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('btnLogout').addEventListener('click',()=>{
+  currentUser=null;
+  document.getElementById('loginPassword').value='';
+  document.getElementById('loginError').textContent='';
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginOverlay').style.display='none';
+  officePinBuffer=''; renderOfficePinDots(false); document.getElementById('officePinErr').textContent='';
+  document.getElementById('officePinOverlay').style.display='flex';
+});
+function canDelete(){ return !!currentUser && (currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'||currentUser.id==='_admin'); }
+
+// Mobile sidebar
+document.getElementById('btnHamburger').addEventListener('click',()=>{
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarBackdrop').style.display='block';
+});
+document.getElementById('sidebarBackdrop').addEventListener('click',()=>{
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarBackdrop').style.display='none';
+});
+
+function populateCrmDropdowns(){
+  ['cCrmProject','pCrmProject'].forEach(id=>{
+    const sel=document.getElementById(id); const cur=sel.value;
+    sel.innerHTML='<option value="">— Fără legătură —</option>';
+    crmProjects.forEach(p=>{
+      const o=document.createElement('option'); o.value=p.id;
+      o.textContent=(p.client||'Fără nume')+(p.address?' — '+p.address:'');
+      sel.appendChild(o);
+    });
+    sel.value=cur;
+  });
+}
+document.getElementById('cCrmProject').addEventListener('change',e=>{
+  const p=crmProjects.find(x=>String(x.id)===e.target.value);
+  if(p&&p.client) document.getElementById('cClient').value=p.client;
+});
+document.getElementById('pCrmProject').addEventListener('change',e=>{
+  const p=crmProjects.find(x=>String(x.id)===e.target.value);
+  if(p&&p.client) document.getElementById('pClient').value=p.client;
+});
+
+// ── Tabs ──
+document.getElementById('tabComenzi').addEventListener('click',()=>switchTab('comenzi'));
+document.getElementById('tabProcese').addEventListener('click',()=>switchTab('procese'));
+function switchTab(tab){
+  activeTab=tab;
+  document.getElementById('tabComenzi').classList.toggle('active',tab==='comenzi');
+  document.getElementById('tabProcese').classList.toggle('active',tab==='procese');
+  document.getElementById('btnNewItem').textContent=tab==='comenzi'?'+ Comandă nouă':'+ Proces nou';
+  document.getElementById('comandaEditor').style.display='none';
+  document.getElementById('procesEditor').style.display='none';
+  document.getElementById('emptyState').style.display='block';
+  activeComandaId=null; activeProcesId=null;
+  renderList();
+}
+
+document.getElementById('btnNewItem').addEventListener('click',()=>{
+  if(activeTab==='comenzi') newComanda(); else newProces();
+});
+
+// ── List rendering ──
+function renderList(){
+  const list=document.getElementById('itemList');
+  const dataset = activeTab==='comenzi' ? comenzi : procese;
+  const arr=Object.values(dataset).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+  if(!arr.length){ list.innerHTML='<div style="padding:20px 14px;font-size:12px;color:#334155;text-align:center;">Niciun element</div>'; return; }
+  const groups={};
+  arr.forEach(v=>{ const k=v.client||'Fără client'; (groups[k]=groups[k]||[]).push(v); });
+  let html='';
+  Object.keys(groups).sort((a,b)=>a.localeCompare(b,'ro')).forEach(client=>{
+    html+=`<div class="group-header">${esc(client)}</div>`;
+    groups[client].forEach(v=>{
+      const activeId = activeTab==='comenzi'?activeComandaId:activeProcesId;
+      const title = activeTab==='comenzi' ? (v.transportator||'Comandă fără transportator') : (v.nrProces||'Proces verbal');
+      const meta = activeTab==='comenzi' ? (v.dataComanda?isoToDmy(v.dataComanda):'') : (v.dataProces?isoToDmy(v.dataProces):'');
+      html+=`<div class="list-item${v.id===activeId?' active':''}" data-id="${v.id}">
+        <div class="li-name">${esc(title)}</div>
+        <div class="li-meta">${esc(meta)}</div>
+      </div>`;
+    });
+  });
+  list.innerHTML=html;
+  list.querySelectorAll('.list-item').forEach(el=>{
+    el.addEventListener('click',()=>{
+      if(activeTab==='comenzi') openComanda(el.dataset.id); else openProces(el.dataset.id);
+      if(window.innerWidth<=768){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarBackdrop').style.display='none'; }
+    });
+  });
+}
+
+// ═══════════════════════ COMANDĂ TRANSPORT ═══════════════════════
+function newComanda(){
+  const v={id:uid(),crmId:'',nrComanda:'',dataComanda:new Date().toISOString().slice(0,10),client:'',nrRezervare:'',
+    transportator:'',cui:'',regCom:'',dataOraIncarcare:'',tipCamion:'',locIncarcare:'',telIncarcare:'',tipMarfa:'',
+    nrCamion:'',locDescarcare:'',dataDescarcare:'',pret:'',modPlata:'',sofer:'',cerinte:'',
+    createdAt:Date.now(),updatedAt:Date.now(),createdBy:currentUser?currentUser.name:''};
+  comenzi[v.id]=v;
+  openComanda(v.id);
+}
+function openComanda(id){
+  activeComandaId=id; activeProcesId=null;
+  const v=comenzi[id]; if(!v) return;
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('procesEditor').style.display='none';
+  document.getElementById('comandaEditor').style.display='block';
+  document.getElementById('comandaTitleDisplay').textContent=v.transportator||'Comandă nouă';
+  document.getElementById('comandaMetaDisplay').textContent=v.createdBy?('Creat de '+v.createdBy):'';
+  document.getElementById('cCrmProject').value=v.crmId||'';
+  document.getElementById('cNrComanda').value=v.nrComanda||'';
+  document.getElementById('cDataComanda').value=v.dataComanda?isoToDmy(v.dataComanda):'';
+  document.getElementById('cClient').value=v.client||'';
+  document.getElementById('cNrRezervare').value=v.nrRezervare||'';
+  document.getElementById('cTransportator').value=v.transportator||'';
+  document.getElementById('cCui').value=v.cui||'';
+  document.getElementById('cRegCom').value=v.regCom||'';
+  document.getElementById('cDataOraIncarcare').value=v.dataOraIncarcare||'';
+  document.getElementById('cTipCamion').value=v.tipCamion||'';
+  document.getElementById('cLocIncarcare').value=v.locIncarcare||'';
+  document.getElementById('cTelIncarcare').value=v.telIncarcare||'';
+  document.getElementById('cTipMarfa').value=v.tipMarfa||'';
+  document.getElementById('cNrCamion').value=v.nrCamion||'';
+  document.getElementById('cLocDescarcare').value=v.locDescarcare||'';
+  document.getElementById('cDataDescarcare').value=v.dataDescarcare?isoToDmy(v.dataDescarcare):'';
+  document.getElementById('cPret').value=v.pret||'';
+  document.getElementById('cModPlata').value=v.modPlata||'';
+  document.getElementById('cSofer').value=v.sofer||'';
+  document.getElementById('cCerinte').value=v.cerinte||'';
+  renderList();
+}
+function collectComanda(){
+  const v=comenzi[activeComandaId]; if(!v) return null;
+  v.crmId=document.getElementById('cCrmProject').value;
+  v.nrComanda=document.getElementById('cNrComanda').value.trim();
+  v.dataComanda=dmyToIso(document.getElementById('cDataComanda').value)||v.dataComanda;
+  v.client=document.getElementById('cClient').value.trim();
+  v.nrRezervare=document.getElementById('cNrRezervare').value.trim();
+  v.transportator=document.getElementById('cTransportator').value.trim();
+  v.cui=document.getElementById('cCui').value.trim();
+  v.regCom=document.getElementById('cRegCom').value.trim();
+  v.dataOraIncarcare=document.getElementById('cDataOraIncarcare').value.trim();
+  v.tipCamion=document.getElementById('cTipCamion').value.trim();
+  v.locIncarcare=document.getElementById('cLocIncarcare').value.trim();
+  v.telIncarcare=document.getElementById('cTelIncarcare').value.trim();
+  v.tipMarfa=document.getElementById('cTipMarfa').value.trim();
+  v.nrCamion=document.getElementById('cNrCamion').value.trim();
+  v.locDescarcare=document.getElementById('cLocDescarcare').value.trim();
+  v.dataDescarcare=dmyToIso(document.getElementById('cDataDescarcare').value);
+  v.pret=document.getElementById('cPret').value.trim();
+  v.modPlata=document.getElementById('cModPlata').value.trim();
+  v.sofer=document.getElementById('cSofer').value.trim();
+  v.cerinte=document.getElementById('cCerinte').value.trim();
+  v.updatedAt=Date.now();
+  if(!v.createdBy) v.createdBy=currentUser?currentUser.name:'';
+  return v;
+}
+document.getElementById('btnSaveComanda').addEventListener('click',()=>{
+  const v=collectComanda(); if(!v) return;
+  saveFirebase('comenzi',v);
+  document.getElementById('comandaTitleDisplay').textContent=v.transportator||'Comandă nouă';
+  alert('Comandă salvată!');
+});
+document.getElementById('btnDeleteComanda').addEventListener('click',()=>{
+  if(!canDelete()){ alert('Doar Alexandru Chirila și Ionuț Nicoraș pot șterge.'); return; }
+  if(!activeComandaId) return;
+  if(!confirm('Ștergi această comandă definitiv?')) return;
+  deleteFirebase('comenzi',activeComandaId);
+  delete comenzi[activeComandaId];
+  activeComandaId=null;
+  document.getElementById('comandaEditor').style.display='none';
+  document.getElementById('emptyState').style.display='block';
+  renderList();
+});
+document.getElementById('btnExportPdfComanda').addEventListener('click',()=>{
+  const v=collectComanda(); if(!v) return;
+  saveFirebase('comenzi',v);
+  printArea.innerHTML=`
+    <div style="font-family:Arial,sans-serif;color:#1a1a1a;padding:40px;line-height:1.55;font-size:12.5px;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:6px;">
+        ${SHC_LOGO_B64?`<img src="data:image/jpeg;base64,${SHC_LOGO_B64}" style="height:46px;object-fit:contain;">`:''}
+        <div style="text-align:center;">
+          <div style="font-size:15px;font-weight:bold;">S.C. SMART HOUSE COLOR S.R.L.</div>
+          <div style="font-size:11px;color:#444;">CUI: RO37283429 · Reg. Com.: J2017000477024</div>
+          <div style="font-size:11px;color:#444;">Str. Timotei Cipariu nr. 3, Arad, România</div>
+          <div style="font-size:11px;color:#444;">Tel.: 0733961190 · E-mail: office@shc-group.ro</div>
+        </div>
+      </div>
+      <div style="border-top:2px solid #333;margin:14px 0 18px;"></div>
+      <div style="text-align:center;font-size:16px;font-weight:bold;margin-bottom:16px;">COMANDĂ DE TRANSPORT NR. ${esc(v.nrComanda||'—')}</div>
+      <div style="margin-bottom:14px;">
+        <strong>Către:</strong> ${esc(v.transportator||'—')}<br>
+        CUI: ${esc(v.cui||'—')} &nbsp;&nbsp; Reg. Com.: ${esc(v.regCom||'—')}
+      </div>
+      <div style="margin-bottom:14px;">Conform discuției telefonice, vă transmitem următoarea comandă de încărcare:</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+        ${[['Data și ora încărcării',v.dataOraIncarcare],['Nr. comandă / rezervare',v.nrRezervare],['Tipul camionului',v.tipCamion],
+          ['Locul de încărcare',v.locIncarcare+(v.telIncarcare?' · Tel.: '+v.telIncarcare:'')],['Tipul mărfii',v.tipMarfa],
+          ['Locul de descărcare',v.locDescarcare],['Data descărcării',v.dataDescarcare?isoToDmy(v.dataDescarcare):''],
+          ['Preț',v.pret],['Modalitate de plată',v.modPlata],['Nr. camion / remorcă',v.nrCamion],
+          ['Nume șofer, nr. telefon',v.sofer],['Cerințe speciale',v.cerinte]]
+          .map(([lbl,val])=>`<tr><td style="padding:6px 10px;border:1px solid #ccc;background:#f5f5f5;font-weight:600;width:220px;">${esc(lbl)}</td><td style="padding:6px 10px;border:1px solid #ccc;">${esc(val||'—')}</td></tr>`).join('')}
+      </table>
+      <div style="font-size:11px;color:#444;margin-bottom:6px;">Asigurarea mărfii este datoria transportatorului, conform convenției CMR.</div>
+      <div style="font-size:11px;color:#444;margin-bottom:6px;">Protecția clientului este parte componentă a contractului.</div>
+      <div style="font-size:11px;color:#444;margin-bottom:30px;">Orice disfuncționalități se comunică în scris la office@shc-group.ro pentru a aplana eventualele probleme.</div>
+      <div style="display:flex;justify-content:space-between;margin-top:50px;">
+        <div style="text-align:center;width:45%;">
+          <div style="font-weight:600;margin-bottom:40px;">BENEFICIAR (emitent),<br>Semnătura și ștampila</div>
+          <div style="border-top:1px solid #333;"></div>
+        </div>
+        <div style="text-align:center;width:45%;">
+          <div style="font-weight:600;margin-bottom:40px;">TRANSPORTATOR,<br>Semnătura și ștampila</div>
+          <div style="border-top:1px solid #333;"></div>
+        </div>
+      </div>
+    </div>`;
+  window.print();
+});
+
+// ═══════════════════════ PROCES VERBAL ═══════════════════════
+const ITEM_TYPES=['Panou fotovoltaic','Invertor','Baterie / BESS','ATS','Altele'];
+let SHC_LOGO_B64='';
+fetch('_logo_b64.txt').then(r=>r.ok?r.text():'').then(t=>{SHC_LOGO_B64=(t||'').trim();}).catch(()=>{});
+function newProces(){
+  const v={id:uid(),crmId:'',nrProces:'',dataProces:new Date().toISOString().slice(0,10),client:'',
+    predator:'',primitor:'',items:[],observatii:'',
+    createdAt:Date.now(),updatedAt:Date.now(),createdBy:currentUser?currentUser.name:''};
+  procese[v.id]=v;
+  openProces(v.id);
+}
+function openProces(id){
+  activeProcesId=id; activeComandaId=null;
+  const v=procese[id]; if(!v) return;
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('comandaEditor').style.display='none';
+  document.getElementById('procesEditor').style.display='block';
+  document.getElementById('procesTitleDisplay').textContent=v.nrProces||'Proces verbal nou';
+  document.getElementById('procesMetaDisplay').textContent=v.createdBy?('Creat de '+v.createdBy):'';
+  document.getElementById('pCrmProject').value=v.crmId||'';
+  document.getElementById('pNrProces').value=v.nrProces||'';
+  document.getElementById('pDataProces').value=v.dataProces?isoToDmy(v.dataProces):'';
+  document.getElementById('pClient').value=v.client||'';
+  document.getElementById('pPredator').value=v.predator||'';
+  document.getElementById('pPrimitor').value=v.primitor||'';
+  document.getElementById('pObservatii').value=v.observatii||'';
+  procesItems = v.items ? JSON.parse(JSON.stringify(v.items)) : [];
+  renderItemsRows();
+  renderList();
+}
+function renderItemsRows(){
+  const wrap=document.getElementById('itemsRows');
+  if(!procesItems.length){ wrap.innerHTML='<div style="font-size:12px;color:#334155;padding:6px 0;">Niciun echipament adăugat.</div>'; return; }
+  wrap.innerHTML=procesItems.map((it,i)=>`
+    <div class="item-card">
+      <div class="row3">
+        <div><label>Tip</label><select data-i="${i}" data-f="tip">${ITEM_TYPES.map(t=>`<option${it.tip===t?' selected':''}>${t}</option>`).join('')}</select></div>
+        <div><label>Marcă</label><input type="text" data-i="${i}" data-f="marca" value="${esc(it.marca||'')}" placeholder="ex: Solis"></div>
+        <div><label>Model</label><input type="text" data-i="${i}" data-f="model" value="${esc(it.model||'')}" placeholder="ex: S6-GR1P8K"></div>
+      </div>
+      <div class="row3">
+        <div><label>Cod produs</label><input type="text" data-i="${i}" data-f="codProdus" value="${esc(it.codProdus||'')}" placeholder="SKU / cod intern"></div>
+        <div><label>Serie</label><input type="text" data-i="${i}" data-f="serie" value="${esc(it.serie||'')}" placeholder="Nr. serie"></div>
+        <div><label>Cantitate</label><input type="number" data-i="${i}" data-f="cantitate" value="${esc(it.cantitate||'')}" placeholder="0"></div>
+      </div>
+      <div class="row2">
+        <div><label>Caracteristici</label><input type="text" data-i="${i}" data-f="caracteristici" value="${esc(it.caracteristici||'')}" placeholder="ex: 8kW, monofazat, hibrid"></div>
+        <div><label>Stare</label><select data-i="${i}" data-f="stare"><option${it.stare==='Funcțional / verificat'?' selected':''}>Funcțional / verificat</option><option${it.stare==='Cu defecte vizibile'?' selected':''}>Cu defecte vizibile</option></select></div>
+      </div>
+      <button class="btn btn-red btn-sm" data-del="${i}" style="margin-top:6px;">✕ Șterge echipament</button>
+    </div>`).join('');
+  wrap.querySelectorAll('[data-f]').forEach(el=>{
+    el.addEventListener('input',()=>{ procesItems[+el.dataset.i][el.dataset.f]=el.value; });
+    el.addEventListener('change',()=>{ procesItems[+el.dataset.i][el.dataset.f]=el.value; });
+  });
+  wrap.querySelectorAll('[data-del]').forEach(el=>{
+    el.addEventListener('click',()=>{ procesItems.splice(+el.dataset.del,1); renderItemsRows(); });
+  });
+}
+document.getElementById('btnAddItem').addEventListener('click',()=>{
+  procesItems.push({tip:'Panou fotovoltaic',marca:'',model:'',codProdus:'',serie:'',caracteristici:'',cantitate:'',stare:'Funcțional / verificat'});
+  renderItemsRows();
+});
+function collectProces(){
+  const v=procese[activeProcesId]; if(!v) return null;
+  v.crmId=document.getElementById('pCrmProject').value;
+  v.nrProces=document.getElementById('pNrProces').value.trim();
+  v.dataProces=dmyToIso(document.getElementById('pDataProces').value)||v.dataProces;
+  v.client=document.getElementById('pClient').value.trim();
+  v.predator=document.getElementById('pPredator').value.trim();
+  v.primitor=document.getElementById('pPrimitor').value.trim();
+  v.observatii=document.getElementById('pObservatii').value.trim();
+  v.items=procesItems;
+  v.updatedAt=Date.now();
+  if(!v.createdBy) v.createdBy=currentUser?currentUser.name:'';
+  return v;
+}
+document.getElementById('btnSaveProces').addEventListener('click',()=>{
+  const v=collectProces(); if(!v) return;
+  saveFirebase('procese',v);
+  document.getElementById('procesTitleDisplay').textContent=v.nrProces||'Proces verbal nou';
+  alert('Proces verbal salvat!');
+});
+document.getElementById('btnDeleteProces').addEventListener('click',()=>{
+  if(!canDelete()){ alert('Doar Alexandru Chirila și Ionuț Nicoraș pot șterge.'); return; }
+  if(!activeProcesId) return;
+  if(!confirm('Ștergi acest proces verbal definitiv?')) return;
+  deleteFirebase('procese',activeProcesId);
+  delete procese[activeProcesId];
+  activeProcesId=null;
+  document.getElementById('procesEditor').style.display='none';
+  document.getElementById('emptyState').style.display='block';
+  renderList();
+});
+const printArea=document.getElementById('printArea');
+document.getElementById('btnExportPdfProces').addEventListener('click',()=>{
+  const v=collectProces(); if(!v) return;
+  saveFirebase('procese',v);
+  const rows=(v.items||[]).map(it=>`<tr>
+    <td style="padding:6px 8px;border:1px solid #ccc;">${esc(it.tip)}</td>
+    <td style="padding:6px 8px;border:1px solid #ccc;">${esc(it.marca)}${it.model?' '+esc(it.model):''}</td>
+    <td style="padding:6px 8px;border:1px solid #ccc;">${esc(it.codProdus)}</td>
+    <td style="padding:6px 8px;border:1px solid #ccc;">${esc(it.serie)}</td>
+    <td style="padding:6px 8px;border:1px solid #ccc;">${esc(it.caracteristici)}</td>
+    <td style="padding:6px 8px;border:1px solid #ccc;text-align:center;">${esc(it.cantitate)}</td>
+    <td style="padding:6px 8px;border:1px solid #ccc;">${esc(it.stare)}</td>
+  </tr>`).join('');
+  printArea.innerHTML=`
+    <div style="font-family:Arial,sans-serif;color:#1a1a1a;padding:40px;line-height:1.55;font-size:12.5px;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:6px;">
+        ${SHC_LOGO_B64?`<img src="data:image/jpeg;base64,${SHC_LOGO_B64}" style="height:46px;object-fit:contain;">`:''}
+        <div style="text-align:center;">
+          <div style="font-size:15px;font-weight:bold;">S.C. SMART HOUSE COLOR S.R.L.</div>
+          <div style="font-size:11px;color:#444;">CUI: RO37283429 · Reg. Com.: J2017000477024</div>
+          <div style="font-size:11px;color:#444;">Str. Timotei Cipariu nr. 3, Arad, România</div>
+          <div style="font-size:11px;color:#444;">Tel.: 0733961190 · E-mail: office@shc-group.ro</div>
+        </div>
+      </div>
+      <div style="border-top:2px solid #333;margin:14px 0 18px;"></div>
+      <div style="text-align:center;font-size:16px;font-weight:bold;margin-bottom:4px;">PROCES VERBAL DE PREDARE-PRIMIRE</div>
+      <div style="text-align:center;font-size:12.5px;color:#444;margin-bottom:18px;">Nr. ${esc(v.nrProces||'—')} / ${v.dataProces?isoToDmy(v.dataProces):'—'}</div>
+      <div style="margin-bottom:16px;"><strong>Beneficiar:</strong> ${esc(v.client||'—')}</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+        <tr><td style="padding:6px 10px;border:1px solid #ccc;background:#f5f5f5;font-weight:600;width:180px;">Predător (SHC)</td><td style="padding:6px 10px;border:1px solid #ccc;">${esc(v.predator||'—')}</td></tr>
+        <tr><td style="padding:6px 10px;border:1px solid #ccc;background:#f5f5f5;font-weight:600;">Primitor (client)</td><td style="padding:6px 10px;border:1px solid #ccc;">${esc(v.primitor||'—')}</td></tr>
+      </table>
+      <div style="font-weight:700;margin-bottom:8px;">Echipamente predate:</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:16px;font-size:11px;">
+        <tr>
+          <th style="padding:6px 6px;border:1px solid #ccc;background:#f0f0f0;text-align:left;">Tip</th>
+          <th style="padding:6px 6px;border:1px solid #ccc;background:#f0f0f0;text-align:left;">Marcă/Model</th>
+          <th style="padding:6px 6px;border:1px solid #ccc;background:#f0f0f0;text-align:left;">Cod produs</th>
+          <th style="padding:6px 6px;border:1px solid #ccc;background:#f0f0f0;text-align:left;">Serie</th>
+          <th style="padding:6px 6px;border:1px solid #ccc;background:#f0f0f0;text-align:left;">Caracteristici</th>
+          <th style="padding:6px 6px;border:1px solid #ccc;background:#f0f0f0;text-align:center;">Cant.</th>
+          <th style="padding:6px 6px;border:1px solid #ccc;background:#f0f0f0;text-align:left;">Stare</th>
+        </tr>
+        ${rows||'<tr><td colspan="7" style="padding:8px;border:1px solid #ccc;color:#888;">Niciun echipament.</td></tr>'}
+      </table>
+      ${v.observatii?`<div style="margin-bottom:20px;"><strong>Observații:</strong> ${esc(v.observatii)}</div>`:''}
+      <div style="display:flex;justify-content:space-between;margin-top:50px;">
+        <div style="text-align:center;width:45%;">
+          <div style="font-weight:600;margin-bottom:40px;">PREDĂTOR,<br>Semnătura</div>
+          <div style="border-top:1px solid #333;"></div>
+        </div>
+        <div style="text-align:center;width:45%;">
+          <div style="font-weight:600;margin-bottom:40px;">PRIMITOR,<br>Semnătura</div>
+          <div style="border-top:1px solid #333;"></div>
+        </div>
+      </div>
+    </div>`;
+  window.print();
+});
+
+loadFirebase();
+</script>
+</body>
+</html>
