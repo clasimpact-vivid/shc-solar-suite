@@ -601,7 +601,7 @@ function renderList(){
     groups[client].forEach(v=>{
       const activeId = activeTab==='comenzi'?activeComandaId:activeProcesId;
       const title = activeTab==='comenzi' ? (v.transportator||'Comandă fără transportator') : (v.nrProces||'Proces verbal');
-      const meta = activeTab==='comenzi' ? (v.dataComanda?isoToDmy(v.dataComanda):'') : (v.dataProces?isoToDmy(v.dataProces):'');
+      const meta = activeTab==='comenzi' ? (v.nrComanda?('SCH'+v.nrComanda+(v.dataComanda?' · '+isoToDmy(v.dataComanda):'')):(v.dataComanda?isoToDmy(v.dataComanda):'')) : (v.dataProces?isoToDmy(v.dataProces):'');
       html+=`<div class="list-item${v.id===activeId?' active':''}" data-id="${v.id}">
         <div class="li-name">${esc(title)}</div>
         <div class="li-meta">${esc(meta)}</div>
