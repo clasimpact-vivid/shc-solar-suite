@@ -279,6 +279,10 @@ a:hover{color:#93c5fd;}
             <div class="field"><label>Nr. proces verbal</label><input type="text" id="pNrProces" placeholder="ex: PV-001"></div>
             <div class="field"><label>Data</label><input type="text" id="pDataProces" placeholder="dd/mm/yyyy" maxlength="10"></div>
           </div>
+          <div class="field" style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+            <input type="checkbox" id="pIncludePIF" style="width:16px;height:16px;">
+            <label for="pIncludePIF" style="margin:0;cursor:pointer;">Include și punerea în funcțiune (PIF) — sistem PV/BESS testat și funcțional</label>
+          </div>
           <div class="field"><label>Beneficiar (client)</label><input type="text" id="pClient" placeholder="Nume client / firmă"></div>
         </div>
 
@@ -763,6 +767,7 @@ function openProces(id){
   document.getElementById('pCrmProject').value=v.crmId||'';
   document.getElementById('pNrProces').value=v.nrProces||'';
   document.getElementById('pDataProces').value=v.dataProces?isoToDmy(v.dataProces):'';
+  document.getElementById('pIncludePIF').checked=!!v.includePIF;
   document.getElementById('pClient').value=v.client||'';
   document.getElementById('pPredator').value=v.predator||'';
   document.getElementById('pPrimitor').value=v.primitor||'';
@@ -809,6 +814,7 @@ function collectProces(){
   v.crmId=document.getElementById('pCrmProject').value;
   v.nrProces=document.getElementById('pNrProces').value.trim();
   v.dataProces=dmyToIso(document.getElementById('pDataProces').value)||v.dataProces;
+  v.includePIF=document.getElementById('pIncludePIF').checked;
   v.client=document.getElementById('pClient').value.trim();
   v.predator=document.getElementById('pPredator').value.trim();
   v.primitor=document.getElementById('pPrimitor').value.trim();
@@ -860,7 +866,7 @@ document.getElementById('btnExportPdfProces').addEventListener('click',()=>{
         </div>
       </div>
       <div style="border-top:2px solid #333;margin:14px 0 18px;"></div>
-      <div style="text-align:center;font-size:16px;font-weight:bold;margin-bottom:4px;">PROCES VERBAL DE PREDARE-PRIMIRE</div>
+      <div style="text-align:center;font-size:16px;font-weight:bold;margin-bottom:4px;">PROCES VERBAL DE PREDARE-PRIMIRE${v.includePIF?' ȘI PUNERE ÎN FUNCȚIUNE':''}</div>
       <div style="text-align:center;font-size:12.5px;color:#444;margin-bottom:18px;">Nr. ${esc(v.nrProces||'—')} / ${v.dataProces?isoToDmy(v.dataProces):'—'}</div>
       <div style="margin-bottom:16px;"><strong>Beneficiar:</strong> ${esc(v.client||'—')}</div>
       <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
@@ -880,6 +886,10 @@ document.getElementById('btnExportPdfProces').addEventListener('click',()=>{
         </tr>
         ${rows||'<tr><td colspan="7" style="padding:8px;border:1px solid #ccc;color:#888;">Niciun echipament.</td></tr>'}
       </table>
+      ${v.includePIF?`<div style="margin-bottom:14px;"><strong>Punere în funcțiune:</strong> Sistemul a fost verificat, testat și pus în funcțiune, fiind pe deplin operațional la data prezentului proces verbal.</div>`:''}
+      <div style="font-size:10.5px;color:#444;margin-bottom:4px;">Beneficiarul confirmă recepția echipamentelor menționate mai sus, în starea descrisă, ${v.includePIF?'sistemul fiind funcțional și testat la momentul predării.':'conform prezentului proces verbal.'}</div>
+      <div style="font-size:10.5px;color:#444;margin-bottom:4px;">Garanția echipamentelor este de <strong>24 de luni</strong> de la data prezentului proces verbal, în condițiile producătorului și ale contractului încheiat cu SHC.</div>
+      <div style="font-size:10.5px;color:#444;margin-bottom:20px;">Orice intervenție neautorizată asupra sistemului (modificări, reparații sau demontări efectuate de persoane neautorizate de SHC) <strong>anulează garanția</strong> oferită.</div>
       ${v.observatii?`<div style="margin-bottom:20px;"><strong>Observații:</strong> ${esc(v.observatii)}</div>`:''}
       <div style="display:flex;justify-content:space-between;margin-top:50px;">
         <div style="text-align:center;width:45%;">
