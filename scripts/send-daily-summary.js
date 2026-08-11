@@ -80,7 +80,7 @@ async function main() {
 
   const pontajRows = pontajRecords.filter(r => r.checkIn).map(r => {
     const km = r.checkIn.distKm != null ? r.checkIn.distKm : null;
-    return `<li><strong>${esc(r.userName || '?')}</strong> — intrare ${r.checkIn.time ? fmtTime(r.checkIn.time) : ''}${r.checkOut ? ', ieșire ' + fmtTime(r.checkOut.time) : ''}${km != null && km > 50 ? ' <span style="color:#d97706;font-weight:600">🚗 ' + km + ' km</span>' : ''}</li>`;
+    return `<li><strong>${esc(r.userName || '?')}</strong> — intrare ${r.checkIn.time ? esc(r.checkIn.time) : ''}${r.checkOut ? ', ieșire ' + esc(r.checkOut.time) : ''}${km != null && km > 50 ? ' <span style="color:#d97706;font-weight:600">🚗 ' + km + ' km</span>' : ''}</li>`;
   });
   if (pontajRows.length) body += `<h3 style="color:#f59e0b;margin:18px 0 8px;">🕐 Pontaj — prezențe (${pontajRows.length})</h3><ul style="margin:0;padding-left:20px;">${pontajRows.join('')}</ul>`;
 
