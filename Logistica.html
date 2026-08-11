@@ -85,6 +85,7 @@ a{color:#60a5fa;}
 a:hover{color:#93c5fd;}
 
 @media print{
+  @page{margin:12mm;}
   html,body{height:auto !important;overflow:visible !important;}
   #app{display:block !important;height:auto !important;}
   #layout{display:block !important;height:auto !important;overflow:visible !important;}
@@ -676,41 +677,41 @@ document.getElementById('btnExportPdfComanda').addEventListener('click',()=>{
   const v=collectComanda(); if(!v) return;
   saveFirebase('comenzi',v);
   printArea.innerHTML=`
-    <div style="font-family:Arial,sans-serif;color:#1a1a1a;padding:40px;line-height:1.55;font-size:12.5px;">
-      <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:6px;">
-        ${SHC_LOGO_B64?`<img src="data:image/jpeg;base64,${SHC_LOGO_B64}" style="height:46px;object-fit:contain;">`:''}
+    <div style="font-family:Arial,sans-serif;color:#1a1a1a;padding:20px 30px;line-height:1.4;font-size:12px;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:4px;">
+        ${SHC_LOGO_B64?`<img src="data:image/jpeg;base64,${SHC_LOGO_B64}" style="height:38px;object-fit:contain;">`:''}
         <div style="text-align:center;">
-          <div style="font-size:15px;font-weight:bold;">S.C. SMART HOUSE COLOR S.R.L.</div>
-          <div style="font-size:11px;color:#444;">CUI: RO37283429 · Reg. Com.: J2017000477024</div>
-          <div style="font-size:11px;color:#444;">Str. Timotei Cipariu nr. 3, Arad, România</div>
-          <div style="font-size:11px;color:#444;">Tel.: 0733961190 · E-mail: office@shc-group.ro</div>
+          <div style="font-size:14px;font-weight:bold;">S.C. SMART HOUSE COLOR S.R.L.</div>
+          <div style="font-size:10px;color:#444;">CUI: RO37283429 · Reg. Com.: J2017000477024</div>
+          <div style="font-size:10px;color:#444;">Str. Timotei Cipariu nr. 3, Arad, România</div>
+          <div style="font-size:10px;color:#444;">Tel.: 0733961190 · E-mail: office@shc-group.ro</div>
         </div>
       </div>
-      <div style="border-top:2px solid #333;margin:14px 0 18px;"></div>
-      <div style="text-align:center;font-size:16px;font-weight:bold;margin-bottom:16px;">COMANDĂ DE TRANSPORT NR. ${esc(v.nrComanda||'—')}</div>
-      <div style="margin-bottom:14px;">
+      <div style="border-top:2px solid #333;margin:10px 0 12px;"></div>
+      <div style="text-align:center;font-size:15px;font-weight:bold;margin-bottom:12px;">COMANDĂ DE TRANSPORT NR. ${esc(v.nrComanda||'—')}</div>
+      <div style="margin-bottom:10px;">
         <strong>Către:</strong> ${esc(v.transportator||'—')}<br>
         CUI: ${esc(v.cui||'—')} &nbsp;&nbsp; Reg. Com.: ${esc(v.regCom||'—')}
       </div>
-      <div style="margin-bottom:14px;">Conform discuției telefonice, vă transmitem următoarea comandă de încărcare:</div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+      <div style="margin-bottom:10px;">Conform discuției telefonice, vă transmitem următoarea comandă de încărcare:</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:14px;">
         ${[['Data și ora încărcării',v.dataOraIncarcare],['Nr. comandă / rezervare',v.nrRezervare],['Tipul camionului',v.tipCamion],
           ['Locul de încărcare',v.locIncarcare+(v.telIncarcare?' · Tel.: '+v.telIncarcare:'')],['Tipul mărfii',v.tipMarfa],
           ['Locul de descărcare',v.locDescarcare],['Data descărcării',v.dataDescarcare?isoToDmy(v.dataDescarcare):''],
           ['Preț',v.pret],['Modalitate de plată',v.modPlata],['Nr. camion / remorcă',v.nrCamion],
           ['Nume șofer, nr. telefon',v.sofer],['Cerințe speciale',v.cerinte]]
-          .map(([lbl,val])=>`<tr><td style="padding:6px 10px;border:1px solid #ccc;background:#f5f5f5;font-weight:600;width:220px;">${esc(lbl)}</td><td style="padding:6px 10px;border:1px solid #ccc;">${esc(val||'—')}</td></tr>`).join('')}
+          .map(([lbl,val])=>`<tr><td style="padding:4px 8px;border:1px solid #ccc;background:#f5f5f5;font-weight:600;width:200px;">${esc(lbl)}</td><td style="padding:4px 8px;border:1px solid #ccc;">${esc(val||'—')}</td></tr>`).join('')}
       </table>
-      <div style="font-size:11px;color:#444;margin-bottom:6px;">Asigurarea mărfii este datoria transportatorului, conform convenției CMR.</div>
-      <div style="font-size:11px;color:#444;margin-bottom:6px;">Protecția clientului este parte componentă a contractului.</div>
-      <div style="font-size:11px;color:#444;margin-bottom:30px;">Orice disfuncționalități se comunică în scris la office@shc-group.ro pentru a aplana eventualele probleme.</div>
-      <div style="display:flex;justify-content:space-between;margin-top:50px;">
+      <div style="font-size:10px;color:#444;margin-bottom:4px;">Asigurarea mărfii este datoria transportatorului, conform convenției CMR.</div>
+      <div style="font-size:10px;color:#444;margin-bottom:4px;">Protecția clientului este parte componentă a contractului.</div>
+      <div style="font-size:10px;color:#444;margin-bottom:20px;">Orice disfuncționalități se comunică în scris la office@shc-group.ro pentru a aplana eventualele probleme.</div>
+      <div style="display:flex;justify-content:space-between;margin-top:24px;">
         <div style="text-align:center;width:45%;">
-          <div style="font-weight:600;margin-bottom:40px;">BENEFICIAR (emitent),<br>Semnătura și ștampila</div>
+          <div style="font-weight:600;margin-bottom:24px;">BENEFICIAR (emitent),<br>Semnătura și ștampila</div>
           <div style="border-top:1px solid #333;"></div>
         </div>
         <div style="text-align:center;width:45%;">
-          <div style="font-weight:600;margin-bottom:40px;">TRANSPORTATOR,<br>Semnătura și ștampila</div>
+          <div style="font-weight:600;margin-bottom:24px;">TRANSPORTATOR,<br>Semnătura și ștampila</div>
           <div style="border-top:1px solid #333;"></div>
         </div>
       </div>
