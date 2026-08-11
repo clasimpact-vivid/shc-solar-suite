@@ -350,11 +350,14 @@ function attachDateAutoFormat(id){
 (function(){
   const el=document.getElementById('cDataOraIncarcare'); if(!el) return;
   el.addEventListener('input',()=>{
-    let v=el.value.replace(/[^\d/:,\s]/g,'');
-    if(v.length===2||v.length===5){ if(el.value.slice(-1)!=='/'&&v.length<=5) v+='/'; }
-    if(v.length===11){ if(el.value.slice(-1)!==',') v+=', '; }
-    if(v.length===15){ if(el.value.slice(-1)!==':') v+=':'; }
-    el.value=v.slice(0,17);
+    let d=el.value.replace(/\D/g,'').slice(0,12);
+    let out='';
+    if(d.length>0) out+=d.slice(0,2);
+    if(d.length>2) out+='/'+d.slice(2,4);
+    if(d.length>4) out+='/'+d.slice(4,8);
+    if(d.length>8) out+=', '+d.slice(8,10);
+    if(d.length>10) out+=':'+d.slice(10,12);
+    el.value=out;
   });
 })();
 
