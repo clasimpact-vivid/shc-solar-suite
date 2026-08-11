@@ -231,7 +231,7 @@ a:hover{color:#93c5fd;}
         <div class="section-card">
           <div class="section-title">📦 Detalii transport</div>
           <div class="row2">
-            <div class="field"><label>Data și ora încărcării</label><input type="text" id="cDataOraIncarcare" placeholder="ex: 15/09/2026, 08:00"></div>
+            <div class="field"><label>Data și ora încărcării</label><input type="text" id="cDataOraIncarcare" placeholder="dd/mm/yyyy, hh:mm" maxlength="17"></div>
             <div class="field"><label>Tipul camionului</label><input type="text" id="cTipCamion" placeholder="ex: Prelată 13.6m"></div>
           </div>
           <div class="row2">
@@ -347,6 +347,16 @@ function attachDateAutoFormat(id){
   });
 }
 ['cDataComanda','cDataDescarcare','pDataProces'].forEach(attachDateAutoFormat);
+(function(){
+  const el=document.getElementById('cDataOraIncarcare'); if(!el) return;
+  el.addEventListener('input',()=>{
+    let v=el.value.replace(/[^\d/:,\s]/g,'');
+    if(v.length===2||v.length===5){ if(el.value.slice(-1)!=='/'&&v.length<=5) v+='/'; }
+    if(v.length===11){ if(el.value.slice(-1)!==',') v+=', '; }
+    if(v.length===15){ if(el.value.slice(-1)!==':') v+=':'; }
+    el.value=v.slice(0,17);
+  });
+})();
 
 try{
   if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
