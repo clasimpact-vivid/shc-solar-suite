@@ -338,6 +338,15 @@ function initials(n){ return (n||'?').split(' ').slice(0,2).map(w=>w[0]||'').joi
 function isoToDmy(s){ if(!s) return ''; const p=s.split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:s; }
 function dmyToIso(s){ if(!s) return ''; const p=s.split('/'); return p.length===3?p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0'):''; }
 function esc(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function attachDateAutoFormat(id){
+  const el=document.getElementById(id); if(!el) return;
+  el.addEventListener('input',()=>{
+    let v=el.value.replace(/[^\d/]/g,'');
+    if(v.length===2||v.length===5){ if(el.value.slice(-1)!=='/') v+='/'; }
+    el.value=v.slice(0,10);
+  });
+}
+['cDataComanda','cDataDescarcare','pDataProces'].forEach(attachDateAutoFormat);
 
 try{
   if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
@@ -647,7 +656,7 @@ function collectComanda(){
   v.tipMarfa=document.getElementById('cTipMarfa').value.trim();
   v.nrCamion=document.getElementById('cNrCamion').value.trim();
   v.locDescarcare=document.getElementById('cLocDescarcare').value.trim();
-  v.dataDescarcare=dmyToIso(document.getElementById('cDataDescarcare').value);
+  v.dataDescarcare=dmyToIso(document.getElementById('cDataDescarcare').value)||v.dataDescarcare;
   v.pret=document.getElementById('cPret').value.trim();
   v.modPlata=document.getElementById('cModPlata').value.trim();
   v.sofer=document.getElementById('cSofer').value.trim();
