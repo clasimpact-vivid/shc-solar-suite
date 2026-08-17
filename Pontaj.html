@@ -232,6 +232,14 @@ a:hover{color:#fbbf24;}
           </div>
         </div>
         <div class="field" style="margin-bottom:10px;"><label>Șantier / proiect (opțional)</label><input type="text" id="taskSite" class="form-input" placeholder="ex: Șantier Jandarmi"></div>
+        <div class="field" style="margin-bottom:10px;"><label>Capitol (dacă e task de șantier)</label>
+          <select id="taskChapter" class="form-select">
+            <option value="">— fără capitol —</option>
+            <option value="Șantier - Execuție">Șantier - Execuție</option>
+            <option value="Documentație">Documentație</option>
+            <option value="Racordare la rețea">Racordare la rețea</option>
+          </select>
+        </div>
         <div class="field" style="margin-bottom:10px;"><label>Descriere task</label><textarea id="taskDesc" class="form-input" rows="2" style="width:100%;"></textarea></div>
         <button class="btn btn-sm" id="btnSubmitTask" style="background:#f59e0b;color:#fff;">Atribuie task</button>
       </div>
@@ -241,10 +249,12 @@ a:hover{color:#fbbf24;}
           <div id="taskViewToggle" style="display:flex;gap:4px;background:#0f172a;border-radius:8px;padding:3px;">
             <button data-task-view="list" class="task-view-btn" style="padding:5px 12px;border:none;border-radius:6px;background:transparent;color:#94a3b8;font-size:11.5px;font-weight:700;cursor:pointer;">Listă</button>
             <button data-task-view="board" class="task-view-btn" style="padding:5px 12px;border:none;border-radius:6px;background:#334155;color:#fff;font-size:11.5px;font-weight:700;cursor:pointer;">Pe echipă</button>
+            <button data-task-view="site" class="task-view-btn" style="padding:5px 12px;border:none;border-radius:6px;background:transparent;color:#94a3b8;font-size:11.5px;font-weight:700;cursor:pointer;">Pe șantier</button>
           </div>
         </div>
         <div id="taskList" style="display:none;"></div>
         <div id="taskBoard" style="display:flex;overflow-x:auto;"></div>
+        <div id="taskSiteView" style="display:none;"></div>
       </div>
     </div>
 
@@ -1378,6 +1388,7 @@ document.querySelectorAll('.task-view-btn').forEach(b=>b.addEventListener('click
   document.querySelectorAll('.task-view-btn').forEach(x=>{ x.style.background=x.dataset.taskView===taskView?'#334155':'transparent'; x.style.color=x.dataset.taskView===taskView?'#fff':'#94a3b8'; });
   document.getElementById('taskList').style.display=taskView==='list'?'block':'none';
   document.getElementById('taskBoard').style.display=taskView==='board'?'flex':'none';
+  document.getElementById('taskSiteView').style.display=taskView==='site'?'block':'none';
   renderTasks();
 }));
 function renderTaskCard(t,admin){
@@ -1424,6 +1435,38 @@ function renderTaskCardCompact(t){
     </div>
   </div>`;
 }
+const CHAPTER_COLORS={'Șantier - Execuție':{bg:'#1e3a5f',fg:'#93c5fd'},'Documentație':{bg:'#4a3a1e',fg:'#fbbf24'},'Racordare la rețea':{bg:'#1e4a2e',fg:'#4ade80'}};
+function renderTaskSiteView(){
+  const view=document.getElementById('taskSiteView');
+  const bySite={};
+  tasks.filter(t=>t.site).forEach(t=>{ (bySite[t.site]=bySite[t.site]||[]).push(t); });
+  const sites=Object.keys(bySite).sort();
+  if(!sites.length){ view.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun task legat de un șantier. Completează câmpul „Șantier / proiect" la atribuire.</div>'; return; }
+  view.innerHTML=sites.map(site=>{
+    const items=bySite[site];
+    const chapters=['Șantier - Execuție','Documentație','Racordare la rețea',''];
+    const byChapter={}; items.forEach(t=>{ (byChapter[t.chapter||'']=byChapter[t.chapter||'']||[]).push(t); });
+    return `<div style="margin-bottom:18px;border:1px solid #1e293b;border-radius:10px;overflow:hidden;">
+      <div style="background:#0f172a;padding:10px 14px;font-size:13.5px;font-weight:800;color:#f1f5f9;">${site}</div>
+      ${chapters.filter(c=>byChapter[c]&&byChapter[c].length).map(c=>{
+        const col=CHAPTER_COLORS[c]||{bg:'#1e293b',fg:'#94a3b8'};
+        return `<div style="padding:10px 14px;border-top:1px solid #1e293b;">
+          <div style="font-size:11.5px;font-weight:700;color:${col.fg};background:${col.bg};display:inline-block;padding:3px 10px;border-radius:6px;margin-bottom:8px;">${c||'Fără capitol'}</div>
+          ${byChapter[c].sort((a,b)=>(a.done===b.done?0:a.done?1:-1)).map(t=>{
+            const overdue=!t.done && t.due && t.due<todayISO();
+            return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12.5px;${t.done?'opacity:.5;':''}">
+              <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} ${t.assigneeId!==currentUser.id?'disabled':''} style="width:15px;height:15px;cursor:${t.assigneeId===currentUser.id?'pointer':'not-allowed'};">
+              <span style="flex:1;${t.done?'text-decoration:line-through;':''}">${t.desc||''}</span>
+              <span style="color:#94a3b8;font-size:11px;">${t.assigneeName||''}</span>
+              ${t.due?`<span style="font-size:10.5px;font-weight:600;color:${overdue?'#f87171':'#94a3b8'};">${isoToDmy(t.due)}</span>`:''}
+            </div>`;
+          }).join('')}
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+  wireTaskEvents(view);
+}
 function renderTaskBoard(admin){
   const board=document.getElementById('taskBoard');
   const byUser={};
@@ -1465,6 +1508,7 @@ function renderTasks(){
     }
   }
   if(taskView==='board'){ document.getElementById('taskBoard').style.display='flex'; renderTaskBoard(admin); updateTaskBadge(); return; }
+  if(taskView==='site'){ document.getElementById('taskSiteView').style.display='block'; renderTaskSiteView(); updateTaskBadge(); return; }
   const mine=tasks;
   const wrap=document.getElementById('taskList');
   if(!mine.length){ wrap.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun task.</div>'; updateTaskBadge(); return; }
@@ -1487,10 +1531,11 @@ document.getElementById('btnSubmitTask').addEventListener('click',()=>{
   const dueTime=document.getElementById('taskDueTime').value.trim();
   const priority=document.getElementById('taskPriority').value;
   if(!assigneeId||!desc){ alert('Completează colegul și descrierea task-ului.'); return; }
-  const t={id:'task_'+Date.now(),assigneeId,assigneeName,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,done:false,ts:Date.now(),createdBy:currentUser.name};
+  const t={id:'task_'+Date.now(),assigneeId,assigneeName,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,done:false,ts:Date.now(),createdBy:currentUser.name};
   saveTask(t);
   sendTaskEmail(t,assignee);
   document.getElementById('taskSite').value='';
+  document.getElementById('taskChapter').value='';
   document.getElementById('taskDesc').value=''; document.getElementById('taskDue').value=''; document.getElementById('taskDueTime').value='';
 });
 function sendTaskEmail(t,assignee){
