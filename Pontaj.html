@@ -1477,7 +1477,7 @@ function renderTaskBoard(admin){
     const g=byUser[id];
     const active=g.items.filter(t=>!t.done).sort((a,b)=>(a.due||'').localeCompare(b.due||''));
     const done=g.items.filter(t=>t.done);
-    return `<div style="min-width:190px;max-width:190px;flex-shrink:0;background:#111d35;border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px;margin-right:8px;">
+    return `<div style="min-width:190px;max-width:190px;flex-shrink:0;background:#111d35;border-right:1px solid rgba(255,255,255,0.09);padding:10px 12px 10px 0;margin-right:0;">
       <div style="font-size:11.5px;font-weight:800;color:#f1f5f9;text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px;">${g.name||'—'}</div>
       ${active.map(t=>renderTaskCardCompact(t)).join('')}
       ${!active.length?'<div style="font-size:11px;color:#64748b;">Niciun task activ.</div>':''}
