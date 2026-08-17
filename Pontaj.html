@@ -1413,7 +1413,16 @@ function renderTaskCard(t,admin){
             <option value="50" ${t.progress==50?'selected':''}>50%</option>
             <option value="75" ${t.progress==75?'selected':''}>75%</option>
           </select>
-        </div>`:''}
+          <div style="flex:1;min-width:80px;max-width:160px;height:7px;background:#1e293b;border-radius:4px;overflow:hidden;">
+            <div style="width:${t.progress||0}%;height:100%;background:${(t.progress||0)>=75?'#eab308':(t.progress||0)>=50?'#3b82f6':(t.progress||0)>=25?'#f97316':'#475569'};border-radius:4px;transition:width .2s;"></div>
+          </div>
+        </div>`:!t.done?`<div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+          <div style="flex:1;max-width:160px;height:7px;background:#1e293b;border-radius:4px;overflow:hidden;"><div style="width:${t.progress||0}%;height:100%;background:${(t.progress||0)>=75?'#eab308':(t.progress||0)>=50?'#3b82f6':(t.progress||0)>=25?'#f97316':'#475569'};border-radius:4px;"></div></div>
+          <span style="font-size:11px;color:#94a3b8;">${t.progress||0}%</span>
+        </div>`:`<div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+          <div style="flex:1;max-width:160px;height:7px;background:#1e293b;border-radius:4px;overflow:hidden;"><div style="width:100%;height:100%;background:#16a34a;border-radius:4px;"></div></div>
+          <span style="font-size:11px;color:#16a34a;font-weight:700;">100% ✓</span>
+        </div>`}
       </div>
       ${admin?'<button data-task-del="'+t.id+'" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:15px;">✕</button>':''}
     </div>`;
@@ -1425,6 +1434,10 @@ function renderTaskCard(t,admin){
       <div style="flex:1;min-width:0;">
         <div style="font-size:12.5px;font-weight:600;color:#0f172a;${t.done?'text-decoration:line-through;color:#94a3b8;':''}">${t.desc||''}</div>
         ${t.site?`<div style="font-size:10.5px;color:#64748b;margin-top:2px;">${t.site}</div>`:''}
+        ${(!t.done&&(t.progress||0)>0)?`<div style="display:flex;align-items:center;gap:5px;margin-top:5px;">
+          <div style="flex:1;height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;"><div style="width:${t.progress}%;height:100%;background:${(t.progress)>=75?'#eab308':(t.progress)>=50?'#3b82f6':'#f97316'};border-radius:3px;"></div></div>
+          <span style="font-size:9.5px;color:#94a3b8;">${t.progress}%</span>
+        </div>`:''}
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;">
           ${t.due?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:600;color:${overdue?'#b91c1c':'#78350f'};background:${overdue?'#fee2e2':'#fef3c7'};padding:2px 7px;border-radius:999px;">🕐 ${isoToDmy(t.due)}${t.dueTime?' '+t.dueTime:''}</span>`:''}
           ${t.priority==='urgent'?`<span style="font-size:10.5px;font-weight:700;color:#b91c1c;background:#fee2e2;padding:2px 7px;border-radius:999px;">Urgent</span>`:''}
@@ -1453,11 +1466,17 @@ function renderTaskSiteView(){
           <div style="font-size:11.5px;font-weight:700;color:${col.fg};background:${col.bg};display:inline-block;padding:3px 10px;border-radius:6px;margin-bottom:8px;">${c||'Fără capitol'}</div>
           ${byChapter[c].sort((a,b)=>(a.done===b.done?0:a.done?1:-1)).map(t=>{
             const overdue=!t.done && t.due && t.due<todayISO();
-            return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12.5px;${t.done?'opacity:.5;':''}">
-              <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} ${t.assigneeId!==currentUser.id?'disabled':''} style="width:15px;height:15px;cursor:${t.assigneeId===currentUser.id?'pointer':'not-allowed'};">
-              <span style="flex:1;${t.done?'text-decoration:line-through;':''}">${t.desc||''}</span>
-              <span style="color:#94a3b8;font-size:11px;">${t.assigneeName||''}</span>
-              ${t.due?`<span style="font-size:10.5px;font-weight:600;color:${overdue?'#f87171':'#94a3b8'};">${isoToDmy(t.due)}</span>`:''}
+            return `<div style="display:flex;flex-direction:column;gap:3px;padding:6px 0;font-size:12.5px;${t.done?'opacity:.5;':''}">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} ${t.assigneeId!==currentUser.id?'disabled':''} style="width:15px;height:15px;cursor:${t.assigneeId===currentUser.id?'pointer':'not-allowed'};">
+                <span style="flex:1;${t.done?'text-decoration:line-through;':''}">${t.desc||''}</span>
+                <span style="color:#94a3b8;font-size:11px;">${t.assigneeName||''}</span>
+                ${t.due?`<span style="font-size:10.5px;font-weight:600;color:${overdue?'#f87171':'#94a3b8'};">${isoToDmy(t.due)}</span>`:''}
+              </div>
+              ${(!t.done&&(t.progress||0)>0)?`<div style="display:flex;align-items:center;gap:5px;padding-left:23px;">
+                <div style="flex:1;max-width:140px;height:5px;background:#1e293b;border-radius:3px;overflow:hidden;"><div style="width:${t.progress}%;height:100%;background:${(t.progress)>=75?'#eab308':(t.progress)>=50?'#3b82f6':'#f97316'};border-radius:3px;"></div></div>
+                <span style="font-size:9.5px;color:#94a3b8;">${t.progress}%</span>
+              </div>`:''}
             </div>`;
           }).join('')}
         </div>`;
