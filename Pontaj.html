@@ -1506,7 +1506,7 @@ function renderTaskBoard(admin){
 }
 function wireTaskEvents(root){
   root.querySelectorAll('input[data-task-done]').forEach(cb=>cb.addEventListener('change',()=>{
-    const t=tasks.find(x=>x.id===cb.dataset.taskDone); if(t){ t.done=cb.checked; if(t.done) t.progress=100; saveTask(t); renderTasks(); }
+    const t=tasks.find(x=>x.id===cb.dataset.taskDone); if(t){ t.done=cb.checked; if(t.done){ t.progress=100; sendTaskDoneEmail(t); } saveTask(t); renderTasks(); }
   }));
   root.querySelectorAll('select[data-task-status]').forEach(sel=>sel.addEventListener('change',()=>{
     const t=tasks.find(x=>x.id===sel.dataset.taskStatus); if(t){ t.progress=parseInt(sel.value); saveTask(t); renderTasks(); }
@@ -1557,6 +1557,17 @@ document.getElementById('btnSubmitTask').addEventListener('click',()=>{
   document.getElementById('taskChapter').value='';
   document.getElementById('taskDesc').value=''; document.getElementById('taskDue').value=''; document.getElementById('taskDueTime').value='';
 });
+function sendTaskDoneEmail(t){
+  if(!window.emailjs) return;
+  const creator=loginUsers.find(u=>u.name===t.createdBy);
+  if(!creator || !creator.email) return;
+  const subject='Task finalizat: '+(t.assigneeName||'—');
+  const message=(t.assigneeName||'—')+' a finalizat task-ul:\n\n'+t.desc+'\n\n'+
+    (t.site?('Șantier: '+t.site+'\n\n'):'')+
+    'SHC Solar Suite — Pontaj';
+  emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:creator.email, subject, message}).catch(()=>{});
+  emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:'office@shc-group.ro', subject, message}).catch(()=>{});
+}
 function sendTaskEmail(t,assignee){
   if(!window.emailjs||!assignee.email) return;
   const subject='Task nou de la '+t.createdBy;
@@ -1566,6 +1577,15 @@ function sendTaskEmail(t,assignee){
     (t.due?('Termen: '+isoToDmy(t.due)+(t.dueTime?' ora '+t.dueTime:'')+'\n\n'):'')+
     'Îl poți vedea și bifa în aplicația Pontaj, tab Task-uri.\n\nSHC Solar Suite — Pontaj';
   emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:assignee.email, subject, message}).catch(()=>{});
+  emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:'office@shc-group.ro', subject, message}).catch(()=>{});
+  const creator=loginUsers.find(u=>u.name===t.createdBy);
+  if(creator && creator.email && creator.email!==assignee.email){
+    const subject2='Confirmare: task trimis către '+(assignee.name||'—');
+    const message2='Ai atribuit task-ul următor către '+(assignee.name||'—')+':\n\n'+t.desc+'\n\n'+
+      (t.due?('Termen: '+isoToDmy(t.due)+(t.dueTime?' ora '+t.dueTime:'')+'\n\n'):'')+
+      'SHC Solar Suite — Pontaj';
+    emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:creator.email, subject:subject2, message:message2}).catch(()=>{});
+  }
 }
 function sendLeaveEmail(l, decision){
   if(!window.emailjs) return;
