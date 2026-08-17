@@ -1407,6 +1407,23 @@ function renderTaskCard(t,admin){
       ${admin?'<button data-task-del="'+t.id+'" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:15px;">✕</button>':''}
     </div>`;
 }
+function renderTaskCardCompact(t){
+  const overdue=!t.done && t.due && t.due<todayISO();
+  return `<div data-task-card="${t.id}" style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:9px 10px;margin-bottom:7px;cursor:${t.assigneeId===currentUser.id&&!t.done?'pointer':'default'};">
+    <div style="display:flex;align-items:flex-start;gap:7px;">
+      <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} ${t.assigneeId!==currentUser.id?'disabled':''} style="margin-top:2px;width:15px;height:15px;flex-shrink:0;cursor:${t.assigneeId===currentUser.id?'pointer':'not-allowed'};">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12.5px;font-weight:600;color:#0f172a;${t.done?'text-decoration:line-through;color:#94a3b8;':''}">${t.desc||''}</div>
+        ${t.site?`<div style="font-size:10.5px;color:#64748b;margin-top:2px;">${t.site}</div>`:''}
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;">
+          ${t.due?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:600;color:${overdue?'#b91c1c':'#78350f'};background:${overdue?'#fee2e2':'#fef3c7'};padding:2px 7px;border-radius:999px;">🕐 ${isoToDmy(t.due)}${t.dueTime?' '+t.dueTime:''}</span>`:''}
+          ${t.priority==='urgent'?`<span style="font-size:10.5px;font-weight:700;color:#b91c1c;background:#fee2e2;padding:2px 7px;border-radius:999px;">Urgent</span>`:''}
+        </div>
+      </div>
+      ${(t.assigneeId!==currentUser.id||canAssignTasks())?`<button data-task-del="${t.id}" style="background:none;border:none;color:#cbd5e1;cursor:pointer;font-size:13px;flex-shrink:0;">✕</button>`:''}
+    </div>
+  </div>`;
+}
 function renderTaskBoard(admin){
   const board=document.getElementById('taskBoard');
   const byUser={};
@@ -1415,13 +1432,15 @@ function renderTaskBoard(admin){
   if(!ids.length){ board.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun task.</div>'; return; }
   board.innerHTML=ids.map(id=>{
     const g=byUser[id];
-    const sorted=[...g.items].sort((a,b)=>(a.done===b.done?0:a.done?1:-1)||(a.due||'').localeCompare(b.due||''));
-    return `<div style="min-width:230px;flex-shrink:0;background:#0f172a;border-radius:10px;padding:10px;margin-right:10px;">
-      <div style="font-size:12.5px;font-weight:800;color:#f1f5f9;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #1e293b;">${g.name||'—'} <span style="color:#64748b;font-weight:600;">(${g.items.filter(t=>!t.done).length})</span></div>
-      ${sorted.map(t=>renderTaskCard(t,admin)).join('')}
+    const active=g.items.filter(t=>!t.done).sort((a,b)=>(a.due||'').localeCompare(b.due||''));
+    const done=g.items.filter(t=>t.done);
+    return `<div style="min-width:190px;max-width:190px;flex-shrink:0;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;margin-right:8px;">
+      <div style="font-size:11.5px;font-weight:800;color:#0f172a;text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px;">${g.name||'—'}</div>
+      ${active.map(t=>renderTaskCardCompact(t)).join('')}
+      ${!active.length?'<div style="font-size:11px;color:#94a3b8;">Niciun task activ.</div>':''}
+      ${done.length?`<details style="margin-top:6px;"><summary style="font-size:10.5px;color:#94a3b8;cursor:pointer;">Finalizate (${done.length})</summary>${done.map(t=>renderTaskCardCompact(t)).join('')}</details>`:''}
     </div>`;
   }).join('');
-  board.style.display='flex';
   wireTaskEvents(board);
 }
 function wireTaskEvents(root){
@@ -1445,7 +1464,7 @@ function renderTasks(){
       sel.dataset.filled='1';
     }
   }
-  if(taskView==='board'){ renderTaskBoard(admin); updateTaskBadge(); return; }
+  if(taskView==='board'){ document.getElementById('taskBoard').style.display='flex'; renderTaskBoard(admin); updateTaskBadge(); return; }
   const mine=tasks;
   const wrap=document.getElementById('taskList');
   if(!mine.length){ wrap.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun task.</div>'; updateTaskBadge(); return; }
