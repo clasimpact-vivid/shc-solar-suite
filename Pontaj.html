@@ -239,12 +239,12 @@ a:hover{color:#fbbf24;}
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
           <div class="section-title" style="margin:0;">Task-uri</div>
           <div id="taskViewToggle" style="display:flex;gap:4px;background:#0f172a;border-radius:8px;padding:3px;">
-            <button data-task-view="list" class="task-view-btn" style="padding:5px 12px;border:none;border-radius:6px;background:#334155;color:#fff;font-size:11.5px;font-weight:700;cursor:pointer;">Listă</button>
-            <button data-task-view="board" class="task-view-btn" style="padding:5px 12px;border:none;border-radius:6px;background:transparent;color:#94a3b8;font-size:11.5px;font-weight:700;cursor:pointer;">Pe echipă</button>
+            <button data-task-view="list" class="task-view-btn" style="padding:5px 12px;border:none;border-radius:6px;background:transparent;color:#94a3b8;font-size:11.5px;font-weight:700;cursor:pointer;">Listă</button>
+            <button data-task-view="board" class="task-view-btn" style="padding:5px 12px;border:none;border-radius:6px;background:#334155;color:#fff;font-size:11.5px;font-weight:700;cursor:pointer;">Pe echipă</button>
           </div>
         </div>
-        <div id="taskList"></div>
-        <div id="taskBoard" style="display:none;overflow-x:auto;"></div>
+        <div id="taskList" style="display:none;"></div>
+        <div id="taskBoard" style="display:flex;overflow-x:auto;"></div>
       </div>
     </div>
 
@@ -631,7 +631,7 @@ let leaveReqs=[], probReports=[];
 const LEAVE_LABELS={CO:'Concediu de odihnă',CM:'Concediu medical',IV:'Învoire / liber o zi',LN:'Liber neplătit'};
 function saveLeave(l){ if(db) db.ref('solarcrm_v2/pontajLeave/'+l.id).set(l); else { leaveReqs=[l,...leaveReqs.filter(x=>x.id!==l.id)]; renderCereri(); } }
 function saveProb(p){ if(db) db.ref('solarcrm_v2/pontajProbs/'+p.id).set(p); else { probReports=[p,...probReports.filter(x=>x.id!==p.id)]; renderCereri(); } }
-let tasks=[]; let taskView='list';
+let tasks=[]; let taskView='board';
 function saveTask(t){ if(db) db.ref('solarcrm_v2/pontajTasks/'+t.id).set(t); else { tasks=[t,...tasks.filter(x=>x.id!==t.id)]; renderTasks(); } }
 let pvRecords=[];
 function savePv(pv){ if(db) db.ref('solarcrm_v2/pontajPv/'+pv.id).set(pv); else { pvRecords=[pv,...pvRecords.filter(x=>x.id!==pv.id)]; renderPv(); } }
@@ -1434,11 +1434,11 @@ function renderTaskBoard(admin){
     const g=byUser[id];
     const active=g.items.filter(t=>!t.done).sort((a,b)=>(a.due||'').localeCompare(b.due||''));
     const done=g.items.filter(t=>t.done);
-    return `<div style="min-width:190px;max-width:190px;flex-shrink:0;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;margin-right:8px;">
-      <div style="font-size:11.5px;font-weight:800;color:#0f172a;text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px;">${g.name||'—'}</div>
+    return `<div style="min-width:190px;max-width:190px;flex-shrink:0;background:#111d35;border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px;margin-right:8px;">
+      <div style="font-size:11.5px;font-weight:800;color:#f1f5f9;text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px;">${g.name||'—'}</div>
       ${active.map(t=>renderTaskCardCompact(t)).join('')}
-      ${!active.length?'<div style="font-size:11px;color:#94a3b8;">Niciun task activ.</div>':''}
-      ${done.length?`<details style="margin-top:6px;"><summary style="font-size:10.5px;color:#94a3b8;cursor:pointer;">Finalizate (${done.length})</summary>${done.map(t=>renderTaskCardCompact(t)).join('')}</details>`:''}
+      ${!active.length?'<div style="font-size:11px;color:#64748b;">Niciun task activ.</div>':''}
+      ${done.length?`<details style="margin-top:6px;"><summary style="font-size:10.5px;color:#64748b;cursor:pointer;">Finalizate (${done.length})</summary>${done.map(t=>renderTaskCardCompact(t)).join('')}</details>`:''}
     </div>`;
   }).join('');
   wireTaskEvents(board);
