@@ -1382,7 +1382,7 @@ document.getElementById('btnPublishPlan').addEventListener('click',()=>{
 
 // ── CERERI TAB (concedii + probleme) ──
 function canApproveLeave(){ return isFullAccess() || (!!currentUser && currentUser.pontajHR===true); }
-function canAssignTasks(){ return !!currentUser; }
+function canDeleteTasks(){ return isFullAccess(); }
 document.querySelectorAll('.task-view-btn').forEach(b=>b.addEventListener('click',()=>{
   taskView=b.dataset.taskView;
   document.querySelectorAll('.task-view-btn').forEach(x=>{ x.style.background=x.dataset.taskView===taskView?'#334155':'transparent'; x.style.color=x.dataset.taskView===taskView?'#fff':'#94a3b8'; });
@@ -1417,8 +1417,7 @@ function renderTaskCard(t,admin){
       </div>
       ${admin?'<button data-task-del="'+t.id+'" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:15px;">✕</button>':''}
     </div>`;
-}
-function renderTaskCardCompact(t){
+}function renderTaskCardCompact(t){
   const overdue=!t.done && t.due && t.due<todayISO();
   return `<div data-task-card="${t.id}" style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:9px 10px;margin-bottom:7px;cursor:${t.assigneeId===currentUser.id&&!t.done?'pointer':'default'};">
     <div style="display:flex;align-items:flex-start;gap:7px;">
@@ -1431,7 +1430,7 @@ function renderTaskCardCompact(t){
           ${t.priority==='urgent'?`<span style="font-size:10.5px;font-weight:700;color:#b91c1c;background:#fee2e2;padding:2px 7px;border-radius:999px;">Urgent</span>`:''}
         </div>
       </div>
-      ${(t.assigneeId!==currentUser.id||canAssignTasks())?`<button data-task-del="${t.id}" style="background:none;border:none;color:#cbd5e1;cursor:pointer;font-size:13px;flex-shrink:0;">✕</button>`:''}
+      ${canDeleteTasks()?`<button data-task-del="${t.id}" style="background:none;border:none;color:#cbd5e1;cursor:pointer;font-size:13px;flex-shrink:0;">✕</button>`:''}
     </div>
   </div>`;
 }
@@ -1494,11 +1493,12 @@ function wireTaskEvents(root){
     const t=tasks.find(x=>x.id===sel.dataset.taskStatus); if(t){ t.progress=parseInt(sel.value); saveTask(t); renderTasks(); }
   }));
   root.querySelectorAll('button[data-task-del]').forEach(b=>b.addEventListener('click',()=>{
+    if(!canDeleteTasks()) return;
     if(db) db.ref('solarcrm_v2/pontajTasks/'+b.dataset.taskDel).remove(); else { tasks=tasks.filter(x=>x.id!==b.dataset.taskDel); renderTasks(); }
   }));
 }
 function renderTasks(){
-  const admin=canAssignTasks();
+  const admin=!!currentUser;
   document.getElementById('taskAssignCard').style.display=admin?'block':'none';
   if(admin){
     const sel=document.getElementById('taskAssignee');
