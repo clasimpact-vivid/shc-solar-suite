@@ -1439,7 +1439,7 @@ function renderTaskCard(t,admin){
           <span style="font-size:9.5px;color:#94a3b8;">${t.progress}%</span>
         </div>`:''}
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;">
-          ${t.due?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:600;color:${overdue?'#b91c1c':'#78350f'};background:${overdue?'#fee2e2':'#fef3c7'};padding:2px 7px;border-radius:999px;">🕐 ${isoToDmy(t.due)}${t.dueTime?' '+t.dueTime:''}</span>`:''}
+          ${t.due?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:600;color:${overdue?'#b91c1c':'#78350f'};background:${overdue?'#fee2e2':'#fef3c7'};padding:2px 7px;border-radius:999px;">🕐 Termen: ${isoToDmy(t.due)}${t.dueTime?' '+t.dueTime:''}</span>`:''}
           ${t.priority==='urgent'?`<span style="font-size:10.5px;font-weight:700;color:#b91c1c;background:#fee2e2;padding:2px 7px;border-radius:999px;">Urgent</span>`:''}
         </div>
       </div>
@@ -1471,7 +1471,7 @@ function renderTaskSiteView(){
                 <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} ${t.assigneeId!==currentUser.id?'disabled':''} style="width:15px;height:15px;cursor:${t.assigneeId===currentUser.id?'pointer':'not-allowed'};">
                 <span style="flex:1;${t.done?'text-decoration:line-through;':''}">${t.desc||''}</span>
                 <span style="color:#94a3b8;font-size:11px;">${t.assigneeName||''}</span>
-                ${t.due?`<span style="font-size:10.5px;font-weight:600;color:${overdue?'#f87171':'#94a3b8'};">${isoToDmy(t.due)}</span>`:''}
+                ${t.due?`<span style="font-size:10.5px;font-weight:600;color:${overdue?'#f87171':'#94a3b8'};">Termen: ${isoToDmy(t.due)}${t.dueTime?' '+t.dueTime:''}</span>`:''}
               </div>
               ${(!t.done&&(t.progress||0)>0)?`<div style="display:flex;align-items:center;gap:5px;padding-left:23px;">
                 <div style="flex:1;max-width:140px;height:5px;background:#1e293b;border-radius:3px;overflow:hidden;"><div style="width:${t.progress}%;height:100%;background:${(t.progress)>=75?'#eab308':(t.progress)>=50?'#3b82f6':'#f97316'};border-radius:3px;"></div></div>
@@ -1531,7 +1531,7 @@ function renderTasks(){
   const mine=tasks;
   const wrap=document.getElementById('taskList');
   if(!mine.length){ wrap.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun task.</div>'; updateTaskBadge(); return; }
-  const sorted=[...mine].sort((a,b)=>(a.done===b.done?0:a.done?1:-1)||(a.due||'').localeCompare(b.due||''));
+  const sorted=[...mine].sort((a,b)=>(a.done===b.done?0:a.done?1:-1)||(b.ts||0)-(a.ts||0));
   wrap.innerHTML=sorted.map(t=>renderTaskCard(t,admin)).join('');
   wireTaskEvents(wrap);
   updateTaskBadge();
