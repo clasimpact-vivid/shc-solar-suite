@@ -231,12 +231,20 @@ a:hover{color:#fbbf24;}
             </select>
           </div>
         </div>
+        <div class="field" style="margin-bottom:10px;"><label>Șantier / proiect (opțional)</label><input type="text" id="taskSite" class="form-input" placeholder="ex: Șantier Jandarmi"></div>
         <div class="field" style="margin-bottom:10px;"><label>Descriere task</label><textarea id="taskDesc" class="form-input" rows="2" style="width:100%;"></textarea></div>
         <button class="btn btn-sm" id="btnSubmitTask" style="background:#f59e0b;color:#fff;">Atribuie task</button>
       </div>
       <div class="card">
-        <div class="section-title">Task-urile mele</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div class="section-title" style="margin:0;">Task-uri</div>
+          <div id="taskViewToggle" style="display:flex;gap:4px;background:#0f172a;border-radius:8px;padding:3px;">
+            <button data-task-view="list" class="task-view-btn" style="padding:5px 12px;border:none;border-radius:6px;background:#334155;color:#fff;font-size:11.5px;font-weight:700;cursor:pointer;">Listă</button>
+            <button data-task-view="board" class="task-view-btn" style="padding:5px 12px;border:none;border-radius:6px;background:transparent;color:#94a3b8;font-size:11.5px;font-weight:700;cursor:pointer;">Pe echipă</button>
+          </div>
+        </div>
         <div id="taskList"></div>
+        <div id="taskBoard" style="display:none;overflow-x:auto;"></div>
       </div>
     </div>
 
@@ -623,7 +631,7 @@ let leaveReqs=[], probReports=[];
 const LEAVE_LABELS={CO:'Concediu de odihnă',CM:'Concediu medical',IV:'Învoire / liber o zi',LN:'Liber neplătit'};
 function saveLeave(l){ if(db) db.ref('solarcrm_v2/pontajLeave/'+l.id).set(l); else { leaveReqs=[l,...leaveReqs.filter(x=>x.id!==l.id)]; renderCereri(); } }
 function saveProb(p){ if(db) db.ref('solarcrm_v2/pontajProbs/'+p.id).set(p); else { probReports=[p,...probReports.filter(x=>x.id!==p.id)]; renderCereri(); } }
-let tasks=[];
+let tasks=[]; let taskView='list';
 function saveTask(t){ if(db) db.ref('solarcrm_v2/pontajTasks/'+t.id).set(t); else { tasks=[t,...tasks.filter(x=>x.id!==t.id)]; renderTasks(); } }
 let pvRecords=[];
 function savePv(pv){ if(db) db.ref('solarcrm_v2/pontajPv/'+pv.id).set(pv); else { pvRecords=[pv,...pvRecords.filter(x=>x.id!==pv.id)]; renderPv(); } }
@@ -1365,6 +1373,68 @@ document.getElementById('btnPublishPlan').addEventListener('click',()=>{
 // ── CERERI TAB (concedii + probleme) ──
 function canApproveLeave(){ return isFullAccess() || (!!currentUser && currentUser.pontajHR===true); }
 function canAssignTasks(){ return !!currentUser; }
+document.querySelectorAll('.task-view-btn').forEach(b=>b.addEventListener('click',()=>{
+  taskView=b.dataset.taskView;
+  document.querySelectorAll('.task-view-btn').forEach(x=>{ x.style.background=x.dataset.taskView===taskView?'#334155':'transparent'; x.style.color=x.dataset.taskView===taskView?'#fff':'#94a3b8'; });
+  document.getElementById('taskList').style.display=taskView==='list'?'block':'none';
+  document.getElementById('taskBoard').style.display=taskView==='board'?'flex':'none';
+  renderTasks();
+}));
+function renderTaskCard(t,admin){
+  const overdue=!t.done && t.due && t.due<todayISO();
+  const urgent=t.priority==='urgent';
+  return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #1e293b;${t.done?'opacity:0.5;':''}">
+      <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} ${t.assigneeId!==currentUser.id?'disabled':''} style="margin-top:3px;width:18px;height:18px;flex-shrink:0;cursor:${t.assigneeId===currentUser.id?'pointer':'not-allowed'};">
+      <div style="flex:1;">
+        <div style="font-size:13.5px;${t.done?'text-decoration:line-through;':''}">${t.desc||''}</div>
+        <div style="font-size:11.5px;color:#94a3b8;margin-top:3px;">
+          ${t.site?('<span class="badge" style="background:#1e3a5f;color:#93c5fd;">'+t.site+'</span> '):''}
+          către <strong>${t.assigneeName||'—'}</strong> ·
+          ${(!admin&&t.assigneeId!==currentUser.id&&!t.done&&t.progress)?('<span class="badge badge-amber">'+t.progress+'%</span> '):''}
+          atribuit de <strong>${t.createdBy||'—'}</strong>
+          ${t.due?(' · <span style="'+(overdue?'color:#f87171;font-weight:700;':'')+'">termen '+isoToDmy(t.due)+(t.dueTime?' ora '+t.dueTime:'')+'</span>'):''}
+          ${urgent?' · <span style="color:#f87171;font-weight:700;">URGENT</span>':''}
+        </div>
+        ${(!t.done&&t.assigneeId===currentUser.id)?`<div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <select data-task-status="${t.id}" class="form-select" style="font-size:11.5px;padding:3px 6px;width:auto;">
+            <option value="0" ${(!t.progress||t.progress==0)?'selected':''}>Neînceput</option>
+            <option value="25" ${t.progress==25?'selected':''}>25% — pornit</option>
+            <option value="50" ${t.progress==50?'selected':''}>50%</option>
+            <option value="75" ${t.progress==75?'selected':''}>75%</option>
+          </select>
+        </div>`:''}
+      </div>
+      ${admin?'<button data-task-del="'+t.id+'" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:15px;">✕</button>':''}
+    </div>`;
+}
+function renderTaskBoard(admin){
+  const board=document.getElementById('taskBoard');
+  const byUser={};
+  tasks.forEach(t=>{ (byUser[t.assigneeId]=byUser[t.assigneeId]||{name:t.assigneeName,items:[]}).items.push(t); });
+  const ids=Object.keys(byUser).sort((a,b)=>(byUser[a].name||'').localeCompare(byUser[b].name||''));
+  if(!ids.length){ board.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun task.</div>'; return; }
+  board.innerHTML=ids.map(id=>{
+    const g=byUser[id];
+    const sorted=[...g.items].sort((a,b)=>(a.done===b.done?0:a.done?1:-1)||(a.due||'').localeCompare(b.due||''));
+    return `<div style="min-width:230px;flex-shrink:0;background:#0f172a;border-radius:10px;padding:10px;margin-right:10px;">
+      <div style="font-size:12.5px;font-weight:800;color:#f1f5f9;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #1e293b;">${g.name||'—'} <span style="color:#64748b;font-weight:600;">(${g.items.filter(t=>!t.done).length})</span></div>
+      ${sorted.map(t=>renderTaskCard(t,admin)).join('')}
+    </div>`;
+  }).join('');
+  board.style.display='flex';
+  wireTaskEvents(board);
+}
+function wireTaskEvents(root){
+  root.querySelectorAll('input[data-task-done]').forEach(cb=>cb.addEventListener('change',()=>{
+    const t=tasks.find(x=>x.id===cb.dataset.taskDone); if(t){ t.done=cb.checked; if(t.done) t.progress=100; saveTask(t); renderTasks(); }
+  }));
+  root.querySelectorAll('select[data-task-status]').forEach(sel=>sel.addEventListener('change',()=>{
+    const t=tasks.find(x=>x.id===sel.dataset.taskStatus); if(t){ t.progress=parseInt(sel.value); saveTask(t); renderTasks(); }
+  }));
+  root.querySelectorAll('button[data-task-del]').forEach(b=>b.addEventListener('click',()=>{
+    if(db) db.ref('solarcrm_v2/pontajTasks/'+b.dataset.taskDel).remove(); else { tasks=tasks.filter(x=>x.id!==b.dataset.taskDel); renderTasks(); }
+  }));
+}
 function renderTasks(){
   const admin=canAssignTasks();
   document.getElementById('taskAssignCard').style.display=admin?'block':'none';
@@ -1375,58 +1445,13 @@ function renderTasks(){
       sel.dataset.filled='1';
     }
   }
+  if(taskView==='board'){ renderTaskBoard(admin); updateTaskBadge(); return; }
   const mine=tasks;
   const wrap=document.getElementById('taskList');
   if(!mine.length){ wrap.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun task.</div>'; updateTaskBadge(); return; }
-  const todayIso=todayISO();
   const sorted=[...mine].sort((a,b)=>(a.done===b.done?0:a.done?1:-1)||(a.due||'').localeCompare(b.due||''));
-  let html='';
-  sorted.forEach(t=>{
-    const overdue=!t.done && t.due && t.due<todayIso;
-    const urgent=t.priority==='urgent';
-    html+=`<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #1e293b;${t.done?'opacity:0.5;':''}">
-      <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} ${t.assigneeId!==currentUser.id?'disabled':''} style="margin-top:3px;width:18px;height:18px;flex-shrink:0;cursor:${t.assigneeId===currentUser.id?'pointer':'not-allowed'};">
-      <div style="flex:1;">
-        <div style="font-size:13.5px;${t.done?'text-decoration:line-through;':''}">${t.desc||''}</div>
-        <div style="font-size:11.5px;color:#94a3b8;margin-top:3px;">
-          către <strong>${t.assigneeName||'—'}</strong> ·
-          ${(!admin&&t.assigneeId!==currentUser.id&&!t.done&&t.progress)?('<span class="badge badge-amber">'+t.progress+'%</span> '):''}
-          atribuit de <strong>${t.createdBy||'—'}</strong>
-          ${t.due?(' · termen '+isoToDmy(t.due)+(t.dueTime?' ora '+t.dueTime:'')):''}
-          ${urgent?'<span class="badge badge-red">Urgent</span>':''}
-          ${overdue?'<span class="badge badge-red">⚠ Restant</span>':''}
-        </div>
-        ${(!t.done&&t.assigneeId===currentUser.id)?`<div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <select data-task-status="${t.id}" class="form-select" style="font-size:11.5px;padding:3px 6px;width:auto;">
-            <option value="0" ${(!t.progress||t.progress==0)?'selected':''}>Neînceput</option>
-            <option value="25" ${t.progress==25?'selected':''}>25% — pornit</option>
-            <option value="50" ${t.progress==50?'selected':''}>50% — pe jumătate</option>
-            <option value="75" ${t.progress==75?'selected':''}>75% — aproape gata</option>
-          </select>
-          <div style="flex:1;min-width:80px;max-width:160px;height:7px;background:#1e293b;border-radius:4px;overflow:hidden;">
-            <div style="width:${t.progress||0}%;height:100%;background:${(t.progress||0)>=75?'#eab308':(t.progress||0)>=50?'#3b82f6':(t.progress||0)>=25?'#f97316':'#475569'};border-radius:4px;transition:width .2s;"></div>
-          </div>
-        </div>`:!t.done?`<div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
-          <div style="flex:1;max-width:160px;height:7px;background:#1e293b;border-radius:4px;overflow:hidden;"><div style="width:${t.progress||0}%;height:100%;background:${(t.progress||0)>=75?'#eab308':(t.progress||0)>=50?'#3b82f6':(t.progress||0)>=25?'#f97316':'#475569'};border-radius:4px;"></div></div>
-          <span style="font-size:11px;color:#94a3b8;">${t.progress||0}%</span>
-        </div>`:`<div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
-          <div style="flex:1;max-width:160px;height:7px;background:#1e293b;border-radius:4px;overflow:hidden;"><div style="width:100%;height:100%;background:#16a34a;border-radius:4px;"></div></div>
-          <span style="font-size:11px;color:#16a34a;font-weight:700;">100% ✓</span>
-        </div>`}
-      </div>
-      ${admin?'<button data-task-del="'+t.id+'" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:15px;">✕</button>':''}
-    </div>`;
-  });
-  wrap.innerHTML=html;
-  wrap.querySelectorAll('input[data-task-done]').forEach(cb=>cb.addEventListener('change',()=>{
-    const t=tasks.find(x=>x.id===cb.dataset.taskDone); if(t){ t.done=cb.checked; if(t.done) t.progress=100; saveTask(t); renderTasks(); }
-  }));
-  wrap.querySelectorAll('select[data-task-status]').forEach(sel=>sel.addEventListener('change',()=>{
-    const t=tasks.find(x=>x.id===sel.dataset.taskStatus); if(t){ t.progress=parseInt(sel.value); saveTask(t); renderTasks(); }
-  }));
-  wrap.querySelectorAll('button[data-task-del]').forEach(b=>b.addEventListener('click',()=>{
-    if(db) db.ref('solarcrm_v2/pontajTasks/'+b.dataset.taskDel).remove(); else { tasks=tasks.filter(x=>x.id!==b.dataset.taskDel); renderTasks(); }
-  }));
+  wrap.innerHTML=sorted.map(t=>renderTaskCard(t,admin)).join('');
+  wireTaskEvents(wrap);
   updateTaskBadge();
 }
 function updateTaskBadge(){
@@ -1443,9 +1468,10 @@ document.getElementById('btnSubmitTask').addEventListener('click',()=>{
   const dueTime=document.getElementById('taskDueTime').value.trim();
   const priority=document.getElementById('taskPriority').value;
   if(!assigneeId||!desc){ alert('Completează colegul și descrierea task-ului.'); return; }
-  const t={id:'task_'+Date.now(),assigneeId,assigneeName,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,done:false,ts:Date.now(),createdBy:currentUser.name};
+  const t={id:'task_'+Date.now(),assigneeId,assigneeName,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,done:false,ts:Date.now(),createdBy:currentUser.name};
   saveTask(t);
   sendTaskEmail(t,assignee);
+  document.getElementById('taskSite').value='';
   document.getElementById('taskDesc').value=''; document.getElementById('taskDue').value=''; document.getElementById('taskDueTime').value='';
 });
 function sendTaskEmail(t,assignee){
