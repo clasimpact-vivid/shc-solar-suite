@@ -1559,25 +1559,28 @@ document.getElementById('btnSubmitTask').addEventListener('click',()=>{
 });
 function sendTaskDoneEmail(t){
   if(!window.emailjs) return;
-  const creator=loginUsers.find(u=>u.name===t.createdBy);
-  if(!creator || !creator.email) return;
   const subject='Task finalizat: '+(t.assigneeName||'—');
   const message=(t.assigneeName||'—')+' a finalizat task-ul:\n\n'+t.desc+'\n\n'+
     (t.site?('Șantier: '+t.site+'\n\n'):'')+
     'SHC Solar Suite — Pontaj';
-  emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:creator.email, subject, message}).catch(()=>{});
   emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:'office@shc-group.ro', subject, message}).catch(()=>{});
+  const creator=loginUsers.find(u=>u.name===t.createdBy);
+  if(creator && creator.email){
+    emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:creator.email, subject, message}).catch(()=>{});
+  }
 }
 function sendTaskEmail(t,assignee){
-  if(!window.emailjs||!assignee.email) return;
+  if(!window.emailjs) return;
   const subject='Task nou de la '+t.createdBy;
   const message='Bună, '+ (assignee.name||'').split(' ')[0] +'!\n\n'+
     t.createdBy+' ți-a atribuit un task nou'+(t.priority==='urgent'?' (URGENT)':'')+':\n\n'+
     t.desc+'\n\n'+
     (t.due?('Termen: '+isoToDmy(t.due)+(t.dueTime?' ora '+t.dueTime:'')+'\n\n'):'')+
     'Îl poți vedea și bifa în aplicația Pontaj, tab Task-uri.\n\nSHC Solar Suite — Pontaj';
-  emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:assignee.email, subject, message}).catch(()=>{});
   emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:'office@shc-group.ro', subject, message}).catch(()=>{});
+  if(assignee.email){
+    emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:assignee.email, subject, message}).catch(()=>{});
+  }
   const creator=loginUsers.find(u=>u.name===t.createdBy);
   if(creator && creator.email && creator.email!==assignee.email){
     const subject2='Confirmare: task trimis către '+(assignee.name||'—');
