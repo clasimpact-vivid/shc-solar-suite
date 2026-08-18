@@ -235,9 +235,14 @@ a:hover{color:#fbbf24;}
         <div class="field" style="margin-bottom:10px;"><label>Capitol (dacă e task de șantier)</label>
           <select id="taskChapter" class="form-select">
             <option value="">— fără capitol —</option>
-            <option value="Șantier - Execuție">Șantier - Execuție</option>
+            <option value="Decontare">Decontare</option>
             <option value="Documentație">Documentație</option>
+            <option value="Fișe tehnice">Fișe tehnice</option>
+            <option value="Garanție">Garanție</option>
+            <option value="PIF">PIF</option>
             <option value="Racordare la rețea">Racordare la rețea</option>
+            <option value="Șantier - Execuție">Șantier - Execuție</option>
+            <option value="Verificare tehnică">Verificare tehnică</option>
           </select>
         </div>
         <div class="field" style="margin-bottom:10px;"><label>Descriere task</label><textarea id="taskDesc" class="form-input" rows="2" style="width:100%;"></textarea></div>
@@ -1448,7 +1453,7 @@ function renderTaskCard(t,admin){
     </div>
   </div>`;
 }
-const CHAPTER_COLORS={'Șantier - Execuție':{bg:'#1e3a5f',fg:'#93c5fd'},'Documentație':{bg:'#4a3a1e',fg:'#fbbf24'},'Racordare la rețea':{bg:'#1e4a2e',fg:'#4ade80'}};
+const CHAPTER_COLORS={'Șantier - Execuție':{bg:'#1e3a5f',fg:'#93c5fd'},'Documentație':{bg:'#4a3a1e',fg:'#fbbf24'},'Racordare la rețea':{bg:'#1e4a2e',fg:'#4ade80'},'Decontare':{bg:'#3a1e4a',fg:'#c4b5fd'},'Fișe tehnice':{bg:'#1e3a4a',fg:'#67e8f9'},'Garanție':{bg:'#4a1e2e',fg:'#fca5a5'},'PIF':{bg:'#3a4a1e',fg:'#bef264'},'Verificare tehnică':{bg:'#4a2e1e',fg:'#fdba74'}};
 function renderTaskSiteView(){
   const view=document.getElementById('taskSiteView');
   const bySite={};
@@ -1457,7 +1462,7 @@ function renderTaskSiteView(){
   if(!sites.length){ view.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun task legat de un șantier. Completează câmpul „Șantier / proiect" la atribuire.</div>'; return; }
   view.innerHTML=sites.map(site=>{
     const items=bySite[site];
-    const chapters=['Șantier - Execuție','Documentație','Racordare la rețea',''];
+    const chapters=['Decontare','Documentație','Fișe tehnice','Garanție','PIF','Racordare la rețea','Șantier - Execuție','Verificare tehnică',''];
     const byChapter={}; items.forEach(t=>{ (byChapter[t.chapter||'']=byChapter[t.chapter||'']||[]).push(t); });
     return `<div style="margin-bottom:18px;border:1px solid #1e293b;border-radius:10px;overflow:hidden;">
       <div style="background:#0f172a;padding:10px 14px;font-size:13.5px;font-weight:800;color:#f1f5f9;">${site}</div>
