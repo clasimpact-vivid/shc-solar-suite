@@ -341,16 +341,7 @@ a:hover{color:#93c5fd;}
                 <option value="altul">Altă instituție</option>
               </select>
             </div>
-            <div class="field"><label>Tip solicitare</label>
-              <select id="sTipSolicitare">
-                <option value="Aviz tehnic de racordare (ATR)">Aviz tehnic de racordare (ATR)</option>
-                <option value="Capacitate disponibilă / spor de putere">Capacitate disponibilă / spor de putere</option>
-                <option value="Date tehnice transformator / linie de injecție">Date tehnice transformator / linie de injecție</option>
-                <option value="Confirmare conformitate Ordin ME nr. 745/2026">Confirmare conformitate Ordin ME nr. 745/2026</option>
-                <option value="Fișe tehnice echipamente">Fișe tehnice echipamente</option>
-                <option value="Altă solicitare">Altă solicitare</option>
-              </select>
-            </div>
+            <div class="field"><label>Subiect solicitare</label><input type="text" id="sTipSolicitare" placeholder="ex: Aviz tehnic de racordare (ATR), Spor de putere, Fișe tehnice echipamente, etc."></div>
           </div>
           <div class="field"><label>Destinatar (nume instituție / persoană)</label><input type="text" id="sDestinatar" placeholder="ex: E-Distribuție Banat, Client SC Exemplu SRL"></div>
           <div class="field"><label>Adresă / punct de lucru vizat</label><input type="text" id="sAdresa" placeholder="Locație instalație"></div>
@@ -364,7 +355,12 @@ a:hover{color:#93c5fd;}
 
         <div class="section-card">
           <div class="section-title">✍️ Semnatar SHC</div>
-          <div class="field"><label>Reprezentant SHC (nume, funcție)</label><input type="text" id="sSemnatar" placeholder="ex: Alexandru Chirilă, Administrator"></div>
+          <div class="field"><label>Reprezentant SHC</label>
+            <select id="sSemnatar">
+              <option value="Ionuț Nicoraș, Administrator">Ionuț Nicoraș, Administrator</option>
+              <option value="Alexandru Chirilă, Director Departament BESS">Alexandru Chirilă, Director Departament BESS</option>
+            </select>
+          </div>
         </div>
 
         <button class="btn btn-blue" id="btnSaveSolicitare">💾 Salvează solicitarea</button>
@@ -982,7 +978,7 @@ document.getElementById('btnExportPdfProces').addEventListener('click',()=>{
 // ═══════════════════════ SOLICITĂRI ═══════════════════════
 function newSolicitare(){
   const v={id:uid(),crmId:'',nrInreg:'',dataSolicitare:new Date().toISOString().slice(0,10),tipDestinatar:'distribuitor',
-    tipSolicitare:'Aviz tehnic de racordare (ATR)',destinatar:'',adresa:'',putere:'',continut:'',semnatar:'',client:''};
+    tipSolicitare:'',destinatar:'',adresa:'',putere:'',continut:'',semnatar:'Ionuț Nicoraș, Administrator',client:''};
   solicitari[v.id]=v;
   activeSolicitareId=v.id;
   saveFirebase('solicitari',v);
@@ -1003,12 +999,12 @@ function openSolicitare(id){
   document.getElementById('sNrInreg').value=v.nrInreg||'';
   document.getElementById('sDataSolicitare').value=v.dataSolicitare?isoToDmy(v.dataSolicitare):'';
   document.getElementById('sTipDestinatar').value=v.tipDestinatar||'distribuitor';
-  document.getElementById('sTipSolicitare').value=v.tipSolicitare||'Aviz tehnic de racordare (ATR)';
+  document.getElementById('sTipSolicitare').value=v.tipSolicitare||'';
   document.getElementById('sDestinatar').value=v.destinatar||'';
   document.getElementById('sAdresa').value=v.adresa||'';
   document.getElementById('sPutere').value=v.putere||'';
   document.getElementById('sContinut').value=v.continut||'';
-  document.getElementById('sSemnatar').value=v.semnatar||'';
+  document.getElementById('sSemnatar').value=v.semnatar||'Ionuț Nicoraș, Administrator';
   renderList();
 }
 function collectSolicitare(){
@@ -1017,7 +1013,7 @@ function collectSolicitare(){
   v.nrInreg=document.getElementById('sNrInreg').value.trim();
   v.dataSolicitare=dmyToIso(document.getElementById('sDataSolicitare').value)||v.dataSolicitare;
   v.tipDestinatar=document.getElementById('sTipDestinatar').value;
-  v.tipSolicitare=document.getElementById('sTipSolicitare').value;
+  v.tipSolicitare=document.getElementById('sTipSolicitare').value.trim();
   v.destinatar=document.getElementById('sDestinatar').value.trim();
   v.client=v.destinatar;
   v.adresa=document.getElementById('sAdresa').value.trim();
