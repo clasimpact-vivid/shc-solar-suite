@@ -351,6 +351,10 @@ a:hover{color:#93c5fd;}
           <div class="section-title">⚡ Detalii tehnice solicitate</div>
           <div class="field"><label>Putere instalată / dorită (kWp sau MWp)</label><input type="text" id="sPutere" placeholder="ex: 2 MWp PV + 2 MWh BESS"></div>
           <div class="field"><label>Conținut solicitare</label><textarea id="sContinut" rows="5" style="width:100%;padding:9px 11px;border:1.5px solid #334155;border-radius:8px;font-size:13px;font-family:inherit;background:#1e293b;color:#f1f5f9;outline:none;" placeholder="ex: Vă rugăm să ne comunicați puterea disponibilă (kVA) pe transformatorul existent, posibilitatea de acordare a unui spor de putere, precum și condițiile de eliberare a Avizului Tehnic de Racordare (ATR) pentru instalația menționată mai sus."></textarea></div>
+          <div class="field"><label>Fișiere atașate</label>
+            <input type="file" id="sFileInput" multiple style="font-size:12px;color:#94a3b8;">
+            <div id="sFileList" style="margin-top:8px;display:flex;flex-direction:column;gap:5px;"></div>
+          </div>
         </div>
 
         <div class="section-card">
@@ -1009,6 +1013,7 @@ function openSolicitare(id){
   document.getElementById('sPutere').value=v.putere||'';
   document.getElementById('sContinut').value=v.continut||'';
   document.getElementById('sSemnatar').value=v.semnatar||'Ionuț Nicoraș, Administrator';
+  renderSolicitareFiles();
   renderList();
 }
 function collectSolicitare(){
@@ -1027,6 +1032,36 @@ function collectSolicitare(){
   v.updatedAt=Date.now();
   if(!v.createdBy) v.createdBy=currentUser?currentUser.name:'';
   return v;
+}
+document.getElementById('sFileInput').addEventListener('change',e=>{
+  const v=solicitari[activeSolicitareId]; if(!v) return;
+  v.attachments=v.attachments||[];
+  Array.from(e.target.files).forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=()=>{
+      v.attachments.push({id:uid(),name:f.name,data:reader.result,size:f.size});
+      saveFirebase('solicitari',v);
+      renderSolicitareFiles();
+    };
+    reader.readAsDataURL(f);
+  });
+  e.target.value='';
+});
+function renderSolicitareFiles(){
+  const v=solicitari[activeSolicitareId];
+  const list=document.getElementById('sFileList');
+  const files=(v&&v.attachments)||[];
+  if(!files.length){ list.innerHTML=''; return; }
+  list.innerHTML=files.map(f=>`<div style="display:flex;align-items:center;gap:8px;background:#0f172a;padding:6px 10px;border-radius:6px;font-size:12px;">
+    <a href="${f.data}" download="${esc(f.name)}" style="color:#93c5fd;flex:1;text-decoration:none;">📎 ${esc(f.name)}</a>
+    <span style="color:#64748b;font-size:10.5px;">${(f.size/1024).toFixed(0)} KB</span>
+    <button data-file-del="${f.id}" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:13px;">✕</button>
+  </div>`).join('');
+  list.querySelectorAll('button[data-file-del]').forEach(b=>b.addEventListener('click',()=>{
+    v.attachments=v.attachments.filter(f=>f.id!==b.dataset.fileDel);
+    saveFirebase('solicitari',v);
+    renderSolicitareFiles();
+  }));
 }
 document.getElementById('btnSaveSolicitare').addEventListener('click',()=>{
   const v=collectSolicitare(); if(!v) return;
