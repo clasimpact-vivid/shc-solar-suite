@@ -25,19 +25,31 @@ Grafic Gantt pentru etapele unei lucrări (Proiectare → Avize → Montaj → C
 Schițe de amplasament pentru vizite la client — desen liber + forme predefinite (panouri, baterii), fotografii, date client/locație. Export PDF cu schiță + poze + date.
 
 ### 🕐 Pontaj
-Pontaj cu geolocalizare (check-in/check-out), hartă live a echipei din teren, cereri de concediu/învoire (cu aprobare Chirila/Nicoraș/Eszter), proces verbal, și export CSV lunar per angajat (sau pentru toată echipa) pentru contabilitate.
+Pontaj cu geolocalizare (check-in/check-out), hartă live a echipei din teren, cereri de concediu/învoire (cu aprobare Chirila/Nicoraș/Eszter), proces verbal, export CSV lunar per angajat (sau pentru toată echipa) pentru contabilitate, task-uri atribuite colegilor (listă, „Pe echipă" tip Kanban, „Pe șantier" pe capitole: Execuție/Documentație/Racordare la rețea) cu notificare automată pe email la creare și la finalizare, și chat intern rapid.
+
+### 📦 Logistică
+Comenzi de transport (către transportatori, cu date CMR), procese verbale de predare-primire echipamente (panouri/invertoare/baterii, cu clauze de garanție 24 luni și PIF opțională), și Solicitări către distribuitori de energie, clienți sau furnizori (ATR, spor de putere, date tehnice transformator, fișe tehnice etc.) — toate exportă PDF cu antet și logo SHC, numerotare proprie (SCH.../SCHP...) și semnătură Nicoraș sau Chirilă.
+
+### 📁 Dosar Prosumator
+Gestiunea documentației de prosumator per client/proiect.
 
 ### 📊 Rezumat Zilnic
-Vedere agregată a activității zilei/săptămânii din toate aplicațiile — cine a lucrat la ce, oferte generate, follow-up-uri restante, cereri de concediu, linie de productivitate pe 7 zile.
+Vedere agregată a activității zilei/săptămânii din toate aplicațiile — cine a lucrat la ce, oferte generate, follow-up-uri restante, cereri de concediu, linie de productivitate pe 7 zile. Trimis automat pe email zilnic la 18:00 către Chirilă/Nicoraș.
 
 ## Utilizatori și acces
 
 Fiecare coleg are un cont unic (nume, rol, PIN, parolă) creat din SolarCRM → Utilizatori (drepturi depline doar pentru Chirila și Nicoraș). Rolul determină ce vede fiecare: agenții de vânzări văd propriile lucrări urgente, contabilitatea (Eszter) vede pontaje/concedii, muncitorii de teren au acces restrâns la Pontaj și instrumentele de teren.
 
+## Cum îți schimbi parola sau PIN-ul
+
+- **Cei cu PIN (majoritatea colegilor):** din ecranul cu tastatură numerică, sub cifre → „Schimbă PIN-ul" → introdu PIN-ul actual, apoi cel nou (de două ori pentru confirmare).
+- **Cei cu parolă (Administrator/Chirila/Nicoraș):** click pe iconița 🔑 din bara de sus → „Schimbă parola" → parola curentă + parola nouă.
+- Dacă ai uitat PIN-ul/parola, doar Chirila sau Nicoraș te pot reseta din SolarCRM → 🔑 → Utilizatori.
+
 ## Note tehnice (pentru cine continuă dezvoltarea)
 
 - Bază de date: Firebase Realtime Database, proiect `solarcrm-ba919`, colecție principală `solarcrm_v2`.
-- E-mailuri automate: Resend (notificări zilnice, oferte, aprobare concedii) + EmailJS (unele fluxuri client-side), rulate printr-un GitHub Action (`.github/workflows/`).
+- E-mailuri automate: Resend (notificări zilnice, oferte, aprobare concedii) + EmailJS (task-uri, unele fluxuri client-side), rulate printr-un GitHub Action (`.github/workflows/`).
 - Găzduire: GitHub Pages (`clasimpact-vivid.github.io/shc-solar-suite`).
 - Nu edita fișierul `support.js` — e runtime-ul comun al aplicațiilor.
 
