@@ -611,7 +611,7 @@ document.getElementById('sidebarBackdrop').addEventListener('click',()=>{
 });
 
 function populateCrmDropdowns(){
-  ['cCrmProject','pCrmProject'].forEach(id=>{
+  ['cCrmProject','pCrmProject','sCrmProject'].forEach(id=>{
     const sel=document.getElementById(id); const cur=sel.value;
     sel.innerHTML='<option value="">— Fără legătură —</option>';
     crmProjects.forEach(p=>{
@@ -629,6 +629,10 @@ document.getElementById('cCrmProject').addEventListener('change',e=>{
 document.getElementById('pCrmProject').addEventListener('change',e=>{
   const p=crmProjects.find(x=>String(x.id)===e.target.value);
   if(p&&p.client) document.getElementById('pClient').value=p.client;
+});
+document.getElementById('sCrmProject').addEventListener('change',e=>{
+  const p=crmProjects.find(x=>String(x.id)===e.target.value);
+  if(p&&p.client) document.getElementById('sDestinatar').value=p.client;
 });
 
 // ── Tabs ──
