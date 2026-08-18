@@ -1434,7 +1434,14 @@ function renderTaskCard(t,admin){
       <div style="flex:1;min-width:0;">
         <div style="font-size:12.5px;font-weight:600;color:#0f172a;${t.done?'text-decoration:line-through;color:#94a3b8;':''}">${t.desc||''}</div>
         ${t.site?`<div style="font-size:10.5px;color:#64748b;margin-top:2px;">${t.site}</div>`:''}
-        ${(!t.done&&(t.progress||0)>0)?`<div style="display:flex;align-items:center;gap:5px;margin-top:5px;">
+        ${(!t.done&&t.assigneeId===currentUser.id)?`<div style="margin-top:5px;">
+          <select data-task-status="${t.id}" style="font-size:10.5px;padding:2px 5px;border:1px solid #e2e8f0;border-radius:5px;background:#fff;color:#334155;">
+            <option value="0" ${(!t.progress||t.progress==0)?'selected':''}>Neînceput</option>
+            <option value="25" ${t.progress==25?'selected':''}>25%</option>
+            <option value="50" ${t.progress==50?'selected':''}>50%</option>
+            <option value="75" ${t.progress==75?'selected':''}>75%</option>
+          </select>
+        </div>`:(!t.done&&(t.progress||0)>0)?`<div style="display:flex;align-items:center;gap:5px;margin-top:5px;">
           <div style="flex:1;height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;"><div style="width:${t.progress}%;height:100%;background:${(t.progress)>=75?'#eab308':(t.progress)>=50?'#3b82f6':'#f97316'};border-radius:3px;"></div></div>
           <span style="font-size:9.5px;color:#94a3b8;">${t.progress}%</span>
         </div>`:''}
@@ -1473,6 +1480,14 @@ function renderTaskSiteView(){
                 <span style="color:#94a3b8;font-size:11px;">${t.assigneeName||''}</span>
                 ${t.due?`<span style="font-size:10.5px;font-weight:600;color:${overdue?'#f87171':'#94a3b8'};">Termen: ${isoToDmy(t.due)}${t.dueTime?' '+t.dueTime:''}</span>`:''}
               </div>
+              ${(!t.done&&t.assigneeId===currentUser.id)?`<div style="padding-left:23px;">
+                <select data-task-status="${t.id}" style="font-size:10.5px;padding:2px 5px;border:1px solid #334155;border-radius:5px;background:#1e293b;color:#f1f5f9;">
+                  <option value="0" ${(!t.progress||t.progress==0)?'selected':''}>Neînceput</option>
+                  <option value="25" ${t.progress==25?'selected':''}>25%</option>
+                  <option value="50" ${t.progress==50?'selected':''}>50%</option>
+                  <option value="75" ${t.progress==75?'selected':''}>75%</option>
+                </select>
+              </div>`:''}
               ${(!t.done&&(t.progress||0)>0)?`<div style="display:flex;align-items:center;gap:5px;padding-left:23px;">
                 <div style="flex:1;max-width:140px;height:5px;background:#1e293b;border-radius:3px;overflow:hidden;"><div style="width:${t.progress}%;height:100%;background:${(t.progress)>=75?'#eab308':(t.progress)>=50?'#3b82f6':'#f97316'};border-radius:3px;"></div></div>
                 <span style="font-size:9.5px;color:#94a3b8;">${t.progress}%</span>
