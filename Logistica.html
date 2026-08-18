@@ -178,6 +178,7 @@ a:hover{color:#93c5fd;}
         <div class="tab-switch">
           <button class="tab-btn active" id="tabComenzi">🚚 Comenzi Transport</button>
           <button class="tab-btn" id="tabProcese">📝 Procese Verbale</button>
+          <button class="tab-btn" id="tabSolicitari">📨 Solicitări</button>
         </div>
         <button class="btn btn-green" id="btnNewItem" style="width:100%;font-size:12px;">+ Comandă nouă</button>
       </div>
@@ -308,6 +309,66 @@ a:hover{color:#93c5fd;}
 
         <button class="btn btn-blue" id="btnSaveProces">💾 Salvează procesul verbal</button>
       </div>
+
+      <!-- SOLICITARE EDITOR -->
+      <div id="solicitareEditor" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+          <div>
+            <div style="font-size:19px;font-weight:800;color:#f1f5f9;" id="solicitareTitleDisplay">Solicitare nouă</div>
+            <div style="font-size:12px;color:#475569;" id="solicitareMetaDisplay"></div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" id="btnExportPdfSolicitare">🖨 Export PDF</button>
+            <button class="btn btn-red btn-sm" id="btnDeleteSolicitare">Șterge</button>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">📋 Date solicitare</div>
+          <div class="field"><label>Proiect din SolarCRM (opțional)</label>
+            <select id="sCrmProject"><option value="">— Fără legătură —</option></select>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Nr. înregistrare SHC</label><input type="text" id="sNrInreg" placeholder="ex: 0011"></div>
+            <div class="field"><label>Data</label><input type="text" id="sDataSolicitare" placeholder="dd/mm/yyyy" maxlength="10"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Tip destinatar</label>
+              <select id="sTipDestinatar">
+                <option value="distribuitor">Distribuitor de energie (ex: E-Distribuție)</option>
+                <option value="client">Client / beneficiar</option>
+                <option value="furnizor">Furnizor / producător echipamente</option>
+                <option value="altul">Altă instituție</option>
+              </select>
+            </div>
+            <div class="field"><label>Tip solicitare</label>
+              <select id="sTipSolicitare">
+                <option value="Aviz tehnic de racordare (ATR)">Aviz tehnic de racordare (ATR)</option>
+                <option value="Capacitate disponibilă / spor de putere">Capacitate disponibilă / spor de putere</option>
+                <option value="Date tehnice transformator / linie de injecție">Date tehnice transformator / linie de injecție</option>
+                <option value="Confirmare conformitate Ordin ME nr. 745/2026">Confirmare conformitate Ordin ME nr. 745/2026</option>
+                <option value="Fișe tehnice echipamente">Fișe tehnice echipamente</option>
+                <option value="Altă solicitare">Altă solicitare</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label>Destinatar (nume instituție / persoană)</label><input type="text" id="sDestinatar" placeholder="ex: E-Distribuție Banat, Client SC Exemplu SRL"></div>
+          <div class="field"><label>Adresă / punct de lucru vizat</label><input type="text" id="sAdresa" placeholder="Locație instalație"></div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">⚡ Detalii tehnice solicitate</div>
+          <div class="field"><label>Putere instalată / dorită (kWp sau MWp)</label><input type="text" id="sPutere" placeholder="ex: 2 MWp PV + 2 MWh BESS"></div>
+          <div class="field"><label>Conținut solicitare</label><textarea id="sContinut" rows="5" style="width:100%;padding:9px 11px;border:1.5px solid #334155;border-radius:8px;font-size:13px;font-family:inherit;background:#1e293b;color:#f1f5f9;outline:none;" placeholder="ex: Vă rugăm să ne comunicați puterea disponibilă (kVA) pe transformatorul existent, posibilitatea de acordare a unui spor de putere, precum și condițiile de eliberare a Avizului Tehnic de Racordare (ATR) pentru instalația menționată mai sus."></textarea></div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">✍️ Semnatar SHC</div>
+          <div class="field"><label>Reprezentant SHC (nume, funcție)</label><input type="text" id="sSemnatar" placeholder="ex: Alexandru Chirilă, Administrator"></div>
+        </div>
+
+        <button class="btn btn-blue" id="btnSaveSolicitare">💾 Salvează solicitarea</button>
+      </div>
     </div>
   </div>
 </div>
@@ -332,9 +393,9 @@ const DEFAULT_USERS = [
 ];
 
 let db=null, currentUser=null, loginUsers=[...DEFAULT_USERS], adminPw='12345', adminPin='1000';
-let comenzi={}, procese={}, crmProjects=[];
-let activeTab='comenzi'; // 'comenzi' | 'procese'
-let activeComandaId=null, activeProcesId=null;
+let comenzi={}, procese={}, solicitari={}, crmProjects=[];
+let activeTab='comenzi'; // 'comenzi' | 'procese' | 'solicitari'
+let activeComandaId=null, activeProcesId=null, activeSolicitareId=null;
 let procesItems=[];
 
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
@@ -350,7 +411,7 @@ function attachDateAutoFormat(id){
     el.value=v.slice(0,10);
   });
 }
-['cDataComanda','cDataDescarcare','pDataProces'].forEach(attachDateAutoFormat);
+['cDataComanda','cDataDescarcare','pDataProces','sDataSolicitare'].forEach(attachDateAutoFormat);
 (function(){
   const el=document.getElementById('cDataOraIncarcare'); if(!el) return;
   el.addEventListener('input',()=>{
@@ -382,6 +443,12 @@ function loadFirebase(){
     const raw=snap.val()||{};
     procese={};
     Object.values(raw).filter(v=>v&&v.id).forEach(v=>{ procese[v.id]=v; });
+    renderList();
+  });
+  db.ref('shc_logistica/solicitari').on('value', snap=>{
+    const raw=snap.val()||{};
+    solicitari={};
+    Object.values(raw).filter(v=>v&&v.id).forEach(v=>{ solicitari[v.id]=v; });
     renderList();
   });
   db.ref('solarcrm_v2/config').once('value', snap=>{
@@ -571,37 +638,40 @@ document.getElementById('pCrmProject').addEventListener('change',e=>{
 // ── Tabs ──
 document.getElementById('tabComenzi').addEventListener('click',()=>switchTab('comenzi'));
 document.getElementById('tabProcese').addEventListener('click',()=>switchTab('procese'));
+document.getElementById('tabSolicitari').addEventListener('click',()=>switchTab('solicitari'));
 function switchTab(tab){
   activeTab=tab;
   document.getElementById('tabComenzi').classList.toggle('active',tab==='comenzi');
   document.getElementById('tabProcese').classList.toggle('active',tab==='procese');
-  document.getElementById('btnNewItem').textContent=tab==='comenzi'?'+ Comandă nouă':'+ Proces nou';
+  document.getElementById('tabSolicitari').classList.toggle('active',tab==='solicitari');
+  document.getElementById('btnNewItem').textContent=tab==='comenzi'?'+ Comandă nouă':tab==='procese'?'+ Proces nou':'+ Solicitare nouă';
   document.getElementById('comandaEditor').style.display='none';
   document.getElementById('procesEditor').style.display='none';
+  document.getElementById('solicitareEditor').style.display='none';
   document.getElementById('emptyState').style.display='block';
-  activeComandaId=null; activeProcesId=null;
+  activeComandaId=null; activeProcesId=null; activeSolicitareId=null;
   renderList();
 }
 
 document.getElementById('btnNewItem').addEventListener('click',()=>{
-  if(activeTab==='comenzi') newComanda(); else newProces();
+  if(activeTab==='comenzi') newComanda(); else if(activeTab==='procese') newProces(); else newSolicitare();
 });
 
 // ── List rendering ──
 function renderList(){
   const list=document.getElementById('itemList');
-  const dataset = activeTab==='comenzi' ? comenzi : procese;
+  const dataset = activeTab==='comenzi' ? comenzi : activeTab==='procese' ? procese : solicitari;
   const arr=Object.values(dataset).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
   if(!arr.length){ list.innerHTML='<div style="padding:20px 14px;font-size:12px;color:#334155;text-align:center;">Niciun element</div>'; return; }
   const groups={};
-  arr.forEach(v=>{ const k=v.client||'Fără client'; (groups[k]=groups[k]||[]).push(v); });
+  arr.forEach(v=>{ const k=v.client||v.destinatar||'Fără client'; (groups[k]=groups[k]||[]).push(v); });
   let html='';
   Object.keys(groups).sort((a,b)=>a.localeCompare(b,'ro')).forEach(client=>{
     html+=`<div class="group-header">${esc(client)}</div>`;
     groups[client].forEach(v=>{
-      const activeId = activeTab==='comenzi'?activeComandaId:activeProcesId;
-      const title = activeTab==='comenzi' ? (v.transportator||'Comandă fără transportator') : (v.nrProces||'Proces verbal');
-      const meta = activeTab==='comenzi' ? (v.nrComanda?('SCH'+v.nrComanda+(v.dataComanda?' · '+isoToDmy(v.dataComanda):'')):(v.dataComanda?isoToDmy(v.dataComanda):'')) : (v.dataProces?isoToDmy(v.dataProces):'');
+      const activeId = activeTab==='comenzi'?activeComandaId:activeTab==='procese'?activeProcesId:activeSolicitareId;
+      const title = activeTab==='comenzi' ? (v.transportator||'Comandă fără transportator') : activeTab==='procese' ? (v.nrProces||'Proces verbal') : (v.tipSolicitare||'Solicitare');
+      const meta = activeTab==='comenzi' ? (v.nrComanda?('SCH'+v.nrComanda+(v.dataComanda?' · '+isoToDmy(v.dataComanda):'')):(v.dataComanda?isoToDmy(v.dataComanda):'')) : activeTab==='procese' ? (v.dataProces?isoToDmy(v.dataProces):'') : (v.nrInreg?('Nr. '+v.nrInreg+(v.dataSolicitare?' · '+isoToDmy(v.dataSolicitare):'')):(v.dataSolicitare?isoToDmy(v.dataSolicitare):''));
       html+=`<div class="list-item${v.id===activeId?' active':''}" data-id="${v.id}">
         <div class="li-name">${esc(title)}</div>
         <div class="li-meta">${esc(meta)}</div>
@@ -611,7 +681,7 @@ function renderList(){
   list.innerHTML=html;
   list.querySelectorAll('.list-item').forEach(el=>{
     el.addEventListener('click',()=>{
-      if(activeTab==='comenzi') openComanda(el.dataset.id); else openProces(el.dataset.id);
+      if(activeTab==='comenzi') openComanda(el.dataset.id); else if(activeTab==='procese') openProces(el.dataset.id); else openSolicitare(el.dataset.id);
       if(window.innerWidth<=768){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarBackdrop').style.display='none'; }
     });
   });
@@ -905,6 +975,111 @@ document.getElementById('btnExportPdfProces').addEventListener('click',()=>{
     </div>`;
   const origTitle=document.title;
   document.title=`SCHP${esc(v.nrProces||'XXXX')}_${esc(v.client||'client')}_${v.dataProces?isoToDmy(v.dataProces):new Date().toLocaleDateString('ro-RO')}`.replace(/[\/:*?"<>|]/g,'-');
+  window.print();
+  setTimeout(()=>{ document.title=origTitle; },1000);
+});
+
+// ═══════════════════════ SOLICITĂRI ═══════════════════════
+function newSolicitare(){
+  const v={id:uid(),crmId:'',nrInreg:'',dataSolicitare:new Date().toISOString().slice(0,10),tipDestinatar:'distribuitor',
+    tipSolicitare:'Aviz tehnic de racordare (ATR)',destinatar:'',adresa:'',putere:'',continut:'',semnatar:'',client:''};
+  solicitari[v.id]=v;
+  activeSolicitareId=v.id;
+  saveFirebase('solicitari',v);
+  openSolicitare(v.id);
+}
+function openSolicitare(id){
+  activeSolicitareId=id; activeComandaId=null; activeProcesId=null;
+  const v=solicitari[id]; if(!v) return;
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('comandaEditor').style.display='none';
+  document.getElementById('procesEditor').style.display='none';
+  document.getElementById('solicitareEditor').style.display='block';
+  document.getElementById('solicitareTitleDisplay').textContent=v.tipSolicitare||'Solicitare nouă';
+  document.getElementById('solicitareMetaDisplay').textContent=v.createdBy?('Creat de '+v.createdBy):'';
+  const sel=document.getElementById('sCrmProject');
+  sel.innerHTML='<option value="">— Fără legătură —</option>'+crmProjects.map(p=>`<option value="${p.id}">${esc(p.client)}</option>`).join('');
+  sel.value=v.crmId||'';
+  document.getElementById('sNrInreg').value=v.nrInreg||'';
+  document.getElementById('sDataSolicitare').value=v.dataSolicitare?isoToDmy(v.dataSolicitare):'';
+  document.getElementById('sTipDestinatar').value=v.tipDestinatar||'distribuitor';
+  document.getElementById('sTipSolicitare').value=v.tipSolicitare||'Aviz tehnic de racordare (ATR)';
+  document.getElementById('sDestinatar').value=v.destinatar||'';
+  document.getElementById('sAdresa').value=v.adresa||'';
+  document.getElementById('sPutere').value=v.putere||'';
+  document.getElementById('sContinut').value=v.continut||'';
+  document.getElementById('sSemnatar').value=v.semnatar||'';
+  renderList();
+}
+function collectSolicitare(){
+  const v=solicitari[activeSolicitareId]; if(!v) return null;
+  v.crmId=document.getElementById('sCrmProject').value;
+  v.nrInreg=document.getElementById('sNrInreg').value.trim();
+  v.dataSolicitare=dmyToIso(document.getElementById('sDataSolicitare').value)||v.dataSolicitare;
+  v.tipDestinatar=document.getElementById('sTipDestinatar').value;
+  v.tipSolicitare=document.getElementById('sTipSolicitare').value;
+  v.destinatar=document.getElementById('sDestinatar').value.trim();
+  v.client=v.destinatar;
+  v.adresa=document.getElementById('sAdresa').value.trim();
+  v.putere=document.getElementById('sPutere').value.trim();
+  v.continut=document.getElementById('sContinut').value.trim();
+  v.semnatar=document.getElementById('sSemnatar').value.trim();
+  v.updatedAt=Date.now();
+  if(!v.createdBy) v.createdBy=currentUser?currentUser.name:'';
+  return v;
+}
+document.getElementById('btnSaveSolicitare').addEventListener('click',()=>{
+  const v=collectSolicitare(); if(!v) return;
+  saveFirebase('solicitari',v);
+  document.getElementById('solicitareTitleDisplay').textContent=v.tipSolicitare||'Solicitare nouă';
+  alert('Solicitare salvată!');
+});
+document.getElementById('btnDeleteSolicitare').addEventListener('click',()=>{
+  if(!canDelete()){ alert('Doar Alexandru Chirila și Ionuț Nicoraș pot șterge.'); return; }
+  if(!activeSolicitareId) return;
+  if(!confirm('Ștergi această solicitare definitiv?')) return;
+  deleteFirebase('solicitari',activeSolicitareId);
+  delete solicitari[activeSolicitareId];
+  activeSolicitareId=null;
+  document.getElementById('solicitareEditor').style.display='none';
+  document.getElementById('emptyState').style.display='block';
+  renderList();
+});
+document.getElementById('btnExportPdfSolicitare').addEventListener('click',()=>{
+  const v=collectSolicitare(); if(!v) return;
+  saveFirebase('solicitari',v);
+  const destinatarLabel={distribuitor:'Către distribuitorul de energie',client:'Către client / beneficiar',furnizor:'Către furnizor / producător',altul:'Către'}[v.tipDestinatar]||'Către';
+  printArea.innerHTML=`
+    <div style="font-family:Arial,sans-serif;color:#1a1a1a;padding:24px 40px;line-height:1.5;font-size:12.5px;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:6px;">
+        ${SHC_LOGO_B64?`<img src="data:image/png;base64,${SHC_LOGO_B64}" style="height:42px;object-fit:contain;">`:''}
+        <div style="text-align:center;">
+          <div style="font-size:15px;font-weight:bold;">S.C. SMART HOUSE COLOR S.R.L.</div>
+          <div style="font-size:11px;color:#444;">CUI: RO37283429 · Reg. Com.: J2017000477024</div>
+          <div style="font-size:11px;color:#444;">Str. Timotei Cipariu nr. 3, Arad, România</div>
+          <div style="font-size:11px;color:#444;">Tel.: 0733961190 · E-mail: office@shc-group.ro</div>
+        </div>
+      </div>
+      <div style="border-top:2px solid #333;margin:10px 0 14px;"></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#444;margin-bottom:16px;">
+        <div>Nr. înreg. SHC: <strong>${esc(v.nrInreg||'—')}</strong></div>
+        <div>Data: <strong>${v.dataSolicitare?isoToDmy(v.dataSolicitare):'—'}</strong></div>
+      </div>
+      <div style="text-align:center;font-size:16px;font-weight:bold;margin-bottom:16px;">SOLICITARE — ${esc(v.tipSolicitare||'').toUpperCase()}</div>
+      <div style="margin-bottom:6px;">${destinatarLabel}: <strong>${esc(v.destinatar||'—')}</strong></div>
+      ${v.adresa?`<div style="margin-bottom:6px;">Adresă / punct de lucru: ${esc(v.adresa)}</div>`:''}
+      ${v.putere?`<div style="margin-bottom:14px;">Putere instalată / dorită: <strong>${esc(v.putere)}</strong></div>`:''}
+      <div style="margin-bottom:20px;white-space:pre-wrap;">${esc(v.continut||'')}</div>
+      <div style="margin-bottom:6px;">Vă mulțumim pentru sprijin și rămânem la dispoziție pentru orice informații suplimentare.</div>
+      <div style="display:flex;justify-content:flex-end;margin-top:40px;">
+        <div style="text-align:center;width:45%;">
+          <div style="font-weight:600;margin-bottom:30px;">Pentru S.C. SMART HOUSE COLOR S.R.L.<br>${esc(v.semnatar||'')}</div>
+          <div style="border-top:1px solid #333;"></div>
+        </div>
+      </div>
+    </div>`;
+  const origTitle=document.title;
+  document.title=`SCH${esc(v.nrInreg||'XX')}_${esc(v.destinatar||'destinatar')}_${v.dataSolicitare?isoToDmy(v.dataSolicitare):new Date().toLocaleDateString('ro-RO')}`.replace(/[\/:*?"<>|]/g,'-');
   window.print();
   setTimeout(()=>{ document.title=origTitle; },1000);
 });
