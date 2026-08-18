@@ -1435,6 +1435,9 @@ function renderTaskCard(t,admin){
             <option value="50" ${t.progress==50?'selected':''}>50%</option>
             <option value="75" ${t.progress==75?'selected':''}>75%</option>
           </select>
+          ${(t.progress||0)>0?`<div style="display:flex;align-items:center;gap:5px;margin-top:5px;">
+            <div style="flex:1;height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;"><div style="width:${t.progress}%;height:100%;background:${(t.progress)>=75?'#eab308':(t.progress)>=50?'#3b82f6':'#f97316'};border-radius:3px;"></div></div>
+          </div>`:''}
         </div>`:''}
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;">
           ${t.due?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:600;color:${overdue?'#b91c1c':'#78350f'};background:${overdue?'#fee2e2':'#fef3c7'};padding:2px 7px;border-radius:999px;">🕐 Termen: ${isoToDmy(t.due)}${t.dueTime?' '+t.dueTime:''}</span>`:''}
