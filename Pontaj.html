@@ -1452,6 +1452,7 @@ function renderTaskCard(t,admin){
         <div data-task-expand="${t.id}" style="font-size:12.5px;font-weight:600;color:#0f172a;cursor:${t.desc?'pointer':'default'};${t.done?'text-decoration:line-through;color:#94a3b8;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏰</span>':''}${t.priority==='standby'?'<span style="background:#64748b;color:#fff;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏸</span>':''}${t.title||t.desc||''}${t.desc&&t.title?' <span style="color:#94a3b8;font-size:10px;">▾</span>':''}</div>
         ${t.desc&&t.title?`<div data-task-desc="${t.id}" style="display:none;font-size:11px;color:#64748b;margin-top:3px;white-space:pre-wrap;">${t.desc}</div>`:''}
         ${t.site?`<div style="font-size:10.5px;color:#64748b;margin-top:2px;">${t.site}</div>`:''}
+        <div style="font-size:10.5px;color:#64748b;margin-top:2px;">→ <strong>${t.assigneeName||'—'}</strong>${t.assigneeSecName?(' + '+t.assigneeSecName):''}${t.assigneeTerName?(' + '+t.assigneeTerName):''}</div>
         ${!t.done?`<div style="margin-top:5px;">
           <select data-task-status="${t.id}" style="font-size:10.5px;padding:2px 5px;border:1px solid #e2e8f0;border-radius:5px;background:#fff;color:#334155;">
             <option value="0" ${(!t.progress||t.progress==0)?'selected':''}>Neînceput</option>
@@ -1496,7 +1497,7 @@ function renderTaskSiteView(){
               <div style="display:flex;align-items:center;gap:8px;">
                 <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} style="width:15px;height:15px;cursor:pointer;">
                 <span data-task-expand="${t.id}" style="flex:1;cursor:${t.desc?'pointer':'default'};${t.done?'text-decoration:line-through;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏰</span>':''}${t.priority==='standby'?'<span style="background:#64748b;color:#fff;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏸</span>':''}${t.title||t.desc||''}${t.desc&&t.title?' <span style="color:#94a3b8;font-size:10px;">▾</span>':''}</span>
-                <span style="color:#94a3b8;font-size:11px;">${t.assigneeName||''}</span>
+                <span style="color:#94a3b8;font-size:11px;">${t.assigneeName||''}${t.assigneeSecName?(' + '+t.assigneeSecName):''}${t.assigneeTerName?(' + '+t.assigneeTerName):''}</span>
                 ${t.due?`<span style="font-size:10.5px;font-weight:600;color:${overdue?'#f87171':'#94a3b8'};">Termen: ${isoToDmy(t.due)}${t.dueTime?' '+t.dueTime:''}</span>`:''}
               </div>
               ${t.desc&&t.title?`<div data-task-desc="${t.id}" style="display:none;padding-left:23px;font-size:11px;color:#94a3b8;margin-top:2px;white-space:pre-wrap;">${t.desc}</div>`:''}
