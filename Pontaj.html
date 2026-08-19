@@ -252,11 +252,13 @@ a:hover{color:#fbbf24;}
         <div class="field" style="margin-bottom:10px;"><label>Titlu task</label><input type="text" id="taskTitle" class="form-input" placeholder="ex: Cerere ATR transformator" style="width:100%;"></div>
         <div class="field" style="margin-bottom:10px;"><label>Descriere (opțional, detalii)</label><textarea id="taskDesc" class="form-input" rows="2" style="width:100%;"></textarea></div>
         <div class="row2" style="margin-bottom:10px;">
-          <div class="field"><label>Responsabil principal</label><select id="taskAssignee2" class="form-select"></select></div>
-          <div class="field"><label>Responsabil secundar (opțional)</label><select id="taskAssigneeSec" class="form-select"><option value="">— niciunul —</option></select></div>
+          <div class="field"><label>Responsabil primar (Al 1-lea)</label><select id="taskAssignee2" class="form-select"></select></div>
+          <div class="field"><label>Responsabil secundar (Al 2-lea, opțional)</label><select id="taskAssigneeSec" class="form-select" disabled><option value="">— niciunul —</option></select></div>
         </div>
-        <div class="field" style="margin-bottom:10px;"><label>Responsabil terțiar (opțional)</label><select id="taskAssigneeTer" class="form-select"><option value="">— niciunul —</option></select></div>
-        <div class="field" style="margin-bottom:10px;"><label>Responsabil cuaternar (opțional)</label><select id="taskAssigneeQuat" class="form-select"><option value="">— niciunul —</option></select></div>
+        <div class="row2" style="margin-bottom:10px;">
+          <div class="field"><label>Responsabil terțiar (Al 3-lea, opțional)</label><select id="taskAssigneeTer" class="form-select" disabled><option value="">— niciunul —</option></select></div>
+          <div class="field"><label>Responsabil cuaternar (Al 4-lea, opțional)</label><select id="taskAssigneeQuat" class="form-select" disabled><option value="">— niciunul —</option></select></div>
+        </div>
         <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#94a3b8;margin-bottom:6px;cursor:pointer;"><input type="checkbox" id="taskFollowUp"> Necesită follow-up (rămâne activ vizual chiar finalizat)</label>
         <div class="field" id="taskFollowUpDateWrap" style="margin-bottom:10px;display:none;"><label>Data follow-up</label><input type="text" id="taskFollowUpDate" class="form-input" placeholder="dd/mm/yyyy" maxlength="10"></div>
         <div style="display:flex;gap:8px;">
@@ -1427,6 +1429,18 @@ document.querySelectorAll('.task-view-btn').forEach(b=>b.addEventListener('click
 document.getElementById('taskPriority').addEventListener('change',e=>{
   document.getElementById('taskDueLabel').textContent=e.target.value==='standby'?'Termen finalizare (opțional pentru Stand-by)':'Termen finalizare (obligatoriu) *';
 });
+function updateAssigneeChainLocks(){
+  const p=document.getElementById('taskAssignee2').value;
+  const s=document.getElementById('taskAssigneeSec').value;
+  const t=document.getElementById('taskAssigneeTer').value;
+  document.getElementById('taskAssigneeSec').disabled=!p;
+  document.getElementById('taskAssigneeTer').disabled=!p||!s;
+  document.getElementById('taskAssigneeQuat').disabled=!p||!s||!t;
+  if(!p){ document.getElementById('taskAssigneeSec').value=''; }
+  if(!p||!document.getElementById('taskAssigneeSec').value){ document.getElementById('taskAssigneeTer').value=''; }
+  if(!p||!document.getElementById('taskAssigneeSec').value||!document.getElementById('taskAssigneeTer').value){ document.getElementById('taskAssigneeQuat').value=''; }
+}
+['taskAssignee2','taskAssigneeSec','taskAssigneeTer'].forEach(id=>document.getElementById(id).addEventListener('change',updateAssigneeChainLocks));
 document.getElementById('taskFollowUp').addEventListener('change',e=>{
   document.getElementById('taskFollowUpDateWrap').style.display=e.target.checked?'block':'none';
 });
@@ -1754,6 +1768,7 @@ function openTaskEdit(id){
   document.getElementById('taskFollowUpDate').value=t.followUpDate?isoToDmy(t.followUpDate):'';
   document.getElementById('btnSubmitTask').textContent='Salvează modificările';
   document.getElementById('btnCancelEditTask').style.display='inline-block';
+  updateAssigneeChainLocks();
   document.getElementById('taskAssignCard').scrollIntoView({block:'center'});
 }
 function cancelTaskEdit(){
@@ -1768,6 +1783,7 @@ function cancelTaskEdit(){
   document.getElementById('taskDesc').value=''; document.getElementById('taskDue').value=''; document.getElementById('taskDueTime').value='';
   document.getElementById('btnSubmitTask').textContent='Atribuie task';
   document.getElementById('btnCancelEditTask').style.display='none';
+  updateAssigneeChainLocks();
 }
 document.getElementById('btnCancelEditTask').addEventListener('click',cancelTaskEdit);
 function sendTaskDoneEmail(t){
