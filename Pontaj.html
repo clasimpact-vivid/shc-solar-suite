@@ -1451,13 +1451,14 @@ function renderTaskCalendar(){
   let nextDay=1;
   while(cells.length%7!==0){ cells.push({day:nextDay++,otherMonth:true}); }
   view.innerHTML=`
-    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:12px;max-width:320px;">
+    <div style="display:flex;gap:16px;flex-wrap:wrap;">
+    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:12px;max-width:320px;flex-shrink:0;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <button id="calPrevMonth" style="background:#1e293b;border:none;color:#cbd5e1;font-size:14px;width:24px;height:24px;border-radius:6px;cursor:pointer;">‹</button>
         <div style="font-size:12.5px;font-weight:800;color:#fff;letter-spacing:.3px;">${MONTHS[m].toUpperCase()} ${y}</div>
         <button id="calNextMonth" style="background:#1e293b;border:none;color:#cbd5e1;font-size:14px;width:24px;height:24px;border-radius:6px;cursor:pointer;">›</button>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:8px;">
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;">
         ${['L','Ma','Mi','J','V','S','D'].map((d,i)=>`<div style="text-align:center;font-size:9px;color:${i>=5?'#f59e0b':'#64748b'};font-weight:800;letter-spacing:.3px;padding-bottom:3px;">${d}</div>`).join('')}
         ${cells.map(c=>{
           if(c.otherMonth) return `<div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;color:#1e293b;font-size:10.5px;">${c.day}</div>`;
@@ -1468,7 +1469,8 @@ function renderTaskCalendar(){
           </div>`;
         }).join('')}
       </div>
-      <div id="calSelectedTasks"></div>
+    </div>
+    <div id="calSelectedTasks" style="flex:1;min-width:220px;"></div>
     </div>
   `;
   document.getElementById('calPrevMonth').addEventListener('click',()=>{ window._taskCalMonth=new Date(y,m-1,1); renderTaskCalendar(); });
@@ -1479,10 +1481,10 @@ function renderTaskCalendar(){
   }));
   const sel=window._taskCalSelectedDate;
   const box=document.getElementById('calSelectedTasks');
-  if(!sel){ box.innerHTML='<div style="color:#475569;font-size:12px;text-align:center;padding-top:10px;border-top:1px solid #1e293b;">Selectează o zi pentru a vedea task-urile.</div>'; return; }
+  if(!sel){ box.innerHTML='<div style="color:#475569;font-size:12px;text-align:center;padding-top:10px;">Selectează o zi pentru a vedea task-urile.</div>'; return; }
   const items=byDate[sel]||[];
-  if(!items.length){ box.innerHTML='<div style="color:#475569;font-size:12px;text-align:center;padding-top:10px;border-top:1px solid #1e293b;">Niciun task în această zi.</div>'; return; }
-  box.innerHTML=`<div style="font-size:13px;font-weight:800;color:#f59e0b;margin-bottom:10px;padding-top:12px;border-top:1px solid #1e293b;">${isoToDmy(sel)}</div>` + items.map(t=>`<div style="display:flex;flex-direction:column;gap:3px;padding:8px 0;border-top:1px solid #1e293b;font-size:12.5px;${t.done&&!t._isFollowUp?'opacity:.5;':''}">
+  if(!items.length){ box.innerHTML='<div style="color:#475569;font-size:12px;text-align:center;padding-top:10px;">Niciun task în această zi.</div>'; return; }
+  box.innerHTML=`<div style="font-size:13px;font-weight:800;color:#f59e0b;margin-bottom:10px;">${isoToDmy(sel)}</div>` + items.map(t=>`<div style="display:flex;flex-direction:column;gap:3px;padding:8px 0;border-top:1px solid #1e293b;font-size:12.5px;${t.done&&!t._isFollowUp?'opacity:.5;':''}">
     <div style="display:flex;align-items:center;gap:8px;">
       ${t._isFollowUp?'<span style="background:#f59e0b;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;">⏰ FOLLOW-UP</span>':''}
       <span data-task-expand="${t.id}_cal" style="flex:1;color:#f1f5f9;font-weight:600;cursor:${t.desc?'pointer':'default'};${t.done&&!t._isFollowUp?'text-decoration:line-through;color:#64748b;':''}">${t.title||t.desc||''}${t.desc&&t.title?' <span style="color:#94a3b8;font-size:10px;">▾</span>':''}</span>
