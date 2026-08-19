@@ -1,0 +1,2033 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pontaj — SHC Solar Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;font-family:'DM Sans',system-ui,sans-serif;background:#090f1c;color:#e2e8f0;}
+#loginOverlay{position:fixed;inset:0;z-index:9999;background:#090f1c;display:none;align-items:center;justify-content:center;}
+.login-card{background:#111827;border:1px solid #1e3a5f;border-radius:16px;padding:36px 32px;width:380px;max-width:92vw;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+.form-select,.form-input{width:100%;padding:10px 13px;border:1.5px solid #334155;border-radius:10px;font-size:14px;font-family:inherit;background:#1e293b;color:#f1f5f9;outline:none;}
+.form-select:focus,.form-input:focus{border-color:#f59e0b;}
+.btn-login{width:100%;padding:12px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:0;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+.btn-login:hover{opacity:.9;}
+
+#app{display:none;height:100vh;flex-direction:column;}
+#topBar{background:#0d1b2e;border-bottom:1px solid #1e3a5f;padding:0 18px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px;}
+#tabBar{background:#0d1b2e;border-bottom:1px solid #1e3a5f;padding:0 18px;display:flex;gap:4px;flex-shrink:0;overflow-x:auto;}
+#tabBar button{padding:11px 16px;background:transparent;border:none;color:#64748b;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;font-family:inherit;}
+#tabBar button.active{color:#f59e0b;border-bottom-color:#f59e0b;}
+#main{flex:1;overflow-y:auto;padding:24px;}
+@media(max-width:768px){
+  #topBar{padding:0 10px!important;gap:6px!important;}
+  #userName{display:none;}
+  #main{padding:14px!important;}
+  #tabBar{padding:0 10px!important;}
+  #tabBar button{padding:10px 12px!important;font-size:12px!important;}
+  .card{padding:16px!important;}
+  .row2{grid-template-columns:1fr!important;}
+  .pin-grid{grid-template-columns:repeat(3,64px)!important;}
+  .pin-key{width:64px!important;height:64px!important;}
+  #fieldWorkersList > div[style*="display:flex"]{flex-wrap:wrap;}
+  #plannerDaysView select[data-addmember]{width:100%!important;margin-top:6px;}
+  #plannerTable{font-size:11px!important;}
+  #plannerTable td, #plannerTable th{padding:6px!important;}
+}
+
+.btn{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;border:1px solid transparent;transition:opacity .15s;}
+.btn:hover{opacity:.85;}
+.btn-ghost{background:transparent;color:#94a3b8;border-color:#334155;}
+.btn-sm{padding:5px 10px;font-size:11px;}
+
+.card{background:#111d35;border:1px solid #1e293b;border-radius:14px;padding:22px;margin-bottom:18px;}
+.section-title{font-size:13px;font-weight:800;color:#f1f5f9;margin-bottom:14px;}
+
+/* Check-in card */
+.checkin-btn{width:100%;padding:26px;border-radius:16px;border:none;font-size:20px;font-weight:800;cursor:pointer;font-family:inherit;color:#fff;display:flex;align-items:center;justify-content:center;gap:12px;transition:transform .1s;}
+.checkin-btn:active{transform:scale(.98);}
+.checkin-in{background:linear-gradient(135deg,#16a34a,#15803d);}
+.checkin-out{background:linear-gradient(135deg,#dc2626,#b91c1c);}
+.checkin-done{background:#1e293b;color:#64748b;cursor:default;}
+.checkin-pending{background:linear-gradient(135deg,#d97706,#b45309);}
+
+.status-row{display:flex;gap:16px;margin-top:16px;flex-wrap:wrap;}
+.status-item{flex:1;min-width:140px;background:#0d1b2e;border-radius:10px;padding:14px 16px;}
+.status-label{font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.status-value{font-size:20px;font-weight:800;color:#f1f5f9;}
+.status-sub{font-size:11px;color:#64748b;margin-top:3px;}
+
+/* PIN keypad */
+#pinOverlay{position:fixed;inset:0;z-index:10000;background:#090f1c;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;}
+.pin-dots{display:flex;gap:12px;}
+.pin-dot{width:15px;height:15px;border-radius:50%;border:2px solid #f59e0b;background:transparent;transition:background .15s;}
+.pin-dot.filled{background:#f59e0b;}
+.pin-dot.err{border-color:#ef4444;background:#ef4444;}
+.pin-grid{display:grid;grid-template-columns:repeat(3,72px);gap:12px;}
+.pin-key{width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:#1e293b;color:#f1f5f9;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .25s;}
+.pin-key:active,.pin-key.pin-key-pressed{background:#7f1d1d;}
+.job-chip{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:2px solid transparent;background:#1e293b;color:#e2e8f0;}
+.job-chip.active{border-color:#f59e0b;}
+.plan-cell select{width:100%;padding:5px 4px;font-size:11px;background:#0d1b2e;color:#e2e8f0;border:1px solid #1e293b;border-radius:6px;font-family:inherit;}
+
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+th{text-align:left;padding:9px 10px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #1e293b;}
+td{padding:10px;border-bottom:1px solid #1a2740;color:#cbd5e1;}
+tr:hover td{background:rgba(255,255,255,0.02);}
+
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;}
+.badge-green{background:rgba(34,197,94,.15);color:#4ade80;}
+.badge-amber{background:rgba(245,158,11,.15);color:#fbbf24;}
+.badge-red{background:rgba(239,68,68,.15);color:#f87171;}
+.badge-gray{background:rgba(148,163,184,.15);color:#94a3b8;}
+
+#mapView{width:100%;height:calc(100vh - 200px);border-radius:14px;overflow:hidden;}
+.leaflet-popup-content-wrapper{background:#1e293b;color:#f1f5f9;}
+.leaflet-popup-tip{background:#1e293b;}
+
+.field{margin-bottom:12px;}
+.field label{font-size:10px;font-weight:700;color:#475569;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.field input,.field select,.field textarea{width:100%;padding:9px 11px;border:1.5px solid #334155;border-radius:8px;font-size:13px;font-family:inherit;background:#1e293b;color:#f1f5f9;outline:none;}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:2000;display:none;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal-card{background:#111827;border:1px solid #1e3a5f;border-radius:14px;padding:26px 28px;width:420px;max-width:96vw;}
+.modal-title{font-size:16px;font-weight:800;color:#f1f5f9;margin-bottom:16px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#1e3a5f;border-radius:3px;}
+a{color:#f59e0b;}
+a:hover{color:#fbbf24;}
+[style*="cursor:pointer"], [style*="cursor: pointer"] { -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:rgba(0,0,0,0.06); }
+</style>
+</head>
+<body>
+
+<div id="loginOverlay">
+  <div class="login-card">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:26px;">
+      <div style="width:40px;height:40px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div>
+        <div style="font-weight:800;font-size:16px;color:#f1f5f9;">Pontaj</div>
+        <div style="font-size:11px;color:#64748b;">Smart House Color · SHC Solar Suite</div>
+      </div>
+    </div>
+    <div class="field"><label style="font-size:11px;font-weight:700;color:#475569;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Utilizator</label>
+      <select id="loginUser" class="form-select"><option value="">— Selectează utilizatorul —</option></select>
+    </div>
+    <div class="field" style="margin-bottom:18px;"><label style="font-size:11px;font-weight:700;color:#475569;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Parolă</label>
+      <input type="password" id="loginPassword" class="form-input" placeholder="••••••••">
+    </div>
+    <button class="btn-login" id="btnLogin">Intră în aplicație →</button>
+    <div id="loginError" style="color:#f87171;font-size:12px;text-align:center;margin-top:10px;min-height:16px;"></div>
+    <div style="text-align:center;margin-top:16px;padding-top:16px;border-top:1px solid #1e293b;">
+      <a href="#" id="btnOpenOfficePin" style="font-size:12.5px;color:#64748b;">← Înapoi la login cu PIN</a>
+    </div>
+  </div>
+</div>
+
+<!-- PIN keypad overlay (implicit — toți colegii, birou + teren) -->
+<div id="pinOverlay">
+  <a href="./index.html" style="align-self:center;font-size:11px;color:#64748b;text-decoration:none;padding:4px 10px;border:1px solid #334155;border-radius:6px;">← Pagina principală</a>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div style="width:40px;height:40px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
+    <div>
+      <div style="font-weight:800;font-size:16px;color:#f1f5f9;">Pontaj</div>
+      <div style="font-size:11px;color:#64748b;">Smart House Color · SHC Solar Suite</div>
+    </div>
+  </div>
+  <div style="text-align:center;">
+    <div style="font-weight:800;font-size:16px;color:#f1f5f9;">Introdu codul PIN (4 cifre)</div>
+  </div>
+  <div class="pin-dots" id="pinDots"></div>
+  <div id="pinErr" style="color:#f87171;font-size:12.5px;font-weight:700;min-height:16px;"></div>
+  <div class="pin-grid" id="pinGrid"></div>
+  <a href="#" id="btnOpenPin" style="font-size:12.5px;color:#64748b;">Administrator / Manager — intră cu parolă →</a>
+</div>
+
+<div id="app">
+  <div id="topBar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:32px;height:32px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div>
+        <div style="font-size:14px;font-weight:800;color:#f1f5f9;">Pontaj</div>
+        <div style="font-size:10px;color:#475569;">SHC Solar Suite</div>
+      </div>
+      <a href="./index.html" style="margin-left:4px;font-size:11px;color:#475569;text-decoration:none;padding:4px 10px;border:1px solid #1e3a5f;border-radius:6px;">← Pagina principală</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div id="userAvatar" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0;"></div>
+      <span id="userName" style="font-size:12px;font-weight:600;color:#94a3b8;white-space:nowrap;"></span>
+      <button class="btn btn-ghost btn-sm" id="btnLogout">Ieși</button>
+    </div>
+  </div>
+
+  <div id="tabBar">
+    <button class="tab-btn active" data-tab="today">🕐 Pontaj azi</button>
+    <button class="tab-btn" data-tab="taskuri" id="tabTaskuriBtn">📌 Task-uri<span id="taskBadge" style="display:none;background:#dc2626;color:#fff;font-size:10px;font-weight:800;border-radius:10px;padding:1px 6px;margin-left:5px;"></span></button>
+    <button class="tab-btn" data-tab="pv" id="tabPvBtn">📝 Proces verbal</button>
+    <button class="tab-btn" data-tab="cereri" id="tabCereriBtn">🌴 Cereri</button>
+    <button class="tab-btn" data-tab="myweek" id="tabMyWeekBtn" style="display:none;">📆 Programul meu</button>
+    <button class="tab-btn" data-tab="planner" id="tabPlannerBtn" style="display:none;">🗓️ Planificator</button>
+    <button class="tab-btn" data-tab="team" id="tabTeamBtn" style="display:none;">👥 Listă echipă</button>
+    <button class="tab-btn" data-tab="map" id="tabMapBtn" style="display:none;">📍 Hartă live</button>
+    <button class="tab-btn" data-tab="alerte" id="tabAlerteBtn" style="display:none;">🔔 Alerte<span id="alerteBadge" style="display:none;background:#dc2626;color:#fff;font-size:10px;font-weight:800;border-radius:999px;padding:1px 6px;margin-left:5px;"></span></button>
+    <button class="tab-btn" data-tab="export" id="tabExportBtn">📤 Export</button>
+  </div>
+
+  <div id="main">
+
+    <!-- TAB: CERERI (concedii + probleme) -->
+    <div id="tab-cereri" class="tab-panel" style="display:none;">
+      <div class="card">
+        <div class="section-title">Concediu / învoire</div>
+        <div class="row2" style="margin-bottom:10px;">
+          <div class="field"><label>Tip</label>
+            <select id="leaveType" class="form-select">
+              <option value="CO">Concediu de odihnă</option>
+              <option value="CM">Concediu medical</option>
+              <option value="IV">Învoire / liber o zi</option>
+              <option value="LN">Liber neplătit</option>
+            </select>
+          </div>
+          <div></div>
+        </div>
+        <div class="row2" style="margin-bottom:10px;">
+          <div class="field"><label>De la data</label><input type="text" id="leaveFrom" class="form-input" placeholder="dd/mm/yyyy" maxlength="10"></div>
+          <div class="field"><label>Până la data</label><input type="text" id="leaveTo" class="form-input" placeholder="dd/mm/yyyy" maxlength="10"></div>
+        </div>
+        <div class="field" style="margin-bottom:10px;"><label>Motiv (opțional)</label><textarea id="leaveReason" class="form-input" rows="2" style="width:100%;"></textarea></div>
+        <button class="btn btn-sm" id="btnSubmitLeave" style="background:#f59e0b;color:#fff;">Trimite cererea</button>
+        <div style="margin-top:16px;overflow-x:auto"><table id="leaveTable"></table></div>
+      </div>
+    </div>
+
+    <!-- TAB: TASK-URI -->
+    <div id="tab-taskuri" class="tab-panel" style="display:none;">
+      <div class="card" id="taskAssignCard" style="display:none;">
+        <div class="section-title">Atribuie task nou</div>
+        <div class="row2" style="margin-bottom:10px;">
+          <div class="field"><label>Către</label><select id="taskAssignee" class="form-select"></select></div>
+          <div class="field"><label>Termen (dată)</label><input type="text" id="taskDue" class="form-input" placeholder="dd/mm/yyyy" maxlength="10"></div>
+        </div>
+        <div class="row2" style="margin-bottom:10px;">
+          <div class="field"><label>Ora (24h)</label><input type="text" id="taskDueTime" class="form-input" placeholder="14:30" maxlength="5"></div>
+          <div class="field"><label>Prioritate</label>
+            <select id="taskPriority" class="form-select">
+              <option value="normal">Normală</option>
+              <option value="urgent">Urgentă</option>
+            </select>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:10px;"><label>Șantier / proiect (opțional)</label><input type="text" id="taskSite" class="form-input" placeholder="ex: Șantier Jandarmi"></div>
+        <div class="field" style="margin-bottom:10px;"><label>Capitol (dacă e task de șantier)</label>
+          <select id="taskChapter" class="form-select">
+            <option value="">— fără capitol —</option>
+            <option value="Decontare">Decontare</option>
+            <option value="Documentație">Documentație</option>
+            <option value="Fișe tehnice">Fișe tehnice</option>
+            <option value="Garanție">Garanție</option>
+            <option value="PIF">PIF</option>
+            <option value="Racordare la rețea">Racordare la rețea</option>
+            <option value="Șantier - Execuție">Șantier - Execuție</option>
+            <option value="Verificare tehnică">Verificare tehnică</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:10px;"><label>Descriere task</label><textarea id="taskDesc" class="form-input" rows="2" style="width:100%;"></textarea></div>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#94a3b8;margin-bottom:10px;cursor:pointer;"><input type="checkbox" id="taskFollowUp"> Necesită follow-up (rămâne activ vizual chiar finalizat)</label>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm" id="btnSubmitTask" style="background:#f59e0b;color:#fff;">Atribuie task</button>
+          <button class="btn btn-sm" id="btnCancelEditTask" style="display:none;background:#334155;color:#fff;">Anulează editarea</button>
+        </div>
+      </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div class="section-title" style="margin:0;">Task-uri</div>
+          <div id="taskViewToggle" style="display:flex;gap:4px;background:#0f172a;border-radius:8px;padding:3px;">
+            <button data-task-view="list" class="task-view-btn" style="padding:5px 12px;border:none;border-radius:6px;background:transparent;color:#94a3b8;font-size:11.5px;font-weight:700;cursor:pointer;">Listă</button>
+            <button data-task-view="board" class="task-view-btn" style="padding:5px 12px;border:none;border-radius:6px;background:#334155;color:#fff;font-size:11.5px;font-weight:700;cursor:pointer;">Pe echipă</button>
+            <button data-task-view="site" class="task-view-btn" style="padding:5px 12px;border:none;border-radius:6px;background:transparent;color:#94a3b8;font-size:11.5px;font-weight:700;cursor:pointer;">Pe șantier</button>
+          </div>
+        </div>
+        <div id="taskList" style="display:none;"></div>
+        <div id="taskBoard" style="display:flex;overflow-x:auto;"></div>
+        <div id="taskSiteView" style="display:none;"></div>
+      </div>
+    </div>
+
+    <!-- TAB: PROCES VERBAL -->
+    <div id="tab-pv" class="tab-panel" style="display:none;">
+      <div class="card">
+        <div class="section-title">Proces verbal de lucrare</div>
+        <div class="row2" style="margin-bottom:10px;">
+          <div class="field"><label>Lucrare</label><select id="pvJob" class="form-select"></select></div>
+          <div class="field"><label>Client / beneficiar</label><input type="text" id="pvClient" class="form-input"></div>
+        </div>
+        <div class="field" style="margin-bottom:10px;"><label>Descriere lucrări executate</label><textarea id="pvDesc" class="form-input" rows="3" style="width:100%;"></textarea></div>
+        <div class="field" style="margin-bottom:10px;"><label>Poze (până la 3)</label><input type="file" id="pvPhotos" accept="image/*" multiple class="form-input"></div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>Semnătură client</label>
+          <canvas id="pvSignPad" width="500" height="150" style="width:100%;max-width:500px;height:150px;background:#1e293b;border:1.5px solid #334155;border-radius:8px;touch-action:none;cursor:crosshair;"></canvas>
+          <button class="btn btn-ghost btn-sm" id="btnClearSign" style="margin-top:6px;">Șterge semnătura</button>
+        </div>
+        <button class="btn btn-sm" id="btnSavePv" style="background:#f59e0b;color:#fff;">💾 Salvează proces verbal</button>
+      </div>
+      <div class="card">
+        <div class="section-title">Procese verbale salvate</div>
+        <div id="pvList"></div>
+      </div>
+      <div class="card">
+        <div class="section-title">Raportează o problemă de pe șantier</div>
+        <div class="row2" style="margin-bottom:10px;">
+          <div class="field"><label>Categorie</label>
+            <select id="probCat" class="form-select">
+              <option>Material lipsă</option><option>Sculă / utilaj defect</option><option>Mașină / transport</option>
+              <option>Siguranță în muncă</option><option>Beneficiar / acces</option><option>Altele</option>
+            </select>
+          </div>
+          <div class="field"><label>Poză (opțional)</label><input type="file" id="probPhoto" accept="image/*" class="form-input"></div>
+        </div>
+        <div class="field" style="margin-bottom:10px;"><label>Descriere</label><textarea id="probDesc" class="form-input" rows="2" style="width:100%;"></textarea></div>
+        <button class="btn btn-sm" id="btnSubmitProb" style="background:#f59e0b;color:#fff;">Trimite raportul</button>
+        <div style="margin-top:16px;" id="probList"></div>
+      </div>
+    </div>
+
+    <!-- TAB: ALERTE (muncitori de teren) -->
+    <div id="tab-alerte" class="tab-panel" style="display:none;">
+      <div class="card">
+        <div class="section-title">Alerte & anunțuri</div>
+        <div id="alerteList"></div>
+      </div>
+    </div>
+
+    <!-- TAB: TODAY -->
+    <div id="tab-today" class="tab-panel">
+      <div class="card" id="jobPickerCard" style="display:none;">
+        <div class="section-title">Pe ce lucrare ești azi?</div>
+        <div id="jobChips" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+      </div>
+      <div class="card">
+        <div class="section-title" id="todayDateLabel">—</div>
+        <button class="checkin-btn checkin-in" id="btnCheckAction">Se încarcă...</button>
+        <div id="gpsStatus" style="font-size:11px;color:#475569;margin-top:10px;text-align:center;"></div>
+        <div class="status-row">
+          <div class="status-item">
+            <div class="status-label">Intrare</div>
+            <div class="status-value" id="statIn">—</div>
+            <div class="status-sub" id="statInLoc">—</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">Ieșire</div>
+            <div class="status-value" id="statOut">—</div>
+            <div class="status-sub" id="statOutLoc">—</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">Ore lucrate azi</div>
+            <div class="status-value" id="statHours">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">Istoricul meu (ultimele 14 zile)</div>
+        <div style="overflow-x:auto"><table id="myHistoryTable"></table></div>
+      </div>
+    </div>
+
+    <!-- TAB: MY WEEK (field workers) -->
+    <div id="tab-myweek" class="tab-panel" style="display:none;">
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+          <div class="section-title" style="margin:0;">Programul tău</div>
+          <button class="btn btn-ghost btn-sm" id="btnMyWeekPrev">← Săpt. trecută</button>
+          <div id="myWeekLabel" style="font-size:12.5px;color:#94a3b8;font-weight:700;"></div>
+          <button class="btn btn-ghost btn-sm" id="btnMyWeekNext">Săpt. viitoare →</button>
+        </div>
+        <div id="myWeekGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;"></div>
+      </div>
+    </div>
+
+    <!-- TAB: PLANNER (Chirila/Nicoras only) -->
+    <div id="tab-planner" class="tab-panel" style="display:none;">
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+          <div style="display:flex;background:#0d1b2e;border-radius:9px;padding:3px;">
+            <button class="btn btn-sm" id="btnViewDays" style="background:#f59e0b;color:#fff;">Pe zile</button>
+            <button class="btn btn-sm btn-ghost" id="btnViewWeek">Toată săptămâna</button>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="btnCopyPrevWeek">⧉ Copiază S-1</button>
+          <button class="btn btn-sm" id="btnPublishPlan" style="background:#16a34a;color:#fff;margin-left:auto;">✓ Publică programul</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+          <button class="btn btn-ghost btn-sm" id="btnPlanPrev">← Săpt. trecută</button>
+          <div id="planWeekLabel" style="font-size:12.5px;color:#94a3b8;font-weight:700;"></div>
+          <button class="btn btn-ghost btn-sm" id="btnPlanNext">Săpt. viitoare →</button>
+        </div>
+        <div id="plannerDayTabs" style="display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap;"></div>
+        <div id="plannerDaysView"></div>
+        <div id="plannerWeekView" style="display:none;overflow-x:auto"><table id="plannerTable"></table></div>
+      </div>
+      <div class="card">
+        <div class="section-title">Lucrări (șantiere)</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;" id="jobsMgmtList"></div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="newJobName" class="form-input" placeholder="Nume lucrare nouă" style="flex:1;">
+          <button class="btn btn-sm" id="btnAddJob" style="background:#f59e0b;color:#fff;">+ Adaugă</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">Muncitori de teren</div>
+        <input type="text" id="fwSearch" class="form-input" placeholder="🔎 Caută după nume..." style="margin-bottom:14px;">
+        <div id="fieldWorkersList"></div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+          <input type="text" id="newFwName" class="form-input" placeholder="Nume" style="flex:1;min-width:140px;">
+          <input type="text" id="newFwPin" class="form-input" placeholder="PIN (4 cifre)" maxlength="4" style="width:100px;">
+          <select id="newFwSec" class="form-select" style="width:150px;"><option value="E">Electricieni</option><option value="M">Montaj</option></select>
+          <button class="btn btn-sm" id="btnAddFw" style="background:#f59e0b;color:#fff;">+ Adaugă</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: TEAM (Chirila/Nicoras only) -->
+    <div id="tab-team" class="tab-panel" style="display:none;">
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+          <div class="section-title" style="margin:0;">Prezență echipă</div>
+          <input type="text" id="teamDate" class="form-input" style="width:auto;" placeholder="dd/mm/yyyy" maxlength="10">
+          <button class="btn btn-ghost btn-sm" id="btnDeleteAllPontaj" style="color:#ef4444;border-color:#7f1d1d;margin-left:auto;">🗑 Șterge toate înregistrările</button>
+        </div>
+        <div style="overflow-x:auto"><table id="teamTable"></table></div>
+      </div>
+    </div>
+
+    <!-- TAB: MAP -->
+    <div id="tab-map" class="tab-panel" style="display:none;">
+      <div class="card" style="padding:12px;">
+        <div id="mapView"></div>
+      </div>
+    </div>
+
+    <!-- TAB: EXPORT -->
+    <div id="tab-export" class="tab-panel" style="display:none;">
+      <div class="card" style="max-width:480px;">
+        <div class="section-title">Export perioadă (CSV)</div>
+        <div class="field" id="exportUserField" style="display:none;">
+          <label>Angajat</label>
+          <select id="exportUser"></select>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>De la data</label>
+            <input type="text" id="exportFrom" placeholder="dd/mm/yyyy" maxlength="10">
+          </div>
+          <div class="field">
+            <label>Până la data</label>
+            <input type="text" id="exportTo" placeholder="dd/mm/yyyy" maxlength="10">
+          </div>
+        </div>
+        <button class="btn" id="btnExportCsv" style="background:#f59e0b;color:#fff;width:100%;padding:10px;font-size:13px;">⬇ Descarcă CSV</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Manual edit modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-card">
+    <div class="modal-title">Corectează manual</div>
+    <div class="row2">
+      <div class="field"><label>Ora intrare</label><input type="text" id="editInTime" placeholder="HH:mm" maxlength="5"></div>
+      <div class="field"><label>Ora ieșire</label><input type="text" id="editOutTime" placeholder="HH:mm" maxlength="5"></div>
+    </div>
+    <div class="field"><label>Motiv corectare *</label><textarea id="editReason" rows="2" placeholder="ex: am uitat să apăs Intrare la ora 8"></textarea></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;">
+      <button class="btn btn-ghost" id="btnCancelEdit">Anulează</button>
+      <button class="btn" id="btnSaveEdit" style="background:#f59e0b;color:#fff;">Salvează</button>
+    </div>
+  </div>
+</div>
+
+<!-- Team chat widget -->
+<button id="chatToggleBtn" style="position:fixed;bottom:20px;right:20px;width:52px;height:52px;border-radius:50%;background:#f59e0b;border:none;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;z-index:400;display:none;align-items:center;justify-content:center;">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0a1628" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+  <span id="chatUnreadBadge" style="display:none;position:absolute;top:-3px;right:-3px;background:#dc2626;color:#fff;font-size:10px;font-weight:800;border-radius:999px;padding:1px 6px;min-width:16px;text-align:center;"></span>
+</button>
+<div id="chatPanel" style="display:none;position:fixed;bottom:82px;right:20px;width:320px;max-width:calc(100vw - 32px);height:420px;max-height:calc(100vh - 120px);background:#0d1526;border:1px solid #1e2d45;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);z-index:400;flex-direction:column;overflow:hidden;">
+  <div style="padding:12px 14px;border-bottom:1px solid #1e2d45;display:flex;align-items:center;justify-content:space-between;flex:none;">
+    <div style="font-weight:800;font-size:13.5px;color:#f1f5f9;">💬 Chat</div>
+    <button id="chatCloseBtn" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:16px;">✕</button>
+  </div>
+  <div id="chatMessages" style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;"></div>
+  <div style="padding:10px 12px;border-top:1px solid #1e2d45;display:flex;gap:8px;flex:none;">
+    <input type="text" id="chatInput" placeholder="Scrie un mesaj..." style="flex:1;padding:8px 10px;border:1px solid #1e2d45;border-radius:8px;background:#111c30;color:#f1f5f9;font-size:13px;outline:none;">
+    <button id="chatSendBtn" style="background:#f59e0b;border:none;border-radius:8px;padding:0 14px;font-weight:700;cursor:pointer;color:#0a1628;">➤</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+if(window.emailjs) emailjs.init({publicKey:'2rsJRlc7YG1yT_wQI'});
+</script>
+<script>
+// ═══════════════════════════════════════════════════════════
+//  SHC PONTAJ
+// ═══════════════════════════════════════════════════════════
+
+const FB_CONFIG = {
+  apiKey: "AIzaSyBVElgXbEabUcwjNMa27IEw0YkxaEaXYl0",
+  authDomain: "solarcrm-ba919.firebaseapp.com",
+  databaseURL: "https://solarcrm-ba919-default-rtdb.firebaseio.com",
+  projectId: "solarcrm-ba919",
+  storageBucket: "solarcrm-ba919.firebasestorage.app",
+  messagingSenderId: "349523166308",
+  appId: "1:349523166308:web:0533aa1dae74f9a0b3cb71"
+};
+
+const DEFAULT_USERS = [
+  {id:'_admin',    name:'Administrator',    color:'#dc2626', password:'12345'},
+  {id:'u_nicoras', name:'Ionut Nicoras',    color:'#d97706', password:'12345'},
+  {id:'u_chirila', name:'Alexandru Chirila',color:'#7c3aed', password:'12345'},
+  {id:'u_dobre',   name:'Cristian Dobre',   color:'#16a34a', password:'12345'},
+  {id:'u_sirb',    name:'Beniamin Sirb',    color:'#0891b2', password:'12345'},
+];
+const MONTH_NAMES=['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'];
+const DOW_S=['Luni','Marți','Miercuri','Joi','Vineri','Sâmbătă'];
+const JOB_COLORS=['#f59e0b','#2563eb','#7c3aed','#db2777','#16a3a3','#16a34a','#ca8a04','#ea580c','#4b87b5','#64748b'];
+
+// ── Muncitori de teren (PIN) + Lucrări — seed inițial ──
+const SEED_FW = [
+  ["Adi","2481","E"],["Diaconu","7135","E"],["Doru","3862","E"],["Arabu","5247","E"],["Luci Piticu","8613","E"],
+  ["Denis","4926","E"],["Pumba","1758","E"],["Arnold","6342","E"],["Fibra","2907","E"],["Adi Nou","8174","E"],
+  ["Cosacu","5391","E"],["Bacea","7628","E"],["Cerasel","3049","E"],["Catalin","9156","E"],["Goodwee","4783","E"],
+  ["Grigore","6215","E"],["Sergiu","1934","E"],["Vasile","8467","E"],["Rares","2570","E"],["Nusca","7092","E"],
+  ["Mimi","6529","M"],["Mirel","3187","M"],["Iaro","8742","M"],["Soltez","2065","M"],["Stamate","9413","M"],
+  ["Leo","5678","M"],["Ruben","1290","M"],["Coroban","7854","M"],["Bulz","4321","M"],["Robi","6098","M"],
+  ["Crisan","2746","M"],["Vidra","8510","M"],["Luci","3925","M"],["Calin","7461","M"],["Peia","1683","M"],
+];
+const SEED_JOBS = ["I4 Baterii – PIF","I7 Oradea","Vâlcea","Liceul German","Casa Vladimirescu","Parc Aluniș","Căpâlnaș","Casa Ionuț","Clime","Birou","AFM"];
+function seedFieldWorkers(){ return SEED_FW.map(([name,pin,sec],i)=>({id:'fw'+(i+1),name,pin,sec})); }
+function seedJobs(){ return SEED_JOBS.map((name,i)=>({id:'job'+(i+1),name,color:JOB_COLORS[i%JOB_COLORS.length]})); }
+const SEED_TEAM_DEF = [
+  ['E','Echipa E1',['Adi','Diaconu']],['E','Echipa E2',['Arabu','Denis']],['E','Echipa E3',['Pumba','Arnold']],
+  ['E','Echipa E4',['Bacea','Adi Nou']],['E','Echipa E5',['Fibra','Nusca']],['E','Echipa E6',['Sergiu','Catalin','Goodwee','Cerasel']],
+  ['E','Echipa E7',['Vasile','Cosacu']],['E','Echipa E8',[]],['E','Lucian · L1',[]],['E','Lucian · L2',[]],['E','Lucian · L3',[]],['E','Lucian · L4',['Grigore']],
+  ['M','Echipa M1',['Stamate','Leo','Ruben','Coroban']],['M','Echipa M2',['Bulz','Robi','Crisan','Vidra']],
+  ['M','Echipa M3',['Luci','Calin','Peia','Rares']],['M','Echipa M4',['Romica','Deloreanu']],['M','Echipa M5',[]],
+];
+function seedTeams(fws){
+  const idOf=n=>{ const f=fws.find(x=>x.name.toLowerCase()===n.toLowerCase()); return f?f.id:null; };
+  return SEED_TEAM_DEF.map(([sec,name,names],i)=>({id:'team'+(i+1),sec,name,memberIds:names.map(idOf).filter(Boolean)}));
+}
+let teams=[];
+
+let fieldWorkers=[], jobs=[], weekPlans={}; // weekPlans[weekKey] = {workerId:{0:jobId,...5:jobId}}
+let myWeekOffset=0, planWeekOffset=0;
+function isoWeekMonday(offsetWeeks){
+  const d=new Date(); const day=(d.getDay()+6)%7;
+  d.setDate(d.getDate()-day+offsetWeeks*7); d.setHours(0,0,0,0); return d;
+}
+function weekKeyOf(monday){
+  const d=new Date(Date.UTC(monday.getFullYear(),monday.getMonth(),monday.getDate()));
+  const dayNum=(d.getUTCDay()+6)%7; d.setUTCDate(d.getUTCDate()-dayNum+3);
+  const firstThu=new Date(Date.UTC(d.getUTCFullYear(),0,4));
+  const fd=(firstThu.getUTCDay()+6)%7; firstThu.setUTCDate(firstThu.getUTCDate()-fd+3);
+  const week=1+Math.round((d-firstThu)/(7*864e5));
+  return d.getUTCFullYear()+'-W'+String(week).padStart(2,'0');
+}
+function fmtDayShort(d){ return d.getDate()+' '+MONTH_NAMES[d.getMonth()].slice(0,3).toLowerCase(); }
+
+let db=null, currentUser=null, loginUsers=[...DEFAULT_USERS], adminPw='12345', adminPin='1000';
+let records={}; // id -> record
+let map=null, mapMarkers=[];
+
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function initials(n){ return (n||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase(); }
+function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function nowTime(){ const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function isFullAccess(){ return !!currentUser && (currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'||currentUser.pontajPlanner===true); }
+function isSuperAdminPontaj(){ return !!currentUser && (currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'); }
+function canViewTeam(){ return isFullAccess() || (!!currentUser && currentUser.pontajHR===true); }
+function getDeviceFingerprint(){
+  try{
+    let id=localStorage.getItem('shc_device_id');
+    if(!id){ id='dev_'+Date.now().toString(36)+Math.random().toString(36).slice(2,10); localStorage.setItem('shc_device_id',id); }
+    return id;
+  }catch(e){ return null; }
+}
+function getUserById(id){ return loginUsers.find(u=>u.id===id); }
+
+// ── Firebase ──
+try{
+  if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+  db=firebase.database();
+}catch(e){ console.warn('Firebase:',e); }
+
+function loadFirebase(){
+  if(!db){ loadLS(); return; }
+  db.ref('shc_pontaj/records').on('value', snap=>{
+    const raw=snap.val()||{};
+    records={};
+    Object.values(raw).filter(r=>r&&r.id).forEach(r=>{ records[r.id]=r; });
+    renderCurrentTab();
+  });
+  db.ref('solarcrm_v2/config').once('value', snap=>{
+    const cfg=snap.val()||{};
+    if(cfg.users&&Array.isArray(cfg.users)&&cfg.users.length){
+      loginUsers=[{id:'_admin',name:'Administrator',color:'#dc2626',password:cfg.adminPw||'12345'},
+        ...cfg.users.filter(u=>u.id!=='_admin')];
+      // keep Nicoras/Chirila first if present
+      loginUsers.sort((a,b)=>{
+        const order=u=>u.id==='_admin'?0:u.id==='u_nicoras'?1:u.id==='u_chirila'?2:3;
+        return order(a)-order(b);
+      });
+    }
+    if(cfg.adminPw) adminPw=cfg.adminPw;
+    if(cfg.adminPin) adminPin=cfg.adminPin;
+    if(cfg.fieldWorkers&&Array.isArray(cfg.fieldWorkers)&&cfg.fieldWorkers.length){ fieldWorkers=cfg.fieldWorkers; }
+    else { fieldWorkers=seedFieldWorkers(); db.ref('solarcrm_v2/config/fieldWorkers').set(fieldWorkers); }
+    if(cfg.jobs&&Array.isArray(cfg.jobs)&&cfg.jobs.length){ jobs=cfg.jobs; }
+    else { jobs=seedJobs(); db.ref('solarcrm_v2/config/jobs').set(jobs); }
+    if(cfg.teams&&Array.isArray(cfg.teams)&&cfg.teams.length){ teams=cfg.teams; }
+    else { teams=seedTeams(fieldWorkers); db.ref('solarcrm_v2/config/teams').set(teams); }
+    populateLoginUsers();
+    populateExportUsers();
+  });
+  db.ref('solarcrm_v2/pontajPlans').on('value', snap=>{
+    weekPlans=snap.val()||{};
+    if(activeTab==='myweek') renderMyWeek();
+    if(activeTab==='planner') renderPlanner();
+  });
+  db.ref('solarcrm_v2/pontajLeave').on('value', snap=>{
+    const raw=snap.val()||{}; leaveReqs=Object.values(raw).filter(Boolean).sort((a,b)=>b.ts-a.ts);
+    if(activeTab==='cereri') renderCereri();
+  });
+  db.ref('solarcrm_v2/pontajProbs').on('value', snap=>{
+    const raw=snap.val()||{}; probReports=Object.values(raw).filter(Boolean).sort((a,b)=>b.ts-a.ts);
+    if(activeTab==='pv') renderCereri();
+  });
+  db.ref('solarcrm_v2/pontajTasks').on('value', snap=>{
+    const raw=snap.val()||{}; tasks=Object.values(raw).filter(Boolean).sort((a,b)=>b.ts-a.ts);
+    if(activeTab==='taskuri') renderTasks(); else if(currentUser) updateTaskBadge();
+  });
+  db.ref('solarcrm_v2/pontajPv').on('value', snap=>{
+    const raw=snap.val()||{}; pvRecords=Object.values(raw).filter(Boolean).sort((a,b)=>b.ts-a.ts);
+    if(activeTab==='pv') renderPv();
+  });
+  db.ref('solarcrm_v2/pontajNotifs').on('value', snap=>{
+    const raw=snap.val()||{}; notifs=Object.values(raw).filter(Boolean).sort((a,b)=>b.ts-a.ts);
+    if(activeTab==='alerte') renderAlerte(); else updateAlerteBadge();
+  });
+}
+function loadLS(){ try{ const r=localStorage.getItem('shc_pontaj'); if(r) records=JSON.parse(r); }catch(e){} renderCurrentTab(); }
+function saveRecord(r){
+  if(!db){ records[r.id]=r; localStorage.setItem('shc_pontaj',JSON.stringify(records)); renderCurrentTab(); return; }
+  db.ref('shc_pontaj/records/'+String(r.id)).set(r);
+}
+
+function saveFieldWorkers(){ if(db) db.ref('solarcrm_v2/config/fieldWorkers').set(fieldWorkers); }
+function saveJobs(){ if(db) db.ref('solarcrm_v2/config/jobs').set(jobs); }
+function saveTeams(){ if(db) db.ref('solarcrm_v2/config/teams').set(teams); }
+function savePlan(weekKey,plan){ if(db) db.ref('solarcrm_v2/pontajPlans/'+weekKey).set(plan); weekPlans[weekKey]=plan; }
+function isFieldWorker(){ return !!currentUser && currentUser.isField===true; }
+let leaveReqs=[], probReports=[];
+const LEAVE_LABELS={CO:'Concediu de odihnă',CM:'Concediu medical',IV:'Învoire / liber o zi',LN:'Liber neplătit'};
+function saveLeave(l){ if(db) db.ref('solarcrm_v2/pontajLeave/'+l.id).set(l); else { leaveReqs=[l,...leaveReqs.filter(x=>x.id!==l.id)]; renderCereri(); } }
+function saveProb(p){ if(db) db.ref('solarcrm_v2/pontajProbs/'+p.id).set(p); else { probReports=[p,...probReports.filter(x=>x.id!==p.id)]; renderCereri(); } }
+let tasks=[]; let taskView='board';
+function saveTask(t){ if(db) db.ref('solarcrm_v2/pontajTasks/'+t.id).set(t); else { tasks=[t,...tasks.filter(x=>x.id!==t.id)]; renderTasks(); } }
+let pvRecords=[];
+function savePv(pv){ if(db) db.ref('solarcrm_v2/pontajPv/'+pv.id).set(pv); else { pvRecords=[pv,...pvRecords.filter(x=>x.id!==pv.id)]; renderPv(); } }
+let notifs=[];
+function saveNotif(n){ if(db) db.ref('solarcrm_v2/pontajNotifs/'+n.id).set(n); }
+function mySeenKey(){ return 'shc_seen_notif_'+currentUser.id; }
+function getSeenTs(){ try{ return parseInt(localStorage.getItem(mySeenKey())||'0'); }catch(e){ return 0; } }
+function setSeenNow(){ try{ localStorage.setItem(mySeenKey(),String(Date.now())); }catch(e){} updateAlerteBadge(); }
+function myTeam(){ return teams.find(t=>(t.memberIds||[]).includes(currentUser.id)); }
+function updateAlerteBadge(){
+  if(!isFieldWorker()) return;
+  const t=myTeam(); if(!t) return;
+  const seen=getSeenTs();
+  const count=notifs.filter(n=>(n.teamIds||[]).includes(t.id) && n.ts>seen).length;
+  const badge=document.getElementById('alerteBadge');
+  if(count>0){ badge.style.display='inline-block'; badge.textContent=count; } else { badge.style.display='none'; }
+}
+function renderAlerte(){
+  if(!isFieldWorker()) return;
+  const t=myTeam();
+  const wrap=document.getElementById('alerteList');
+  const mine=t?notifs.filter(n=>(n.teamIds||[]).includes(t.id)).sort((a,b)=>b.ts-a.ts):[];
+  if(!mine.length){ wrap.innerHTML='<div style="color:#475569;font-size:12.5px;">Nicio alertă momentan.</div>'; }
+  else{
+    wrap.innerHTML=mine.map(n=>'<div style="background:#0d1b2e;border-radius:10px;padding:12px;margin-bottom:8px;">'+
+      '<div style="font-size:13px;font-weight:700;color:#f1f5f9;">'+n.title+'</div>'+
+      '<div style="font-size:11px;color:#64748b;margin-top:4px;">'+new Date(n.ts).toLocaleString('ro-RO')+'</div></div>').join('');
+  }
+  setSeenNow();
+}
+function compressImg(file){
+  return new Promise((res)=>{
+    const rd=new FileReader();
+    rd.onload=()=>{
+      const img=new Image();
+      img.onload=()=>{
+        const M=900, s=Math.min(1,M/Math.max(img.width,img.height));
+        const c=document.createElement('canvas'); c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        res(c.toDataURL('image/jpeg',0.55));
+      };
+      img.onerror=()=>res(null); img.src=rd.result;
+    };
+    rd.onerror=()=>res(null); rd.readAsDataURL(file);
+  });
+}
+
+// ── Login ──
+function populateLoginUsers(){
+  const sel=document.getElementById('loginUser'); const cur=sel.value;
+  sel.innerHTML='<option value="">— Selectează utilizatorul —</option>';
+  loginUsers.filter(u=>u.id==='_admin'||u.id==='u_chirila'||u.id==='u_nicoras').forEach(u=>{ const o=document.createElement('option'); o.value=u.id; o.textContent=u.name; sel.appendChild(o); });
+  if(cur) sel.value=cur;
+}
+function resetRestrictedTabs(){
+  ['tabTeamBtn','tabMapBtn','tabPlannerBtn','tabMyWeekBtn','tabAlerteBtn'].forEach(id=>{ document.getElementById(id).style.display='none'; });
+  document.getElementById('exportUserField').style.display='none';
+  document.getElementById('tabExportBtn').style.display='';
+  document.getElementById('tabPvBtn').style.display='';
+  document.getElementById('tabCereriBtn').style.display='';
+}
+function doLogin(){
+  const uid2=document.getElementById('loginUser').value;
+  const pw=document.getElementById('loginPassword').value;
+  const err=document.getElementById('loginError');
+  if(!uid2){err.textContent='Selectează un utilizator.';return;}
+  const u=loginUsers.find(x=>x.id===uid2);
+  if(!u){err.textContent='Utilizator negăsit.';return;}
+  const stored=u.id==='_admin'?adminPw:(u.password||'');
+  if(stored&&pw!==stored){err.textContent='Parolă incorectă.';return;}
+  completeLoginAsOffice(u);
+}
+function completeLoginAsOffice(u){
+  currentUser=u;
+  document.getElementById('loginOverlay').style.display='none';
+  document.getElementById('app').style.display='flex';
+  const av=document.getElementById('userAvatar');
+  av.style.background=u.color||'#f59e0b'; av.textContent=initials(u.name);
+  document.getElementById('userName').textContent=u.name;
+  resetRestrictedTabs();
+  if(canViewTeam()){
+    document.getElementById('tabTeamBtn').style.display='';
+    document.getElementById('tabMapBtn').style.display='';
+    document.getElementById('exportUserField').style.display='';
+  }
+  if(isFullAccess()){
+    document.getElementById('tabPlannerBtn').style.display='';
+  }
+  document.getElementById('btnDeleteAllPontaj').style.display=isSuperAdminPontaj()?'':'none';
+  document.getElementById('btnPublishPlan').style.display=isFullAccess()?'':'none';
+  if(isFieldWorker()){
+    document.getElementById('tabMyWeekBtn').style.display='';
+  }
+  populateExportUsers();
+  initExportForm();
+  document.getElementById('todayDateLabel').textContent=new Date().toLocaleDateString('ro-RO',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  renderCurrentTab();
+}
+document.getElementById('btnLogin').addEventListener('click',doLogin);
+document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+// ── Comută între dial PIN (implicit) și login cu parolă (Administrator/Manager) ──
+document.getElementById('btnOpenPin').addEventListener('click',e=>{
+  e.preventDefault();
+  document.getElementById('pinOverlay').style.display='none';
+  document.getElementById('loginOverlay').style.display='flex';
+});
+document.getElementById('btnOpenOfficePin').addEventListener('click',e=>{
+  e.preventDefault(); pinBuffer=''; renderPinDots(false); document.getElementById('pinErr').textContent='';
+  document.getElementById('loginOverlay').style.display='none';
+  document.getElementById('pinOverlay').style.display='flex';
+});
+document.getElementById('btnLogout').addEventListener('click',()=>{
+  currentUser=null;
+  document.getElementById('loginPassword').value='';
+  document.getElementById('loginError').textContent='';
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginOverlay').style.display='none';
+  pinBuffer=''; renderPinDots(false); document.getElementById('pinErr').textContent='';
+  document.getElementById('pinOverlay').style.display='flex';
+  resetRestrictedTabs();
+  // reset to first tab so next login always starts on "Pontaj azi"
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.tab-btn[data-tab="today"]').classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p=>p.style.display='none');
+  document.getElementById('tab-today').style.display='block';
+  activeTab='today';
+});
+
+// ── PIN login (toți colegii — birou și teren, cod de 4 cifre) ──
+let pinBuffer='';
+
+// ── Securitate: blocare după încercări greșite, jurnal audit, deconectare automată ──
+function shcGetLock(){try{return JSON.parse(localStorage.getItem('shc_lock_pontaj')||'{"fails":0,"until":0}');}catch(e){return{fails:0,until:0};}}
+function shcSetLock(s){localStorage.setItem('shc_lock_pontaj',JSON.stringify(s));}
+function shcIsLocked(){return shcGetLock().until>Date.now();}
+function shcLockSecondsLeft(){return Math.max(0,Math.ceil((shcGetLock().until-Date.now())/1000));}
+function shcRegisterFail(){const s=shcGetLock();s.fails=(s.fails||0)+1;if(s.fails>=5){s.until=Date.now()+30000;s.fails=0;}shcSetLock(s);}
+function shcRegisterSuccess(){shcSetLock({fails:0,until:0});}
+let shcLockInterval=null;
+function shcShowLockCountdown(){
+  const errEl=document.getElementById('pinErr');
+  const grid=document.getElementById('pinGrid');
+  if(grid) grid.querySelectorAll('button').forEach(b=>b.disabled=true);
+  clearInterval(shcLockInterval);
+  shcLockInterval=setInterval(()=>{
+    const left=shcLockSecondsLeft();
+    if(left<=0){ clearInterval(shcLockInterval); if(errEl) errEl.textContent=''; if(grid) grid.querySelectorAll('button').forEach(b=>b.disabled=false); return; }
+    if(errEl) errEl.textContent='Prea multe încercări greșite — blocat '+left+'s';
+  },500);
+}
+function shcAudit(user,role){
+  try{
+    const log=JSON.parse(localStorage.getItem('shc_audit_log')||'[]');
+    log.push({t:Date.now(),app:'Pontaj',user:user,role:role||''});
+    while(log.length>300) log.shift();
+    localStorage.setItem('shc_audit_log',JSON.stringify(log));
+  }catch(e){}
+  try{ if(db) db.ref('solarcrm_v2/audit_log').push({t:Date.now(),app:'Pontaj',user:user,role:role||''}); }catch(e){}
+}
+let shcIdleTimer=null;
+function shcResetIdle(){
+  clearTimeout(shcIdleTimer);
+  shcIdleTimer=setTimeout(()=>{
+    if(typeof currentUser!=='undefined' && currentUser){ const b=document.getElementById('btnLogout'); if(b) b.click(); }
+  },20*60*1000);
+}
+['click','keydown','mousemove','touchstart','scroll'].forEach(ev=>document.addEventListener(ev,shcResetIdle,{passive:true}));
+shcResetIdle();
+function renderPinDots(err){
+  const wrap=document.getElementById('pinDots'); wrap.innerHTML='';
+  for(let i=0;i<4;i++){
+    const d=document.createElement('div');
+    d.className='pin-dot'+(i<pinBuffer.length?(err?' err':' filled'):'');
+    wrap.appendChild(d);
+  }
+}
+function buildPinGrid(){
+  const grid=document.getElementById('pinGrid'); grid.innerHTML='';
+  ['1','2','3','4','5','6','7','8','9','clear','0','del'].forEach(k=>{
+    const b=document.createElement('button'); b.className='pin-key'; b.type='button';
+    b.textContent=k==='del'?'⌫':(k==='clear'?'C':k);
+    b.addEventListener('click',()=>{ b.classList.add('pin-key-pressed'); setTimeout(()=>b.classList.remove('pin-key-pressed'),250); pinPress(k); });
+    grid.appendChild(b);
+  });
+}
+function pinPress(k){
+  if(shcIsLocked()){ shcShowLockCountdown(); return; }
+  document.getElementById('pinErr').textContent='';
+  if(k==='del'){ pinBuffer=pinBuffer.slice(0,-1); renderPinDots(false); return; }
+  if(k==='clear'){ pinBuffer=''; renderPinDots(false); return; }
+  if(pinBuffer.length>=4) return;
+  pinBuffer+=k; renderPinDots(false);
+  if(pinBuffer.length===4){
+    const fw=fieldWorkers.find(f=>f.pin===pinBuffer);
+    if(fw){
+      const colorPalette=['#f59e0b','#2563eb','#16a34a','#7c3aed','#db2777','#0891b2'];
+      const h=[...fw.name].reduce((a,c)=>a+c.charCodeAt(0),0);
+      currentUser={id:fw.id,name:fw.name,color:colorPalette[h%colorPalette.length],isField:true,sec:fw.sec};
+      shcRegisterSuccess(); shcAudit(fw.name,'Teren');
+      pinBuffer='';
+      document.getElementById('pinOverlay').style.display='none';
+      document.getElementById('loginOverlay').style.display='none';
+      document.getElementById('app').style.display='flex';
+      const av=document.getElementById('userAvatar');
+      av.style.background=currentUser.color; av.textContent=initials(currentUser.name);
+      document.getElementById('userName').textContent=currentUser.name;
+      resetRestrictedTabs();
+      document.getElementById('tabExportBtn').style.display='none';
+      document.getElementById('tabTaskuriBtn').style.display='none';
+      populateExportUsers(); initExportForm();
+      document.getElementById('todayDateLabel').textContent=new Date().toLocaleDateString('ro-RO',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+      renderCurrentTab();
+      updateAlerteBadge();
+      return;
+    }
+    const u=loginUsers.find(x=>x.pin===pinBuffer) || (adminPin&&adminPin===pinBuffer?{id:'_admin',name:'Administrator',role:'Admin',color:'#dc2626'}:null);
+    if(!u){
+      shcRegisterFail();
+      renderPinDots(true);
+      if(shcIsLocked()){ pinBuffer=''; renderPinDots(false); shcShowLockCountdown(); return; }
+      document.getElementById('pinErr').textContent='Cod greșit — încearcă din nou';
+      setTimeout(()=>{ pinBuffer=''; renderPinDots(false); },900);
+      return;
+    }
+    shcRegisterSuccess(); shcAudit(u.name,u.role||'');
+    pinBuffer='';
+    document.getElementById('pinOverlay').style.display='none';
+    completeLoginAsOffice(u);
+  }
+}
+buildPinGrid();
+
+// ── Tabs ──
+let activeTab='today';
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    if(btn.style.display==='none') return;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    activeTab=btn.dataset.tab;
+    document.querySelectorAll('.tab-panel').forEach(p=>p.style.display='none');
+    document.getElementById('tab-'+activeTab).style.display='block';
+    renderCurrentTab();
+    if(activeTab==='map') setTimeout(initMap,50);
+  });
+});
+function renderCurrentTab(){
+  if(!currentUser) return;
+  if(activeTab==='today') renderToday();
+  else if(activeTab==='team') renderTeam();
+  else if(activeTab==='map') renderMap();
+  else if(activeTab==='myweek') renderMyWeek();
+  else if(activeTab==='planner') renderPlanner();
+  else if(activeTab==='cereri') renderCereri();
+  else if(activeTab==='taskuri') renderTasks();
+  else if(activeTab==='pv'){ renderPv(); renderCereri(); }
+  else if(activeTab==='alerte') renderAlerte();
+}
+
+// ── Distanță față de sediu (Arad) — pentru deplasări >50km ──
+const HQ_LAT=46.1866, HQ_LNG=21.3123;
+function distFromHQ(lat,lng){
+  if(lat==null||lng==null) return null;
+  const R=6371, toRad=d=>d*Math.PI/180;
+  const dLat=toRad(lat-HQ_LAT), dLng=toRad(lng-HQ_LNG);
+  const a=Math.sin(dLat/2)**2+Math.cos(toRad(HQ_LAT))*Math.cos(toRad(lat))*Math.sin(dLng/2)**2;
+  return Math.round(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));
+}
+
+// ── GPS ──
+// Ia mai multe citiri GPS pe scurt interval și o păstrează pe cea mai precisă
+// (evită poziționarea aproximativă prin IP/WiFi, care poate fi la sute de metri distanță)
+function getGPS(){
+  return new Promise(resolve=>{
+    if(!navigator.geolocation){ resolve(null); return; }
+    let best=null;
+    let watchId=null;
+    const finish=()=>{
+      if(watchId!==null) navigator.geolocation.clearWatch(watchId);
+      resolve(best);
+    };
+    const timer=setTimeout(finish, 7000);
+    watchId=navigator.geolocation.watchPosition(
+      pos=>{
+        const acc=pos.coords.accuracy||9999;
+        if(!best || acc<best.accuracy){
+          best={lat:+pos.coords.latitude.toFixed(6), lng:+pos.coords.longitude.toFixed(6), accuracy:Math.round(acc)};
+        }
+        // dacă precizia e deja bună (<25m), nu mai așteptăm restul timpului
+        if(acc<25){ clearTimeout(timer); finish(); }
+      },
+      ()=>{ clearTimeout(timer); finish(); },
+      {enableHighAccuracy:true, timeout:7000, maximumAge:0}
+    );
+  });
+}
+
+// ── TODAY TAB ──
+function myTodayRecord(){
+  const t=todayISO();
+  return Object.values(records).find(r=>r.userId===currentUser.id && r.date===t);
+}
+function selectedJobKey(){ return 'shc_job_'+todayISO()+'_'+currentUser.id; }
+function getSelectedJobId(){ try{ return localStorage.getItem(selectedJobKey())||''; }catch(e){ return ''; } }
+function setSelectedJobId(id){ try{ localStorage.setItem(selectedJobKey(),id); }catch(e){} renderJobChips(); }
+function renderJobChips(){
+  const card=document.getElementById('jobPickerCard'); const wrap=document.getElementById('jobChips');
+  if(!isFieldWorker()||!jobs.length){ card.style.display='none'; return; }
+  card.style.display='';
+  const sel=getSelectedJobId();
+  wrap.innerHTML='';
+  jobs.forEach(j=>{
+    const b=document.createElement('button'); b.type='button'; b.className='job-chip'+(sel===j.id?' active':'');
+    b.style.borderColor=sel===j.id?j.color:'transparent';
+    b.innerHTML='<span style="width:9px;height:9px;border-radius:2px;background:'+j.color+';display:inline-block;"></span>'+j.name;
+    b.addEventListener('click',()=>setSelectedJobId(j.id));
+    wrap.appendChild(b);
+  });
+}
+function renderToday(){
+  renderJobChips();
+  const rec=myTodayRecord();
+  const btn=document.getElementById('btnCheckAction');
+  const gpsStatus=document.getElementById('gpsStatus');
+  gpsStatus.textContent='';
+  if(!rec || !rec.checkIn){
+    btn.className='checkin-btn checkin-in';
+    btn.textContent='● Intrare';
+    btn.onclick=()=>confirmCheck('in');
+  } else if(!rec.checkOut){
+    btn.className='checkin-btn checkin-out';
+    btn.textContent='■ Ieșire';
+    btn.onclick=()=>confirmCheck('out');
+  } else {
+    btn.className='checkin-btn checkin-done';
+    btn.textContent='✓ Program încheiat azi';
+    btn.onclick=null;
+  }
+  document.getElementById('statIn').textContent = rec&&rec.checkIn ? rec.checkIn.time + (rec.checkIn.editedManually?' ✎':'') : '—';
+  document.getElementById('statInLoc').textContent = rec&&rec.checkIn&&rec.checkIn.lat ? rec.checkIn.lat.toFixed(3)+', '+rec.checkIn.lng.toFixed(3) : (rec&&rec.checkIn?'fără GPS':'—');
+  document.getElementById('statOut').textContent = rec&&rec.checkOut ? rec.checkOut.time + (rec.checkOut.editedManually?' ✎':'') : '—';
+  document.getElementById('statOutLoc').textContent = rec&&rec.checkOut&&rec.checkOut.lat ? rec.checkOut.lat.toFixed(3)+', '+rec.checkOut.lng.toFixed(3) : (rec&&rec.checkOut?'fără GPS':'—');
+  let hours='—';
+  if(rec&&rec.checkIn&&rec.checkOut){
+    const [h1,m1]=rec.checkIn.time.split(':').map(Number), [h2,m2]=rec.checkOut.time.split(':').map(Number);
+    const mins=(h2*60+m2)-(h1*60+m1);
+    if(mins>=0) hours=(mins/60).toFixed(1)+' h';
+  }
+  document.getElementById('statHours').textContent=hours;
+
+  renderMyHistory();
+}
+let _pendingCheckTimer=null, _pendingCheckKind=null;
+function confirmCheck(kind){
+  const btn=document.getElementById('btnCheckAction');
+  const gpsStatus=document.getElementById('gpsStatus');
+  if(_pendingCheckTimer){ clearInterval(_pendingCheckTimer); _pendingCheckTimer=null; }
+  _pendingCheckKind=kind;
+  let secondsLeft=10;
+  const label=kind==='in'?'Intrare':'Ieșire';
+  btn.disabled=false;
+  btn.className='checkin-btn checkin-pending';
+  btn.textContent='Anulează '+label+' ('+secondsLeft+'s)';
+  btn.onclick=()=>{ clearInterval(_pendingCheckTimer); _pendingCheckTimer=null; _pendingCheckKind=null; gpsStatus.textContent=''; renderToday(); };
+  gpsStatus.textContent='Apasă din nou ca să anulezi — altfel se confirmă automat.';
+  _pendingCheckTimer=setInterval(()=>{
+    secondsLeft--;
+    if(secondsLeft<=0){
+      clearInterval(_pendingCheckTimer); _pendingCheckTimer=null;
+      doCheck(kind);
+    } else {
+      btn.textContent='Anulează '+label+' ('+secondsLeft+'s)';
+    }
+  },1000);
+}
+async function doCheck(kind){
+  const btn=document.getElementById('btnCheckAction');
+  btn.disabled=true; btn.textContent='Se localizează...';
+  const gps=await getGPS();
+  const t=todayISO();
+  let rec=myTodayRecord();
+  if(!rec){ rec={id:uid(),userId:currentUser.id,userName:currentUser.name,date:t}; }
+  const jobId=isFieldWorker()?getSelectedJobId():'';
+  const job=jobId?jobs.find(j=>j.id===jobId):null;
+  const distKm=gps?distFromHQ(gps.lat,gps.lng):null;
+  const entry={time:nowTime(), lat:gps?gps.lat:null, lng:gps?gps.lng:null, accuracy:gps?gps.accuracy:null, distKm, editedManually:false, device:getDeviceFingerprint(), jobId:job?job.id:null, jobName:job?job.name:null};
+  if(kind==='in') rec.checkIn=entry; else rec.checkOut=entry;
+  saveRecord(rec);
+  btn.disabled=false;
+  document.getElementById('gpsStatus').textContent = gps ? '📍 Locație înregistrată' : '⚠ GPS indisponibil — s-a înregistrat doar ora';
+}
+function renderMyHistory(){
+  const tbl=document.getElementById('myHistoryTable');
+  const mine=Object.values(records).filter(r=>r.userId===currentUser.id).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,14);
+  if(!mine.length){ tbl.innerHTML='<tr><td style="color:#475569;padding:16px 0;">Niciun pontaj înregistrat încă.</td></tr>'; return; }
+  let html='<thead><tr><th>Data</th><th>Intrare</th><th>Ieșire</th><th>Ore</th></tr></thead><tbody>';
+  mine.forEach(r=>{
+    let hrs='—';
+    if(r.checkIn&&r.checkOut){
+      const [h1,m1]=r.checkIn.time.split(':').map(Number), [h2,m2]=r.checkOut.time.split(':').map(Number);
+      const mins=(h2*60+m2)-(h1*60+m1); if(mins>=0) hrs=(mins/60).toFixed(1)+'h';
+    }
+    html+='<tr><td>'+new Date(r.date+'T00:00:00').toLocaleDateString('ro-RO',{day:'2-digit',month:'2-digit',year:'numeric'})+'</td>'+
+      '<td>'+(r.checkIn?r.checkIn.time+(r.checkIn.editedManually?' <span class="badge badge-amber">editat</span>':''):'—')+'</td>'+
+      '<td>'+(r.checkOut?r.checkOut.time+(r.checkOut.editedManually?' <span class="badge badge-amber">editat</span>':''):'—')+'</td>'+
+      '<td>'+hrs+'</td></tr>';
+  });
+  tbl.innerHTML=html+'</tbody>';
+}
+
+// ── TEAM TAB ──
+document.getElementById('teamDate').value=isoToDmy(todayISO());
+document.getElementById('teamDate').addEventListener('input',renderTeam);
+document.getElementById('btnDeleteAllPontaj').addEventListener('click',()=>{
+  if(!isSuperAdminPontaj()){ alert('Doar Alexandru Chirila sau Ionut Nicoras pot șterge toate înregistrările.'); return; }
+  if(!confirm('Ștergi TOATE înregistrările de pontaj (inclusiv de test), pentru toți colegii? Această acțiune nu poate fi anulată.')) return;
+  if(db){ db.ref('shc_pontaj/records').remove().catch(()=>{}); }
+  records={};
+  if(!db){ localStorage.setItem('shc_pontaj',JSON.stringify(records)); }
+  renderCurrentTab();
+});
+function renderTeam(){
+  if(!canViewTeam()) return;
+  const date=dmyToIso(document.getElementById('teamDate').value)||todayISO();
+  const tbl=document.getElementById('teamTable');
+  const dayRecs=Object.values(records).filter(r=>r.date===date);
+  const rows=loginUsers.filter(u=>u.id!=='_admin').map(u=>{
+    const r=dayRecs.find(x=>x.userId===u.id);
+    return {u,r};
+  });
+  // silent device-sharing hint (visible only to full-access users)
+  function deviceHint(u,r){
+    if(!canViewTeam()) return '';
+    const dev=r&&r.checkIn&&r.checkIn.device;
+    if(!dev) return '';
+    const allRecent=Object.values(records).filter(x=>x.date===date && x.userId!==u.id && x.checkIn && x.checkIn.device===dev);
+    if(!allRecent.length) return '';
+    const otherNames=[...new Set(allRecent.map(x=>x.userName||'?'))].join(', ');
+    return ' <span class="badge badge-gray" style="opacity:.75" title="Pontat de pe acelasi dispozitiv ca: '+otherNames.replace(/"/g,'')+' - doar informativ">📱 același dispozitiv</span>';
+  }
+  let html='<thead><tr><th>Coleg</th><th>Intrare</th><th>Locație</th><th>Ieșire</th><th>Locație</th><th>Status</th><th></th></tr></thead><tbody>';
+  rows.forEach(({u,r})=>{
+    const status = !r||!r.checkIn ? '<span class="badge badge-gray">Absent</span>' : !r.checkOut ? '<span class="badge badge-green">Prezent</span>' : '<span class="badge badge-gray">Program încheiat</span>';
+    const locIn = r&&r.checkIn&&r.checkIn.lat ? '<a href="https://www.google.com/maps?q='+r.checkIn.lat+','+r.checkIn.lng+'" target="_blank">hartă</a>' : '—';
+    const locOut = r&&r.checkOut&&r.checkOut.lat ? '<a href="https://www.google.com/maps?q='+r.checkOut.lat+','+r.checkOut.lng+'" target="_blank">hartă</a>' : '—';
+    const deplasare = r&&r.checkIn&&r.checkIn.distKm>50 ? ' <span class="badge badge-amber" title="Distanță față de Arad: '+r.checkIn.distKm+' km">🚗 Deplasare '+r.checkIn.distKm+'km</span>' : '';
+    html+='<tr><td style="display:flex;align-items:center;gap:8px;"><div style="width:20px;height:20px;border-radius:50%;background:'+(u.color||'#f59e0b')+';display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;">'+initials(u.name)+'</div>'+u.name+deviceHint(u,r)+'</td>'+
+      '<td>'+(r&&r.checkIn?r.checkIn.time+(r.checkIn.editedManually?' <span class="badge badge-amber" title="'+(r.checkIn.editReason||'')+'">editat</span>':''):'—')+'</td>'+
+      '<td>'+locIn+'</td>'+
+      '<td>'+(r&&r.checkOut?r.checkOut.time+(r.checkOut.editedManually?' <span class="badge badge-amber" title="'+(r.checkOut.editReason||'')+'">editat</span>':''):'—')+'</td>'+
+      '<td>'+locOut+'</td>'+
+      '<td>'+status+deplasare+'</td>'+
+      '<td style="display:flex;gap:6px;">'+(isFullAccess()?('<button class="btn btn-ghost btn-sm" data-edit-uid="'+u.id+'" data-edit-date="'+date+'">Corectează</button>'+(r?'<button class="btn btn-ghost btn-sm" style="color:#ef4444;border-color:#7f1d1d;" data-del-record="'+r.id+'">Șterge</button>':'')):'')+'</td></tr>';
+  });
+  tbl.innerHTML=html+'</tbody>';
+  tbl.querySelectorAll('[data-edit-uid]').forEach(btn=>{
+    btn.addEventListener('click',()=>openEditModal(btn.dataset.editUid,btn.dataset.editDate));
+  });
+  tbl.querySelectorAll('[data-del-record]').forEach(btn=>{
+    btn.addEventListener('click',()=>deletePontajRecord(btn.dataset.delRecord));
+  });
+}
+
+function deletePontajRecord(recordId){
+  if(!isFullAccess()){ alert('Doar Alexandru Chirila sau Ionut Nicoras pot șterge înregistrări de pontaj.'); return; }
+  if(!confirm('Ștergi definitiv această înregistrare de pontaj?')) return;
+  if(db){ db.ref('shc_pontaj/records/'+String(recordId)).remove().catch(()=>{}); }
+  delete records[recordId];
+  if(!db){ localStorage.setItem('shc_pontaj',JSON.stringify(records)); }
+  renderTeam();
+}
+
+// ── EDIT MODAL ──
+let editingCtx=null;
+function openEditModal(userId,date){
+  editingCtx={userId,date};
+  const rec=Object.values(records).find(r=>r.userId===userId&&r.date===date);
+  document.getElementById('editInTime').value=rec&&rec.checkIn?rec.checkIn.time:'';
+  document.getElementById('editOutTime').value=rec&&rec.checkOut?rec.checkOut.time:'';
+  document.getElementById('editReason').value='';
+  document.getElementById('editModal').classList.add('show');
+}
+document.getElementById('btnCancelEdit').addEventListener('click',()=>document.getElementById('editModal').classList.remove('show'));
+document.getElementById('btnSaveEdit').addEventListener('click',()=>{
+  const reason=document.getElementById('editReason').value.trim();
+  if(!reason){ alert('Motivul corectării este obligatoriu.'); return; }
+  const {userId,date}=editingCtx;
+  let rec=Object.values(records).find(r=>r.userId===userId&&r.date===date);
+  const u=getUserById(userId);
+  if(!rec) rec={id:uid(),userId,userName:u?u.name:'',date};
+  const inT=document.getElementById('editInTime').value;
+  const outT=document.getElementById('editOutTime').value;
+  if(inT) rec.checkIn={...(rec.checkIn||{}),time:inT,editedManually:true,editReason:reason};
+  if(outT) rec.checkOut={...(rec.checkOut||{}),time:outT,editedManually:true,editReason:reason};
+  saveRecord(rec);
+  document.getElementById('editModal').classList.remove('show');
+});
+document.getElementById('editModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});
+
+// ── MY WEEK TAB (field workers) ──
+function renderMyWeek(){
+  if(!isFieldWorker()) return;
+  const monday=isoWeekMonday(myWeekOffset);
+  const wk=weekKeyOf(monday);
+  document.getElementById('myWeekLabel').textContent='Săptămâna '+fmtDayShort(monday)+' – '+fmtDayShort(new Date(monday.getTime()+5*864e5));
+  const plan=weekPlans[wk]||{};
+  const myTeam=teams.find(t=>(t.memberIds||[]).includes(currentUser.id));
+  const grid=document.getElementById('myWeekGrid'); grid.innerHTML='';
+  if(!myTeam){ grid.innerHTML='<div style="color:#64748b;font-size:12.5px;">Nu ești încă alocat unei echipe — contactează biroul.</div>'; return; }
+  const mine=plan[myTeam.id]||{};
+  for(let d=0;d<6;d++){
+    const day=new Date(monday.getTime()+d*864e5);
+    const cell=mine[d]; const job=cell&&cell.jobId?jobs.find(j=>j.id===cell.jobId):null;
+    const box=document.createElement('div');
+    box.style.cssText='background:#0d1b2e;border-radius:10px;padding:12px;border-left:4px solid '+(job?job.color:'#334155');
+    box.innerHTML='<div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">'+DOW_S[d]+' · '+fmtDayShort(day)+'</div>'+
+      '<div style="font-size:13px;font-weight:700;color:#f1f5f9;margin-top:6px;">'+(job?job.name:'— liber —')+'</div>'+
+      (cell&&cell.note?'<div style="font-size:11px;color:#94a3b8;margin-top:3px;">'+cell.note+'</div>':'');
+    grid.appendChild(box);
+  }
+}
+document.getElementById('btnMyWeekPrev').addEventListener('click',()=>{ myWeekOffset--; renderMyWeek(); });
+document.getElementById('btnMyWeekNext').addEventListener('click',()=>{ myWeekOffset++; renderMyWeek(); });
+
+// ── PLANNER TAB (Chirila/Nicoras only) ──
+function renderJobsMgmt(){
+  const wrap=document.getElementById('jobsMgmtList'); wrap.innerHTML='';
+  jobs.forEach(j=>{
+    const chip=document.createElement('span');
+    chip.style.cssText='display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:8px;background:#0d1b2e;font-size:12px;color:#e2e8f0;';
+    chip.innerHTML='<span style="width:9px;height:9px;border-radius:2px;background:'+j.color+';display:inline-block;"></span>'+j.name+' <button style="background:none;border:none;color:#f87171;cursor:pointer;font-size:13px;" data-jid="'+j.id+'">✕</button>';
+    wrap.appendChild(chip);
+  });
+  wrap.querySelectorAll('button[data-jid]').forEach(b=>{
+    b.addEventListener('click',()=>{ jobs=jobs.filter(j=>j.id!==b.dataset.jid); saveJobs(); renderJobsMgmt(); renderPlanner(); renderJobChips(); });
+  });
+}
+document.getElementById('btnAddJob').addEventListener('click',()=>{
+  const nameEl=document.getElementById('newJobName'); const name=nameEl.value.trim();
+  if(!name) return;
+  jobs.push({id:'job_'+uid(),name,color:JOB_COLORS[jobs.length%JOB_COLORS.length]});
+  saveJobs(); nameEl.value=''; renderJobsMgmt(); renderPlanner();
+});
+function fwAvatarColor(name){ const h=[...name].reduce((a,c)=>a+c.charCodeAt(0),0); return JOB_COLORS[h%JOB_COLORS.length]; }
+function genUniquePin(){ let p; do{ p=String(Math.floor(1000+Math.random()*9000)); }while(fieldWorkers.some(f=>f.pin===p)); return p; }
+function renderFieldWorkersList(){
+  const q=(document.getElementById('fwSearch').value||'').trim().toLowerCase();
+  const wrap=document.getElementById('fieldWorkersList'); wrap.innerHTML='';
+  ['E','M'].forEach(sec=>{
+    const list=fieldWorkers.filter(f=>f.sec===sec && f.name.toLowerCase().includes(q));
+    if(!list.length) return;
+    const header=document.createElement('div');
+    header.style.cssText='font-size:11px;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:.6px;margin:14px 0 8px;';
+    header.textContent=(sec==='E'?'⚡ Electricieni':'🔧 Montaj')+' · '+list.length;
+    wrap.appendChild(header);
+    list.forEach(f=>{
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #1a2740;';
+      row.innerHTML='<span style="width:28px;height:28px;border-radius:50%;background:'+fwAvatarColor(f.name)+'33;color:'+fwAvatarColor(f.name)+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;">'+initials(f.name)+'</span>'+
+        '<span style="flex:1;font-size:13px;color:#e2e8f0;font-weight:600;">'+f.name+'</span>'+
+        '<span style="background:#0d1b2e;color:#f59e0b;font-weight:800;font-size:13px;padding:4px 10px;border-radius:7px;letter-spacing:1px;">'+f.pin+'</span>'+
+        '<button data-regen="'+f.id+'" class="btn btn-ghost btn-sm" title="Regenerează codul">🔄</button>'+
+        '<button data-fid="'+f.id+'" style="background:none;border:none;color:#f87171;cursor:pointer;font-size:14px;">🗑</button>';
+      wrap.appendChild(row);
+    });
+  });
+  wrap.querySelectorAll('button[data-fid]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      if(!confirm('Ștergi acest muncitor? Va fi scos automat din echipele din care face parte.')) return;
+      fieldWorkers=fieldWorkers.filter(f=>f.id!==b.dataset.fid);
+      teams.forEach(t=>{ t.memberIds=(t.memberIds||[]).filter(id=>id!==b.dataset.fid); });
+      saveFieldWorkers(); saveTeams(); renderFieldWorkersList(); renderPlanner();
+    });
+  });
+  wrap.querySelectorAll('button[data-regen]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const f=fieldWorkers.find(x=>x.id===b.dataset.regen); if(!f) return;
+      f.pin=genUniquePin(); saveFieldWorkers(); renderFieldWorkersList();
+    });
+  });
+}
+document.getElementById('fwSearch').addEventListener('input',renderFieldWorkersList);
+document.getElementById('btnAddFw').addEventListener('click',()=>{
+  const name=document.getElementById('newFwName').value.trim();
+  const pin=document.getElementById('newFwPin').value.trim();
+  const sec=document.getElementById('newFwSec').value;
+  if(!name||!/^\d{4}$/.test(pin)){ alert('Completează numele și un PIN de 4 cifre.'); return; }
+  if(fieldWorkers.some(f=>f.pin===pin)){ alert('Acest PIN este deja folosit de alt coleg.'); return; }
+  fieldWorkers.push({id:'fw_'+uid(),name,pin,sec});
+  saveFieldWorkers();
+  document.getElementById('newFwName').value=''; document.getElementById('newFwPin').value='';
+  renderFieldWorkersList(); renderPlanner();
+});
+
+let plannerDraft=null, plannerWk=null, plannerView='days', plannerDay=0;
+function ensureCell(teamId,day){ if(!plannerDraft[teamId]) plannerDraft[teamId]={}; if(!plannerDraft[teamId][day]) plannerDraft[teamId][day]={jobId:'',note:''}; return plannerDraft[teamId][day]; }
+document.getElementById('btnViewDays').addEventListener('click',()=>{ plannerView='days'; renderPlanner(); });
+document.getElementById('btnViewWeek').addEventListener('click',()=>{ plannerView='week'; renderPlanner(); });
+document.getElementById('btnCopyPrevWeek').addEventListener('click',()=>{
+  const prevMonday=isoWeekMonday(planWeekOffset-1); const prevWk=weekKeyOf(prevMonday);
+  const prevPlan=weekPlans[prevWk];
+  if(!prevPlan){ alert('Săptămâna anterioară nu are program salvat.'); return; }
+  plannerDraft=JSON.parse(JSON.stringify(prevPlan));
+  renderPlannerBody();
+});
+function addTeam(sec){
+  const name=prompt('Nume echipă nouă:'); if(!name||!name.trim()) return;
+  teams.push({id:'team_'+uid(),sec,name:name.trim(),memberIds:[]});
+  saveTeams(); renderPlanner();
+}
+function renderPlannerBody(){
+  document.getElementById('plannerDayTabs').style.display=plannerView==='days'?'flex':'none';
+  document.getElementById('plannerDaysView').style.display=plannerView==='days'?'block':'none';
+  document.getElementById('plannerWeekView').style.display=plannerView==='week'?'block':'none';
+  document.getElementById('btnViewDays').className='btn btn-sm'+(plannerView==='days'?'':' btn-ghost');
+  document.getElementById('btnViewDays').style.background=plannerView==='days'?'#f59e0b':'';
+  document.getElementById('btnViewDays').style.color=plannerView==='days'?'#fff':'';
+  document.getElementById('btnViewWeek').className='btn btn-sm'+(plannerView==='week'?'':' btn-ghost');
+  document.getElementById('btnViewWeek').style.background=plannerView==='week'?'#f59e0b':'';
+  document.getElementById('btnViewWeek').style.color=plannerView==='week'?'#fff':'';
+  const monday=isoWeekMonday(planWeekOffset);
+
+  if(plannerView==='days'){
+    const dtabs=document.getElementById('plannerDayTabs'); dtabs.innerHTML='';
+    for(let d=0;d<6;d++){
+      const day=new Date(monday.getTime()+d*864e5);
+      const b=document.createElement('button'); b.className='btn btn-sm'+(d===plannerDay?'':' btn-ghost');
+      if(d===plannerDay){ b.style.background='#f59e0b'; b.style.color='#fff'; }
+      b.textContent=DOW_S[d].slice(0,3)+' '+fmtDayShort(day);
+      b.addEventListener('click',()=>{ plannerDay=d; renderPlannerBody(); });
+      dtabs.appendChild(b);
+    }
+    const view=document.getElementById('plannerDaysView'); view.innerHTML='';
+    ['E','M'].forEach(sec=>{
+      const secHeader=document.createElement('div');
+      secHeader.style.cssText='display:flex;align-items:center;gap:8px;margin:16px 0 8px;';
+      secHeader.innerHTML='<span style="font-size:11px;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:.6px;">'+(sec==='E'?'⚡ Electricieni':'🔧 Montaj')+'</span>'+
+        '<button class="btn btn-ghost btn-sm" data-addteam="'+sec+'" style="margin-left:auto;">+ Echipă</button>';
+      view.appendChild(secHeader);
+      teams.filter(t=>t.sec===sec).forEach(t=>{
+        const cell=ensureCell(t.id,plannerDay);
+        const job=cell.jobId?jobs.find(j=>j.id===cell.jobId):null;
+        const card=document.createElement('div');
+        card.style.cssText='background:#0d1b2e;border-radius:10px;padding:12px;margin-bottom:10px;border-left:4px solid '+(job?job.color:'#334155');
+        const memberChips=(t.memberIds||[]).map(id=>{
+          const f=fieldWorkers.find(x=>x.id===id); if(!f) return '';
+          return '<span style="display:inline-flex;align-items:center;gap:4px;background:#1e293b;padding:3px 8px;border-radius:7px;font-size:11.5px;color:#e2e8f0;margin:2px 4px 2px 0;">'+f.name+' <button data-rmmember="'+t.id+'|'+id+'" style="background:none;border:none;color:#f87171;cursor:pointer;font-size:11px;">✕</button></span>';
+        }).join('');
+        const availableToAdd=fieldWorkers.filter(f=>f.sec===sec && !(t.memberIds||[]).includes(f.id));
+        let addOpts='<option value="">+ Oameni</option>'+availableToAdd.map(f=>'<option value="'+f.id+'">'+f.name+'</option>').join('');
+        let jobOpts='<option value="">— liber —</option>'+jobs.map(j=>'<option value="'+j.id+'"'+(cell.jobId===j.id?' selected':'')+'>'+j.name+'</option>').join('');
+        card.innerHTML='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'+
+          '<div style="font-size:13.5px;font-weight:800;color:#f1f5f9;flex:1;">'+t.name+'</div>'+
+          '<button data-delteam="'+t.id+'" style="background:none;border:none;color:#f87171;cursor:pointer;font-size:14px;">🗑</button></div>'+
+          '<div style="margin-bottom:8px;">'+memberChips+'<select data-addmember="'+t.id+'" class="form-select" style="width:auto;display:inline-block;font-size:11.5px;padding:4px 8px;">'+addOpts+'</select></div>'+
+          '<div class="row2">'+
+          '<select data-cellsel="'+t.id+'" class="form-select" style="font-size:12.5px;">'+jobOpts+'</select>'+
+          '<input type="text" data-cellnote="'+t.id+'" class="form-input" placeholder="Detalii (opțional)" value="'+(cell.note||'').replace(/"/g,'&quot;')+'" style="font-size:12.5px;">'+
+          '</div>';
+        view.appendChild(card);
+      });
+    });
+    view.querySelectorAll('button[data-addteam]').forEach(b=>b.addEventListener('click',()=>addTeam(b.dataset.addteam)));
+    view.querySelectorAll('button[data-delteam]').forEach(b=>b.addEventListener('click',()=>{
+      if(!confirm('Ștergi această echipă?')) return;
+      teams=teams.filter(t=>t.id!==b.dataset.delteam); saveTeams(); renderPlanner();
+    }));
+    view.querySelectorAll('button[data-rmmember]').forEach(b=>b.addEventListener('click',()=>{
+      const [tid,fid]=b.dataset.rmmember.split('|'); const t=teams.find(x=>x.id===tid);
+      if(t){ t.memberIds=(t.memberIds||[]).filter(id=>id!==fid); saveTeams(); renderPlannerBody(); }
+    }));
+    view.querySelectorAll('select[data-addmember]').forEach(sel=>sel.addEventListener('change',()=>{
+      if(!sel.value) return;
+      const t=teams.find(x=>x.id===sel.dataset.addmember);
+      if(t){ t.memberIds=[...(t.memberIds||[]),sel.value]; saveTeams(); renderPlannerBody(); }
+    }));
+    view.querySelectorAll('select[data-cellsel]').forEach(sel=>sel.addEventListener('change',()=>{
+      ensureCell(sel.dataset.cellsel,plannerDay).jobId=sel.value;
+    }));
+    view.querySelectorAll('input[data-cellnote]').forEach(inp=>inp.addEventListener('input',()=>{
+      ensureCell(inp.dataset.cellnote,plannerDay).note=inp.value;
+    }));
+  } else {
+    const tbl=document.getElementById('plannerTable');
+    let html='<thead><tr><th>Echipa</th>';
+    for(let d=0;d<6;d++){ const day=new Date(monday.getTime()+d*864e5); html+='<th>'+DOW_S[d].slice(0,3)+'<br>'+fmtDayShort(day)+'</th>'; }
+    html+='</tr></thead><tbody>';
+    ['E','M'].forEach(sec=>{
+      teams.filter(t=>t.sec===sec).forEach(t=>{
+        html+='<tr><td style="white-space:nowrap;color:'+(sec==='E'?'#f59e0b':'#3b82f6')+';font-weight:700;">'+t.name+'</td>';
+        for(let d=0;d<6;d++){
+          const cell=(plannerDraft[t.id]||{})[d];
+          const job=cell&&cell.jobId?jobs.find(j=>j.id===cell.jobId):null;
+          const memberNames=(t.memberIds||[]).map(id=>{ const f=fieldWorkers.find(x=>x.id===id); return f?f.name:''; }).filter(Boolean).join(', ');
+          html+='<td style="background:'+(job?job.color+'1a':'transparent')+';min-width:130px;">'+
+            (job?'<div style="font-size:12px;font-weight:700;color:'+job.color+';">'+job.name+'</div>':'<span style="color:#475569;">liber</span>')+
+            (memberNames?'<div style="font-size:10.5px;color:#64748b;margin-top:2px;">'+memberNames+'</div>':'')+
+            (cell&&cell.note?'<div style="font-size:10px;color:#94a3b8;font-style:italic;">'+cell.note+'</div>':'')+
+            '</td>';
+        }
+        html+='</tr>';
+      });
+    });
+    tbl.innerHTML=html+'</tbody>';
+  }
+}
+function renderPlanner(){
+  if(!isFullAccess()) return;
+  renderJobsMgmt(); renderFieldWorkersList();
+  const monday=isoWeekMonday(planWeekOffset);
+  const wk=weekKeyOf(monday); plannerWk=wk;
+  document.getElementById('planWeekLabel').textContent='Săptămâna '+fmtDayShort(monday)+' – '+fmtDayShort(new Date(monday.getTime()+5*864e5));
+  plannerDraft=JSON.parse(JSON.stringify(weekPlans[wk]||{}));
+  renderPlannerBody();
+}
+document.getElementById('btnPlanPrev').addEventListener('click',()=>{ planWeekOffset--; renderPlanner(); });
+document.getElementById('btnPlanNext').addEventListener('click',()=>{ planWeekOffset++; renderPlanner(); });
+document.getElementById('btnPublishPlan').addEventListener('click',()=>{
+  if(!plannerWk) return;
+  const oldPlan=weekPlans[plannerWk]||{};
+  const changedTeamIds=[];
+  Object.keys(plannerDraft).forEach(teamId=>{
+    const oldTeam=oldPlan[teamId]||{}; const newTeam=plannerDraft[teamId]||{};
+    for(let d=0;d<6;d++){
+      const a=JSON.stringify(oldTeam[d]||{}), b=JSON.stringify(newTeam[d]||{});
+      if(a!==b){ if(!changedTeamIds.includes(teamId)) changedTeamIds.push(teamId); }
+    }
+  });
+  savePlan(plannerWk,plannerDraft);
+  if(changedTeamIds.length){
+    const monday=isoWeekMonday(planWeekOffset);
+    const {week:wnum}=(function(){ const p=plannerWk.split('-W'); return {week:p[1]}; })();
+    saveNotif({id:'nf_'+uid(),ts:Date.now(),title:'Program actualizat · Săptămâna '+wnum+' ('+fmtDayShort(monday)+' – '+fmtDayShort(new Date(monday.getTime()+5*864e5))+')',weekKey:plannerWk,teamIds:changedTeamIds});
+  }
+  alert('Program publicat pentru săptămâna '+plannerWk+(changedTeamIds.length?' · '+changedTeamIds.length+' echipe anunțate':'')+'.');
+});
+
+// ── CERERI TAB (concedii + probleme) ──
+function canApproveLeave(){ return isFullAccess() || (!!currentUser && currentUser.pontajHR===true); }
+function canDeleteTasks(){ return isFullAccess(); }
+document.querySelectorAll('.task-view-btn').forEach(b=>b.addEventListener('click',()=>{
+  taskView=b.dataset.taskView;
+  document.querySelectorAll('.task-view-btn').forEach(x=>{ x.style.background=x.dataset.taskView===taskView?'#334155':'transparent'; x.style.color=x.dataset.taskView===taskView?'#fff':'#94a3b8'; });
+  document.getElementById('taskList').style.display=taskView==='list'?'block':'none';
+  document.getElementById('taskBoard').style.display=taskView==='board'?'flex':'none';
+  document.getElementById('taskSiteView').style.display=taskView==='site'?'block':'none';
+  renderTasks();
+}));
+function renderTaskCard(t,admin){
+  const overdue=!t.done && t.due && t.due<todayISO();
+  const urgent=t.priority==='urgent';
+  return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #1e293b;${t.done&&!t.followUp?'opacity:0.5;':''}${t.done&&t.followUp?'background:#3a2e0f;border-radius:8px;padding-left:8px;padding-right:8px;':''}">
+      <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} style="margin-top:3px;width:18px;height:18px;flex-shrink:0;cursor:pointer;">
+      <div style="flex:1;">
+        <div style="font-size:13.5px;${t.done&&!t.followUp?'text-decoration:line-through;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;margin-right:6px;">⏰ FOLLOW-UP</span>':''}${t.desc||''}</div>
+        <div style="font-size:11.5px;color:#94a3b8;margin-top:3px;">
+          ${t.site?('<span class="badge" style="background:#1e3a5f;color:#93c5fd;">'+t.site+'</span> '):''}
+          către <strong>${t.assigneeName||'—'}</strong> ·
+          ${(!admin&&t.assigneeId!==currentUser.id&&!t.done&&t.progress)?('<span class="badge badge-amber">'+t.progress+'%</span> '):''}
+          atribuit de <strong>${t.createdBy||'—'}</strong>
+          ${t.due?(' · <span style="'+(overdue?'color:#f87171;font-weight:700;':'')+'">termen '+isoToDmy(t.due)+(t.dueTime?' ora '+t.dueTime:'')+'</span>'):''}
+          ${urgent?' · <span style="color:#f87171;font-weight:700;">URGENT</span>':''}
+        </div>
+        ${!t.done?`<div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <select data-task-status="${t.id}" class="form-select" style="font-size:11.5px;padding:3px 6px;width:auto;">
+            <option value="0" ${(!t.progress||t.progress==0)?'selected':''}>Neînceput</option>
+            <option value="25" ${t.progress==25?'selected':''}>25% — pornit</option>
+            <option value="50" ${t.progress==50?'selected':''}>50%</option>
+            <option value="75" ${t.progress==75?'selected':''}>75%</option>
+          </select>
+          <div style="flex:1;min-width:80px;max-width:160px;height:7px;background:#1e293b;border-radius:4px;overflow:hidden;">
+            <div style="width:${t.progress||0}%;height:100%;background:${(t.progress||0)>=75?'#eab308':(t.progress||0)>=50?'#3b82f6':(t.progress||0)>=25?'#f97316':'#475569'};border-radius:4px;transition:width .2s;"></div>
+          </div>
+        </div>`:''}
+      </div>
+      ${admin?'<button data-task-del="'+t.id+'" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:15px;">✕</button>':''}
+      <button data-task-edit="${t.id}" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:13px;">✎</button>
+    </div>`;
+}function renderTaskCardCompact(t){
+  const overdue=!t.done && t.due && t.due<todayISO();
+  return `<div data-task-card="${t.id}" style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:9px 10px;margin-bottom:7px;cursor:${t.assigneeId===currentUser.id&&!t.done?'pointer':'default'};">
+    <div style="display:flex;align-items:flex-start;gap:7px;">
+      <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} style="margin-top:2px;width:15px;height:15px;flex-shrink:0;cursor:pointer;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12.5px;font-weight:600;color:#0f172a;${t.done?'text-decoration:line-through;color:#94a3b8;':''}">${t.desc||''}</div>
+        ${t.site?`<div style="font-size:10.5px;color:#64748b;margin-top:2px;">${t.site}</div>`:''}
+        ${!t.done?`<div style="margin-top:5px;">
+          <select data-task-status="${t.id}" style="font-size:10.5px;padding:2px 5px;border:1px solid #e2e8f0;border-radius:5px;background:#fff;color:#334155;">
+            <option value="0" ${(!t.progress||t.progress==0)?'selected':''}>Neînceput</option>
+            <option value="25" ${t.progress==25?'selected':''}>25%</option>
+            <option value="50" ${t.progress==50?'selected':''}>50%</option>
+            <option value="75" ${t.progress==75?'selected':''}>75%</option>
+          </select>
+          ${(t.progress||0)>0?`<div style="display:flex;align-items:center;gap:5px;margin-top:5px;">
+            <div style="flex:1;height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;"><div style="width:${t.progress}%;height:100%;background:${(t.progress)>=75?'#eab308':(t.progress)>=50?'#3b82f6':'#f97316'};border-radius:3px;"></div></div>
+          </div>`:''}
+        </div>`:''}
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;">
+          ${t.due?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:600;color:${overdue?'#b91c1c':'#78350f'};background:${overdue?'#fee2e2':'#fef3c7'};padding:2px 7px;border-radius:999px;">🕐 Termen: ${isoToDmy(t.due)}${t.dueTime?' '+t.dueTime:''}</span>`:''}
+          ${t.priority==='urgent'?`<span style="font-size:10.5px;font-weight:700;color:#b91c1c;background:#fee2e2;padding:2px 7px;border-radius:999px;">Urgent</span>`:''}
+        </div>
+      </div>
+      ${canDeleteTasks()?`<button data-task-del="${t.id}" style="background:none;border:none;color:#cbd5e1;cursor:pointer;font-size:13px;flex-shrink:0;">✕</button>`:''}
+      <button data-task-edit="${t.id}" style="background:none;border:none;color:#cbd5e1;cursor:pointer;font-size:12px;flex-shrink:0;">✎</button>
+    </div>
+  </div>`;
+}
+const CHAPTER_COLORS={'Șantier - Execuție':{bg:'#1e3a5f',fg:'#93c5fd'},'Documentație':{bg:'#4a3a1e',fg:'#fbbf24'},'Racordare la rețea':{bg:'#1e4a2e',fg:'#4ade80'},'Decontare':{bg:'#3a1e4a',fg:'#c4b5fd'},'Fișe tehnice':{bg:'#1e3a4a',fg:'#67e8f9'},'Garanție':{bg:'#4a1e2e',fg:'#fca5a5'},'PIF':{bg:'#3a4a1e',fg:'#bef264'},'Verificare tehnică':{bg:'#4a2e1e',fg:'#fdba74'}};
+function renderTaskSiteView(){
+  const view=document.getElementById('taskSiteView');
+  const bySite={};
+  tasks.filter(t=>t.site).forEach(t=>{ (bySite[t.site]=bySite[t.site]||[]).push(t); });
+  const sites=Object.keys(bySite).sort();
+  if(!sites.length){ view.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun task legat de un șantier. Completează câmpul „Șantier / proiect" la atribuire.</div>'; return; }
+  view.innerHTML=sites.map(site=>{
+    const items=bySite[site];
+    const chapters=['Decontare','Documentație','Fișe tehnice','Garanție','PIF','Racordare la rețea','Șantier - Execuție','Verificare tehnică',''];
+    const byChapter={}; items.forEach(t=>{ (byChapter[t.chapter||'']=byChapter[t.chapter||'']||[]).push(t); });
+    return `<div style="margin-bottom:18px;border:1px solid #1e293b;border-radius:10px;overflow:hidden;">
+      <div style="background:#0f172a;padding:10px 14px;font-size:13.5px;font-weight:800;color:#f1f5f9;">${site}</div>
+      ${chapters.filter(c=>byChapter[c]&&byChapter[c].length).map(c=>{
+        const col=CHAPTER_COLORS[c]||{bg:'#1e293b',fg:'#94a3b8'};
+        return `<div style="padding:10px 14px;border-top:1px solid #1e293b;">
+          <div style="font-size:11.5px;font-weight:700;color:${col.fg};background:${col.bg};display:inline-block;padding:3px 10px;border-radius:6px;margin-bottom:8px;">${c||'Fără capitol'}</div>
+          ${byChapter[c].sort((a,b)=>(a.done===b.done?0:a.done?1:-1)).map(t=>{
+            const overdue=!t.done && t.due && t.due<todayISO();
+            return `<div style="display:flex;flex-direction:column;gap:3px;padding:6px 0;font-size:12.5px;${t.done?'opacity:.5;':''}">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} style="width:15px;height:15px;cursor:pointer;">
+                <span style="flex:1;${t.done?'text-decoration:line-through;':''}">${t.desc||''}</span>
+                <span style="color:#94a3b8;font-size:11px;">${t.assigneeName||''}</span>
+                ${t.due?`<span style="font-size:10.5px;font-weight:600;color:${overdue?'#f87171':'#94a3b8'};">Termen: ${isoToDmy(t.due)}${t.dueTime?' '+t.dueTime:''}</span>`:''}
+              </div>
+              ${!t.done?`<div style="padding-left:23px;">
+                <select data-task-status="${t.id}" style="font-size:10.5px;padding:2px 5px;border:1px solid #334155;border-radius:5px;background:#1e293b;color:#f1f5f9;">
+                  <option value="0" ${(!t.progress||t.progress==0)?'selected':''}>Neînceput</option>
+                  <option value="25" ${t.progress==25?'selected':''}>25%</option>
+                  <option value="50" ${t.progress==50?'selected':''}>50%</option>
+                  <option value="75" ${t.progress==75?'selected':''}>75%</option>
+                </select>
+              </div>`:''}
+              ${(!t.done&&(t.progress||0)>0)?`<div style="display:flex;align-items:center;gap:5px;padding-left:23px;">
+                <div style="flex:1;max-width:140px;height:5px;background:#1e293b;border-radius:3px;overflow:hidden;"><div style="width:${t.progress}%;height:100%;background:${(t.progress)>=75?'#eab308':(t.progress)>=50?'#3b82f6':'#f97316'};border-radius:3px;"></div></div>
+                <span style="font-size:9.5px;color:#94a3b8;">${t.progress}%</span>
+              </div>`:''}
+            </div>`;
+          }).join('')}
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+  wireTaskEvents(view);
+}
+function renderTaskBoard(admin){
+  const board=document.getElementById('taskBoard');
+  const byUser={};
+  tasks.forEach(t=>{ (byUser[t.assigneeId]=byUser[t.assigneeId]||{name:t.assigneeName,items:[]}).items.push(t); });
+  const ids=Object.keys(byUser).sort((a,b)=>(byUser[a].name||'').localeCompare(byUser[b].name||''));
+  if(!ids.length){ board.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun task.</div>'; return; }
+  board.innerHTML=ids.map(id=>{
+    const g=byUser[id];
+    const active=g.items.filter(t=>!t.done).sort((a,b)=>(a.due||'').localeCompare(b.due||''));
+    const done=g.items.filter(t=>t.done);
+    return `<div style="min-width:190px;max-width:190px;flex-shrink:0;background:#111d35;border-right:1px solid rgba(255,255,255,0.09);padding:10px 12px 10px 0;margin-right:0;">
+      <div style="font-size:11.5px;font-weight:800;color:#f1f5f9;text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px;">${g.name||'—'}</div>
+      ${active.map(t=>renderTaskCardCompact(t)).join('')}
+      ${!active.length?'<div style="font-size:11px;color:#64748b;">Niciun task activ.</div>':''}
+      ${done.length?`<details style="margin-top:6px;"><summary style="font-size:10.5px;color:#64748b;cursor:pointer;">Finalizate (${done.length})</summary>${done.map(t=>renderTaskCardCompact(t)).join('')}</details>`:''}
+    </div>`;
+  }).join('');
+  wireTaskEvents(board);
+}
+function wireTaskEvents(root){
+  root.querySelectorAll('input[data-task-done]').forEach(cb=>cb.addEventListener('change',()=>{
+    const t=tasks.find(x=>x.id===cb.dataset.taskDone); if(t){ t.done=cb.checked; if(t.done){ t.progress=100; sendTaskDoneEmail(t); } saveTask(t); renderTasks(); }
+  }));
+  root.querySelectorAll('select[data-task-status]').forEach(sel=>sel.addEventListener('change',()=>{
+    const t=tasks.find(x=>x.id===sel.dataset.taskStatus); if(t){ t.progress=parseInt(sel.value); saveTask(t); renderTasks(); }
+  }));
+  root.querySelectorAll('button[data-task-edit]').forEach(b=>b.addEventListener('click',()=>openTaskEdit(b.dataset.taskEdit)));
+  root.querySelectorAll('button[data-task-del]').forEach(b=>b.addEventListener('click',()=>{
+    if(!canDeleteTasks()) return;
+    if(db) db.ref('solarcrm_v2/pontajTasks/'+b.dataset.taskDel).remove(); else { tasks=tasks.filter(x=>x.id!==b.dataset.taskDel); renderTasks(); }
+  }));
+}
+function renderTasks(){
+  const admin=!!currentUser;
+  document.getElementById('taskAssignCard').style.display=admin?'block':'none';
+  if(admin){
+    const sel=document.getElementById('taskAssignee');
+    if(!sel.dataset.filled){
+      loginUsers.filter(u=>u.id!=='_admin').forEach(u=>{ const o=document.createElement('option'); o.value=u.id; o.textContent=u.name; sel.appendChild(o); });
+      sel.dataset.filled='1';
+    }
+  }
+  if(taskView==='board'){ document.getElementById('taskBoard').style.display='flex'; renderTaskBoard(admin); updateTaskBadge(); return; }
+  if(taskView==='site'){ document.getElementById('taskSiteView').style.display='block'; renderTaskSiteView(); updateTaskBadge(); return; }
+  const mine=tasks;
+  const wrap=document.getElementById('taskList');
+  if(!mine.length){ wrap.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun task.</div>'; updateTaskBadge(); return; }
+  const sorted=[...mine].sort((a,b)=>(a.done===b.done?0:a.done?1:-1)||(b.ts||0)-(a.ts||0));
+  wrap.innerHTML=sorted.map(t=>renderTaskCard(t,admin)).join('');
+  wireTaskEvents(wrap);
+  updateTaskBadge();
+}
+function updateTaskBadge(){
+  const badge=document.getElementById('taskBadge');
+  const mine=tasks.filter(t=>t.assigneeId===currentUser.id && !t.done);
+  if(mine.length){ badge.style.display='inline-block'; badge.textContent=mine.length; } else badge.style.display='none';
+}
+let editingTaskId=null;
+document.getElementById('btnSubmitTask').addEventListener('click',()=>{
+  const assigneeId=document.getElementById('taskAssignee').value;
+  const assignee=loginUsers.find(u=>u.id===assigneeId)||{};
+  const assigneeName=assignee.name||'';
+  const desc=document.getElementById('taskDesc').value.trim();
+  const dueDmy=document.getElementById('taskDue').value.trim();
+  const dueTime=document.getElementById('taskDueTime').value.trim();
+  const priority=document.getElementById('taskPriority').value;
+  const followUp=document.getElementById('taskFollowUp').checked;
+  if(!assigneeId||!desc){ alert('Completează colegul și descrierea task-ului.'); return; }
+  if(editingTaskId){
+    const t=tasks.find(x=>x.id===editingTaskId);
+    if(t){
+      Object.assign(t,{assigneeId,assigneeName,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,followUp});
+      saveTask(t);
+    }
+    cancelTaskEdit();
+    return;
+  }
+  const t={id:'task_'+Date.now(),assigneeId,assigneeName,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,followUp,done:false,ts:Date.now(),createdBy:currentUser.name};
+  saveTask(t);
+  sendTaskEmail(t,assignee);
+  document.getElementById('taskSite').value='';
+  document.getElementById('taskChapter').value='';
+  document.getElementById('taskFollowUp').checked=false;
+  document.getElementById('taskDesc').value=''; document.getElementById('taskDue').value=''; document.getElementById('taskDueTime').value='';
+});
+function openTaskEdit(id){
+  const t=tasks.find(x=>x.id===id); if(!t) return;
+  editingTaskId=id;
+  document.getElementById('taskAssignee').value=t.assigneeId||'';
+  document.getElementById('taskDesc').value=t.desc||'';
+  document.getElementById('taskDue').value=t.due?isoToDmy(t.due):'';
+  document.getElementById('taskDueTime').value=t.dueTime||'';
+  document.getElementById('taskPriority').value=t.priority||'normal';
+  document.getElementById('taskSite').value=t.site||'';
+  document.getElementById('taskChapter').value=t.chapter||'';
+  document.getElementById('taskFollowUp').checked=!!t.followUp;
+  document.getElementById('btnSubmitTask').textContent='Salvează modificările';
+  document.getElementById('btnCancelEditTask').style.display='inline-block';
+  document.getElementById('taskAssignCard').scrollIntoView({block:'center'});
+}
+function cancelTaskEdit(){
+  editingTaskId=null;
+  document.getElementById('taskSite').value='';
+  document.getElementById('taskChapter').value='';
+  document.getElementById('taskFollowUp').checked=false;
+  document.getElementById('taskDesc').value=''; document.getElementById('taskDue').value=''; document.getElementById('taskDueTime').value='';
+  document.getElementById('btnSubmitTask').textContent='Atribuie task';
+  document.getElementById('btnCancelEditTask').style.display='none';
+}
+document.getElementById('btnCancelEditTask').addEventListener('click',cancelTaskEdit);
+function sendTaskDoneEmail(t){
+  if(!window.emailjs) return;
+  const subject='Task finalizat: '+(t.assigneeName||'—');
+  const message=(t.assigneeName||'—')+' a finalizat task-ul:\n\n'+t.desc+'\n\n'+
+    (t.site?('Șantier: '+t.site+'\n\n'):'')+
+    'SHC Solar Suite — Pontaj';
+  emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:'office@shc-group.ro', subject, message}).catch(()=>{});
+  const creator=loginUsers.find(u=>u.name===t.createdBy);
+  if(creator && creator.email){
+    emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:creator.email, subject, message}).catch(()=>{});
+  }
+}
+function sendTaskEmail(t,assignee){
+  if(!window.emailjs) return;
+  const subject='Task nou de la '+t.createdBy;
+  const message='Bună, '+ (assignee.name||'').split(' ')[0] +'!\n\n'+
+    t.createdBy+' ți-a atribuit un task nou'+(t.priority==='urgent'?' (URGENT)':'')+':\n\n'+
+    t.desc+'\n\n'+
+    (t.due?('Termen: '+isoToDmy(t.due)+(t.dueTime?' ora '+t.dueTime:'')+'\n\n'):'')+
+    'Îl poți vedea și bifa în aplicația Pontaj, tab Task-uri.\n\nSHC Solar Suite — Pontaj';
+  emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:'office@shc-group.ro', subject, message}).catch(()=>{});
+  if(assignee.email){
+    emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:assignee.email, subject, message}).catch(()=>{});
+  }
+  const creator=loginUsers.find(u=>u.name===t.createdBy);
+  if(creator && creator.email && creator.email!==assignee.email){
+    const subject2='Confirmare: task trimis către '+(assignee.name||'—');
+    const message2='Ai atribuit task-ul următor către '+(assignee.name||'—')+':\n\n'+t.desc+'\n\n'+
+      (t.due?('Termen: '+isoToDmy(t.due)+(t.dueTime?' ora '+t.dueTime:'')+'\n\n'):'')+
+      'SHC Solar Suite — Pontaj';
+    emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:creator.email, subject:subject2, message:message2}).catch(()=>{});
+  }
+}
+function sendLeaveEmail(l, decision){
+  if(!window.emailjs) return;
+  const requester = loginUsers.find(u=>u.id===l.userId);
+  const requesterEmail = requester && requester.email ? requester.email.trim() : '';
+  const fixed = ['nicorasionut@shc-group.ro','alexandru.chirila@shc-group.ro','eszter.simon@shc-group.ro'];
+  let to;
+  if(requesterEmail){
+    to = [...fixed, 'office@shc-group.ro', requesterEmail];
+  } else {
+    const hrEmails = loginUsers.filter(u=>u.pontajHR===true && u.email).map(u=>u.email.trim());
+    to = [...fixed, ...hrEmails];
+  }
+  to = [...new Set(to.filter(Boolean))];
+  const decisionLabel = decision==='A' ? 'APROBATĂ' : 'RESPINSĂ';
+  const subject = 'Cerere '+(LEAVE_LABELS[l.type]||l.type)+' — '+decisionLabel+' ('+(l.userName||'—')+')';
+  const message = 'Cererea depusă de '+(l.userName||'—')+' pentru '+(LEAVE_LABELS[l.type]||l.type)+
+    ' ('+isoToDmy(l.from)+' – '+isoToDmy(l.to)+') a fost '+decisionLabel.toLowerCase()+' de '+(currentUser&&currentUser.name?currentUser.name:'—')+'.'+
+    (l.reason?('\n\nMotiv cerere: '+l.reason):'')+
+    '\n\nSHC Solar Suite — Pontaj';
+  emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:to.join(','), subject, message}).catch(()=>{});
+}
+function renderCereri(){
+  const admin=canApproveLeave();
+  const tbl=document.getElementById('leaveTable');
+  const mine=admin?leaveReqs:leaveReqs.filter(l=>l.userId===currentUser.id);
+  if(!mine.length){ tbl.innerHTML='<tr><td style="color:#475569;padding:12px 0;">Nicio cerere.</td></tr>'; }
+  else{
+    let html='<thead><tr>'+(admin?'<th>Coleg</th>':'')+'<th>Tip</th><th>Perioadă</th><th>Trimisă</th><th>Motiv</th><th>Status</th>'+(admin?'<th></th>':'')+'</tr></thead><tbody>';
+    mine.forEach(l=>{
+      const st=l.status==='A'?'<span class="badge badge-green">Aprobat</span>':l.status==='R'?'<span class="badge badge-red">Respins</span>':'<span class="badge badge-amber">În așteptare</span>';
+      const sentDt=l.ts?new Date(l.ts):null;
+      const sentStr=sentDt?(sentDt.toLocaleDateString('ro-RO',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+sentDt.toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit',hour12:false})):'—';
+      html+='<tr>'+(admin?'<td>'+(l.userName||'—')+'</td>':'')+'<td>'+(LEAVE_LABELS[l.type]||l.type)+'</td><td>'+isoToDmy(l.from)+' – '+isoToDmy(l.to)+'</td><td style="white-space:nowrap;color:#94a3b8;font-size:12px;">'+sentStr+'</td><td>'+(l.reason||'—')+'</td><td>'+st+'</td>';
+      if(admin&&l.status==='P'){
+        html+='<td style="white-space:nowrap;"><button class="btn btn-sm" data-approve="'+l.id+'" style="background:#16a34a;color:#fff;margin-right:4px;">✓</button><button class="btn btn-sm" data-reject="'+l.id+'" style="background:#dc2626;color:#fff;">✕</button></td>';
+      } else if(admin) html+='<td></td>';
+      html+='</tr>';
+    });
+    tbl.innerHTML=html+'</tbody>';
+    tbl.querySelectorAll('button[data-approve]').forEach(b=>b.addEventListener('click',()=>{
+      const l=leaveReqs.find(x=>x.id===b.dataset.approve); if(l){ l.status='A'; saveLeave(l); sendLeaveEmail(l,'A'); }
+    }));
+    tbl.querySelectorAll('button[data-reject]').forEach(b=>b.addEventListener('click',()=>{
+      const l=leaveReqs.find(x=>x.id===b.dataset.reject); if(l){ l.status='R'; saveLeave(l); sendLeaveEmail(l,'R'); }
+    }));
+  }
+  const probWrap=document.getElementById('probList');
+  const myProbs=admin?probReports:probReports.filter(p=>p.userId===currentUser.id);
+  if(!myProbs.length){ probWrap.innerHTML='<div style="color:#475569;font-size:12.5px;">Nicio problemă raportată.</div>'; return; }
+  let ph='';
+  myProbs.forEach(p=>{
+    const st=p.status==='rezolvat'?'<span class="badge badge-green">Rezolvat</span>':'<span class="badge badge-amber">Nou</span>';
+    ph+='<div style="background:#0d1b2e;border-radius:10px;padding:12px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start;">'+
+      (p.photo?'<img src="'+p.photo+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;flex-shrink:0;">':'')+
+      '<div style="flex:1;"><div style="font-size:12px;font-weight:700;color:#f1f5f9;">'+p.cat+' '+st+'</div>'+
+      '<div style="font-size:12px;color:#94a3b8;margin-top:3px;">'+(p.desc||'')+'</div>'+
+      '<div style="font-size:10.5px;color:#475569;margin-top:4px;">'+(p.userName||'')+' · '+new Date(p.ts).toLocaleDateString('ro-RO')+'</div></div>'+
+      (admin&&p.status!=='rezolvat'?'<button class="btn btn-sm" data-resolve="'+p.id+'" style="background:#16a34a;color:#fff;flex-shrink:0;">✓ Rezolvat</button>':'')+
+      '</div>';
+  });
+  probWrap.innerHTML=ph;
+  probWrap.querySelectorAll('button[data-resolve]').forEach(b=>b.addEventListener('click',()=>{
+    const p=probReports.find(x=>x.id===b.dataset.resolve); if(p){ p.status='rezolvat'; saveProb(p); }
+  }));
+}
+document.getElementById('btnSubmitLeave').addEventListener('click',()=>{
+  const type=document.getElementById('leaveType').value;
+  const from=dmyToIso(document.getElementById('leaveFrom').value);
+  const to=dmyToIso(document.getElementById('leaveTo').value);
+  const reason=document.getElementById('leaveReason').value.trim();
+  if(!from||!to){ alert('Completează perioada (de la / până la).'); return; }
+  const l={id:'lv_'+uid(),userId:currentUser.id,userName:currentUser.name,type,from,to,reason,status:'P',ts:Date.now()};
+  saveLeave(l);
+  document.getElementById('leaveFrom').value=''; document.getElementById('leaveTo').value=''; document.getElementById('leaveReason').value='';
+});
+document.getElementById('btnSubmitProb').addEventListener('click',async ()=>{
+  const cat=document.getElementById('probCat').value;
+  const desc=document.getElementById('probDesc').value.trim();
+  const fileInput=document.getElementById('probPhoto');
+  const btn=document.getElementById('btnSubmitProb'); btn.disabled=true; btn.textContent='Se trimite...';
+  let photo=null;
+  if(fileInput.files&&fileInput.files[0]){ photo=await compressImg(fileInput.files[0]); }
+  const p={id:'pb_'+uid(),userId:currentUser.id,userName:currentUser.name,cat,desc,photo,status:'nou',ts:Date.now()};
+  saveProb(p);
+  document.getElementById('probDesc').value=''; fileInput.value='';
+  btn.disabled=false; btn.textContent='Trimite raportul';
+});
+addDateMask('leaveFrom'); addDateMask('leaveTo');
+
+// ── PROCES VERBAL TAB ──
+let signCtx=null, signDrawing=false, signHasContent=false;
+function initSignPad(){
+  const c=document.getElementById('pvSignPad'); if(!c||c._init) return; c._init=true;
+  signCtx=c.getContext('2d'); signCtx.strokeStyle='#f1f5f9'; signCtx.lineWidth=2; signCtx.lineCap='round';
+  const pos=e=>{ const r=c.getBoundingClientRect(); const t=e.touches?e.touches[0]:e; return {x:(t.clientX-r.left)*(c.width/r.width), y:(t.clientY-r.top)*(c.height/r.height)}; };
+  const start=e=>{ e.preventDefault(); signDrawing=true; const p=pos(e); signCtx.beginPath(); signCtx.moveTo(p.x,p.y); };
+  const move=e=>{ if(!signDrawing) return; e.preventDefault(); const p=pos(e); signCtx.lineTo(p.x,p.y); signCtx.stroke(); signHasContent=true; };
+  const end=()=>{ signDrawing=false; };
+  c.addEventListener('mousedown',start); c.addEventListener('mousemove',move); window.addEventListener('mouseup',end);
+  c.addEventListener('touchstart',start); c.addEventListener('touchmove',move); c.addEventListener('touchend',end);
+}
+document.getElementById('btnClearSign').addEventListener('click',()=>{
+  const c=document.getElementById('pvSignPad'); if(signCtx) signCtx.clearRect(0,0,c.width,c.height); signHasContent=false;
+});
+function renderPv(){
+  initSignPad();
+  const sel=document.getElementById('pvJob');
+  sel.innerHTML='<option value="">— fără lucrare —</option>'+jobs.map(j=>'<option value="'+j.id+'">'+j.name+'</option>').join('');
+  const admin=isFullAccess();
+  const mine=admin?pvRecords:pvRecords.filter(p=>p.userId===currentUser.id);
+  const wrap=document.getElementById('pvList');
+  if(!mine.length){ wrap.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun proces verbal salvat.</div>'; return; }
+  let html='';
+  mine.forEach(pv=>{
+    html+='<div style="background:#0d1b2e;border-radius:10px;padding:12px;margin-bottom:8px;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">'+
+      '<div><div style="font-size:13px;font-weight:700;color:#f1f5f9;">'+(pv.jobName||'Fără lucrare')+' — '+(pv.client||'—')+'</div>'+
+      '<div style="font-size:11px;color:#64748b;">'+(pv.userName||'')+' · '+new Date(pv.ts).toLocaleDateString('ro-RO')+'</div></div>'+
+      '<button class="btn btn-sm" data-pv="'+pv.id+'" style="background:#f59e0b;color:#fff;">🖨 PDF</button></div></div>';
+  });
+  wrap.innerHTML=html;
+  wrap.querySelectorAll('button[data-pv]').forEach(b=>b.addEventListener('click',()=>exportPvPdf(pvRecords.find(x=>x.id===b.dataset.pv))));
+}
+document.getElementById('btnSavePv').addEventListener('click',async ()=>{
+  const jobId=document.getElementById('pvJob').value;
+  const job=jobId?jobs.find(j=>j.id===jobId):null;
+  const client=document.getElementById('pvClient').value.trim();
+  const desc=document.getElementById('pvDesc').value.trim();
+  const fileInput=document.getElementById('pvPhotos');
+  const btn=document.getElementById('btnSavePv'); btn.disabled=true; btn.textContent='Se salvează...';
+  const photos=[];
+  if(fileInput.files&&fileInput.files.length){
+    for(const f of Array.from(fileInput.files).slice(0,3)){ const c=await compressImg(f); if(c) photos.push(c); }
+  }
+  const signature=signHasContent?document.getElementById('pvSignPad').toDataURL('image/png'):null;
+  const pv={id:'pv_'+uid(),userId:currentUser.id,userName:currentUser.name,jobId:job?job.id:null,jobName:job?job.name:null,client,desc,photos,signature,ts:Date.now()};
+  savePv(pv);
+  document.getElementById('pvClient').value=''; document.getElementById('pvDesc').value=''; fileInput.value='';
+  if(signCtx){ signCtx.clearRect(0,0,500,150); signHasContent=false; }
+  btn.disabled=false; btn.textContent='💾 Salvează proces verbal';
+});
+function exportPvPdf(pv){
+  if(!pv) return;
+  const w=window.open('','_blank');
+  w.document.write('<html><head><title>Proces verbal</title><style>body{font-family:sans-serif;padding:32px;color:#0f172a;}h1{font-size:20px;}p{font-size:14px;}img{max-width:220px;margin:6px;border-radius:6px;}</style></head><body>'+
+    '<h1>Proces verbal de lucrare</h1>'+
+    '<p><strong>Lucrare:</strong> '+(pv.jobName||'—')+'</p>'+
+    '<p><strong>Client/beneficiar:</strong> '+(pv.client||'—')+'</p>'+
+    '<p><strong>Executant:</strong> '+(pv.userName||'—')+'</p>'+
+    '<p><strong>Data:</strong> '+new Date(pv.ts).toLocaleDateString('ro-RO')+'</p>'+
+    '<p><strong>Descriere lucrări:</strong><br>'+(pv.desc||'—')+'</p>'+
+    (pv.photos&&pv.photos.length?'<p><strong>Poze:</strong></p>'+pv.photos.map(p=>'<img src="'+p+'">').join(''):'')+
+    (pv.signature?'<p><strong>Semnătură client:</strong><br><img src="'+pv.signature+'" style="max-width:300px;background:#fff;"></p>':'')+
+    '</body></html>');
+  w.document.close();
+  setTimeout(()=>w.print(),400);
+}
+
+// ── MAP TAB ──
+function initMap(){
+  if(map) return;
+  map=L.map('mapView').setView([46.1866,21.3123],7);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+  renderMap();
+}
+function renderMap(){
+  if(!map) return;
+  mapMarkers.forEach(m=>map.removeLayer(m)); mapMarkers=[];
+  const date=todayISO();
+  const dayRecs=Object.values(records).filter(r=>r.date===date && (canViewTeam()||r.userId===currentUser.id));
+  const pts=[];
+  dayRecs.forEach(r=>{
+    const u=getUserById(r.userId);
+    const last = r.checkOut&&r.checkOut.lat ? r.checkOut : (r.checkIn&&r.checkIn.lat ? r.checkIn : null);
+    if(!last) return;
+    // cerc de precizie GPS — arată raza de eroare reală a citirii (evită confuzia „pin greșit”)
+    if(last.accuracy){
+      const accCircle=L.circle([last.lat,last.lng],{radius:last.accuracy,color:u?u.color:'#f59e0b',weight:1,fillOpacity:0.08,dashArray:'3,4'}).addTo(map);
+      mapMarkers.push(accCircle);
+    }
+    const marker=L.circleMarker([last.lat,last.lng],{radius:9,color:u?u.color:'#f59e0b',fillColor:u?u.color:'#f59e0b',fillOpacity:0.85,weight:2}).addTo(map);
+    marker.bindPopup('<strong>'+(u?u.name:r.userName)+'</strong><br>Intrare: '+(r.checkIn?r.checkIn.time:'—')+'<br>Ieșire: '+(r.checkOut?r.checkOut.time:'în teren')+(last.accuracy?'<br><span style="color:#94a3b8;font-size:11px;">Precizie GPS: ±'+last.accuracy+'m</span>':'')+'<br><a href="https://www.google.com/maps?q='+last.lat+','+last.lng+'" target="_blank">Deschide în Google Maps</a>');
+    mapMarkers.push(marker);
+    pts.push([last.lat,last.lng]);
+  });
+  if(pts.length) map.fitBounds(pts,{padding:[40,40],maxZoom:14});
+}
+
+// ── EXPORT TAB ──
+function populateExportUsers(){
+  const sel=document.getElementById('exportUser'); if(!sel) return;
+  sel.innerHTML='';
+  const oAll=document.createElement('option'); oAll.value='__ALL__'; oAll.textContent='Toată echipa'; sel.appendChild(oAll);
+  loginUsers.filter(u=>u.id!=='_admin').forEach(u=>{ const o=document.createElement('option'); o.value=u.id; o.textContent=u.name; sel.appendChild(o); });
+}
+function initExportForm(){
+  const today=new Date();
+  const first=new Date(today.getFullYear(),today.getMonth(),1);
+  document.getElementById('exportFrom').value=isoToDmy(first.toISOString().slice(0,10));
+  document.getElementById('exportTo').value=isoToDmy(today.toISOString().slice(0,10));
+  if(currentUser) document.getElementById('exportUser').value=currentUser.id;
+}
+document.getElementById('btnExportCsv').addEventListener('click',()=>{
+  const dateFrom=dmyToIso(document.getElementById('exportFrom').value);
+  const dateTo=dmyToIso(document.getElementById('exportTo').value);
+  if(!dateFrom||!dateTo){ alert('Selectează ambele date (de la / până la).'); return; }
+  const targetUserId = canViewTeam() ? document.getElementById('exportUser').value : currentUser.id;
+  const exportAll = targetUserId==='__ALL__';
+  const u=exportAll?null:getUserById(targetUserId);
+  const mine=Object.values(records).filter(r=>(exportAll||r.userId===targetUserId) && r.date>=dateFrom && r.date<=dateTo);
+  mine.sort((a,b)=>a.date.localeCompare(b.date)||(getUserById(a.userId)?.name||'').localeCompare(getUserById(b.userId)?.name||''));
+  // Cereri de concediu/învoire aprobate, pentru a marca zilele fără pontaj dar cu absență motivată
+  const approvedLeaves=leaveReqs.filter(l=>(exportAll||l.userId===targetUserId) && l.status==='A');
+  function leaveTypeFor(dateIso,userId){
+    const lv=approvedLeaves.find(l=>(exportAll?l.userId===userId:true) && dateIso>=l.from && dateIso<=l.to);
+    return lv ? (LEAVE_LABELS[lv.type]||lv.type) : '';
+  }
+  let csv=(exportAll?'Angajat,':'')+'Data,Tip zi,Intrare,Ora intrare,Editat,Ieșire,Ora ieșire,Editat,Ore lucrate,Deplasare (km)\n';
+  let workedDays=0, leaveDaysCount=0;
+  mine.forEach(r=>{
+    let hrs='';
+    if(r.checkIn&&r.checkOut){
+      const [h1,m1]=r.checkIn.time.split(':').map(Number), [h2,m2]=r.checkOut.time.split(':').map(Number);
+      const mins=(h2*60+m2)-(h1*60+m1); if(mins>=0) hrs=(mins/60).toFixed(2);
+    }
+    const lvType=leaveTypeFor(r.date,r.userId);
+    const tipZi = r.checkIn ? 'Lucrat' : (lvType || 'Absent');
+    if(r.checkIn) workedDays++; else if(lvType) leaveDaysCount++;
+    const dist = r.checkIn&&r.checkIn.distKm!=null ? r.checkIn.distKm : '';
+    csv+=(exportAll?(getUserById(r.userId)?.name||r.userId)+',':'')+[isoToDmy(r.date), tipZi, r.checkIn?'Da':'Nu', r.checkIn?r.checkIn.time:'', r.checkIn&&r.checkIn.editedManually?'Da':'Nu', r.checkOut?'Da':'Nu', r.checkOut?r.checkOut.time:'', r.checkOut&&r.checkOut.editedManually?'Da':'Nu', hrs, dist].join(',')+'\n';
+  });
+  // Zile de concediu aprobate care nu au niciun record de pontaj (ex: concediu întreaga zi, fără logare)
+  const recordedDates=new Set(mine.map(r=>r.userId+'|'+r.date));
+  approvedLeaves.forEach(lv=>{
+    let d=new Date(lv.from);
+    const end=new Date(lv.to);
+    while(d<=end){
+      const iso=d.toISOString().slice(0,10);
+      if(iso>=dateFrom && iso<=dateTo && !recordedDates.has(lv.userId+'|'+iso)){
+        csv+=(exportAll?(getUserById(lv.userId)?.name||lv.userId)+',':'')+[isoToDmy(iso), LEAVE_LABELS[lv.type]||lv.type, 'Nu','','Nu','Nu','','Nu','',''].join(',')+'\n';
+        leaveDaysCount++;
+      }
+      d.setDate(d.getDate()+1);
+    }
+  });
+  csv+='\nSumar pentru tichete de masă,,,,,,,,,\n';
+  csv+='Zile lucrate,'+workedDays+'\n';
+  csv+='Zile de concediu/învoire,'+leaveDaysCount+'\n';
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='Pontaj_'+(exportAll?'TOATA_ECHIPA':(u?u.name.replace(/\s+/g,'_'):targetUserId))+'_'+dateFrom+'_'+dateTo+'.csv';
+  a.click();
+});
+
+// ── BOOT ──
+// ── DATE/TIME HELPERS dd/mm/yyyy și HH:mm (24h) ──
+function isoToDmy(s){ if(!s) return ''; const p=s.split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:''; }
+function dmyToIso(s){ if(!s) return ''; const p=s.split('/'); return p.length===3&&p[2].length===4?p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0'):''; }
+function addDateMask(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('input',function(){
+    const prev=this._prev||''; const cur=this.value;
+    let v=cur.replace(/[^0-9\/]/g,'');
+    if(prev.length<cur.length){
+      const digits=v.replace(/\//g,'');
+      v='';
+      for(let i=0;i<Math.min(digits.length,8);i++){
+        if(i===2||i===4) v+='/';
+        v+=digits[i];
+      }
+    }
+    this.value=v.slice(0,10);
+    this._prev=this.value;
+  });
+}
+function addTimeMask(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('input',function(){
+    const prev=this._prev||''; const cur=this.value;
+    let v=cur.replace(/[^0-9:]/g,'');
+    if(prev.length<cur.length){
+      const digits=v.replace(/:/g,'');
+      v='';
+      for(let i=0;i<Math.min(digits.length,4);i++){
+        if(i===2) v+=':';
+        v+=digits[i];
+      }
+    }
+    this.value=v.slice(0,5);
+    this._prev=this.value;
+  });
+}
+addDateMask('teamDate'); addDateMask('exportFrom'); addDateMask('exportTo'); addDateMask('taskDue');
+addTimeMask('editInTime'); addTimeMask('editOutTime'); addTimeMask('taskDueTime');
+function addCalendarPicker(textId){
+  const textEl=document.getElementById(textId);
+  if(!textEl) return;
+  const wrap=document.createElement('span');
+  wrap.style.cssText='position:relative;display:inline-block;';
+  textEl.parentNode.insertBefore(wrap,textEl);
+  wrap.appendChild(textEl);
+  textEl.style.paddingRight='32px';
+  textEl.style.boxSizing='border-box';
+  const hidden=document.createElement('input');
+  hidden.type='date';
+  hidden.tabIndex=-1;
+  hidden.style.cssText='position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;';
+  wrap.appendChild(hidden);
+  const icon=document.createElement('span');
+  icon.textContent='📅';
+  icon.style.cssText='position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;';
+  wrap.appendChild(icon);
+  hidden.addEventListener('click',(e)=>{ const iso=dmyToIso(textEl.value); hidden.value=iso||''; if(hidden.showPicker){ e.preventDefault(); try{hidden.showPicker();}catch(err){} } });
+  hidden.addEventListener('input',()=>{
+    if(hidden.value){ textEl.value=isoToDmy(hidden.value); textEl.dispatchEvent(new Event('input',{bubbles:true})); }
+  });
+}
+addCalendarPicker('teamDate'); addCalendarPicker('exportFrom'); addCalendarPicker('exportTo'); addCalendarPicker('taskDue');
+addCalendarPicker('leaveFrom'); addCalendarPicker('leaveTo');
+
+populateLoginUsers();
+loadFirebase();
+
+// ── Team chat widget ──
+let chatMessages=[], chatOpen=false;
+function chatLastSeenKey(){ return currentUser?('shc_chat_lastseen_'+currentUser.id):null; }
+function updateChatUnread(){
+  const badge=document.getElementById('chatUnreadBadge');
+  if(!currentUser){ badge.style.display='none'; return; }
+  const lastSeen=parseInt(localStorage.getItem(chatLastSeenKey())||'0');
+  const unread=chatMessages.filter(m=>m.userId!==currentUser.id && m.ts>lastSeen).length;
+  if(unread>0 && !chatOpen){ badge.style.display='block'; badge.textContent=unread>9?'9+':unread; }
+  else badge.style.display='none';
+}
+function renderChat(){
+  const wrap=document.getElementById('chatMessages');
+  if(!chatMessages.length){ wrap.innerHTML='<div style="color:#475569;font-size:12px;text-align:center;margin-top:20px;">Niciun mesaj încă. Scrie primul!</div>'; return; }
+  wrap.innerHTML=chatMessages.map(m=>{
+    const mine=currentUser&&m.userId===currentUser.id;
+    const time=new Date(m.ts).toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit',hour12:false});
+    return `<div style="display:flex;flex-direction:column;align-items:${mine?'flex-end':'flex-start'};">
+      <div style="font-size:10.5px;color:#64748b;margin-bottom:2px;">${m.userName||'?'} · ${time}</div>
+      <div style="max-width:82%;background:${mine?'#f59e0b':'#1a2740'};color:${mine?'#0a1628':'#e2e8f0'};padding:7px 11px;border-radius:12px;font-size:13px;word-break:break-word;line-height:1.4;">${(m.text||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</div>
+    </div>`;
+  }).join('');
+  wrap.scrollTop=wrap.scrollHeight;
+}
+function initChat(){
+  document.getElementById('chatToggleBtn').style.display='flex';
+  const toggle=document.getElementById('chatToggleBtn'), panel=document.getElementById('chatPanel'), closeBtn=document.getElementById('chatCloseBtn'), input=document.getElementById('chatInput'), sendBtn=document.getElementById('chatSendBtn');
+  toggle.addEventListener('click',()=>{
+    chatOpen=!chatOpen;
+    panel.style.display=chatOpen?'flex':'none';
+    if(chatOpen){ localStorage.setItem(chatLastSeenKey(),Date.now().toString()); updateChatUnread(); renderChat(); input.focus(); }
+  });
+  closeBtn.addEventListener('click',()=>{ chatOpen=false; panel.style.display='none'; });
+  function send(){
+    const text=input.value.trim();
+    if(!text||!currentUser) return;
+    const msg={id:'msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),userId:currentUser.id,userName:currentUser.name,text,ts:Date.now()};
+    if(db) db.ref('shc_chat/messages/'+msg.id).set(msg);
+    else { chatMessages.push(msg); renderChat(); }
+    input.value='';
+    localStorage.setItem(chatLastSeenKey(),Date.now().toString());
+  }
+  sendBtn.addEventListener('click',send);
+  input.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); } });
+  if(db){
+    db.ref('shc_chat/messages').limitToLast(200).on('value',snap=>{
+      const raw=snap.val()||{};
+      chatMessages=Object.values(raw).filter(Boolean).sort((a,b)=>a.ts-b.ts);
+      if(chatOpen) renderChat();
+      updateChatUnread();
+    });
+  }
+}
+initChat();
+</script>
+</body>
+</html>
