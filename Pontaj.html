@@ -219,8 +219,7 @@ a:hover{color:#fbbf24;}
       <div class="card" id="taskAssignCard" style="display:none;">
         <div class="section-title">Atribuie task nou</div>
         <div class="row2" style="margin-bottom:10px;">
-          <div class="field"><label>Către</label><select id="taskAssignee" class="form-select"></select></div>
-          <div class="field"><label>Termen (dată)</label><input type="text" id="taskDue" class="form-input" placeholder="dd/mm/yyyy" maxlength="10"></div>
+        <div class="field"><label>Termen (dată)</label><input type="text" id="taskDue" class="form-input" placeholder="dd/mm/yyyy" maxlength="10"></div>
         </div>
         <div class="row2" style="margin-bottom:10px;">
           <div class="field"><label>Ora (24h)</label><input type="text" id="taskDueTime" class="form-input" placeholder="14:30" maxlength="5"></div>
@@ -228,6 +227,7 @@ a:hover{color:#fbbf24;}
             <select id="taskPriority" class="form-select">
               <option value="normal">Normală</option>
               <option value="urgent">Urgentă</option>
+              <option value="standby">Stand-by</option>
             </select>
           </div>
         </div>
@@ -241,11 +241,19 @@ a:hover{color:#fbbf24;}
             <option value="Garanție">Garanție</option>
             <option value="PIF">PIF</option>
             <option value="Racordare la rețea">Racordare la rețea</option>
+            <option value="Recepție la terminarea lucrărilor">Recepție la terminarea lucrărilor</option>
+            <option value="Recepție finală">Recepție finală</option>
             <option value="Șantier - Execuție">Șantier - Execuție</option>
             <option value="Verificare tehnică">Verificare tehnică</option>
           </select>
         </div>
-        <div class="field" style="margin-bottom:10px;"><label>Descriere task</label><textarea id="taskDesc" class="form-input" rows="2" style="width:100%;"></textarea></div>
+        <div class="field" style="margin-bottom:10px;"><label>Titlu task</label><input type="text" id="taskTitle" class="form-input" placeholder="ex: Cerere ATR transformator" style="width:100%;"></div>
+        <div class="field" style="margin-bottom:10px;"><label>Descriere (opțional, detalii)</label><textarea id="taskDesc" class="form-input" rows="2" style="width:100%;"></textarea></div>
+        <div class="row2" style="margin-bottom:10px;">
+          <div class="field"><label>Responsabil principal</label><select id="taskAssignee2" class="form-select"></select></div>
+          <div class="field"><label>Responsabil secundar (opțional)</label><select id="taskAssigneeSec" class="form-select"><option value="">— niciunul —</option></select></div>
+        </div>
+        <div class="field" style="margin-bottom:10px;"><label>Responsabil terțiar (opțional)</label><select id="taskAssigneeTer" class="form-select"><option value="">— niciunul —</option></select></div>
         <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#94a3b8;margin-bottom:10px;cursor:pointer;"><input type="checkbox" id="taskFollowUp"> Necesită follow-up (rămâne activ vizual chiar finalizat)</label>
         <div style="display:flex;gap:8px;">
           <button class="btn btn-sm" id="btnSubmitTask" style="background:#f59e0b;color:#fff;">Atribuie task</button>
@@ -1403,18 +1411,22 @@ document.querySelectorAll('.task-view-btn').forEach(b=>b.addEventListener('click
 function renderTaskCard(t,admin){
   const overdue=!t.done && t.due && t.due<todayISO();
   const urgent=t.priority==='urgent';
-  return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #1e293b;${t.done&&!t.followUp?'opacity:0.5;':''}${t.done&&t.followUp?'background:#3a2e0f;border-radius:8px;padding-left:8px;padding-right:8px;':''}">
+  const standby=t.priority==='standby';
+  const cardBg=standby?'background:#1e2a3a;border-radius:8px;padding-left:8px;padding-right:8px;':'';
+  return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #1e293b;${t.done&&!t.followUp?'opacity:0.5;':''}${t.done&&t.followUp?'background:#3a2e0f;border-radius:8px;padding-left:8px;padding-right:8px;':(!t.done?cardBg:'')}">
       <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} style="margin-top:3px;width:18px;height:18px;flex-shrink:0;cursor:pointer;">
       <div style="flex:1;">
-        <div style="font-size:13.5px;${t.done&&!t.followUp?'text-decoration:line-through;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;margin-right:6px;">⏰ FOLLOW-UP</span>':''}${t.desc||''}</div>
+        <div data-task-expand="${t.id}" style="font-size:13.5px;cursor:${t.desc?'pointer':'default'};${t.done&&!t.followUp?'text-decoration:line-through;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;margin-right:6px;">⏰ FOLLOW-UP</span>':''}${standby?'<span style="background:#64748b;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;margin-right:6px;">⏸ STAND-BY</span>':''}${t.title||t.desc||''}${t.desc&&t.title?' <span style="color:#64748b;font-size:11px;">▾</span>':''}</div>
+        ${t.desc&&t.title?`<div data-task-desc="${t.id}" style="display:none;font-size:12px;color:#94a3b8;margin-top:4px;white-space:pre-wrap;">${t.desc}</div>`:''}
         <div style="font-size:11.5px;color:#94a3b8;margin-top:3px;">
           ${t.site?('<span class="badge" style="background:#1e3a5f;color:#93c5fd;">'+t.site+'</span> '):''}
-          către <strong>${t.assigneeName||'—'}</strong> ·
+          către <strong>${t.assigneeName||'—'}</strong>${t.assigneeSecName?(' + <span style="color:#94a3b8;">'+t.assigneeSecName+'</span>'):''}${t.assigneeTerName?(' + <span style="color:#94a3b8;">'+t.assigneeTerName+'</span>'):''} ·
           ${(!admin&&t.assigneeId!==currentUser.id&&!t.done&&t.progress)?('<span class="badge badge-amber">'+t.progress+'%</span> '):''}
           atribuit de <strong>${t.createdBy||'—'}</strong>
           ${t.due?(' · <span style="'+(overdue?'color:#f87171;font-weight:700;':'')+'">termen '+isoToDmy(t.due)+(t.dueTime?' ora '+t.dueTime:'')+'</span>'):''}
           ${urgent?' · <span style="color:#f87171;font-weight:700;">URGENT</span>':''}
         </div>
+        ${t.done&&t.followUp?`<button data-task-clearfollowup="${t.id}" style="margin-top:5px;font-size:10.5px;font-weight:600;color:#f59e0b;background:none;border:1px solid #f59e0b;padding:3px 8px;border-radius:6px;cursor:pointer;">✓ Închide follow-up-ul</button>`:''}
         ${!t.done?`<div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <select data-task-status="${t.id}" class="form-select" style="font-size:11.5px;padding:3px 6px;width:auto;">
             <option value="0" ${(!t.progress||t.progress==0)?'selected':''}>Neînceput</option>
@@ -1436,7 +1448,8 @@ function renderTaskCard(t,admin){
     <div style="display:flex;align-items:flex-start;gap:7px;">
       <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} style="margin-top:2px;width:15px;height:15px;flex-shrink:0;cursor:pointer;">
       <div style="flex:1;min-width:0;">
-        <div style="font-size:12.5px;font-weight:600;color:#0f172a;${t.done?'text-decoration:line-through;color:#94a3b8;':''}">${t.desc||''}</div>
+        <div data-task-expand="${t.id}" style="font-size:12.5px;font-weight:600;color:#0f172a;cursor:${t.desc?'pointer':'default'};${t.done?'text-decoration:line-through;color:#94a3b8;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏰</span>':''}${t.priority==='standby'?'<span style="background:#64748b;color:#fff;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏸</span>':''}${t.title||t.desc||''}${t.desc&&t.title?' <span style="color:#94a3b8;font-size:10px;">▾</span>':''}</div>
+        ${t.desc&&t.title?`<div data-task-desc="${t.id}" style="display:none;font-size:11px;color:#64748b;margin-top:3px;white-space:pre-wrap;">${t.desc}</div>`:''}
         ${t.site?`<div style="font-size:10.5px;color:#64748b;margin-top:2px;">${t.site}</div>`:''}
         ${!t.done?`<div style="margin-top:5px;">
           <select data-task-status="${t.id}" style="font-size:10.5px;padding:2px 5px;border:1px solid #e2e8f0;border-radius:5px;background:#fff;color:#334155;">
@@ -1459,7 +1472,7 @@ function renderTaskCard(t,admin){
     </div>
   </div>`;
 }
-const CHAPTER_COLORS={'Șantier - Execuție':{bg:'#1e3a5f',fg:'#93c5fd'},'Documentație':{bg:'#4a3a1e',fg:'#fbbf24'},'Racordare la rețea':{bg:'#1e4a2e',fg:'#4ade80'},'Decontare':{bg:'#3a1e4a',fg:'#c4b5fd'},'Fișe tehnice':{bg:'#1e3a4a',fg:'#67e8f9'},'Garanție':{bg:'#4a1e2e',fg:'#fca5a5'},'PIF':{bg:'#3a4a1e',fg:'#bef264'},'Verificare tehnică':{bg:'#4a2e1e',fg:'#fdba74'}};
+const CHAPTER_COLORS={'Șantier - Execuție':{bg:'#1e3a5f',fg:'#93c5fd'},'Documentație':{bg:'#4a3a1e',fg:'#fbbf24'},'Racordare la rețea':{bg:'#1e4a2e',fg:'#4ade80'},'Decontare':{bg:'#3a1e4a',fg:'#c4b5fd'},'Fișe tehnice':{bg:'#1e3a4a',fg:'#67e8f9'},'Garanție':{bg:'#4a1e2e',fg:'#fca5a5'},'PIF':{bg:'#3a4a1e',fg:'#bef264'},'Verificare tehnică':{bg:'#4a2e1e',fg:'#fdba74'},'Recepție la terminarea lucrărilor':{bg:'#1e2e4a',fg:'#a5b4fc'},'Recepție finală':{bg:'#2e1e4a',fg:'#d8b4fe'}};
 function renderTaskSiteView(){
   const view=document.getElementById('taskSiteView');
   const bySite={};
@@ -1468,7 +1481,7 @@ function renderTaskSiteView(){
   if(!sites.length){ view.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun task legat de un șantier. Completează câmpul „Șantier / proiect" la atribuire.</div>'; return; }
   view.innerHTML=sites.map(site=>{
     const items=bySite[site];
-    const chapters=['Decontare','Documentație','Fișe tehnice','Garanție','PIF','Racordare la rețea','Șantier - Execuție','Verificare tehnică',''];
+    const chapters=['Decontare','Documentație','Fișe tehnice','Garanție','PIF','Racordare la rețea','Recepție la terminarea lucrărilor','Recepție finală','Șantier - Execuție','Verificare tehnică',''];
     const byChapter={}; items.forEach(t=>{ (byChapter[t.chapter||'']=byChapter[t.chapter||'']||[]).push(t); });
     return `<div style="margin-bottom:18px;border:1px solid #1e293b;border-radius:10px;overflow:hidden;">
       <div style="background:#0f172a;padding:10px 14px;font-size:13.5px;font-weight:800;color:#f1f5f9;">${site}</div>
@@ -1481,10 +1494,11 @@ function renderTaskSiteView(){
             return `<div style="display:flex;flex-direction:column;gap:3px;padding:6px 0;font-size:12.5px;${t.done?'opacity:.5;':''}">
               <div style="display:flex;align-items:center;gap:8px;">
                 <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} style="width:15px;height:15px;cursor:pointer;">
-                <span style="flex:1;${t.done?'text-decoration:line-through;':''}">${t.desc||''}</span>
+                <span data-task-expand="${t.id}" style="flex:1;cursor:${t.desc?'pointer':'default'};${t.done?'text-decoration:line-through;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏰</span>':''}${t.priority==='standby'?'<span style="background:#64748b;color:#fff;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏸</span>':''}${t.title||t.desc||''}${t.desc&&t.title?' <span style="color:#94a3b8;font-size:10px;">▾</span>':''}</span>
                 <span style="color:#94a3b8;font-size:11px;">${t.assigneeName||''}</span>
                 ${t.due?`<span style="font-size:10.5px;font-weight:600;color:${overdue?'#f87171':'#94a3b8'};">Termen: ${isoToDmy(t.due)}${t.dueTime?' '+t.dueTime:''}</span>`:''}
               </div>
+              ${t.desc&&t.title?`<div data-task-desc="${t.id}" style="display:none;padding-left:23px;font-size:11px;color:#94a3b8;margin-top:2px;white-space:pre-wrap;">${t.desc}</div>`:''}
               ${!t.done?`<div style="padding-left:23px;">
                 <select data-task-status="${t.id}" style="font-size:10.5px;padding:2px 5px;border:1px solid #334155;border-radius:5px;background:#1e293b;color:#f1f5f9;">
                   <option value="0" ${(!t.progress||t.progress==0)?'selected':''}>Neînceput</option>
@@ -1531,7 +1545,14 @@ function wireTaskEvents(root){
   root.querySelectorAll('select[data-task-status]').forEach(sel=>sel.addEventListener('change',()=>{
     const t=tasks.find(x=>x.id===sel.dataset.taskStatus); if(t){ t.progress=parseInt(sel.value); saveTask(t); renderTasks(); }
   }));
+  root.querySelectorAll('button[data-task-clearfollowup]').forEach(b=>b.addEventListener('click',()=>{
+    const t=tasks.find(x=>x.id===b.dataset.taskClearfollowup); if(t){ t.followUp=false; saveTask(t); renderTasks(); }
+  }));
   root.querySelectorAll('button[data-task-edit]').forEach(b=>b.addEventListener('click',()=>openTaskEdit(b.dataset.taskEdit)));
+  root.querySelectorAll('[data-task-expand]').forEach(el=>el.addEventListener('click',()=>{
+    const desc=root.querySelector('[data-task-desc="'+el.dataset.taskExpand+'"]');
+    if(desc) desc.style.display=desc.style.display==='none'?'block':'none';
+  }));
   root.querySelectorAll('button[data-task-del]').forEach(b=>b.addEventListener('click',()=>{
     if(!canDeleteTasks()) return;
     if(db) db.ref('solarcrm_v2/pontajTasks/'+b.dataset.taskDel).remove(); else { tasks=tasks.filter(x=>x.id!==b.dataset.taskDel); renderTasks(); }
@@ -1541,11 +1562,13 @@ function renderTasks(){
   const admin=!!currentUser;
   document.getElementById('taskAssignCard').style.display=admin?'block':'none';
   if(admin){
-    const sel=document.getElementById('taskAssignee');
-    if(!sel.dataset.filled){
-      loginUsers.filter(u=>u.id!=='_admin').forEach(u=>{ const o=document.createElement('option'); o.value=u.id; o.textContent=u.name; sel.appendChild(o); });
-      sel.dataset.filled='1';
-    }
+    ['taskAssignee2','taskAssigneeSec','taskAssigneeTer'].forEach(id=>{
+      const sel=document.getElementById(id);
+      if(!sel.dataset.filled){
+        loginUsers.filter(u=>u.id!=='_admin').forEach(u=>{ const o=document.createElement('option'); o.value=u.id; o.textContent=u.name; sel.appendChild(o); });
+        sel.dataset.filled='1';
+      }
+    });
   }
   if(taskView==='board'){ document.getElementById('taskBoard').style.display='flex'; renderTaskBoard(admin); updateTaskBadge(); return; }
   if(taskView==='site'){ document.getElementById('taskSiteView').style.display='block'; renderTaskSiteView(); updateTaskBadge(); return; }
@@ -1564,37 +1587,47 @@ function updateTaskBadge(){
 }
 let editingTaskId=null;
 document.getElementById('btnSubmitTask').addEventListener('click',()=>{
-  const assigneeId=document.getElementById('taskAssignee').value;
+  const assigneeId=document.getElementById('taskAssignee2').value;
   const assignee=loginUsers.find(u=>u.id===assigneeId)||{};
   const assigneeName=assignee.name||'';
+  const assigneeSecId=document.getElementById('taskAssigneeSec').value;
+  const assigneeSecName=(loginUsers.find(u=>u.id===assigneeSecId)||{}).name||'';
+  const assigneeTerId=document.getElementById('taskAssigneeTer').value;
+  const assigneeTerName=(loginUsers.find(u=>u.id===assigneeTerId)||{}).name||'';
+  const title=document.getElementById('taskTitle').value.trim();
   const desc=document.getElementById('taskDesc').value.trim();
   const dueDmy=document.getElementById('taskDue').value.trim();
   const dueTime=document.getElementById('taskDueTime').value.trim();
   const priority=document.getElementById('taskPriority').value;
   const followUp=document.getElementById('taskFollowUp').checked;
-  if(!assigneeId||!desc){ alert('Completează colegul și descrierea task-ului.'); return; }
+  if(!assigneeId||!title){ alert('Completează colegul și titlul task-ului.'); return; }
   if(editingTaskId){
     const t=tasks.find(x=>x.id===editingTaskId);
     if(t){
-      Object.assign(t,{assigneeId,assigneeName,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,followUp});
+      Object.assign(t,{assigneeId,assigneeName,assigneeSecId:assigneeSecId||null,assigneeSecName:assigneeSecName||null,assigneeTerId:assigneeTerId||null,assigneeTerName:assigneeTerName||null,title,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,followUp});
       saveTask(t);
     }
     cancelTaskEdit();
     return;
   }
-  const t={id:'task_'+Date.now(),assigneeId,assigneeName,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,followUp,done:false,ts:Date.now(),createdBy:currentUser.name};
+  const t={id:'task_'+Date.now(),assigneeId,assigneeName,assigneeSecId:assigneeSecId||null,assigneeSecName:assigneeSecName||null,assigneeTerId:assigneeTerId||null,assigneeTerName:assigneeTerName||null,title,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,followUp,done:false,ts:Date.now(),createdBy:currentUser.name};
   saveTask(t);
   sendTaskEmail(t,assignee);
   document.getElementById('taskSite').value='';
   document.getElementById('taskChapter').value='';
   document.getElementById('taskFollowUp').checked=false;
+  document.getElementById('taskTitle').value='';
+  document.getElementById('taskAssigneeSec').value=''; document.getElementById('taskAssigneeTer').value='';
   document.getElementById('taskDesc').value=''; document.getElementById('taskDue').value=''; document.getElementById('taskDueTime').value='';
 });
 function openTaskEdit(id){
   const t=tasks.find(x=>x.id===id); if(!t) return;
   editingTaskId=id;
-  document.getElementById('taskAssignee').value=t.assigneeId||'';
-  document.getElementById('taskDesc').value=t.desc||'';
+  document.getElementById('taskAssignee2').value=t.assigneeId||'';
+  document.getElementById('taskAssigneeSec').value=t.assigneeSecId||'';
+  document.getElementById('taskAssigneeTer').value=t.assigneeTerId||'';
+  document.getElementById('taskTitle').value=t.title||t.desc||'';
+  document.getElementById('taskDesc').value=t.title?(t.desc||''):'';
   document.getElementById('taskDue').value=t.due?isoToDmy(t.due):'';
   document.getElementById('taskDueTime').value=t.dueTime||'';
   document.getElementById('taskPriority').value=t.priority||'normal';
@@ -1610,6 +1643,8 @@ function cancelTaskEdit(){
   document.getElementById('taskSite').value='';
   document.getElementById('taskChapter').value='';
   document.getElementById('taskFollowUp').checked=false;
+  document.getElementById('taskTitle').value='';
+  document.getElementById('taskAssigneeSec').value=''; document.getElementById('taskAssigneeTer').value='';
   document.getElementById('taskDesc').value=''; document.getElementById('taskDue').value=''; document.getElementById('taskDueTime').value='';
   document.getElementById('btnSubmitTask').textContent='Atribuie task';
   document.getElementById('btnCancelEditTask').style.display='none';
@@ -1618,7 +1653,7 @@ document.getElementById('btnCancelEditTask').addEventListener('click',cancelTask
 function sendTaskDoneEmail(t){
   if(!window.emailjs) return;
   const subject='Task finalizat: '+(t.assigneeName||'—');
-  const message=(t.assigneeName||'—')+' a finalizat task-ul:\n\n'+t.desc+'\n\n'+
+  const message=(t.assigneeName||'—')+' a finalizat task-ul:\n\n'+(t.title||t.desc)+'\n\n'+
     (t.site?('Șantier: '+t.site+'\n\n'):'')+
     'SHC Solar Suite — Pontaj';
   emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:'office@shc-group.ro', subject, message}).catch(()=>{});
@@ -1631,8 +1666,8 @@ function sendTaskEmail(t,assignee){
   if(!window.emailjs) return;
   const subject='Task nou de la '+t.createdBy;
   const message='Bună, '+ (assignee.name||'').split(' ')[0] +'!\n\n'+
-    t.createdBy+' ți-a atribuit un task nou'+(t.priority==='urgent'?' (URGENT)':'')+':\n\n'+
-    t.desc+'\n\n'+
+    t.createdBy+' ți-a atribuit un task nou'+(t.priority==='urgent'?' (URGENT)':t.priority==='standby'?' (STAND-BY)':'')+':\n\n'+
+    (t.title||t.desc)+(t.title&&t.desc?('\n\n'+t.desc):'')+'\n\n'+
     (t.due?('Termen: '+isoToDmy(t.due)+(t.dueTime?' ora '+t.dueTime:'')+'\n\n'):'')+
     'Îl poți vedea și bifa în aplicația Pontaj, tab Task-uri.\n\nSHC Solar Suite — Pontaj';
   emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:'office@shc-group.ro', subject, message}).catch(()=>{});
