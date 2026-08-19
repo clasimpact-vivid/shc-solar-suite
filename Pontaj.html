@@ -219,7 +219,7 @@ a:hover{color:#fbbf24;}
       <div class="card" id="taskAssignCard" style="display:none;">
         <div class="section-title">Atribuie task nou</div>
         <div class="row2" style="margin-bottom:10px;">
-        <div class="field"><label>Termen (dată)</label><input type="text" id="taskDue" class="form-input" placeholder="dd/mm/yyyy" maxlength="10"></div>
+        <div class="field"><label>Termen finalizare (obligatoriu) *</label><input type="text" id="taskDue" class="form-input" placeholder="dd/mm/yyyy" maxlength="10"></div>
         </div>
         <div class="row2" style="margin-bottom:10px;">
           <div class="field"><label>Ora (24h)</label><input type="text" id="taskDueTime" class="form-input" placeholder="14:30" maxlength="5"></div>
@@ -1701,6 +1701,7 @@ document.getElementById('btnSubmitTask').addEventListener('click',()=>{
   const followUpDateDmy=document.getElementById('taskFollowUpDate').value.trim();
   const followUpDate=followUp&&followUpDateDmy?dmyToIso(followUpDateDmy):null;
   if(!assigneeId||!title){ alert('Completează colegul și titlul task-ului.'); return; }
+  if(!dueDmy){ alert('Termenul de finalizare este obligatoriu.'); return; }
   if(editingTaskId){
     const t=tasks.find(x=>x.id===editingTaskId);
     if(t){
