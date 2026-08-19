@@ -1414,7 +1414,7 @@ document.getElementById('btnPublishPlan').addEventListener('click',()=>{
 
 // ── CERERI TAB (concedii + probleme) ──
 function canApproveLeave(){ return isFullAccess() || (!!currentUser && currentUser.pontajHR===true); }
-function canModifyTask(t){ return isFullAccess() || t.createdBy===currentUser.name || t.assigneeId===currentUser.id || t.assigneeSecId===currentUser.id || t.assigneeTerId===currentUser.id || t.assigneeQuatId===currentUser.id; }
+function canModifyTask(t){ return isSuperAdminPontaj() || t.createdBy===currentUser.name || t.assigneeId===currentUser.id || t.assigneeSecId===currentUser.id || t.assigneeTerId===currentUser.id || t.assigneeQuatId===currentUser.id; }
 function canDeleteTasks(){ return isFullAccess(); }
 document.getElementById('taskSearchInput').addEventListener('input',e=>{ taskSearchQuery=e.target.value; renderTasks(); });
 document.querySelectorAll('.task-view-btn').forEach(b=>b.addEventListener('click',()=>{
@@ -1750,7 +1750,7 @@ document.getElementById('btnSubmitTask').addEventListener('click',()=>{
 });
 function openTaskEdit(id){
   const t=tasks.find(x=>x.id===id); if(!t) return;
-  if(t.createdBy!==currentUser.name && !isFullAccess()){ alert('Doar '+(t.createdBy||'inițiatorul')+' poate edita acest task.'); return; }
+  if(t.createdBy!==currentUser.name && !isSuperAdminPontaj()){ alert('Doar '+(t.createdBy||'inițiatorul')+' poate edita acest task.'); return; }
   editingTaskId=id;
   document.getElementById('taskAssignee2').value=t.assigneeId||'';
   document.getElementById('taskAssigneeSec').value=t.assigneeSecId||'';
