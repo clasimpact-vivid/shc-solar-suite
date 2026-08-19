@@ -1484,22 +1484,20 @@ function renderTaskCalendar(){
   if(!sel){ box.innerHTML='<div style="color:#475569;font-size:12px;text-align:center;padding-top:10px;">Selectează o zi pentru a vedea task-urile.</div>'; return; }
   const items=byDate[sel]||[];
   if(!items.length){ box.innerHTML='<div style="color:#475569;font-size:12px;text-align:center;padding-top:10px;">Niciun task în această zi.</div>'; return; }
-  box.innerHTML=`<div style="font-size:13px;font-weight:800;color:#f59e0b;margin-bottom:10px;">${isoToDmy(sel)}</div>` + items.map(t=>`<div style="display:flex;flex-direction:column;gap:3px;padding:8px 0;border-top:1px solid #1e293b;font-size:12.5px;${t.done&&!t._isFollowUp?'opacity:.5;':''}">
-    <div style="display:flex;align-items:center;gap:8px;">
-      ${t._isFollowUp?'<span style="background:#f59e0b;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;">⏰ FOLLOW-UP</span>':''}
-      <span data-task-expand="${t.id}_cal" style="flex:1;color:#f1f5f9;font-weight:600;cursor:${t.desc?'pointer':'default'};${t.done&&!t._isFollowUp?'text-decoration:line-through;color:#64748b;':''}">${t.title||t.desc||''}${t.desc&&t.title?' <span style="color:#94a3b8;font-size:10px;">▾</span>':''}</span>
-    </div>
-    <div style="font-size:10.5px;color:#94a3b8;">
-      către <strong style="color:#cbd5e1;">${t.assigneeName||'—'}</strong>${t.assigneeSecName?(' + '+t.assigneeSecName):''}${t.assigneeTerName?(' + '+t.assigneeTerName):''} ·
-      atribuit de <strong style="color:#cbd5e1;">${t.createdBy||'—'}</strong> ·
-      creat ${t.ts?isoToDmy(new Date(t.ts).toISOString().slice(0,10)):'—'}${t.due?(' · termen '+isoToDmy(t.due)+(t.dueTime?' ora '+t.dueTime:'')):''}
-    </div>
-    ${t.desc&&t.title?`<div data-task-desc="${t.id}_cal" style="display:none;font-size:11px;color:#94a3b8;white-space:pre-wrap;">${t.desc}</div>`:''}
-  </div>`).join('');
-  box.querySelectorAll('[data-task-expand]').forEach(el=>el.addEventListener('click',()=>{
-    const desc=box.querySelector('[data-task-desc="'+el.dataset.taskExpand+'"]');
-    if(desc) desc.style.display=desc.style.display==='none'?'block':'none';
-  }));
+  const byUser={};
+  items.forEach(t=>{ (byUser[t.assigneeId]=byUser[t.assigneeId]||{name:t.assigneeName,items:[]}).items.push(t); });
+  const ids=Object.keys(byUser).sort((a,b)=>(byUser[a].name||'').localeCompare(byUser[b].name||''));
+  box.innerHTML=`<div style="font-size:13px;font-weight:800;color:#f59e0b;margin-bottom:10px;">${isoToDmy(sel)}</div>
+    <div style="display:flex;gap:14px;overflow-x:auto;padding-bottom:10px;">
+      ${ids.map(id=>{
+        const g=byUser[id];
+        return `<div style="min-width:190px;max-width:190px;flex-shrink:0;">
+          <div style="font-size:11.5px;font-weight:800;color:#f1f5f9;text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px;">${g.name||'—'}</div>
+          ${g.items.map(t=>renderTaskCardCompact(t)).join('')}
+        </div>`;
+      }).join('')}
+    </div>`;
+  wireTaskEvents(box);
 }
 function renderTaskCard(t,admin){
   const overdue=!t.done && t.due && t.due<todayISO();
@@ -1535,7 +1533,9 @@ function renderTaskCard(t,admin){
       ${admin?'<button data-task-del="'+t.id+'" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:15px;">✕</button>':''}
       <button data-task-edit="${t.id}" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:13px;">✎</button>
     </div>`;
-}function renderTaskCardCompact(t){
+  wireTaskEvents(box);
+}
+function renderTaskCardCompact(t){
   const overdue=!t.done && t.due && t.due<todayISO();
   const standby=t.priority==='standby';
   return `<div data-task-card="${t.id}" style="background:${standby?'#334155':'#fff'};border:1px solid ${standby?'#1e293b':'#e2e8f0'};${standby?'border-left:4px solid #cbd5e1;':''}border-radius:8px;padding:9px 10px;margin-bottom:7px;cursor:${t.assigneeId===currentUser.id&&!t.done?'pointer':'default'};">
