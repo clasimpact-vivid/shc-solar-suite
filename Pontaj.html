@@ -1488,7 +1488,11 @@ function renderTaskCalendar(){
     <div style="display:flex;align-items:center;gap:8px;">
       ${t._isFollowUp?'<span style="background:#f59e0b;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;">⏰ FOLLOW-UP</span>':''}
       <span data-task-expand="${t.id}_cal" style="flex:1;color:#f1f5f9;font-weight:600;cursor:${t.desc?'pointer':'default'};${t.done&&!t._isFollowUp?'text-decoration:line-through;color:#64748b;':''}">${t.title||t.desc||''}${t.desc&&t.title?' <span style="color:#94a3b8;font-size:10px;">▾</span>':''}</span>
-      <span style="color:#94a3b8;font-size:11px;">${t.assigneeName||''}</span>
+    </div>
+    <div style="font-size:10.5px;color:#94a3b8;">
+      către <strong style="color:#cbd5e1;">${t.assigneeName||'—'}</strong>${t.assigneeSecName?(' + '+t.assigneeSecName):''}${t.assigneeTerName?(' + '+t.assigneeTerName):''} ·
+      atribuit de <strong style="color:#cbd5e1;">${t.createdBy||'—'}</strong> ·
+      creat ${t.ts?isoToDmy(new Date(t.ts).toISOString().slice(0,10)):'—'}${t.due?(' · termen '+isoToDmy(t.due)+(t.dueTime?' ora '+t.dueTime:'')):''}
     </div>
     ${t.desc&&t.title?`<div data-task-desc="${t.id}_cal" style="display:none;font-size:11px;color:#94a3b8;white-space:pre-wrap;">${t.desc}</div>`:''}
   </div>`).join('');
