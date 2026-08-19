@@ -219,7 +219,7 @@ a:hover{color:#fbbf24;}
       <div class="card" id="taskAssignCard" style="display:none;">
         <div class="section-title">Atribuie task nou</div>
         <div class="row2" style="margin-bottom:10px;">
-        <div class="field"><label>Termen finalizare (obligatoriu) *</label><input type="text" id="taskDue" class="form-input" placeholder="dd/mm/yyyy" maxlength="10"></div>
+        <div class="field"><label id="taskDueLabel">Termen finalizare (obligatoriu) *</label><input type="text" id="taskDue" class="form-input" placeholder="dd/mm/yyyy" maxlength="10"></div>
         </div>
         <div class="row2" style="margin-bottom:10px;">
           <div class="field"><label>Ora (24h)</label><input type="text" id="taskDueTime" class="form-input" placeholder="14:30" maxlength="5"></div>
@@ -1422,6 +1422,9 @@ document.querySelectorAll('.task-view-btn').forEach(b=>b.addEventListener('click
   document.getElementById('taskCalendarView').style.display=taskView==='calendar'?'block':'none';
   renderTasks();
 }));
+document.getElementById('taskPriority').addEventListener('change',e=>{
+  document.getElementById('taskDueLabel').textContent=e.target.value==='standby'?'Termen finalizare (opțional pentru Stand-by)':'Termen finalizare (obligatoriu) *';
+});
 document.getElementById('taskFollowUp').addEventListener('change',e=>{
   document.getElementById('taskFollowUpDateWrap').style.display=e.target.checked?'block':'none';
 });
@@ -1701,7 +1704,7 @@ document.getElementById('btnSubmitTask').addEventListener('click',()=>{
   const followUpDateDmy=document.getElementById('taskFollowUpDate').value.trim();
   const followUpDate=followUp&&followUpDateDmy?dmyToIso(followUpDateDmy):null;
   if(!assigneeId||!title){ alert('Completează colegul și titlul task-ului.'); return; }
-  if(!dueDmy){ alert('Termenul de finalizare este obligatoriu.'); return; }
+  if(!dueDmy&&priority!=='standby'){ alert('Termenul de finalizare este obligatoriu (exceptie: Stand-by).'); return; }
   if(editingTaskId){
     const t=tasks.find(x=>x.id===editingTaskId);
     if(t){
