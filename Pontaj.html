@@ -1403,10 +1403,10 @@ document.querySelectorAll('.task-view-btn').forEach(b=>b.addEventListener('click
 function renderTaskCard(t,admin){
   const overdue=!t.done && t.due && t.due<todayISO();
   const urgent=t.priority==='urgent';
-  return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #1e293b;${t.done?'opacity:0.5;':''}">
+  return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #1e293b;${t.done&&!t.followUp?'opacity:0.5;':''}${t.done&&t.followUp?'background:#3a2e0f;border-radius:8px;padding-left:8px;padding-right:8px;':''}">
       <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} style="margin-top:3px;width:18px;height:18px;flex-shrink:0;cursor:pointer;">
       <div style="flex:1;">
-        <div style="font-size:13.5px;${t.done?'text-decoration:line-through;':''}">${t.desc||''}</div>
+        <div style="font-size:13.5px;${t.done&&!t.followUp?'text-decoration:line-through;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;margin-right:6px;">⏰ FOLLOW-UP</span>':''}${t.desc||''}</div>
         <div style="font-size:11.5px;color:#94a3b8;margin-top:3px;">
           ${t.site?('<span class="badge" style="background:#1e3a5f;color:#93c5fd;">'+t.site+'</span> '):''}
           către <strong>${t.assigneeName||'—'}</strong> ·
