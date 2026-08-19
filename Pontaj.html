@@ -246,7 +246,11 @@ a:hover{color:#fbbf24;}
           </select>
         </div>
         <div class="field" style="margin-bottom:10px;"><label>Descriere task</label><textarea id="taskDesc" class="form-input" rows="2" style="width:100%;"></textarea></div>
-        <button class="btn btn-sm" id="btnSubmitTask" style="background:#f59e0b;color:#fff;">Atribuie task</button>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#94a3b8;margin-bottom:10px;cursor:pointer;"><input type="checkbox" id="taskFollowUp"> Necesită follow-up (rămâne activ vizual chiar finalizat)</label>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm" id="btnSubmitTask" style="background:#f59e0b;color:#fff;">Atribuie task</button>
+          <button class="btn btn-sm" id="btnCancelEditTask" style="display:none;background:#334155;color:#fff;">Anulează editarea</button>
+        </div>
       </div>
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -1424,6 +1428,7 @@ function renderTaskCard(t,admin){
         </div>`:''}
       </div>
       ${admin?'<button data-task-del="'+t.id+'" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:15px;">✕</button>':''}
+      <button data-task-edit="${t.id}" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:13px;">✎</button>
     </div>`;
 }function renderTaskCardCompact(t){
   const overdue=!t.done && t.due && t.due<todayISO();
@@ -1450,6 +1455,7 @@ function renderTaskCard(t,admin){
         </div>
       </div>
       ${canDeleteTasks()?`<button data-task-del="${t.id}" style="background:none;border:none;color:#cbd5e1;cursor:pointer;font-size:13px;flex-shrink:0;">✕</button>`:''}
+      <button data-task-edit="${t.id}" style="background:none;border:none;color:#cbd5e1;cursor:pointer;font-size:12px;flex-shrink:0;">✎</button>
     </div>
   </div>`;
 }
@@ -1525,6 +1531,7 @@ function wireTaskEvents(root){
   root.querySelectorAll('select[data-task-status]').forEach(sel=>sel.addEventListener('change',()=>{
     const t=tasks.find(x=>x.id===sel.dataset.taskStatus); if(t){ t.progress=parseInt(sel.value); saveTask(t); renderTasks(); }
   }));
+  root.querySelectorAll('button[data-task-edit]').forEach(b=>b.addEventListener('click',()=>openTaskEdit(b.dataset.taskEdit)));
   root.querySelectorAll('button[data-task-del]').forEach(b=>b.addEventListener('click',()=>{
     if(!canDeleteTasks()) return;
     if(db) db.ref('solarcrm_v2/pontajTasks/'+b.dataset.taskDel).remove(); else { tasks=tasks.filter(x=>x.id!==b.dataset.taskDel); renderTasks(); }
@@ -1555,6 +1562,7 @@ function updateTaskBadge(){
   const mine=tasks.filter(t=>t.assigneeId===currentUser.id && !t.done);
   if(mine.length){ badge.style.display='inline-block'; badge.textContent=mine.length; } else badge.style.display='none';
 }
+let editingTaskId=null;
 document.getElementById('btnSubmitTask').addEventListener('click',()=>{
   const assigneeId=document.getElementById('taskAssignee').value;
   const assignee=loginUsers.find(u=>u.id===assigneeId)||{};
@@ -1563,14 +1571,50 @@ document.getElementById('btnSubmitTask').addEventListener('click',()=>{
   const dueDmy=document.getElementById('taskDue').value.trim();
   const dueTime=document.getElementById('taskDueTime').value.trim();
   const priority=document.getElementById('taskPriority').value;
+  const followUp=document.getElementById('taskFollowUp').checked;
   if(!assigneeId||!desc){ alert('Completează colegul și descrierea task-ului.'); return; }
-  const t={id:'task_'+Date.now(),assigneeId,assigneeName,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,done:false,ts:Date.now(),createdBy:currentUser.name};
+  if(editingTaskId){
+    const t=tasks.find(x=>x.id===editingTaskId);
+    if(t){
+      Object.assign(t,{assigneeId,assigneeName,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,followUp});
+      saveTask(t);
+    }
+    cancelTaskEdit();
+    return;
+  }
+  const t={id:'task_'+Date.now(),assigneeId,assigneeName,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,followUp,done:false,ts:Date.now(),createdBy:currentUser.name};
   saveTask(t);
   sendTaskEmail(t,assignee);
   document.getElementById('taskSite').value='';
   document.getElementById('taskChapter').value='';
+  document.getElementById('taskFollowUp').checked=false;
   document.getElementById('taskDesc').value=''; document.getElementById('taskDue').value=''; document.getElementById('taskDueTime').value='';
 });
+function openTaskEdit(id){
+  const t=tasks.find(x=>x.id===id); if(!t) return;
+  editingTaskId=id;
+  document.getElementById('taskAssignee').value=t.assigneeId||'';
+  document.getElementById('taskDesc').value=t.desc||'';
+  document.getElementById('taskDue').value=t.due?isoToDmy(t.due):'';
+  document.getElementById('taskDueTime').value=t.dueTime||'';
+  document.getElementById('taskPriority').value=t.priority||'normal';
+  document.getElementById('taskSite').value=t.site||'';
+  document.getElementById('taskChapter').value=t.chapter||'';
+  document.getElementById('taskFollowUp').checked=!!t.followUp;
+  document.getElementById('btnSubmitTask').textContent='Salvează modificările';
+  document.getElementById('btnCancelEditTask').style.display='inline-block';
+  document.getElementById('taskAssignCard').scrollIntoView({block:'center'});
+}
+function cancelTaskEdit(){
+  editingTaskId=null;
+  document.getElementById('taskSite').value='';
+  document.getElementById('taskChapter').value='';
+  document.getElementById('taskFollowUp').checked=false;
+  document.getElementById('taskDesc').value=''; document.getElementById('taskDue').value=''; document.getElementById('taskDueTime').value='';
+  document.getElementById('btnSubmitTask').textContent='Atribuie task';
+  document.getElementById('btnCancelEditTask').style.display='none';
+}
+document.getElementById('btnCancelEditTask').addEventListener('click',cancelTaskEdit);
 function sendTaskDoneEmail(t){
   if(!window.emailjs) return;
   const subject='Task finalizat: '+(t.assigneeName||'—');
