@@ -1,9 +1,9 @@
 name: Rezumat zilnic SHC Solar Suite (18:00)
 
 on:
-  schedule:
-    # 15:00 UTC = 18:00 România (EEST, vară), luni-vineri
-    - cron: '0 15 * * 1-5'
+  # Dezactivat — rulează doar cel de dimineață (daily-emails.yml), pentru a evita duplicarea
+  # schedule:
+  #   - cron: '0 15 * * 1-5'
   workflow_dispatch: {}
 
 jobs:
