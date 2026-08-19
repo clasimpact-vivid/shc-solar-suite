@@ -256,6 +256,7 @@ a:hover{color:#fbbf24;}
           <div class="field"><label>Responsabil secundar (opțional)</label><select id="taskAssigneeSec" class="form-select"><option value="">— niciunul —</option></select></div>
         </div>
         <div class="field" style="margin-bottom:10px;"><label>Responsabil terțiar (opțional)</label><select id="taskAssigneeTer" class="form-select"><option value="">— niciunul —</option></select></div>
+        <div class="field" style="margin-bottom:10px;"><label>Responsabil cuaternar (opțional)</label><select id="taskAssigneeQuat" class="form-select"><option value="">— niciunul —</option></select></div>
         <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#94a3b8;margin-bottom:6px;cursor:pointer;"><input type="checkbox" id="taskFollowUp"> Necesită follow-up (rămâne activ vizual chiar finalizat)</label>
         <div class="field" id="taskFollowUpDateWrap" style="margin-bottom:10px;display:none;"><label>Data follow-up</label><input type="text" id="taskFollowUpDate" class="form-input" placeholder="dd/mm/yyyy" maxlength="10"></div>
         <div style="display:flex;gap:8px;">
@@ -669,7 +670,7 @@ let tasks=[]; let taskView='board'; let taskSearchQuery='';
 function taskMatchesSearch(t){
   if(!taskSearchQuery) return true;
   const q=taskSearchQuery.toLowerCase();
-  return [t.title,t.desc,t.assigneeName,t.assigneeSecName,t.assigneeTerName,t.site,t.createdBy].some(v=>v&&v.toLowerCase().includes(q));
+  return [t.title,t.desc,t.assigneeName,t.assigneeSecName,t.assigneeTerName,t.assigneeQuatName,t.site,t.createdBy].some(v=>v&&v.toLowerCase().includes(q));
 }
 function saveTask(t){ if(db) db.ref('solarcrm_v2/pontajTasks/'+t.id).set(t); else { tasks=[t,...tasks.filter(x=>x.id!==t.id)]; renderTasks(); } }
 let pvRecords=[];
@@ -1411,6 +1412,7 @@ document.getElementById('btnPublishPlan').addEventListener('click',()=>{
 
 // ── CERERI TAB (concedii + probleme) ──
 function canApproveLeave(){ return isFullAccess() || (!!currentUser && currentUser.pontajHR===true); }
+function canModifyTask(t){ return isFullAccess() || t.createdBy===currentUser.name || t.assigneeId===currentUser.id || t.assigneeSecId===currentUser.id || t.assigneeTerId===currentUser.id || t.assigneeQuatId===currentUser.id; }
 function canDeleteTasks(){ return isFullAccess(); }
 document.getElementById('taskSearchInput').addEventListener('input',e=>{ taskSearchQuery=e.target.value; renderTasks(); });
 document.querySelectorAll('.task-view-btn').forEach(b=>b.addEventListener('click',()=>{
@@ -1514,7 +1516,7 @@ function renderTaskCard(t,admin){
         ${t.desc&&t.title?`<div data-task-desc="${t.id}" style="display:none;font-size:12px;color:#94a3b8;margin-top:4px;white-space:pre-wrap;">${t.desc}</div>`:''}
         <div style="font-size:11.5px;color:#94a3b8;margin-top:3px;">
           ${t.site?('<span class="badge" style="background:#1e3a5f;color:#93c5fd;">'+t.site+'</span> '):''}
-          către <strong>${t.assigneeName||'—'}</strong>${t.assigneeSecName?(' + <span style="color:#94a3b8;">'+t.assigneeSecName+'</span>'):''}${t.assigneeTerName?(' + <span style="color:#94a3b8;">'+t.assigneeTerName+'</span>'):''} ·
+          către <strong>${t.assigneeName||'—'}</strong>${t.assigneeSecName?(' + <span style="color:#94a3b8;">'+t.assigneeSecName+'</span>'):''}${t.assigneeTerName?(' + <span style="color:#94a3b8;">'+t.assigneeTerName+'</span>'):''}${t.assigneeQuatName?(' + <span style="color:#94a3b8;">'+t.assigneeQuatName+'</span>'):''} ·
           ${(!admin&&t.assigneeId!==currentUser.id&&!t.done&&t.progress)?('<span class="badge badge-amber">'+t.progress+'%</span> '):''}
           atribuit de <strong>${t.createdBy||'—'}</strong> · creat ${t.ts?isoToDmy(new Date(t.ts).toISOString().slice(0,10)):'—'}
           ${t.due?(' · <span style="'+(overdue?'color:#f87171;font-weight:700;':'')+'">termen '+isoToDmy(t.due)+(t.dueTime?' ora '+t.dueTime:'')+'</span>'):''}
@@ -1548,7 +1550,7 @@ function renderTaskCardCompact(t){
         <div data-task-expand="${t.id}" style="font-size:12.5px;font-weight:600;color:${standby?'#f1f5f9':'#0f172a'};cursor:${t.desc?'pointer':'default'};${t.done?'text-decoration:line-through;color:#94a3b8;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏰</span>':''}${t.priority==='standby'?'<span style="background:#94a3b8;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏸</span>':''}${t.title||t.desc||''}${t.desc&&t.title?' <span style="color:'+(standby?'#cbd5e1':'#94a3b8')+';font-size:10px;">▾</span>':''}</div>
         ${t.desc&&t.title?`<div data-task-desc="${t.id}" style="display:none;font-size:11px;color:${standby?'#cbd5e1':'#64748b'};margin-top:3px;white-space:pre-wrap;">${t.desc}</div>`:''}
         ${t.site?`<div style="font-size:10.5px;color:${standby?'#cbd5e1':'#64748b'};margin-top:2px;">${t.site}</div>`:''}
-        <div style="font-size:10.5px;color:${standby?'#cbd5e1':'#64748b'};margin-top:2px;">→ <strong style="color:${standby?'#f1f5f9':'inherit'};">${t.assigneeName||'—'}</strong>${t.assigneeSecName?(' + '+t.assigneeSecName):''}${t.assigneeTerName?(' + '+t.assigneeTerName):''}</div>
+        <div style="font-size:10.5px;color:${standby?'#cbd5e1':'#64748b'};margin-top:2px;">→ <strong style="color:${standby?'#f1f5f9':'inherit'};">${t.assigneeName||'—'}</strong>${t.assigneeSecName?(' + '+t.assigneeSecName):''}${t.assigneeTerName?(' + '+t.assigneeTerName):''}${t.assigneeQuatName?(' + '+t.assigneeQuatName):''}</div>
         ${!t.done?`<div style="margin-top:5px;">
           <select data-task-status="${t.id}" style="font-size:10.5px;padding:2px 5px;border:1px solid ${standby?'#64748b':'#e2e8f0'};border-radius:5px;background:${standby?'#1e293b':'#fff'};color:${standby?'#f1f5f9':'#334155'};">
             <option value="0" ${(!t.progress||t.progress==0)?'selected':''}>Neînceput</option>
@@ -1594,7 +1596,7 @@ function renderTaskSiteView(){
               <div style="display:flex;align-items:center;gap:8px;">
                 <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} style="width:15px;height:15px;cursor:pointer;">
                 <span data-task-expand="${t.id}" style="flex:1;cursor:${t.desc?'pointer':'default'};${t.done?'text-decoration:line-through;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏰</span>':''}${t.priority==='standby'?'<span style="background:#64748b;color:#fff;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏸</span>':''}${t.title||t.desc||''}${t.desc&&t.title?' <span style="color:#94a3b8;font-size:10px;">▾</span>':''}</span>
-                <span style="color:#94a3b8;font-size:11px;">${t.assigneeName||''}${t.assigneeSecName?(' + '+t.assigneeSecName):''}${t.assigneeTerName?(' + '+t.assigneeTerName):''}</span>
+                <span style="color:#94a3b8;font-size:11px;">${t.assigneeName||''}${t.assigneeSecName?(' + '+t.assigneeSecName):''}${t.assigneeTerName?(' + '+t.assigneeTerName):''}${t.assigneeQuatName?(' + '+t.assigneeQuatName):''}</span>
                 ${t.due?`<span style="font-size:10.5px;font-weight:600;color:${overdue?'#f87171':'#94a3b8'};">Termen: ${isoToDmy(t.due)}${t.dueTime?' '+t.dueTime:''}</span>`:''}
                 <span style="font-size:10px;color:#64748b;">creat ${t.ts?isoToDmy(new Date(t.ts).toISOString().slice(0,10)):'—'}</span>
               </div>
@@ -1640,10 +1642,14 @@ function renderTaskBoard(admin){
 }
 function wireTaskEvents(root){
   root.querySelectorAll('input[data-task-done]').forEach(cb=>cb.addEventListener('change',()=>{
-    const t=tasks.find(x=>x.id===cb.dataset.taskDone); if(t){ t.done=cb.checked; if(t.done){ t.progress=100; sendTaskDoneEmail(t); } saveTask(t); renderTasks(); }
+    const t=tasks.find(x=>x.id===cb.dataset.taskDone);
+    if(t && !canModifyTask(t)){ cb.checked=!cb.checked; alert('Doar responsabilii sau inițiatorul acestui task îl pot modifica.'); return; }
+    if(t){ t.done=cb.checked; if(t.done){ t.progress=100; sendTaskDoneEmail(t); } saveTask(t); renderTasks(); }
   }));
   root.querySelectorAll('select[data-task-status]').forEach(sel=>sel.addEventListener('change',()=>{
-    const t=tasks.find(x=>x.id===sel.dataset.taskStatus); if(t){ t.progress=parseInt(sel.value); saveTask(t); renderTasks(); }
+    const t=tasks.find(x=>x.id===sel.dataset.taskStatus);
+    if(t && !canModifyTask(t)){ sel.value=t.progress||0; alert('Doar responsabilii sau inițiatorul acestui task îl pot modifica.'); return; }
+    if(t){ t.progress=parseInt(sel.value); saveTask(t); renderTasks(); }
   }));
   root.querySelectorAll('button[data-task-clearfollowup]').forEach(b=>b.addEventListener('click',()=>{
     const t=tasks.find(x=>x.id===b.dataset.taskClearfollowup); if(t){ t.followUp=false; saveTask(t); renderTasks(); }
@@ -1662,7 +1668,7 @@ function renderTasks(){
   const admin=!!currentUser;
   document.getElementById('taskAssignCard').style.display=admin?'block':'none';
   if(admin){
-    ['taskAssignee2','taskAssigneeSec','taskAssigneeTer'].forEach(id=>{
+    ['taskAssignee2','taskAssigneeSec','taskAssigneeTer','taskAssigneeQuat'].forEach(id=>{
       const sel=document.getElementById(id);
       if(!sel.dataset.filled){
         loginUsers.filter(u=>u.id!=='_admin').forEach(u=>{ const o=document.createElement('option'); o.value=u.id; o.textContent=u.name; sel.appendChild(o); });
@@ -1695,6 +1701,8 @@ document.getElementById('btnSubmitTask').addEventListener('click',()=>{
   const assigneeSecName=(loginUsers.find(u=>u.id===assigneeSecId)||{}).name||'';
   const assigneeTerId=document.getElementById('taskAssigneeTer').value;
   const assigneeTerName=(loginUsers.find(u=>u.id===assigneeTerId)||{}).name||'';
+  const assigneeQuatId=document.getElementById('taskAssigneeQuat').value;
+  const assigneeQuatName=(loginUsers.find(u=>u.id===assigneeQuatId)||{}).name||'';
   const title=document.getElementById('taskTitle').value.trim();
   const desc=document.getElementById('taskDesc').value.trim();
   const dueDmy=document.getElementById('taskDue').value.trim();
@@ -1708,13 +1716,13 @@ document.getElementById('btnSubmitTask').addEventListener('click',()=>{
   if(editingTaskId){
     const t=tasks.find(x=>x.id===editingTaskId);
     if(t){
-      Object.assign(t,{assigneeId,assigneeName,assigneeSecId:assigneeSecId||null,assigneeSecName:assigneeSecName||null,assigneeTerId:assigneeTerId||null,assigneeTerName:assigneeTerName||null,title,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,followUp,followUpDate});
+      Object.assign(t,{assigneeId,assigneeName,assigneeSecId:assigneeSecId||null,assigneeSecName:assigneeSecName||null,assigneeTerId:assigneeTerId||null,assigneeTerName:assigneeTerName||null,assigneeQuatId:assigneeQuatId||null,assigneeQuatName:assigneeQuatName||null,title,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,followUp,followUpDate});
       saveTask(t);
     }
     cancelTaskEdit();
     return;
   }
-  const t={id:'task_'+Date.now(),assigneeId,assigneeName,assigneeSecId:assigneeSecId||null,assigneeSecName:assigneeSecName||null,assigneeTerId:assigneeTerId||null,assigneeTerName:assigneeTerName||null,title,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,followUp,followUpDate,done:false,ts:Date.now(),createdBy:currentUser.name};
+  const t={id:'task_'+Date.now(),assigneeId,assigneeName,assigneeSecId:assigneeSecId||null,assigneeSecName:assigneeSecName||null,assigneeTerId:assigneeTerId||null,assigneeTerName:assigneeTerName||null,assigneeQuatId:assigneeQuatId||null,assigneeQuatName:assigneeQuatName||null,title,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,followUp,followUpDate,done:false,ts:Date.now(),createdBy:currentUser.name};
   saveTask(t);
   sendTaskEmail(t,assignee);
   document.getElementById('taskSite').value='';
@@ -1723,7 +1731,7 @@ document.getElementById('btnSubmitTask').addEventListener('click',()=>{
   document.getElementById('taskFollowUpDate').value='';
   document.getElementById('taskFollowUpDateWrap').style.display='none';
   document.getElementById('taskTitle').value='';
-  document.getElementById('taskAssigneeSec').value=''; document.getElementById('taskAssigneeTer').value='';
+  document.getElementById('taskAssigneeSec').value=''; document.getElementById('taskAssigneeTer').value=''; document.getElementById('taskAssigneeQuat').value='';
   document.getElementById('taskDesc').value=''; document.getElementById('taskDue').value=''; document.getElementById('taskDueTime').value='';
 });
 function openTaskEdit(id){
@@ -1733,6 +1741,7 @@ function openTaskEdit(id){
   document.getElementById('taskAssignee2').value=t.assigneeId||'';
   document.getElementById('taskAssigneeSec').value=t.assigneeSecId||'';
   document.getElementById('taskAssigneeTer').value=t.assigneeTerId||'';
+  document.getElementById('taskAssigneeQuat').value=t.assigneeQuatId||'';
   document.getElementById('taskTitle').value=t.title||t.desc||'';
   document.getElementById('taskDesc').value=t.title?(t.desc||''):'';
   document.getElementById('taskDue').value=t.due?isoToDmy(t.due):'';
@@ -1755,7 +1764,7 @@ function cancelTaskEdit(){
   document.getElementById('taskFollowUpDate').value='';
   document.getElementById('taskFollowUpDateWrap').style.display='none';
   document.getElementById('taskTitle').value='';
-  document.getElementById('taskAssigneeSec').value=''; document.getElementById('taskAssigneeTer').value='';
+  document.getElementById('taskAssigneeSec').value=''; document.getElementById('taskAssigneeTer').value=''; document.getElementById('taskAssigneeQuat').value='';
   document.getElementById('taskDesc').value=''; document.getElementById('taskDue').value=''; document.getElementById('taskDueTime').value='';
   document.getElementById('btnSubmitTask').textContent='Atribuie task';
   document.getElementById('btnCancelEditTask').style.display='none';
