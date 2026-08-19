@@ -273,6 +273,7 @@ a:hover{color:#fbbf24;}
             <button data-task-view="site" class="task-view-btn" style="padding:5px 12px;border:none;border-radius:6px;background:transparent;color:#94a3b8;font-size:11.5px;font-weight:700;cursor:pointer;">Pe șantier</button>
           </div>
         </div>
+        <input type="text" id="taskSearchInput" placeholder="🔍 Caută task după titlu, descriere sau nume..." style="width:100%;padding:8px 12px;border:1px solid #334155;border-radius:8px;background:#0f172a;color:#f1f5f9;font-size:12.5px;margin-bottom:10px;outline:none;" />
         <div id="taskCalendarView" style="display:none;"></div>
         <div id="taskList" style="display:none;"></div>
         <div id="taskBoard" style="display:flex;overflow-x:scroll;padding-bottom:10px;scrollbar-width:auto;scrollbar-color:#64748b #1e293b;"></div>
@@ -664,7 +665,12 @@ let leaveReqs=[], probReports=[];
 const LEAVE_LABELS={CO:'Concediu de odihnă',CM:'Concediu medical',IV:'Învoire / liber o zi',LN:'Liber neplătit'};
 function saveLeave(l){ if(db) db.ref('solarcrm_v2/pontajLeave/'+l.id).set(l); else { leaveReqs=[l,...leaveReqs.filter(x=>x.id!==l.id)]; renderCereri(); } }
 function saveProb(p){ if(db) db.ref('solarcrm_v2/pontajProbs/'+p.id).set(p); else { probReports=[p,...probReports.filter(x=>x.id!==p.id)]; renderCereri(); } }
-let tasks=[]; let taskView='board';
+let tasks=[]; let taskView='board'; let taskSearchQuery='';
+function taskMatchesSearch(t){
+  if(!taskSearchQuery) return true;
+  const q=taskSearchQuery.toLowerCase();
+  return [t.title,t.desc,t.assigneeName,t.assigneeSecName,t.assigneeTerName,t.site,t.createdBy].some(v=>v&&v.toLowerCase().includes(q));
+}
 function saveTask(t){ if(db) db.ref('solarcrm_v2/pontajTasks/'+t.id).set(t); else { tasks=[t,...tasks.filter(x=>x.id!==t.id)]; renderTasks(); } }
 let pvRecords=[];
 function savePv(pv){ if(db) db.ref('solarcrm_v2/pontajPv/'+pv.id).set(pv); else { pvRecords=[pv,...pvRecords.filter(x=>x.id!==pv.id)]; renderPv(); } }
@@ -1406,6 +1412,7 @@ document.getElementById('btnPublishPlan').addEventListener('click',()=>{
 // ── CERERI TAB (concedii + probleme) ──
 function canApproveLeave(){ return isFullAccess() || (!!currentUser && currentUser.pontajHR===true); }
 function canDeleteTasks(){ return isFullAccess(); }
+document.getElementById('taskSearchInput').addEventListener('input',e=>{ taskSearchQuery=e.target.value; renderTasks(); });
 document.querySelectorAll('.task-view-btn').forEach(b=>b.addEventListener('click',()=>{
   taskView=b.dataset.taskView;
   document.querySelectorAll('.task-view-btn').forEach(x=>{ x.style.background=x.dataset.taskView===taskView?'#334155':'transparent'; x.style.color=x.dataset.taskView===taskView?'#fff':'#94a3b8'; });
@@ -1420,27 +1427,71 @@ document.getElementById('taskFollowUp').addEventListener('change',e=>{
 });
 function renderTaskCalendar(){
   const view=document.getElementById('taskCalendarView');
+  if(!window._taskCalMonth) window._taskCalMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
+  if(window._taskCalSelectedDate===undefined) window._taskCalSelectedDate=null;
+  const cal=window._taskCalMonth;
+  const y=cal.getFullYear(), m=cal.getMonth();
+  const MONTHS=['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'];
   const byDate={};
   tasks.forEach(t=>{
     if(t.due){ (byDate[t.due]=byDate[t.due]||[]).push(t); }
     if(t.followUpDate){ (byDate[t.followUpDate]=byDate[t.followUpDate]||[]).push(Object.assign({},t,{_isFollowUp:true})); }
   });
-  const dates=Object.keys(byDate).sort();
-  if(!dates.length){ view.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun task cu termen sau follow-up programat.</div>'; return; }
-  view.innerHTML=dates.map(d=>{
-    const items=byDate[d];
-    const overdue=d<todayISO();
-    return `<div style="margin-bottom:14px;border:1px solid #1e293b;border-radius:10px;overflow:hidden;">
-      <div style="padding:8px 14px;background:${overdue?'#3a1e1e':'#1e293b'};font-size:12.5px;font-weight:700;color:${overdue?'#fca5a5':'#cbd5e1'};">${isoToDmy(d)}${overdue?' · restanțe':''}</div>
-      <div style="padding:8px 14px;">
-        ${items.map(t=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12.5px;${t.done&&!t._isFollowUp?'opacity:.5;text-decoration:line-through;':''}">
-          ${t._isFollowUp?'<span style="background:#f59e0b;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;">⏰ FOLLOW-UP</span>':''}
-          <span style="flex:1;color:#f1f5f9;">${t.title||t.desc||''}</span>
-          <span style="color:#94a3b8;font-size:11px;">${t.assigneeName||''}</span>
-        </div>`).join('')}
-      </div>
-    </div>`;
-  }).join('');
+  const firstDay=new Date(y,m,1);
+  const startOffset=(firstDay.getDay()+6)%7; // Monday=0
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const daysInPrevMonth=new Date(y,m,0).getDate();
+  const todayIso=todayISO();
+  let cells=[];
+  for(let i=0;i<startOffset;i++) cells.push({day:daysInPrevMonth-startOffset+i+1,otherMonth:true});
+  for(let d=1;d<=daysInMonth;d++){
+    const iso=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    cells.push({day:d,iso,count:(byDate[iso]||[]).length,isToday:iso===todayIso,overdue:iso<todayIso&&(byDate[iso]||[]).some(t=>!t.done)});
+  }
+  let nextDay=1;
+  while(cells.length%7!==0){ cells.push({day:nextDay++,otherMonth:true}); }
+  view.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <button id="calPrevMonth" style="background:none;border:none;color:#94a3b8;font-size:16px;cursor:pointer;">‹</button>
+      <div style="font-size:13.5px;font-weight:700;color:#f1f5f9;">${MONTHS[m]} ${y}</div>
+      <button id="calNextMonth" style="background:none;border:none;color:#94a3b8;font-size:16px;cursor:pointer;">›</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:14px;">
+      ${['L','Ma','Mi','J','V','S','D'].map(d=>`<div style="text-align:center;font-size:10.5px;color:#64748b;font-weight:700;">${d}</div>`).join('')}
+      ${cells.map(c=>{
+        if(c.otherMonth) return `<div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;color:#334155;font-size:12px;">${c.day}</div>`;
+        const selected=window._taskCalSelectedDate===c.iso;
+        return `<div data-cal-day="${c.iso}" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:8px;cursor:pointer;background:${selected?'#2563eb':c.isToday?'#334155':'transparent'};color:${selected?'#fff':c.overdue?'#fca5a5':'#f1f5f9'};font-size:12px;font-weight:${c.isToday||selected?'700':'400'};">
+          ${c.day}
+          ${c.count?`<span style="width:5px;height:5px;border-radius:50%;background:${c.overdue?'#f87171':'#f59e0b'};"></span>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+    <div id="calSelectedTasks"></div>
+  `;
+  document.getElementById('calPrevMonth').addEventListener('click',()=>{ window._taskCalMonth=new Date(y,m-1,1); renderTaskCalendar(); });
+  document.getElementById('calNextMonth').addEventListener('click',()=>{ window._taskCalMonth=new Date(y,m+1,1); renderTaskCalendar(); });
+  view.querySelectorAll('[data-cal-day]').forEach(el=>el.addEventListener('click',()=>{
+    window._taskCalSelectedDate=window._taskCalSelectedDate===el.dataset.calDay?null:el.dataset.calDay;
+    renderTaskCalendar();
+  }));
+  const sel=window._taskCalSelectedDate;
+  const box=document.getElementById('calSelectedTasks');
+  if(!sel){ box.innerHTML='<div style="color:#475569;font-size:12px;text-align:center;">Selectează o zi pentru a vedea task-urile.</div>'; return; }
+  const items=byDate[sel]||[];
+  if(!items.length){ box.innerHTML='<div style="color:#475569;font-size:12px;text-align:center;">Niciun task în această zi.</div>'; return; }
+  box.innerHTML=`<div style="font-size:12px;font-weight:700;color:#cbd5e1;margin-bottom:8px;">${isoToDmy(sel)}</div>` + items.map(t=>`<div style="display:flex;flex-direction:column;gap:2px;padding:6px 0;border-top:1px solid #1e293b;font-size:12.5px;${t.done&&!t._isFollowUp?'opacity:.5;':''}">
+    <div style="display:flex;align-items:center;gap:8px;">
+      ${t._isFollowUp?'<span style="background:#f59e0b;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;">⏰ FOLLOW-UP</span>':''}
+      <span data-task-expand="${t.id}_cal" style="flex:1;color:#f1f5f9;cursor:${t.desc?'pointer':'default'};${t.done&&!t._isFollowUp?'text-decoration:line-through;':''}">${t.title||t.desc||''}${t.desc&&t.title?' <span style="color:#94a3b8;font-size:10px;">▾</span>':''}</span>
+      <span style="color:#94a3b8;font-size:11px;">${t.assigneeName||''}</span>
+    </div>
+    ${t.desc&&t.title?`<div data-task-desc="${t.id}_cal" style="display:none;font-size:11px;color:#94a3b8;white-space:pre-wrap;">${t.desc}</div>`:''}
+  </div>`).join('');
+  box.querySelectorAll('[data-task-expand]').forEach(el=>el.addEventListener('click',()=>{
+    const desc=box.querySelector('[data-task-desc="'+el.dataset.taskExpand+'"]');
+    if(desc) desc.style.display=desc.style.display==='none'?'block':'none';
+  }));
 }
 function renderTaskCard(t,admin){
   const overdue=!t.done && t.due && t.due<todayISO();
@@ -1512,7 +1563,7 @@ const CHAPTER_COLORS={'Șantier - Execuție':{bg:'#1e3a5f',fg:'#93c5fd'},'Docume
 function renderTaskSiteView(){
   const view=document.getElementById('taskSiteView');
   const bySite={};
-  tasks.filter(t=>t.site).forEach(t=>{ (bySite[t.site]=bySite[t.site]||[]).push(t); });
+  tasks.filter(taskMatchesSearch).forEach(t=>{ (bySite[t.site||'Fără șantier']=bySite[t.site||'Fără șantier']||[]).push(t); });
   const sites=Object.keys(bySite).sort();
   if(!sites.length){ view.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun task legat de un șantier. Completează câmpul „Șantier / proiect" la atribuire.</div>'; return; }
   view.innerHTML=sites.map(site=>{
@@ -1558,7 +1609,7 @@ function renderTaskSiteView(){
 function renderTaskBoard(admin){
   const board=document.getElementById('taskBoard');
   const byUser={};
-  tasks.forEach(t=>{ (byUser[t.assigneeId]=byUser[t.assigneeId]||{name:t.assigneeName,items:[]}).items.push(t); });
+  tasks.filter(taskMatchesSearch).forEach(t=>{ (byUser[t.assigneeId]=byUser[t.assigneeId]||{name:t.assigneeName,items:[]}).items.push(t); });
   const ids=Object.keys(byUser).sort((a,b)=>(byUser[a].name||'').localeCompare(byUser[b].name||''));
   if(!ids.length){ board.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun task.</div>'; return; }
   board.innerHTML=ids.map(id=>{
@@ -1609,7 +1660,7 @@ function renderTasks(){
   if(taskView==='board'){ document.getElementById('taskBoard').style.display='flex'; renderTaskBoard(admin); updateTaskBadge(); return; }
   if(taskView==='site'){ document.getElementById('taskSiteView').style.display='block'; renderTaskSiteView(); updateTaskBadge(); return; }
   if(taskView==='calendar'){ document.getElementById('taskCalendarView').style.display='block'; renderTaskCalendar(); updateTaskBadge(); return; }
-  const mine=tasks;
+  const mine=tasks.filter(taskMatchesSearch);
   const wrap=document.getElementById('taskList');
   if(!mine.length){ wrap.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun task.</div>'; updateTaskBadge(); return; }
   const sorted=[...mine].sort((a,b)=>(a.done===b.done?0:a.done?1:-1)||(b.ts||0)-(a.ts||0));
