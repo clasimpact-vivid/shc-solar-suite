@@ -1728,6 +1728,7 @@ document.getElementById('btnSubmitTask').addEventListener('click',()=>{
 });
 function openTaskEdit(id){
   const t=tasks.find(x=>x.id===id); if(!t) return;
+  if(t.createdBy!==currentUser.name && !isFullAccess()){ alert('Doar '+(t.createdBy||'inițiatorul')+' poate edita acest task.'); return; }
   editingTaskId=id;
   document.getElementById('taskAssignee2').value=t.assigneeId||'';
   document.getElementById('taskAssigneeSec').value=t.assigneeSecId||'';
