@@ -1511,7 +1511,7 @@ function renderTaskCard(t,admin){
           ${t.site?('<span class="badge" style="background:#1e3a5f;color:#93c5fd;">'+t.site+'</span> '):''}
           către <strong>${t.assigneeName||'—'}</strong>${t.assigneeSecName?(' + <span style="color:#94a3b8;">'+t.assigneeSecName+'</span>'):''}${t.assigneeTerName?(' + <span style="color:#94a3b8;">'+t.assigneeTerName+'</span>'):''} ·
           ${(!admin&&t.assigneeId!==currentUser.id&&!t.done&&t.progress)?('<span class="badge badge-amber">'+t.progress+'%</span> '):''}
-          atribuit de <strong>${t.createdBy||'—'}</strong>
+          atribuit de <strong>${t.createdBy||'—'}</strong> · creat ${t.ts?isoToDmy(new Date(t.ts).toISOString().slice(0,10)):'—'}
           ${t.due?(' · <span style="'+(overdue?'color:#f87171;font-weight:700;':'')+'">termen '+isoToDmy(t.due)+(t.dueTime?' ora '+t.dueTime:'')+'</span>'):''}
           ${urgent?' · <span style="color:#f87171;font-weight:700;">URGENT</span>':''}
         </div>
@@ -1556,6 +1556,7 @@ function renderTaskCard(t,admin){
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;">
           ${t.due?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:600;color:${overdue?'#b91c1c':'#78350f'};background:${overdue?'#fee2e2':'#fef3c7'};padding:2px 7px;border-radius:999px;">🕐 Termen: ${isoToDmy(t.due)}${t.dueTime?' '+t.dueTime:''}</span>`:''}
           ${t.priority==='urgent'?`<span style="font-size:10.5px;font-weight:700;color:#b91c1c;background:#fee2e2;padding:2px 7px;border-radius:999px;">Urgent</span>`:''}
+          <span style="font-size:10px;color:${standby?'#cbd5e1':'#94a3b8'};">creat ${t.ts?isoToDmy(new Date(t.ts).toISOString().slice(0,10)):'—'}</span>
         </div>
       </div>
       ${canDeleteTasks()?`<button data-task-del="${t.id}" style="background:none;border:none;color:#cbd5e1;cursor:pointer;font-size:13px;flex-shrink:0;">✕</button>`:''}
@@ -1588,6 +1589,7 @@ function renderTaskSiteView(){
                 <span data-task-expand="${t.id}" style="flex:1;cursor:${t.desc?'pointer':'default'};${t.done?'text-decoration:line-through;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏰</span>':''}${t.priority==='standby'?'<span style="background:#64748b;color:#fff;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏸</span>':''}${t.title||t.desc||''}${t.desc&&t.title?' <span style="color:#94a3b8;font-size:10px;">▾</span>':''}</span>
                 <span style="color:#94a3b8;font-size:11px;">${t.assigneeName||''}${t.assigneeSecName?(' + '+t.assigneeSecName):''}${t.assigneeTerName?(' + '+t.assigneeTerName):''}</span>
                 ${t.due?`<span style="font-size:10.5px;font-weight:600;color:${overdue?'#f87171':'#94a3b8'};">Termen: ${isoToDmy(t.due)}${t.dueTime?' '+t.dueTime:''}</span>`:''}
+                <span style="font-size:10px;color:#64748b;">creat ${t.ts?isoToDmy(new Date(t.ts).toISOString().slice(0,10)):'—'}</span>
               </div>
               ${t.desc&&t.title?`<div data-task-desc="${t.id}" style="display:none;padding-left:23px;font-size:11px;color:#94a3b8;margin-top:2px;white-space:pre-wrap;">${t.desc}</div>`:''}
               ${!t.done?`<div style="padding-left:23px;">
