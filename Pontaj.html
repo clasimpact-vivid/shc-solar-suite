@@ -256,7 +256,8 @@ a:hover{color:#fbbf24;}
           <div class="field"><label>Responsabil secundar (opțional)</label><select id="taskAssigneeSec" class="form-select"><option value="">— niciunul —</option></select></div>
         </div>
         <div class="field" style="margin-bottom:10px;"><label>Responsabil terțiar (opțional)</label><select id="taskAssigneeTer" class="form-select"><option value="">— niciunul —</option></select></div>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#94a3b8;margin-bottom:10px;cursor:pointer;"><input type="checkbox" id="taskFollowUp"> Necesită follow-up (rămâne activ vizual chiar finalizat)</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#94a3b8;margin-bottom:6px;cursor:pointer;"><input type="checkbox" id="taskFollowUp"> Necesită follow-up (rămâne activ vizual chiar finalizat)</label>
+        <div class="field" id="taskFollowUpDateWrap" style="margin-bottom:10px;display:none;"><label>Data follow-up</label><input type="text" id="taskFollowUpDate" class="form-input" placeholder="dd/mm/yyyy" maxlength="10"></div>
         <div style="display:flex;gap:8px;">
           <button class="btn btn-sm" id="btnSubmitTask" style="background:#f59e0b;color:#fff;">Atribuie task</button>
           <button class="btn btn-sm" id="btnCancelEditTask" style="display:none;background:#334155;color:#fff;">Anulează editarea</button>
@@ -266,11 +267,13 @@ a:hover{color:#fbbf24;}
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
           <div class="section-title" style="margin:0;">Task-uri</div>
           <div id="taskViewToggle" style="display:flex;gap:4px;background:#0f172a;border-radius:8px;padding:3px;">
+            <button data-task-view="calendar" class="task-view-btn" style="padding:5px 12px;border:none;border-radius:6px;background:transparent;color:#94a3b8;font-size:11.5px;font-weight:700;cursor:pointer;">Calendar</button>
             <button data-task-view="list" class="task-view-btn" style="padding:5px 12px;border:none;border-radius:6px;background:transparent;color:#94a3b8;font-size:11.5px;font-weight:700;cursor:pointer;">Listă</button>
             <button data-task-view="board" class="task-view-btn" style="padding:5px 12px;border:none;border-radius:6px;background:#334155;color:#fff;font-size:11.5px;font-weight:700;cursor:pointer;">Pe echipă</button>
             <button data-task-view="site" class="task-view-btn" style="padding:5px 12px;border:none;border-radius:6px;background:transparent;color:#94a3b8;font-size:11.5px;font-weight:700;cursor:pointer;">Pe șantier</button>
           </div>
         </div>
+        <div id="taskCalendarView" style="display:none;"></div>
         <div id="taskList" style="display:none;"></div>
         <div id="taskBoard" style="display:flex;overflow-x:scroll;padding-bottom:10px;scrollbar-width:auto;scrollbar-color:#64748b #1e293b;"></div>
         <style>#taskBoard::-webkit-scrollbar{height:16px;} #taskBoard::-webkit-scrollbar-thumb{background:#64748b;border-radius:8px;border:3px solid #1e293b;} #taskBoard::-webkit-scrollbar-track{background:#1e293b;}</style>
@@ -1409,8 +1412,36 @@ document.querySelectorAll('.task-view-btn').forEach(b=>b.addEventListener('click
   document.getElementById('taskList').style.display=taskView==='list'?'block':'none';
   document.getElementById('taskBoard').style.display=taskView==='board'?'flex':'none';
   document.getElementById('taskSiteView').style.display=taskView==='site'?'block':'none';
+  document.getElementById('taskCalendarView').style.display=taskView==='calendar'?'block':'none';
   renderTasks();
 }));
+document.getElementById('taskFollowUp').addEventListener('change',e=>{
+  document.getElementById('taskFollowUpDateWrap').style.display=e.target.checked?'block':'none';
+});
+function renderTaskCalendar(){
+  const view=document.getElementById('taskCalendarView');
+  const byDate={};
+  tasks.forEach(t=>{
+    if(t.due){ (byDate[t.due]=byDate[t.due]||[]).push(t); }
+    if(t.followUpDate){ (byDate[t.followUpDate]=byDate[t.followUpDate]||[]).push(Object.assign({},t,{_isFollowUp:true})); }
+  });
+  const dates=Object.keys(byDate).sort();
+  if(!dates.length){ view.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun task cu termen sau follow-up programat.</div>'; return; }
+  view.innerHTML=dates.map(d=>{
+    const items=byDate[d];
+    const overdue=d<todayISO();
+    return `<div style="margin-bottom:14px;border:1px solid #1e293b;border-radius:10px;overflow:hidden;">
+      <div style="padding:8px 14px;background:${overdue?'#3a1e1e':'#1e293b'};font-size:12.5px;font-weight:700;color:${overdue?'#fca5a5':'#cbd5e1'};">${isoToDmy(d)}${overdue?' · restanțe':''}</div>
+      <div style="padding:8px 14px;">
+        ${items.map(t=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12.5px;${t.done&&!t._isFollowUp?'opacity:.5;text-decoration:line-through;':''}">
+          ${t._isFollowUp?'<span style="background:#f59e0b;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;">⏰ FOLLOW-UP</span>':''}
+          <span style="flex:1;color:#f1f5f9;">${t.title||t.desc||''}</span>
+          <span style="color:#94a3b8;font-size:11px;">${t.assigneeName||''}</span>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
 function renderTaskCard(t,admin){
   const overdue=!t.done && t.due && t.due<todayISO();
   const urgent=t.priority==='urgent';
@@ -1577,6 +1608,7 @@ function renderTasks(){
   }
   if(taskView==='board'){ document.getElementById('taskBoard').style.display='flex'; renderTaskBoard(admin); updateTaskBadge(); return; }
   if(taskView==='site'){ document.getElementById('taskSiteView').style.display='block'; renderTaskSiteView(); updateTaskBadge(); return; }
+  if(taskView==='calendar'){ document.getElementById('taskCalendarView').style.display='block'; renderTaskCalendar(); updateTaskBadge(); return; }
   const mine=tasks;
   const wrap=document.getElementById('taskList');
   if(!mine.length){ wrap.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun task.</div>'; updateTaskBadge(); return; }
@@ -1605,22 +1637,26 @@ document.getElementById('btnSubmitTask').addEventListener('click',()=>{
   const dueTime=document.getElementById('taskDueTime').value.trim();
   const priority=document.getElementById('taskPriority').value;
   const followUp=document.getElementById('taskFollowUp').checked;
+  const followUpDateDmy=document.getElementById('taskFollowUpDate').value.trim();
+  const followUpDate=followUp&&followUpDateDmy?dmyToIso(followUpDateDmy):null;
   if(!assigneeId||!title){ alert('Completează colegul și titlul task-ului.'); return; }
   if(editingTaskId){
     const t=tasks.find(x=>x.id===editingTaskId);
     if(t){
-      Object.assign(t,{assigneeId,assigneeName,assigneeSecId:assigneeSecId||null,assigneeSecName:assigneeSecName||null,assigneeTerId:assigneeTerId||null,assigneeTerName:assigneeTerName||null,title,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,followUp});
+      Object.assign(t,{assigneeId,assigneeName,assigneeSecId:assigneeSecId||null,assigneeSecName:assigneeSecName||null,assigneeTerId:assigneeTerId||null,assigneeTerName:assigneeTerName||null,title,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,followUp,followUpDate});
       saveTask(t);
     }
     cancelTaskEdit();
     return;
   }
-  const t={id:'task_'+Date.now(),assigneeId,assigneeName,assigneeSecId:assigneeSecId||null,assigneeSecName:assigneeSecName||null,assigneeTerId:assigneeTerId||null,assigneeTerName:assigneeTerName||null,title,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,followUp,done:false,ts:Date.now(),createdBy:currentUser.name};
+  const t={id:'task_'+Date.now(),assigneeId,assigneeName,assigneeSecId:assigneeSecId||null,assigneeSecName:assigneeSecName||null,assigneeTerId:assigneeTerId||null,assigneeTerName:assigneeTerName||null,title,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,followUp,followUpDate,done:false,ts:Date.now(),createdBy:currentUser.name};
   saveTask(t);
   sendTaskEmail(t,assignee);
   document.getElementById('taskSite').value='';
   document.getElementById('taskChapter').value='';
   document.getElementById('taskFollowUp').checked=false;
+  document.getElementById('taskFollowUpDate').value='';
+  document.getElementById('taskFollowUpDateWrap').style.display='none';
   document.getElementById('taskTitle').value='';
   document.getElementById('taskAssigneeSec').value=''; document.getElementById('taskAssigneeTer').value='';
   document.getElementById('taskDesc').value=''; document.getElementById('taskDue').value=''; document.getElementById('taskDueTime').value='';
@@ -1639,6 +1675,8 @@ function openTaskEdit(id){
   document.getElementById('taskSite').value=t.site||'';
   document.getElementById('taskChapter').value=t.chapter||'';
   document.getElementById('taskFollowUp').checked=!!t.followUp;
+  document.getElementById('taskFollowUpDateWrap').style.display=t.followUp?'block':'none';
+  document.getElementById('taskFollowUpDate').value=t.followUpDate?isoToDmy(t.followUpDate):'';
   document.getElementById('btnSubmitTask').textContent='Salvează modificările';
   document.getElementById('btnCancelEditTask').style.display='inline-block';
   document.getElementById('taskAssignCard').scrollIntoView({block:'center'});
@@ -1648,6 +1686,8 @@ function cancelTaskEdit(){
   document.getElementById('taskSite').value='';
   document.getElementById('taskChapter').value='';
   document.getElementById('taskFollowUp').checked=false;
+  document.getElementById('taskFollowUpDate').value='';
+  document.getElementById('taskFollowUpDateWrap').style.display='none';
   document.getElementById('taskTitle').value='';
   document.getElementById('taskAssigneeSec').value=''; document.getElementById('taskAssigneeTer').value='';
   document.getElementById('taskDesc').value=''; document.getElementById('taskDue').value=''; document.getElementById('taskDueTime').value='';
