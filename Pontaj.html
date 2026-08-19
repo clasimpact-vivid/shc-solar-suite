@@ -1445,16 +1445,16 @@ function renderTaskCard(t,admin){
 }function renderTaskCardCompact(t){
   const overdue=!t.done && t.due && t.due<todayISO();
   const standby=t.priority==='standby';
-  return `<div data-task-card="${t.id}" style="background:${standby?'#94a3b8':'#fff'};border:1px solid ${standby?'#475569':'#e2e8f0'};${standby?'border-left:4px solid #1e293b;':''}border-radius:8px;padding:9px 10px;margin-bottom:7px;cursor:${t.assigneeId===currentUser.id&&!t.done?'pointer':'default'};">
+  return `<div data-task-card="${t.id}" style="background:${standby?'#334155':'#fff'};border:1px solid ${standby?'#1e293b':'#e2e8f0'};${standby?'border-left:4px solid #cbd5e1;':''}border-radius:8px;padding:9px 10px;margin-bottom:7px;cursor:${t.assigneeId===currentUser.id&&!t.done?'pointer':'default'};">
     <div style="display:flex;align-items:flex-start;gap:7px;">
       <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} style="margin-top:2px;width:15px;height:15px;flex-shrink:0;cursor:pointer;">
       <div style="flex:1;min-width:0;">
-        <div data-task-expand="${t.id}" style="font-size:12.5px;font-weight:600;color:#0f172a;cursor:${t.desc?'pointer':'default'};${t.done?'text-decoration:line-through;color:#94a3b8;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏰</span>':''}${t.priority==='standby'?'<span style="background:#64748b;color:#fff;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏸</span>':''}${t.title||t.desc||''}${t.desc&&t.title?' <span style="color:#94a3b8;font-size:10px;">▾</span>':''}</div>
-        ${t.desc&&t.title?`<div data-task-desc="${t.id}" style="display:none;font-size:11px;color:#64748b;margin-top:3px;white-space:pre-wrap;">${t.desc}</div>`:''}
-        ${t.site?`<div style="font-size:10.5px;color:#64748b;margin-top:2px;">${t.site}</div>`:''}
-        <div style="font-size:10.5px;color:#64748b;margin-top:2px;">→ <strong>${t.assigneeName||'—'}</strong>${t.assigneeSecName?(' + '+t.assigneeSecName):''}${t.assigneeTerName?(' + '+t.assigneeTerName):''}</div>
+        <div data-task-expand="${t.id}" style="font-size:12.5px;font-weight:600;color:${standby?'#f1f5f9':'#0f172a'};cursor:${t.desc?'pointer':'default'};${t.done?'text-decoration:line-through;color:#94a3b8;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏰</span>':''}${t.priority==='standby'?'<span style="background:#94a3b8;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏸</span>':''}${t.title||t.desc||''}${t.desc&&t.title?' <span style="color:'+(standby?'#cbd5e1':'#94a3b8')+';font-size:10px;">▾</span>':''}</div>
+        ${t.desc&&t.title?`<div data-task-desc="${t.id}" style="display:none;font-size:11px;color:${standby?'#cbd5e1':'#64748b'};margin-top:3px;white-space:pre-wrap;">${t.desc}</div>`:''}
+        ${t.site?`<div style="font-size:10.5px;color:${standby?'#cbd5e1':'#64748b'};margin-top:2px;">${t.site}</div>`:''}
+        <div style="font-size:10.5px;color:${standby?'#cbd5e1':'#64748b'};margin-top:2px;">→ <strong style="color:${standby?'#f1f5f9':'inherit'};">${t.assigneeName||'—'}</strong>${t.assigneeSecName?(' + '+t.assigneeSecName):''}${t.assigneeTerName?(' + '+t.assigneeTerName):''}</div>
         ${!t.done?`<div style="margin-top:5px;">
-          <select data-task-status="${t.id}" style="font-size:10.5px;padding:2px 5px;border:1px solid #e2e8f0;border-radius:5px;background:#fff;color:#334155;">
+          <select data-task-status="${t.id}" style="font-size:10.5px;padding:2px 5px;border:1px solid ${standby?'#64748b':'#e2e8f0'};border-radius:5px;background:${standby?'#1e293b':'#fff'};color:${standby?'#f1f5f9':'#334155'};">
             <option value="0" ${(!t.progress||t.progress==0)?'selected':''}>Neînceput</option>
             <option value="25" ${t.progress==25?'selected':''}>25%</option>
             <option value="50" ${t.progress==50?'selected':''}>50%</option>
