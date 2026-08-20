@@ -2053,6 +2053,12 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
   }
   let csv=(exportAll?'Angajat,':'')+'Data,Tip zi,Intrare,Ora intrare,Editat,Ieșire,Ora ieșire,Editat,Ore lucrate,Deplasare (km)\n';
   let workedDays=0, leaveDaysCount=0;
+  const perUser={};
+  function bumpUser(userId,field,amt){
+    const name=getUserById(userId)?.name||userId;
+    perUser[userId]=perUser[userId]||{name,worked:0,leave:0,hours:0,km:0};
+    perUser[userId][field]+=amt;
+  }
   mine.forEach(r=>{
     let hrs='';
     if(r.checkIn&&r.checkOut){
@@ -2061,8 +2067,9 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
     }
     const lvType=leaveTypeFor(r.date,r.userId);
     const tipZi = r.checkIn ? 'Lucrat' : (lvType || 'Absent');
-    if(r.checkIn) workedDays++; else if(lvType) leaveDaysCount++;
+    if(r.checkIn){ workedDays++; bumpUser(r.userId,'worked',1); if(hrs) bumpUser(r.userId,'hours',parseFloat(hrs)); } else if(lvType){ leaveDaysCount++; bumpUser(r.userId,'leave',1); }
     const dist = r.checkIn&&r.checkIn.distKm!=null ? r.checkIn.distKm : '';
+    if(dist) bumpUser(r.userId,'km',parseFloat(dist)||0);
     csv+=(exportAll?(getUserById(r.userId)?.name||r.userId)+',':'')+[isoToDmy(r.date), tipZi, r.checkIn?'Da':'Nu', r.checkIn?r.checkIn.time:'', r.checkIn&&r.checkIn.editedManually?'Da':'Nu', r.checkOut?'Da':'Nu', r.checkOut?r.checkOut.time:'', r.checkOut&&r.checkOut.editedManually?'Da':'Nu', hrs, dist].join(',')+'\n';
   });
   // Zile de concediu aprobate care nu au niciun record de pontaj (ex: concediu întreaga zi, fără logare)
@@ -2082,6 +2089,13 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
   csv+='\nSumar pentru tichete de masă,,,,,,,,,\n';
   csv+='Zile lucrate,'+workedDays+'\n';
   csv+='Zile de concediu/învoire,'+leaveDaysCount+'\n';
+  if(exportAll){
+    csv+='\nTotaluri per angajat,,,,,,,,,\n';
+    csv+='Angajat,Zile lucrate,Zile concediu/învoire,Ore lucrate,Deplasare totală (km)\n';
+    Object.values(perUser).sort((a,b)=>a.name.localeCompare(b.name)).forEach(p=>{
+      csv+=[p.name,p.worked,p.leave,p.hours.toFixed(2),p.km.toFixed(0)].join(',')+'\n';
+    });
+  }
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
