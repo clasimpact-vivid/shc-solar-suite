@@ -279,8 +279,9 @@ a:hover{color:#fbbf24;}
         <input type="text" id="taskSearchInput" placeholder="🔍 Caută task după titlu, descriere sau nume..." style="width:100%;padding:8px 12px;border:1px solid #334155;border-radius:8px;background:#0f172a;color:#f1f5f9;font-size:12.5px;margin-bottom:10px;outline:none;" />
         <div id="taskCalendarView" style="display:none;"></div>
         <div id="taskList" style="display:none;"></div>
+        <div id="taskBoardScrollTop" style="overflow-x:scroll;overflow-y:hidden;height:16px;margin-bottom:2px;"><div id="taskBoardScrollTopInner" style="height:1px;"></div></div>
         <div id="taskBoard" style="display:flex;overflow-x:scroll;padding-bottom:10px;scrollbar-width:auto;scrollbar-color:#64748b #1e293b;"></div>
-        <style>#taskBoard::-webkit-scrollbar{height:16px;} #taskBoard::-webkit-scrollbar-thumb{background:#64748b;border-radius:8px;border:3px solid #1e293b;} #taskBoard::-webkit-scrollbar-track{background:#1e293b;}</style>
+        <style>#taskBoard::-webkit-scrollbar,#taskBoardScrollTop::-webkit-scrollbar{height:16px;} #taskBoard::-webkit-scrollbar-thumb,#taskBoardScrollTop::-webkit-scrollbar-thumb{background:#64748b;border-radius:8px;border:3px solid #1e293b;} #taskBoard::-webkit-scrollbar-track,#taskBoardScrollTop::-webkit-scrollbar-track{background:#1e293b;}</style>
         <div id="taskSiteView" style="display:none;"></div>
       </div>
     </div>
@@ -1653,7 +1654,21 @@ function renderTaskBoard(admin){
     </div>`;
   }).join('');
   wireTaskEvents(board);
+  syncTaskBoardTopScroll();
 }
+function syncTaskBoardTopScroll(){
+  const board=document.getElementById('taskBoard');
+  const top=document.getElementById('taskBoardScrollTop');
+  const inner=document.getElementById('taskBoardScrollTopInner');
+  if(!board||!top||!inner) return;
+  inner.style.width=board.scrollWidth+'px';
+  if(!top._wired){
+    top._wired=true;
+    top.addEventListener('scroll',()=>{ board.scrollLeft=top.scrollLeft; });
+    board.addEventListener('scroll',()=>{ top.scrollLeft=board.scrollLeft; });
+  }
+}
+
 function wireTaskEvents(root){
   root.querySelectorAll('input[data-task-done]').forEach(cb=>cb.addEventListener('change',()=>{
     const t=tasks.find(x=>x.id===cb.dataset.taskDone);
