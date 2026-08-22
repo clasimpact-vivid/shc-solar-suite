@@ -415,6 +415,7 @@ function doLogin(){
   if(u.apps && u.apps.vizita===false){ err.textContent='Nu ai acces la Vizită Șantier. Contactează administratorul.'; return; }
   currentUser=u;
   document.getElementById('loginOverlay').style.display='none';
+  const _pin=document.getElementById('officePinOverlay'); if(_pin) _pin.style.display='none';
   document.getElementById('app').style.display='flex';
   const av=document.getElementById('userAvatar');
   av.style.background=u.color||'#3b82f6'; av.textContent=initials(u.name);
