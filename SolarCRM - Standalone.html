@@ -291,22 +291,22 @@ try {
       <div class="crm-table-scroll crm-table-desktop">
         <div style="min-width:1072px;display:grid;grid-template-columns:38px 92px 150px 86px 132px 150px 108px 88px 84px 90px 96px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-bottom:2px solid #e2e8f0;gap:10px;position:sticky;top:0;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,0.04);will-change:transform;transform:translateZ(0);">
           <div style="font-size:11px;font-weight:700;color:#94a3b8;text-align:center;">#</div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Cod</div>
+          <div onClick="{{ sortByCode }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Cod{{ sortArrowCode }}</div>
           <div onClick="{{ sortByClient }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Client{{ sortArrowClient }}</div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Tip</div>
+          <div onClick="{{ sortByType }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Tip{{ sortArrowType }}</div>
           <div onClick="{{ sortByStatus }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Status{{ sortArrowStatus }}</div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Adresă</div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Valoare</div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Responsabil</div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Data exec.</div>
+          <div onClick="{{ sortByAddress }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Adresă{{ sortArrowAddress }}</div>
+          <div onClick="{{ sortByValue }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Valoare{{ sortArrowValue }}</div>
+          <div onClick="{{ sortByResponsabil }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Responsabil{{ sortArrowResponsabil }}</div>
+          <div onClick="{{ sortByDateExec }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Data exec.{{ sortArrowDateExec }}</div>
           <div onClick="{{ sortByDateInserted }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Înreg. CRM{{ sortArrowDateInserted }}</div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Follow-up</div>
+          <div onClick="{{ sortByFollowUp }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Follow-up{{ sortArrowFollowUp }}</div>
         </div>
         <div style="background:#fff;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;overflow:hidden;">
           <sc-for list="{{ filtered }}" as="p" hint-placeholder-count="8">
             <div onClick="{{ p.onClick }}" style="min-width:1072px;display:grid;grid-template-columns:38px 92px 150px 86px 132px 150px 108px 88px 84px 90px 96px;padding:11px 14px;border-bottom:1px solid #f1f5f9;cursor:pointer;gap:10px;align-items:center;background:{{ p.rowBg }};" style-hover="background:#eff6ff;">
               <div style="font-size:12px;color:#cbd5e1;font-weight:700;text-align:center;">{{ p.rowNum }}</div>
-              <div style="font-size:11px;font-weight:700;color:#1d4ed8;white-space:nowrap;letter-spacing:.3px;">{{ p.clientCode }}</div>
+              <div style="font-size:11px;font-weight:700;color:#0f172a;white-space:nowrap;letter-spacing:.3px;">{{ p.clientCode }}</div>
               <div style="font-size:13px;font-weight:600;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.client }}</div>
               <div><span style="background:{{ p.typeBg }};color:{{ p.typeColor }};font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;white-space:nowrap;">{{ p.typeLabel }}</span></div>
               <div><span style="background:{{ p.statusBg }};color:{{ p.statusColor }};font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap;">{{ p.status }}</span></div>
@@ -492,7 +492,7 @@ try {
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;">
         <div style="min-width:0;">
           <div style="font-size:19px;font-weight:700;color:#0f172a;line-height:1.2;margin-bottom:3px;">{{ sel.client }}</div>
-          <div style="font-size:11px;font-weight:700;color:#1d4ed8;background:#eff6ff;border:1px solid #bfdbfe;padding:2px 8px;border-radius:999px;display:inline-block;margin-bottom:4px;letter-spacing:.4px;">{{ sel.clientCode }}</div>
+          <div style="font-size:11px;font-weight:700;color:#0f172a;background:#f1f5f9;border:1px solid #e2e8f0;padding:2px 8px;border-radius:999px;display:inline-block;margin-bottom:4px;letter-spacing:.4px;">{{ sel.clientCode }}</div>
           <div style="font-size:12px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ sel.addressShort }}</div>
         </div>
         <div style="display:flex;gap:6px;flex:none;align-items:center;">
@@ -2323,6 +2323,13 @@ class Component extends DCLogic {
         if(sortBy==='client'){ va=(a.client||'').toLowerCase(); vb=(b.client||'').toLowerCase(); }
         else if(sortBy==='status'){ va=(a.status||'').toLowerCase(); vb=(b.status||'').toLowerCase(); }
         else if(sortBy==='dateInserted'){ va=a.date_inserted||a.date_start||''; vb=b.date_inserted||b.date_start||''; }
+        else if(sortBy==='code'){ va=(a.clientCode||''); vb=(b.clientCode||''); }
+        else if(sortBy==='type'){ va=((a.types||[]).join(',')).toLowerCase(); vb=((b.types||[]).join(',')).toLowerCase(); }
+        else if(sortBy==='address'){ va=(a.address||'').toLowerCase(); vb=(b.address||'').toLowerCase(); }
+        else if(sortBy==='value'){ va=Number(a.value)||0; vb=Number(b.value)||0; }
+        else if(sortBy==='responsabil'){ va=(a.responsabil||'').toLowerCase(); vb=(b.responsabil||'').toLowerCase(); }
+        else if(sortBy==='dateExec'){ va=a.date_executie||''; vb=b.date_executie||''; }
+        else if(sortBy==='followUp'){ va=a.nextFollowUp||'9999-99-99'; vb=b.nextFollowUp||'9999-99-99'; }
         if(va<vb) return -1*dir;
         if(va>vb) return 1*dir;
         return 0;
@@ -3065,10 +3072,24 @@ class Component extends DCLogic {
       sortByClient:()=>this.toggleSort('client'),
       sortByStatus:()=>this.toggleSort('status'),
       sortByDateInserted:()=>this.toggleSort('dateInserted'),
+      sortByCode:()=>this.toggleSort('code'),
+      sortByType:()=>this.toggleSort('type'),
+      sortByAddress:()=>this.toggleSort('address'),
+      sortByValue:()=>this.toggleSort('value'),
+      sortByResponsabil:()=>this.toggleSort('responsabil'),
+      sortByDateExec:()=>this.toggleSort('dateExec'),
+      sortByFollowUp:()=>this.toggleSort('followUp'),
       sortArrow:(col)=>this.state.sortBy===col?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
       sortArrowClient:this.state.sortBy==='client'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
       sortArrowStatus:this.state.sortBy==='status'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
       sortArrowDateInserted:this.state.sortBy==='dateInserted'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
+      sortArrowCode:this.state.sortBy==='code'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
+      sortArrowType:this.state.sortBy==='type'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
+      sortArrowAddress:this.state.sortBy==='address'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
+      sortArrowValue:this.state.sortBy==='value'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
+      sortArrowResponsabil:this.state.sortBy==='responsabil'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
+      sortArrowDateExec:this.state.sortBy==='dateExec'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
+      sortArrowFollowUp:this.state.sortBy==='followUp'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
       kanbanCols,
       monthlyBars,typeDist,statusDist,topResp,
       reportTotalCount:projects.length,reportTotalValue:totalVal.toLocaleString('ro-RO')+' RON',
