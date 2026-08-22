@@ -1148,7 +1148,7 @@ try {
   </div>
 </sc-if>
 <div onClick="{{ closeUserMgmt }}" style="position:fixed;inset:0;background:rgba(15,23,41,0.55);z-index:120;animation:fadeIn 0.18s;display:{{ umOverlayDisplay }};pointer-events:{{ umPointerEvents }};"></div>
-<div class="crm-usermgmt-modal" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:540px;max-height:85vh;background:#fff;border-radius:16px;z-index:130;display:{{ umModalDisplay }};flex-direction:column;box-shadow:0 24px 72px rgba(0,0,0,.28);animation:scaleIn .18s cubic-bezier(0.16,1,0.3,1);overflow:hidden;pointer-events:{{ umPointerEvents }};">
+<div class="crm-usermgmt-modal" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:540px;max-height:85vh;background:#fff;border-radius:16px;z-index:130;display:{{ umModalDisplay }};flex-direction:column;box-shadow:{{ loginModalShadow }};animation:scaleIn .18s cubic-bezier(0.16,1,0.3,1);overflow:hidden;pointer-events:{{ umPointerEvents }};">
 
     <div style="padding:18px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;flex:none;background:#fff;">
       <div>
@@ -1519,7 +1519,7 @@ AVRAMUT	SORIN-ILIE	Electrician" style="width:100%;min-height:220px;font-family:m
     <sc-if value="{{ isLoginMode }}" hint-placeholder-val="{{ false }}">
       <a href="./index.html" onClick="{{ onSuiteLinkClick }}" style="flex:none;pointer-events:auto;font-size:11px;color:#94a3b8;text-decoration:none;padding:4px 10px;border:1px solid #334155;border-radius:6px;">← Pagina principală</a>
     </sc-if>
-    <div style="flex:none;pointer-events:auto;width:{{ loginModalWidth }};max-height:82vh;background:{{ loginModalBg }};border-radius:16px;display:flex;flex-direction:column;box-shadow:0 24px 72px rgba(0,0,0,.28);animation:scaleIn .18s cubic-bezier(0.16,1,0.3,1);overflow:hidden;border:{{ loginModalBorder }};">
+    <div style="flex:none;pointer-events:auto;width:{{ loginModalWidth }};max-height:82vh;background:{{ loginModalBg }};border-radius:16px;display:flex;flex-direction:column;box-shadow:{{ loginModalShadow }};animation:scaleIn .18s cubic-bezier(0.16,1,0.3,1);overflow:hidden;border:{{ loginModalBorder }};">
     <div style="padding:20px 20px 16px;border-bottom:1px solid {{ loginDivider }};flex:none;">
       <sc-if value="{{ isLoginMode }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;align-items:center;gap:12px;">
@@ -1582,7 +1582,7 @@ AVRAMUT	SORIN-ILIE	Electrician" style="width:100%;min-height:220px;font-family:m
       <!-- PIN QUICK LOGIN (implicit) -->
       <sc-if value="{{ showPinStep }}" hint-placeholder-val="{{ true }}">
         <div style="text-align:center;padding:4px 0 18px;">
-          <div style="font-size:15px;font-weight:800;color:#f1f5f9;">Introdu codul PIN (4 cifre)</div>
+          <div style="font-size:15px;font-weight:800;color:#60a5fa;">Introdu codul PIN (4 cifre)</div>
           <div style="font-size:12px;color:#64748b;margin-top:3px;">{{ pinErrMsg }}</div>
         </div>
         <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;">
@@ -1593,7 +1593,7 @@ AVRAMUT	SORIN-ILIE	Electrician" style="width:100%;min-height:220px;font-family:m
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:240px;margin:0 auto 16px;">
           <sc-for list="{{ pinKeys }}" as="k" hint-placeholder-count="12">
             <sc-if value="{{ k.visible }}" hint-placeholder-val="{{ true }}">
-              <button onClick="{{ k.onClick }}" style="width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:{{ k.bg }};color:#f1f5f9;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .25s;">{{ k.label }}</button>
+              <button onClick="{{ k.onClick }}" style="width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:{{ k.bg }};color:#60a5fa;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .25s;">{{ k.label }}</button>
             </sc-if>
             <sc-if value="{{ k.blank }}" hint-placeholder-val="{{ false }}">
               <div style="width:72px;height:72px;"></div>
@@ -3225,10 +3225,11 @@ class Component extends DCLogic {
       showLoginScreen: showUserModal && userModalMode==='login' && !pwStep,
     isLoginMode: userModalMode==='login',
       loginBgStyle: userModalMode==='login' ? 'rgba(9,15,28,0.97)' : 'rgba(15,23,41,0.65)',
-      loginModalBg: userModalMode==='login' ? '#111827' : '#fff',
-      loginModalWidth: userModalMode==='login' ? '380px' : '420px',
-      loginModalBorder: userModalMode==='login' ? '1px solid #1e3a5f' : 'none',
-      loginDivider: userModalMode==='login' ? '#1e3a5f' : '#e2e8f0',
+      loginModalBg: (userModalMode==='login' && this.state.pinMode===true && !pinStepUser) ? 'transparent' : (userModalMode==='login' ? '#111827' : '#fff'),
+      loginModalWidth: (userModalMode==='login' && this.state.pinMode===true && !pinStepUser) ? '340px' : (userModalMode==='login' ? '380px' : '420px'),
+      loginModalBorder: (userModalMode==='login' && this.state.pinMode===true && !pinStepUser) ? 'none' : (userModalMode==='login' ? '1px solid #1e3a5f' : 'none'),
+      loginDivider: (userModalMode==='login' && this.state.pinMode===true && !pinStepUser) ? 'transparent' : (userModalMode==='login' ? '#1e3a5f' : '#e2e8f0'),
+      loginModalShadow: (userModalMode==='login' && this.state.pinMode===true && !pinStepUser) ? 'none' : '0 24px 72px rgba(0,0,0,.28)',
       loginTitleColor: userModalMode==='login' ? '#f1f5f9' : '#0f172a',
       loginInputBg: userModalMode==='login' ? '#1e293b' : '#fff',
       loginInputColor: userModalMode==='login' ? '#f1f5f9' : '#0f172a',
@@ -3244,7 +3245,7 @@ class Component extends DCLogic {
       fbWriteError:this.state.fbWriteError||null,
       dismissFbWriteError:()=>this.setState({fbWriteError:null}),
       pinErrMsg:this.state.pinLockMsg?this.state.pinLockMsg:(this.state.pinErr?'Cod greșit — încearcă din nou':'Introdu codul primit de la administrator'),
-      pinDots:[0,1,2,3].map(i=>({color:this.state.pinErr?'#ef4444':'#f59e0b',bg:i<this.state.pinBuffer.length?(this.state.pinErr?'#ef4444':'#f59e0b'):'transparent'})),
+      pinDots:[0,1,2,3].map(i=>({color:this.state.pinErr?'#ef4444':'#60a5fa',bg:i<this.state.pinBuffer.length?(this.state.pinErr?'#ef4444':'#60a5fa'):'transparent'})),
       pinKeys:['1','2','3','4','5','6','7','8','9','clear','0','del'].map(k=>({label:k==='del'?'⌫':(k==='clear'?'C':k),visible:true,blank:false,bg:this.state.pinFlash===k?'#7f1d1d':'#1e293b',onClick:()=>this.pinPress(k)})),
       pwStepUser:pwUser?pwUser.name:'',pwStepColor:pwUser?pwUser.color:'#94a3b8',pwStepInitials:pwUser?initials(pwUser.name):'?',
       showPinUserStep:!!pinStepUser,

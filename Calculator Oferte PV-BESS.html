@@ -170,7 +170,7 @@
   <!-- ══ LOGIN OVERLAY ══ -->
   <div id="loginOverlay" style="position:fixed;inset:0;z-index:99999;background:#090f1c;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:inherit;gap:14px;overflow-y:auto;padding:24px 0;">
     <a href="./index.html" style="flex:none;font-size:11px;color:#64748b;text-decoration:none;padding:4px 10px;border:1px solid #334155;border-radius:6px;">← Pagina principală</a>
-    <div style="flex:none;background:#111827;border:1px solid #1e3a5f;border-radius:20px;width:420px;max-width:94vw;box-shadow:0 8px 40px rgba(0,0,0,.6);overflow:hidden;">
+    <div id="loginCardShell" style="flex:none;background:#111827;border:1px solid #1e3a5f;border-radius:20px;width:420px;max-width:94vw;box-shadow:0 8px 40px rgba(0,0,0,.6);overflow:hidden;">
       <!-- Header -->
       <div style="padding:28px 28px 20px;border-bottom:1px solid #1e3a5f;">
         <div style="display:flex;align-items:center;gap:14px;">
@@ -195,7 +195,7 @@
       </div>
       <!-- Step 3: PIN keypad (implicit) -->
       <div id="loginStep3" style="padding:20px 28px 28px;text-align:center;">
-        <div style="font-size:14px;font-weight:700;color:#f1f5f9;">Introdu codul PIN (4 cifre)</div>
+        <div style="font-size:14px;font-weight:700;color:#f59e0b;">Introdu codul PIN (4 cifre)</div>
         <div id="officePinErr" style="color:#f87171;font-size:12.5px;font-weight:700;min-height:18px;margin-top:6px;"></div>
         <div id="officePinDots" style="display:flex;justify-content:center;gap:12px;margin:10px 0 20px;"></div>
         <div id="officePinGrid" style="display:grid;grid-template-columns:repeat(3,72px);gap:12px;justify-content:center;"></div>
@@ -3575,7 +3575,7 @@ function logout(){
   var lo=document.getElementById('loginOverlay'); if(lo) lo.style.display='flex';
   // reset la ecranul implicit (PIN) — altfel rămâne gol dacă ultimul login a fost cu parolă
   ['loginStep1','loginStep2'].forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
-  var s3=document.getElementById('loginStep3'); if(s3) s3.style.display='block';
+  var s3=document.getElementById('loginStep3'); if(s3) s3.style.display='block'; if(typeof setLoginChrome==='function') setLoginChrome(true);
   if(typeof officePinBuffer!=='undefined') officePinBuffer='';
   if(typeof renderOfficePinDots==='function') renderOfficePinDots(false);
   var pinErr=document.getElementById('officePinErr'); if(pinErr) pinErr.textContent='';
@@ -3778,7 +3778,7 @@ window._crmSharedUsers = [];
 
   document.getElementById('loginBack').addEventListener('click',function(){
     document.getElementById('loginStep2').style.display='none';
-    document.getElementById('loginStep1').style.display='block';
+    document.getElementById('loginStep1').style.display='block'; setLoginChrome(false);
     selectedUserId=null;
   });
 
@@ -3813,12 +3813,13 @@ window._crmSharedUsers = [];
       wrap.appendChild(d);
     }
   }
+function setLoginChrome(pin){var sh=document.getElementById('loginCardShell');if(!sh)return;if(pin){sh.style.background='transparent';sh.style.border='none';sh.style.boxShadow='none';sh.style.width='340px';}else{sh.style.background='#111827';sh.style.border='1px solid #1e3a5f';sh.style.boxShadow='0 8px 40px rgba(0,0,0,.6)';sh.style.width='420px';}}
   function buildOfficePinGrid(){
     var grid=document.getElementById('officePinGrid'); grid.innerHTML='';
     ['1','2','3','4','5','6','7','8','9','clear','0','del'].forEach(function(k){
       var b=document.createElement('button'); b.type='button';
       b.dataset.key=k;
-      b.style.cssText='width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:#1e293b;color:#f1f5f9;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .25s;';
+      b.style.cssText='width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:#1e293b;color:#f59e0b;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .25s;';
       b.textContent=k==='del'?'⌫':(k==='clear'?'C':k);
       b.addEventListener('click',function(){
         var key=this.dataset.key;
@@ -3899,16 +3900,17 @@ window._crmSharedUsers = [];
     }
   }
   buildOfficePinGrid();
+  setLoginChrome(true);
   document.getElementById('btnOpenOfficePin').addEventListener('click',function(e){
     e.preventDefault();
     officePinBuffer=''; renderOfficePinDots(false); document.getElementById('officePinErr').textContent='';
     document.getElementById('loginStep1').style.display='none';
-    document.getElementById('loginStep3').style.display='block';
+    document.getElementById('loginStep3').style.display='block'; setLoginChrome(true);
   });
   document.getElementById('loginPinBack').addEventListener('click',function(e){
     e.preventDefault();
     document.getElementById('loginStep3').style.display='none';
-    document.getElementById('loginStep1').style.display='block';
+    document.getElementById('loginStep1').style.display='block'; setLoginChrome(false);
   });
 
   // Admin reset password modal
