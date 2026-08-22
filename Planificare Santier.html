@@ -442,9 +442,34 @@ function saveFirebase(){
     Object.values(projects).forEach(p=>{
       if(p.crmId){
         db.ref('solarcrm_v2/projects/'+String(p.crmId)+'/stages').set(p.stages||[]).catch(()=>{});
+        syncCrmStatusFromStages(p);
       }
     });
   }catch(e){}
+}
+
+// Sincronizare automată: statusul lucrării din SolarCRM urmează stadiul etapelor de șantier
+function syncCrmStatusFromStages(p){
+  if(!db || !p.crmId) return;
+  const st = p.stages || [];
+  if(!st.length) return;
+  const allDone   = st.every(x=>x.status==='finalizat');
+  const anyActive = st.some(x=>x.status==='in_lucru' || x.status==='intarziat');
+  const target = allDone ? 'Finalizat' : (anyActive ? 'În execuție' : null);
+  if(!target) return;
+  const ref = db.ref('solarcrm_v2/projects/'+String(p.crmId));
+  ref.child('status').once('value').then(function(snap){
+    const cur = snap.val();
+    if(cur === target) return;
+    if(cur === 'Anulat' || cur === 'Service') return;
+    if(target === 'În execuție' && cur === 'Finalizat') return;
+    ref.child('status').set(target).catch(function(){});
+    ref.child('auditLog').once('value').then(function(a){
+      const log = a.val() || [];
+      log.push({ t: Date.now(), user: 'Sistem (Planificare Șantier)', action: 'auto', detail: 'Status schimbat automat în „'+target+'” pe baza etapelor de șantier.' });
+      ref.child('auditLog').set(log).catch(function(){});
+    }).catch(function(){});
+  }).catch(function(){});
 }
 
 function deleteProjectFirebase(id){
