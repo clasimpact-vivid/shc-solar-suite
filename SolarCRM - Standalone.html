@@ -2693,7 +2693,7 @@ class Component extends DCLogic {
     const doExport=()=>{
       const rows=this.getFiltered().map(p=>({'Cod':p.clientCode||'','Client':p.client||'','Tip':(p.types||[]).join(', '),'Status':p.status||'','Adresă':p.address||'','Valoare (RON)':p.value||'','Responsabil':p.responsabil||'','Data contract':p.date_start||'','Data execuției':p.date_executie||'','Data finalizare':p.date_end||'','Echipamente':p.equipment||'','kWp':p.kwp||'','Nr. panouri':p.panels||'','Montaj':p.mounting||'','Prosumator':p.prosumator?'Da':'Nu','Note':p.notes||''}));
       const wb=window.XLSX.utils.book_new(); const ws=window.XLSX.utils.json_to_sheet(rows);
-      ws['!cols']=[{wch:22},{wch:18},{wch:14},{wch:26},{wch:13},{wch:14},{wch:13},{wch:13},{wch:14},{wch:36},{wch:6},{wch:8},{wch:10},{wch:10},{wch:30}];
+      ws['!cols']=[{wch:12},{wch:22},{wch:18},{wch:14},{wch:26},{wch:13},{wch:14},{wch:13},{wch:13},{wch:14},{wch:36},{wch:6},{wch:8},{wch:10},{wch:10},{wch:30}];
       window.XLSX.utils.book_append_sheet(wb,ws,'Lucrări SolarCRM');
       window.XLSX.writeFile(wb,'SolarCRM_'+new Date().toISOString().slice(0,10)+'.xlsx');
     };
