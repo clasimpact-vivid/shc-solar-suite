@@ -2366,7 +2366,7 @@ function addCalendarPicker(textId){
   const textEl=document.getElementById(textId);
   if(!textEl) return;
   const wrap=document.createElement('span');
-  wrap.style.cssText='position:relative;display:inline-block;';
+  wrap.style.cssText='position:relative;display:block;width:100%;';
   textEl.parentNode.insertBefore(wrap,textEl);
   wrap.appendChild(textEl);
   textEl.style.paddingRight='32px';
