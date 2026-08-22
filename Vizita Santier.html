@@ -309,22 +309,7 @@ a:hover{color:#93c5fd;}
 <!-- Print area -->
 <div id="printArea"></div>
 
-<!-- Team chat widget -->
-<button id="chatToggleBtn" style="position:fixed;bottom:20px;right:20px;width:52px;height:52px;border-radius:50%;background:#f59e0b;border:none;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;z-index:400;display:none;align-items:center;justify-content:center;">
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0a1628" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-  <span id="chatUnreadBadge" style="display:none;position:absolute;top:-3px;right:-3px;background:#dc2626;color:#fff;font-size:10px;font-weight:800;border-radius:999px;padding:1px 6px;min-width:16px;text-align:center;"></span>
-</button>
-<div id="chatPanel" style="display:none;position:fixed;bottom:82px;right:20px;width:320px;max-width:calc(100vw - 32px);height:420px;max-height:calc(100vh - 120px);background:#0d1526;border:1px solid #1e2d45;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);z-index:400;flex-direction:column;overflow:hidden;">
-  <div style="padding:12px 14px;border-bottom:1px solid #1e2d45;display:flex;align-items:center;justify-content:space-between;flex:none;">
-    <div style="font-weight:800;font-size:13.5px;color:#f1f5f9;">💬 Chat</div>
-    <button id="chatCloseBtn" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:16px;">✕</button>
-  </div>
-  <div id="chatMessages" style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;"></div>
-  <div style="padding:10px 12px;border-top:1px solid #1e2d45;display:flex;gap:8px;flex:none;">
-    <input type="text" id="chatInput" placeholder="Scrie un mesaj..." style="flex:1;padding:8px 10px;border:1px solid #1e2d45;border-radius:8px;background:#111c30;color:#f1f5f9;font-size:13px;outline:none;">
-    <button id="chatSendBtn" style="background:#f59e0b;border:none;border-radius:8px;padding:0 14px;font-weight:700;cursor:pointer;color:#0a1628;">➤</button>
-  </div>
-</div>
+
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -353,6 +338,8 @@ const DEFAULT_USERS = [
 
 let db=null, currentUser=null, loginUsers=[...DEFAULT_USERS], adminPw='12345', adminPin='1000';
 let visits={}; let crmProjects=[];
+function clientCodeOf(p){ return (p&&p.clientCode)||('SHC-C-'+String((p&&p.id)||0).padStart(4,'0')); }
+
 let activeVisitId=null;
 let tool='pencil', drawColor='#3b82f6';
 let sketches=[{id:'s1',name:'Schiță 1',strokes:[],shapes:[],bg:null,scale:20}];
@@ -390,7 +377,7 @@ function loadFirebase(){
     if(cfg.adminPin) adminPin=cfg.adminPin;
     populateLoginUsers();
   });
-  db.ref('solarcrm_v2/projects').on('value', snap=>{
+  db.ref('solarcrm_v2/projects').once('value', snap=>{
     const raw=snap.val()||{};
     crmProjects=Object.values(raw).filter(p=>p&&p.id);
     populateCrmDropdown();
@@ -553,7 +540,7 @@ function populateCrmDropdown(){
   sel.innerHTML='<option value="">— Fără legătură —</option>';
   crmProjects.forEach(p=>{
     const o=document.createElement('option'); o.value=p.id;
-    o.textContent=(p.client||'Fără nume')+(p.address?' — '+p.address:'');
+    o.textContent='['+clientCodeOf(p)+'] '+(p.client||'Fără nume')+(p.address?' — '+p.address:'');
     sel.appendChild(o);
   });
   sel.value=cur;
@@ -1162,60 +1149,7 @@ addCalendarPicker('fDate');
 populateLoginUsers();
 loadFirebase();
 
-// ── Team chat widget ──
-let chatMessages=[], chatOpen=false;
-function chatLastSeenKey(){ return currentUser?('shc_chat_lastseen_'+currentUser.id):null; }
-function updateChatUnread(){
-  const badge=document.getElementById('chatUnreadBadge');
-  if(!currentUser){ badge.style.display='none'; return; }
-  const lastSeen=parseInt(localStorage.getItem(chatLastSeenKey())||'0');
-  const unread=chatMessages.filter(m=>m.userId!==currentUser.id && m.ts>lastSeen).length;
-  if(unread>0 && !chatOpen){ badge.style.display='block'; badge.textContent=unread>9?'9+':unread; }
-  else badge.style.display='none';
-}
-function renderChat(){
-  const wrap=document.getElementById('chatMessages');
-  if(!chatMessages.length){ wrap.innerHTML='<div style="color:#475569;font-size:12px;text-align:center;margin-top:20px;">Niciun mesaj încă. Scrie primul!</div>'; return; }
-  wrap.innerHTML=chatMessages.map(m=>{
-    const mine=currentUser&&m.userId===currentUser.id;
-    const time=new Date(m.ts).toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit',hour12:false});
-    return `<div style="display:flex;flex-direction:column;align-items:${mine?'flex-end':'flex-start'};">
-      <div style="font-size:10.5px;color:#64748b;margin-bottom:2px;">${m.userName||'?'} · ${time}</div>
-      <div style="max-width:82%;background:${mine?'#f59e0b':'#1a2740'};color:${mine?'#0a1628':'#e2e8f0'};padding:7px 11px;border-radius:12px;font-size:13px;word-break:break-word;line-height:1.4;">${(m.text||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</div>
-    </div>`;
-  }).join('');
-  wrap.scrollTop=wrap.scrollHeight;
-}
-function initChat(){
-  document.getElementById('chatToggleBtn').style.display='flex';
-  const toggle=document.getElementById('chatToggleBtn'), panel=document.getElementById('chatPanel'), closeBtn=document.getElementById('chatCloseBtn'), input=document.getElementById('chatInput'), sendBtn=document.getElementById('chatSendBtn');
-  toggle.addEventListener('click',()=>{
-    chatOpen=!chatOpen;
-    panel.style.display=chatOpen?'flex':'none';
-    if(chatOpen){ localStorage.setItem(chatLastSeenKey(),Date.now().toString()); updateChatUnread(); renderChat(); input.focus(); }
-  });
-  closeBtn.addEventListener('click',()=>{ chatOpen=false; panel.style.display='none'; });
-  function send(){
-    const text=input.value.trim();
-    if(!text||!currentUser) return;
-    const msg={id:'msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),userId:currentUser.id,userName:currentUser.name,text,ts:Date.now()};
-    if(db) db.ref('shc_chat/messages/'+msg.id).set(msg);
-    else { chatMessages.push(msg); renderChat(); }
-    input.value='';
-    localStorage.setItem(chatLastSeenKey(),Date.now().toString());
-  }
-  sendBtn.addEventListener('click',send);
-  input.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); } });
-  if(db){
-    db.ref('shc_chat/messages').limitToLast(200).on('value',snap=>{
-      const raw=snap.val()||{};
-      chatMessages=Object.values(raw).filter(Boolean).sort((a,b)=>a.ts-b.ts);
-      if(chatOpen) renderChat();
-      updateChatUnread();
-    });
-  }
-}
-initChat();
+// ── Team chat widget ── chatOpen=false;
 </script>
 </body>
 </html>

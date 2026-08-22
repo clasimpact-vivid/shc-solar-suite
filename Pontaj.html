@@ -256,15 +256,15 @@ a:hover{color:#fbbf24;}
           <div class="field"><label>Responsabil primar</label><select id="taskAssignee2" class="form-select"></select></div>
           <div class="field"><label>Responsabil secundar (Al 2-lea, opțional)</label><select id="taskAssigneeSec" class="form-select" disabled><option value="">— niciunul —</option></select></div>
         </div>
-        <div class="row2" style="margin-bottom:10px;">
-          <div class="field"><label>Responsabil terțiar (Al 3-lea, opțional)</label><select id="taskAssigneeTer" class="form-select" disabled><option value="">— niciunul —</option></select></div>
-          <div class="field"><label>Responsabil cuaternar (Al 4-lea, opțional)</label><select id="taskAssigneeQuat" class="form-select" disabled><option value="">— niciunul —</option></select></div>
-        </div>
+        <div class="field" style="margin-bottom:10px;"><label>Responsabil terțiar (Al 3-lea, opțional)</label><select id="taskAssigneeTer" class="form-select" disabled><option value="">— niciunul —</option></select></div>
+        <div class="field" id="taskBlockedByWrap" style="margin-bottom:10px;display:none;"><label>Blocat de task-ul</label><select id="taskBlockedBy" class="form-select"><option value="">— niciunul —</option></select><div style="font-size:10.5px;color:#64748b;margin-top:3px;">Când task-ul selectat se finalizează, acesta se deblochează automat și responsabilii sunt anunțați.</div></div>
+        <div class="field" style="margin-bottom:10px;"><label>Repetare</label><select id="taskRecurring" class="form-select"><option value="">Fără repetare</option><option value="weekly">Săptămânal</option><option value="monthly">Lunar</option><option value="quarterly">Trimestrial</option><option value="semiannual">Semestrial</option><option value="yearly">Anual</option></select><div style="font-size:10.5px;color:#64748b;margin-top:3px;">La finalizare se creează automat următoarea apariție, cu termenul mutat corespunzător.</div></div>
         <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#94a3b8;margin-bottom:6px;cursor:pointer;"><input type="checkbox" id="taskFollowUp"> Necesită follow-up (rămâne activ vizual chiar finalizat)</label>
         <div class="field" id="taskFollowUpDateWrap" style="margin-bottom:10px;display:none;"><label>Data follow-up</label><input type="text" id="taskFollowUpDate" class="form-input" placeholder="dd/mm/yyyy" maxlength="10"></div>
-        <div style="display:flex;gap:8px;">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <button class="btn btn-sm" id="btnSubmitTask" style="background:#f59e0b;color:#fff;">Atribuie task</button>
           <button class="btn btn-sm" id="btnCancelEditTask" style="display:none;background:#334155;color:#fff;">Anulează editarea</button>
+          <button class="btn btn-sm" id="btnTaskTemplate" style="background:#1e3a5f;color:#93c5fd;">📋 Șablon pe capitol</button>
         </div>
       </div>
       <div class="card">
@@ -481,22 +481,7 @@ a:hover{color:#fbbf24;}
   </div>
 </div>
 
-<!-- Team chat widget -->
-<button id="chatToggleBtn" style="position:fixed;bottom:20px;right:20px;width:52px;height:52px;border-radius:50%;background:#f59e0b;border:none;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;z-index:400;display:none;align-items:center;justify-content:center;">
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0a1628" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-  <span id="chatUnreadBadge" style="display:none;position:absolute;top:-3px;right:-3px;background:#dc2626;color:#fff;font-size:10px;font-weight:800;border-radius:999px;padding:1px 6px;min-width:16px;text-align:center;"></span>
-</button>
-<div id="chatPanel" style="display:none;position:fixed;bottom:82px;right:20px;width:320px;max-width:calc(100vw - 32px);height:420px;max-height:calc(100vh - 120px);background:#0d1526;border:1px solid #1e2d45;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);z-index:400;flex-direction:column;overflow:hidden;">
-  <div style="padding:12px 14px;border-bottom:1px solid #1e2d45;display:flex;align-items:center;justify-content:space-between;flex:none;">
-    <div style="font-weight:800;font-size:13.5px;color:#f1f5f9;">💬 Chat</div>
-    <button id="chatCloseBtn" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:16px;">✕</button>
-  </div>
-  <div id="chatMessages" style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;"></div>
-  <div style="padding:10px 12px;border-top:1px solid #1e2d45;display:flex;gap:8px;flex:none;">
-    <input type="text" id="chatInput" placeholder="Scrie un mesaj..." style="flex:1;padding:8px 10px;border:1px solid #1e2d45;border-radius:8px;background:#111c30;color:#f1f5f9;font-size:13px;outline:none;">
-    <button id="chatSendBtn" style="background:#f59e0b;border:none;border-radius:8px;padding:0 14px;font-weight:700;cursor:pointer;color:#0a1628;">➤</button>
-  </div>
-</div>
+
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -674,7 +659,7 @@ let tasks=[]; let taskView='board'; let taskSearchQuery='';
 function taskMatchesSearch(t){
   if(!taskSearchQuery) return true;
   const q=taskSearchQuery.toLowerCase();
-  return [t.title,t.desc,t.assigneeName,t.assigneeSecName,t.assigneeTerName,t.assigneeQuatName,t.site,t.createdBy].some(v=>v&&v.toLowerCase().includes(q));
+  return [t.title,t.desc,t.assigneeName,t.assigneeSecName,t.assigneeTerName,t.site,t.createdBy].some(v=>v&&v.toLowerCase().includes(q));
 }
 function saveTask(t){ if(db) db.ref('solarcrm_v2/pontajTasks/'+t.id).set(t); else { tasks=[t,...tasks.filter(x=>x.id!==t.id)]; renderTasks(); } }
 let pvRecords=[];
@@ -1416,7 +1401,150 @@ document.getElementById('btnPublishPlan').addEventListener('click',()=>{
 
 // ── CERERI TAB (concedii + probleme) ──
 function canApproveLeave(){ return isFullAccess() || (!!currentUser && currentUser.pontajHR===true); }
-function canModifyTask(t){ return isSuperAdminPontaj() || t.createdBy===currentUser.name || t.assigneeId===currentUser.id || t.assigneeSecId===currentUser.id || t.assigneeTerId===currentUser.id || t.assigneeQuatId===currentUser.id; }
+function populateBlockedBySelect(){
+  const sel=document.getElementById('taskBlockedBy');
+  const cur=sel.value;
+  const opts=tasks.filter(t=>!t.done&&t.id!==editingTaskId).sort((a,b)=>(a.title||a.desc||'').localeCompare(b.title||b.desc||''));
+  sel.innerHTML='<option value="">— niciunul —</option>'+opts.map(t=>`<option value="${t.id}">${(t.title||t.desc||'').slice(0,60)}${t.assigneeName?(' — '+t.assigneeName):''}</option>`).join('');
+  sel.value=cur;
+}
+function unblockDependents(doneTaskId){
+  const deps=tasks.filter(t=>t.blockedBy===doneTaskId&&!t.done);
+  deps.forEach(d=>{
+    d.priority='normal';
+    d.blockedBy=null;
+    saveTask(d);
+    [d.assigneeId,d.assigneeSecId,d.assigneeTerId].forEach(uid=>{
+      if(!uid) return;
+      const u=loginUsers.find(x=>x.id===uid);
+      if(u&&u.email&&window.emailjs){
+        emailjs.send('service_4t7t08c','template_rffz9zh',{
+          to_email:u.email,
+          subject:'Task deblocat: '+(d.title||d.desc||''),
+          message:'Bună, '+(u.name||'').split(' ')[0]+'!\n\nTask-ul următor s-a deblocat automat (task-ul de care depindea a fost finalizat):\n\n'+(d.title||d.desc)+(d.title&&d.desc?('\n\n'+d.desc):'')+'\n\n'+(d.due?('Termen: '+isoToDmy(d.due)+'\n\n'):'')+'Îl poți vedea în aplicația Pontaj, tab Task-uri.\n\nSHC Solar Suite — Pontaj'
+        }).catch(()=>{});
+      }
+    });
+  });
+  return deps.length;
+}
+function addRecurrence(iso,rec,anchorDay){
+  if(!iso) return null;
+  const d=new Date(iso+'T12:00:00');
+  if(rec==='weekly'){ d.setDate(d.getDate()+7); return d.toISOString().slice(0,10); }
+  const months={monthly:1,quarterly:3,semiannual:6,yearly:12}[rec];
+  if(!months) return null;
+  const day=anchorDay||d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth()+months);
+  const lastDay=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  d.setDate(Math.min(day,lastDay));
+  return d.toISOString().slice(0,10);
+}
+const RECUR_LABEL={weekly:'Săptămânal',monthly:'Lunar',quarterly:'Trimestrial',semiannual:'Semestrial',yearly:'Anual'};
+function spawnRecurrence(t){
+  if(!t.recurring) return false;
+  const anchor=t.due||todayISO();
+  const anchorDay=t.recurAnchorDay||new Date(anchor+'T12:00:00').getDate();
+  const nextDue=addRecurrence(anchor,t.recurring,anchorDay);
+  if(!nextDue) return false;
+  const n={...t,id:'task_'+Date.now()+'_r',due:nextDue,done:false,progress:0,ts:Date.now(),blockedBy:null,
+    recurAnchorDay:anchorDay,
+    followUpDate:(t.followUp&&t.followUpDate)?addRecurrence(t.followUpDate,t.recurring):null};
+  saveTask(n);
+  return nextDue;
+}
+function blockedByLabel(t){
+  if(!t.blockedBy) return '';
+  const b=tasks.find(x=>x.id===t.blockedBy);
+  return b?('Blocat de: '+(b.title||b.desc||'').slice(0,40)):'';
+}
+const TASK_TEMPLATES={
+  'Șantier - Execuție':[
+    'Pregătire materiale și scule pentru șantier',
+    'Montaj structură de susținere',
+    'Montaj panouri fotovoltaice',
+    'Montaj invertor',
+    'Montaj sistem stocare BESS',
+    'Cablare DC și AC',
+    'Montaj tablou electric și protecții',
+    'Verificare finală și curățenie șantier'
+  ],
+  'Documentație':[
+    'Colectare acte client (CI/CUI, act proprietate)',
+    'Întocmire proiect tehnic',
+    'Depunere documentație la distribuitor',
+    'Obținere aviz tehnic de racordare (ATR)',
+    'Întocmire fișe tehnice echipamente',
+    'Dosar as-built și certificate de conformitate'
+  ],
+  'Racordare la rețea':[
+    'Depunere cerere racordare',
+    'Semnare contract de racordare',
+    'Programare punere sub tensiune',
+    'Montaj contor bidirecțional',
+    'Certificat de racordare',
+    'Activare compensare / prosumator'
+  ],
+  'PIF':[
+    'Verificare parametri invertor',
+    'Configurare monitorizare online',
+    'Test funcțional sistem complet',
+    'Instruire client privind utilizarea',
+    'Proces verbal punere în funcțiune'
+  ],
+  'Recepție la terminarea lucrărilor':[
+    'Verificare conformitate cu proiectul',
+    'Remediere observații',
+    'Semnare proces verbal recepție'
+  ]
+};
+function openTaskTemplateDialog(){
+  const chapter=document.getElementById('taskChapter').value;
+  if(!chapter||!TASK_TEMPLATES[chapter]){
+    alert('Alege întâi un capitol care are șablon:\n\n'+Object.keys(TASK_TEMPLATES).join('\n'));
+    return;
+  }
+  const assigneeId=document.getElementById('taskAssignee2').value;
+  if(!assigneeId){ alert('Alege întâi responsabilul primar.'); return; }
+  const site=document.getElementById('taskSite').value.trim();
+  const list=TASK_TEMPLATES[chapter];
+
+  // Data de start: preluăm din câmpul Termen dacă e completat, altfel azi
+  const dueField=document.getElementById('taskDue').value.trim();
+  const defaultStart=dueField?dmyToIso(dueField):todayISO();
+  const startInput=prompt('Data de start pentru primul task (dd/mm/yyyy):', isoToDmy(defaultStart));
+  if(startInput===null) return;
+  const startIso=dmyToIso(startInput.trim());
+  if(!startIso){ alert('Dată invalidă. Folosește formatul dd/mm/yyyy.'); return; }
+
+  const stepInput=prompt('La câte zile lucrătoare se succed task-urile?\n\n(ex: 3 = fiecare task are termen la 3 zile după cel anterior)','3');
+  if(stepInput===null) return;
+  const step=parseInt(stepInput,10);
+  if(!Number.isFinite(step)||step<1){ alert('Introdu un număr de zile mai mare sau egal cu 1.'); return; }
+
+  // Calculăm termenele eșalonate, sărind peste weekend
+  const dues=[]; const d=new Date(startIso+'T12:00:00');
+  while(d.getDay()===0||d.getDay()===6) d.setDate(d.getDate()+1);
+  for(let i=0;i<list.length;i++){
+    dues.push(d.toISOString().slice(0,10));
+    let added=0;
+    while(added<step){ d.setDate(d.getDate()+1); if(d.getDay()!==0&&d.getDay()!==6) added++; }
+  }
+
+  if(!confirm('Se vor crea '+list.length+' task-uri pentru capitolul "'+chapter+'"'+(site?(', șantier: '+site):'')+'.\n\nTermene eșalonate din '+isoToDmy(dues[0])+' până în '+isoToDmy(dues[dues.length-1])+', la '+step+' zile lucrătoare distanță.\n\nToate atribuite lui '+((loginUsers.find(u=>u.id===assigneeId)||{}).name||'—')+'. Continui?')) return;
+
+  const assigneeName=(loginUsers.find(u=>u.id===assigneeId)||{}).name||'';
+  list.forEach((title,i)=>{
+    const t={id:'task_'+Date.now()+'_'+i,assigneeId,assigneeName,assigneeSecId:null,assigneeSecName:null,assigneeTerId:null,assigneeTerName:null,
+      blockedBy:null,title,desc:'',due:dues[i],dueTime:null,priority:'normal',site:site||null,chapter,recurring:null,
+      followUp:false,followUpDate:null,done:false,progress:0,ts:Date.now()+i,createdBy:currentUser.name};
+    saveTask(t);
+  });
+  alert(list.length+' task-uri create, cu termene din '+isoToDmy(dues[0])+' până în '+isoToDmy(dues[dues.length-1])+'.');
+  renderTasks();
+}
+function canModifyTask(t){ return isSuperAdminPontaj() || t.createdBy===currentUser.name || t.assigneeId===currentUser.id || t.assigneeSecId===currentUser.id || t.assigneeTerId===currentUser.id; }
 function canDeleteTasks(){ return isFullAccess(); }
 document.getElementById('taskSearchInput').addEventListener('input',e=>{ taskSearchQuery=e.target.value; renderTasks(); });
 document.querySelectorAll('.task-view-btn').forEach(b=>b.addEventListener('click',()=>{
@@ -1431,6 +1559,10 @@ document.querySelectorAll('.task-view-btn').forEach(b=>b.addEventListener('click
 document.getElementById('taskPriority').addEventListener('change',e=>{
   const p=e.target.value;
   document.getElementById('taskDueLabel').textContent=(p==='standby'||p==='blocat')?'Termen finalizare (opțional)':'Termen finalizare (obligatoriu) *';
+  const bw=document.getElementById('taskBlockedByWrap');
+  bw.style.display=p==='blocat'?'block':'none';
+  if(p==='blocat') populateBlockedBySelect();
+  else document.getElementById('taskBlockedBy').value='';
 });
 function updateAssigneeChainLocks(){
   const p=document.getElementById('taskAssignee2').value;
@@ -1438,12 +1570,11 @@ function updateAssigneeChainLocks(){
   const t=document.getElementById('taskAssigneeTer').value;
   document.getElementById('taskAssigneeSec').disabled=!p;
   document.getElementById('taskAssigneeTer').disabled=!p||!s;
-  document.getElementById('taskAssigneeQuat').disabled=!p||!s||!t;
   if(!p){ document.getElementById('taskAssigneeSec').value=''; }
   if(!p||!document.getElementById('taskAssigneeSec').value){ document.getElementById('taskAssigneeTer').value=''; }
-  if(!p||!document.getElementById('taskAssigneeSec').value||!document.getElementById('taskAssigneeTer').value){ document.getElementById('taskAssigneeQuat').value=''; }
 }
-['taskAssignee2','taskAssigneeSec','taskAssigneeTer'].forEach(id=>document.getElementById(id).addEventListener('change',updateAssigneeChainLocks));
+['taskAssignee2','taskAssigneeSec'].forEach(id=>document.getElementById(id).addEventListener('change',updateAssigneeChainLocks));
+document.getElementById('btnTaskTemplate').addEventListener('click',openTaskTemplateDialog);
 document.getElementById('taskFollowUp').addEventListener('change',e=>{
   document.getElementById('taskFollowUpDateWrap').style.display=e.target.checked?'block':'none';
 });
@@ -1534,8 +1665,8 @@ function renderTaskCard(t,admin){
         <div data-task-expand="${t.id}" style="font-size:13.5px;cursor:${t.desc?'pointer':'default'};${t.done&&!t.followUp?'text-decoration:line-through;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;margin-right:6px;">⏰ FOLLOW-UP</span>':''}${standby?'<span style="background:#64748b;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;margin-right:6px;">⏸ STAND-BY</span>':''}${blocat?'<span style="background:#dc2626;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;margin-right:6px;">⛔ BLOCAT</span>':''}${t.title||t.desc||''}${t.desc&&t.title?(' <span style="color:'+(tinted?'#cbd5e1':'#64748b')+';font-size:11px;">▾</span>'):''}</div>
         ${t.desc&&t.title?`<div data-task-desc="${t.id}" style="display:none;font-size:12px;color:${tinted?'#cbd5e1':'#94a3b8'};margin-top:4px;white-space:pre-wrap;">${t.desc}</div>`:''}
         <div style="font-size:11.5px;color:${tinted?'#cbd5e1':'#94a3b8'};margin-top:3px;">
-          ${t.site?('<span class="badge" style="background:#1e3a5f;color:#93c5fd;">'+t.site+'</span> '):''}
-          către <strong>${t.assigneeName||'—'}</strong>${t.assigneeSecName?(' + <span style="color:'+(tinted?'#cbd5e1':'#94a3b8')+';">'+t.assigneeSecName+'</span>'):''}${t.assigneeTerName?(' + <span style="color:'+(tinted?'#cbd5e1':'#94a3b8')+';">'+t.assigneeTerName+'</span>'):''}${t.assigneeQuatName?(' + <span style="color:'+(tinted?'#cbd5e1':'#94a3b8')+';">'+t.assigneeQuatName+'</span>'):''} ·
+          ${t.site?('<span class="badge" style="background:#1e3a5f;color:#93c5fd;">'+t.site+'</span> '):''}${blockedByLabel(t)?('<span style="background:#7f1d1d;color:#fecaca;font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;margin-right:5px;">⛔ '+blockedByLabel(t)+'</span> '):''}${t.recurring?('<span style="background:#1e3a5f;color:#93c5fd;font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;margin-right:5px;">🔁 '+(RECUR_LABEL[t.recurring]||'')+'</span> '):''}
+          către <strong>${t.assigneeName||'—'}</strong>${t.assigneeSecName?(' + <span style="color:'+(tinted?'#cbd5e1':'#94a3b8')+';">'+t.assigneeSecName+'</span>'):''}${t.assigneeTerName?(' + <span style="color:'+(tinted?'#cbd5e1':'#94a3b8')+';">'+t.assigneeTerName+'</span>'):''} ·
           ${(!admin&&t.assigneeId!==currentUser.id&&!t.done&&t.progress)?('<span class="badge badge-amber">'+t.progress+'%</span> '):''}
           atribuit de <strong>${t.createdBy||'—'}</strong> · creat ${t.ts?isoToDmy(new Date(t.ts).toISOString().slice(0,10)):'—'}
           ${t.due?(' · <span style="'+(overdue?'color:#f87171;font-weight:700;':'')+'">termen '+isoToDmy(t.due)+(t.dueTime?' ora '+t.dueTime:'')+'</span>'):''}
@@ -1560,7 +1691,7 @@ function renderTaskCard(t,admin){
   wireTaskEvents(box);
 }
 function renderTaskCardCompact(t,role){
-  const roleLabel=role==='sec'?'Secundar':role==='ter'?'Terțiar':role==='quat'?'Cuaternar':'';
+  const roleLabel=role==='sec'?'Secundar':role==='ter'?'Terțiar':'';
   const overdue=!t.done && t.due && t.due<todayISO();
   const blocat=t.priority==='blocat';
   const standby=t.priority==='standby'||blocat;
@@ -1571,8 +1702,8 @@ function renderTaskCardCompact(t,role){
         ${roleLabel?`<div style="font-size:9.5px;font-weight:800;color:${standby?'#cbd5e1':'#64748b'};text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px;">${roleLabel}</div>`:''}
         <div data-task-expand="${t.id}" style="font-size:12.5px;font-weight:600;color:${standby?'#f1f5f9':'#0f172a'};cursor:${t.desc?'pointer':'default'};${t.done?'text-decoration:line-through;color:#94a3b8;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏰</span>':''}${t.priority==='standby'?'<span style="background:#94a3b8;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏸</span>':''}${t.title||t.desc||''}${t.desc&&t.title?' <span style="color:'+(standby?'#cbd5e1':'#94a3b8')+';font-size:10px;">▾</span>':''}</div>
         ${t.desc&&t.title?`<div data-task-desc="${t.id}" style="display:none;font-size:11px;color:${standby?'#cbd5e1':'#64748b'};margin-top:3px;white-space:pre-wrap;">${t.desc}</div>`:''}
-        ${t.site?`<div style="font-size:10.5px;color:${standby?'#cbd5e1':'#64748b'};margin-top:2px;">${t.site}</div>`:''}
-        <div style="font-size:10.5px;color:${standby?'#cbd5e1':'#64748b'};margin-top:2px;">→ <strong style="color:${standby?'#f1f5f9':'inherit'};">${t.assigneeName||'—'}</strong>${t.assigneeSecName?(' + '+t.assigneeSecName):''}${t.assigneeTerName?(' + '+t.assigneeTerName):''}${t.assigneeQuatName?(' + '+t.assigneeQuatName):''}</div>
+        ${t.site?`<div style="font-size:10.5px;color:${standby?'#cbd5e1':'#64748b'};margin-top:2px;">${t.site}</div>`:''}${blockedByLabel(t)?`<div style="font-size:10px;font-weight:700;color:#fecaca;background:rgba(127,29,29,.55);padding:2px 6px;border-radius:5px;margin-top:3px;display:inline-block;">⛔ ${blockedByLabel(t)}</div>`:''}${t.recurring?`<div style="font-size:10px;font-weight:700;color:${standby?'#93c5fd':'#1d4ed8'};margin-top:3px;">🔁 ${RECUR_LABEL[t.recurring]||''}</div>`:''}
+        <div style="font-size:10.5px;color:${standby?'#cbd5e1':'#64748b'};margin-top:2px;">→ <strong style="color:${standby?'#f1f5f9':'inherit'};">${t.assigneeName||'—'}</strong>${t.assigneeSecName?(' + '+t.assigneeSecName):''}${t.assigneeTerName?(' + '+t.assigneeTerName):''}</div>
         ${!t.done?`<div style="margin-top:5px;">
           <select data-task-status="${t.id}" style="font-size:10.5px;padding:2px 5px;border:1px solid ${standby?'#64748b':'#e2e8f0'};border-radius:5px;background:${standby?'#1e293b':'#fff'};color:${standby?'#f1f5f9':'#334155'};" ${!canModifyTask(t)?'disabled':''}>
             <option value="0" ${(!t.progress||t.progress==0)?'selected':''}>Neînceput</option>
@@ -1619,7 +1750,7 @@ function renderTaskSiteView(){
               <div style="display:flex;align-items:center;gap:8px;">
                 <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} ${!canModifyTask(t)?'disabled':''} style="width:15px;height:15px;cursor:pointer;">
                 <span data-task-expand="${t.id}" style="flex:1;cursor:${t.desc?'pointer':'default'};${t.done?'text-decoration:line-through;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏰</span>':''}${t.priority==='standby'?'<span style="background:#64748b;color:#fff;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏸</span>':''}${t.title||t.desc||''}${t.desc&&t.title?' <span style="color:#94a3b8;font-size:10px;">▾</span>':''}</span>
-                <span style="color:#94a3b8;font-size:11px;">${t.assigneeName||''}${t.assigneeSecName?(' + '+t.assigneeSecName):''}${t.assigneeTerName?(' + '+t.assigneeTerName):''}${t.assigneeQuatName?(' + '+t.assigneeQuatName):''}</span>
+                <span style="color:#94a3b8;font-size:11px;">${t.assigneeName||''}${t.assigneeSecName?(' + '+t.assigneeSecName):''}${t.assigneeTerName?(' + '+t.assigneeTerName):''}</span>
                 ${t.due?`<span style="font-size:10.5px;font-weight:600;color:${overdue?'#f87171':'#94a3b8'};">Termen: ${isoToDmy(t.due)}${t.dueTime?' '+t.dueTime:''}</span>`:''}
                 <span style="font-size:10px;color:#64748b;">creat ${t.ts?isoToDmy(new Date(t.ts).toISOString().slice(0,10)):'—'}</span>
               </div>
@@ -1648,7 +1779,7 @@ function renderTaskBoard(admin){
   const board=document.getElementById('taskBoard');
   const byUser={};
   tasks.filter(taskMatchesSearch).forEach(t=>{
-    [[t.assigneeId,t.assigneeName,''],[t.assigneeSecId,t.assigneeSecName,'sec'],[t.assigneeTerId,t.assigneeTerName,'ter'],[t.assigneeQuatId,t.assigneeQuatName,'quat']].forEach(([id,name,role])=>{
+    [[t.assigneeId,t.assigneeName,''],[t.assigneeSecId,t.assigneeSecName,'sec'],[t.assigneeTerId,t.assigneeTerName,'ter']].forEach(([id,name,role])=>{
       if(!id) return;
       (byUser[id]=byUser[id]||{name,items:[]}).items.push({t,role});
     });
@@ -1686,7 +1817,7 @@ function wireTaskEvents(root){
   root.querySelectorAll('input[data-task-done]').forEach(cb=>cb.addEventListener('change',()=>{
     const t=tasks.find(x=>x.id===cb.dataset.taskDone);
     if(t && !canModifyTask(t)){ cb.checked=!cb.checked; alert('Doar responsabilii sau inițiatorul acestui task îl pot modifica.'); return; }
-    if(t){ t.done=cb.checked; if(t.done){ t.progress=100; sendTaskDoneEmail(t); } saveTask(t); renderTasks(); }
+    if(t){ t.done=cb.checked; if(t.done){ t.progress=100; sendTaskDoneEmail(t); const n=unblockDependents(t.id); const nx=spawnRecurrence(t); const msgs=[]; if(n) msgs.push(n===1?'1 task blocat s-a deblocat automat.':n+' task-uri blocate s-au deblocat automat.'); if(nx) msgs.push('Următoarea apariție a fost creată automat pentru '+isoToDmy(nx)+'.'); if(msgs.length) setTimeout(()=>alert(msgs.join('\n\n')),100); } saveTask(t); renderTasks(); }
   }));
   root.querySelectorAll('select[data-task-status]').forEach(sel=>sel.addEventListener('change',()=>{
     const t=tasks.find(x=>x.id===sel.dataset.taskStatus);
@@ -1710,7 +1841,7 @@ function renderTasks(){
   const admin=!!currentUser;
   document.getElementById('taskAssignCard').style.display=admin?'block':'none';
   if(admin){
-    ['taskAssignee2','taskAssigneeSec','taskAssigneeTer','taskAssigneeQuat'].forEach(id=>{
+    ['taskAssignee2','taskAssigneeSec','taskAssigneeTer'].forEach(id=>{
       const sel=document.getElementById(id);
       if(!sel.dataset.filled){
         loginUsers.filter(u=>u.id!=='_admin').forEach(u=>{ const o=document.createElement('option'); o.value=u.id; o.textContent=u.name; sel.appendChild(o); });
@@ -1743,9 +1874,9 @@ document.getElementById('btnSubmitTask').addEventListener('click',()=>{
   const assigneeSecName=(loginUsers.find(u=>u.id===assigneeSecId)||{}).name||'';
   const assigneeTerId=document.getElementById('taskAssigneeTer').value;
   const assigneeTerName=(loginUsers.find(u=>u.id===assigneeTerId)||{}).name||'';
-  const assigneeQuatId=document.getElementById('taskAssigneeQuat').value;
-  const assigneeQuatName=(loginUsers.find(u=>u.id===assigneeQuatId)||{}).name||'';
   const title=document.getElementById('taskTitle').value.trim();
+  const blockedBy=document.getElementById('taskBlockedBy').value||null;
+  const recurring=document.getElementById('taskRecurring').value||null;
   const desc=document.getElementById('taskDesc').value.trim();
   const dueDmy=document.getElementById('taskDue').value.trim();
   const dueTime=document.getElementById('taskDueTime').value.trim();
@@ -1755,19 +1886,20 @@ document.getElementById('btnSubmitTask').addEventListener('click',()=>{
   const followUpDate=followUp&&followUpDateDmy?dmyToIso(followUpDateDmy):null;
   if(!assigneeId||!title){ alert('Completează colegul și titlul task-ului.'); return; }
   if(!dueDmy&&priority!=='standby'&&priority!=='blocat'){ alert('Termenul de finalizare este obligatoriu (excepție: Stand-by / Blocat).'); return; }
+  if(!dueDmy&&recurring){ alert('Un task recurent are nevoie de un termen de finalizare — de la el se calculează următoarea apariție.'); return; }
   if(editingTaskId){
     const t=tasks.find(x=>x.id===editingTaskId);
     if(t){
-      Object.assign(t,{assigneeId,assigneeName,assigneeSecId:assigneeSecId||null,assigneeSecName:assigneeSecName||null,assigneeTerId:assigneeTerId||null,assigneeTerName:assigneeTerName||null,assigneeQuatId:assigneeQuatId||null,assigneeQuatName:assigneeQuatName||null,title,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,followUp,followUpDate});
+      Object.assign(t,{recurring,blockedBy:priority==="blocat"?blockedBy:null,assigneeId,assigneeName,assigneeSecId:assigneeSecId||null,assigneeSecName:assigneeSecName||null,assigneeTerId:assigneeTerId||null,assigneeTerName:assigneeTerName||null,title,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,followUp,followUpDate});
       saveTask(t);
     }
     cancelTaskEdit();
     return;
   }
-  const t={id:'task_'+Date.now(),assigneeId,assigneeName,assigneeSecId:assigneeSecId||null,assigneeSecName:assigneeSecName||null,assigneeTerId:assigneeTerId||null,assigneeTerName:assigneeTerName||null,assigneeQuatId:assigneeQuatId||null,assigneeQuatName:assigneeQuatName||null,title,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,followUp,followUpDate,done:false,ts:Date.now(),createdBy:currentUser.name};
+  const t={id:'task_'+Date.now(),recurring,blockedBy:priority==='blocat'?blockedBy:null,assigneeId,assigneeName,assigneeSecId:assigneeSecId||null,assigneeSecName:assigneeSecName||null,assigneeTerId:assigneeTerId||null,assigneeTerName:assigneeTerName||null,title,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,followUp,followUpDate,done:false,ts:Date.now(),createdBy:currentUser.name};
   saveTask(t);
   sendTaskEmail(t,assignee);
-  [assigneeSecId,assigneeTerId,assigneeQuatId].forEach(id=>{
+  [assigneeSecId,assigneeTerId].forEach(id=>{
     if(!id) return;
     const u=loginUsers.find(x=>x.id===id);
     if(u&&u.email) sendTaskEmail(t,u,true);
@@ -1778,7 +1910,7 @@ document.getElementById('btnSubmitTask').addEventListener('click',()=>{
   document.getElementById('taskFollowUpDate').value='';
   document.getElementById('taskFollowUpDateWrap').style.display='none';
   document.getElementById('taskTitle').value='';
-  document.getElementById('taskAssigneeSec').value=''; document.getElementById('taskAssigneeTer').value=''; document.getElementById('taskAssigneeQuat').value='';
+  document.getElementById('taskAssigneeSec').value=''; document.getElementById('taskAssigneeTer').value=''; document.getElementById('taskBlockedBy').value=''; document.getElementById('taskBlockedByWrap').style.display='none'; document.getElementById('taskRecurring').value='';
   document.getElementById('taskDesc').value=''; document.getElementById('taskDue').value=''; document.getElementById('taskDueTime').value='';
 });
 function openTaskEdit(id){
@@ -1788,7 +1920,9 @@ function openTaskEdit(id){
   document.getElementById('taskAssignee2').value=t.assigneeId||'';
   document.getElementById('taskAssigneeSec').value=t.assigneeSecId||'';
   document.getElementById('taskAssigneeTer').value=t.assigneeTerId||'';
-  document.getElementById('taskAssigneeQuat').value=t.assigneeQuatId||'';
+  document.getElementById('taskBlockedByWrap').style.display=t.priority==='blocat'?'block':'none';
+  if(t.priority==='blocat'){ populateBlockedBySelect(); document.getElementById('taskBlockedBy').value=t.blockedBy||''; }
+  document.getElementById('taskRecurring').value=t.recurring||'';
   document.getElementById('taskTitle').value=t.title||t.desc||'';
   document.getElementById('taskDesc').value=t.title?(t.desc||''):'';
   document.getElementById('taskDue').value=t.due?isoToDmy(t.due):'';
@@ -1812,7 +1946,7 @@ function cancelTaskEdit(){
   document.getElementById('taskFollowUpDate').value='';
   document.getElementById('taskFollowUpDateWrap').style.display='none';
   document.getElementById('taskTitle').value='';
-  document.getElementById('taskAssigneeSec').value=''; document.getElementById('taskAssigneeTer').value=''; document.getElementById('taskAssigneeQuat').value='';
+  document.getElementById('taskAssigneeSec').value=''; document.getElementById('taskAssigneeTer').value=''; document.getElementById('taskBlockedBy').value=''; document.getElementById('taskBlockedByWrap').style.display='none'; document.getElementById('taskRecurring').value='';
   document.getElementById('taskDesc').value=''; document.getElementById('taskDue').value=''; document.getElementById('taskDueTime').value='';
   document.getElementById('btnSubmitTask').textContent='Atribuie task';
   document.getElementById('btnCancelEditTask').style.display='none';
@@ -2193,60 +2327,7 @@ addCalendarPicker('leaveFrom'); addCalendarPicker('leaveTo');
 populateLoginUsers();
 loadFirebase();
 
-// ── Team chat widget ──
-let chatMessages=[], chatOpen=false;
-function chatLastSeenKey(){ return currentUser?('shc_chat_lastseen_'+currentUser.id):null; }
-function updateChatUnread(){
-  const badge=document.getElementById('chatUnreadBadge');
-  if(!currentUser){ badge.style.display='none'; return; }
-  const lastSeen=parseInt(localStorage.getItem(chatLastSeenKey())||'0');
-  const unread=chatMessages.filter(m=>m.userId!==currentUser.id && m.ts>lastSeen).length;
-  if(unread>0 && !chatOpen){ badge.style.display='block'; badge.textContent=unread>9?'9+':unread; }
-  else badge.style.display='none';
-}
-function renderChat(){
-  const wrap=document.getElementById('chatMessages');
-  if(!chatMessages.length){ wrap.innerHTML='<div style="color:#475569;font-size:12px;text-align:center;margin-top:20px;">Niciun mesaj încă. Scrie primul!</div>'; return; }
-  wrap.innerHTML=chatMessages.map(m=>{
-    const mine=currentUser&&m.userId===currentUser.id;
-    const time=new Date(m.ts).toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit',hour12:false});
-    return `<div style="display:flex;flex-direction:column;align-items:${mine?'flex-end':'flex-start'};">
-      <div style="font-size:10.5px;color:#64748b;margin-bottom:2px;">${m.userName||'?'} · ${time}</div>
-      <div style="max-width:82%;background:${mine?'#f59e0b':'#1a2740'};color:${mine?'#0a1628':'#e2e8f0'};padding:7px 11px;border-radius:12px;font-size:13px;word-break:break-word;line-height:1.4;">${(m.text||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</div>
-    </div>`;
-  }).join('');
-  wrap.scrollTop=wrap.scrollHeight;
-}
-function initChat(){
-  document.getElementById('chatToggleBtn').style.display='flex';
-  const toggle=document.getElementById('chatToggleBtn'), panel=document.getElementById('chatPanel'), closeBtn=document.getElementById('chatCloseBtn'), input=document.getElementById('chatInput'), sendBtn=document.getElementById('chatSendBtn');
-  toggle.addEventListener('click',()=>{
-    chatOpen=!chatOpen;
-    panel.style.display=chatOpen?'flex':'none';
-    if(chatOpen){ localStorage.setItem(chatLastSeenKey(),Date.now().toString()); updateChatUnread(); renderChat(); input.focus(); }
-  });
-  closeBtn.addEventListener('click',()=>{ chatOpen=false; panel.style.display='none'; });
-  function send(){
-    const text=input.value.trim();
-    if(!text||!currentUser) return;
-    const msg={id:'msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),userId:currentUser.id,userName:currentUser.name,text,ts:Date.now()};
-    if(db) db.ref('shc_chat/messages/'+msg.id).set(msg);
-    else { chatMessages.push(msg); renderChat(); }
-    input.value='';
-    localStorage.setItem(chatLastSeenKey(),Date.now().toString());
-  }
-  sendBtn.addEventListener('click',send);
-  input.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); } });
-  if(db){
-    db.ref('shc_chat/messages').limitToLast(200).on('value',snap=>{
-      const raw=snap.val()||{};
-      chatMessages=Object.values(raw).filter(Boolean).sort((a,b)=>a.ts-b.ts);
-      if(chatOpen) renderChat();
-      updateChatUnread();
-    });
-  }
-}
-initChat();
+// ── Team chat widget ── chatOpen=false;
 </script>
 </body>
 </html>

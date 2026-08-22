@@ -179,6 +179,7 @@ a:hover{color:#93c5fd;}
           <button class="tab-btn active" id="tabComenzi">🚚 Comenzi Transport</button>
           <button class="tab-btn" id="tabProcese">📝 Procese Verbale</button>
           <button class="tab-btn" id="tabSolicitari">📨 Solicitări</button>
+          <button class="tab-btn" id="tabStoc">📦 Stoc depozit</button>
         </div>
         <button class="btn btn-green" id="btnNewItem" style="width:100%;font-size:12px;">+ Comandă nouă</button>
       </div>
@@ -369,6 +370,85 @@ a:hover{color:#93c5fd;}
 
         <button class="btn btn-blue" id="btnSaveSolicitare">💾 Salvează solicitarea</button>
       </div>
+
+      <!-- STOC EDITOR -->
+      <div id="stocEditor" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+          <div>
+            <div style="font-size:17px;font-weight:800;color:#f1f5f9;">Articol stoc</div>
+            <div id="stocMetaDisplay" style="font-size:11.5px;color:#64748b;margin-top:2px;"></div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-red btn-sm" id="btnDeleteStoc">Șterge</button>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">📦 Identificare articol</div>
+          <div class="row2">
+            <div class="field"><label>Denumire produs</label><input type="text" id="stDenumire" placeholder="ex: Panou Longi Hi-MO 6 580W"></div>
+            <div class="field"><label>Cod produs / SKU</label><input type="text" id="stCod" placeholder="ex: LR5-72HTH-580M"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Categorie</label>
+              <select id="stCategorie">
+                <option value="Panouri PV">Panouri PV</option>
+                <option value="Invertoare">Invertoare</option>
+                <option value="Baterii / BESS">Baterii / BESS</option>
+                <option value="Structură montaj">Structură montaj</option>
+                <option value="Cabluri">Cabluri</option>
+                <option value="Tablouri și protecții">Tablouri și protecții</option>
+                <option value="Conectori și cleme">Conectori și cleme</option>
+                <option value="Scule și consumabile">Scule și consumabile</option>
+                <option value="Altele">Altele</option>
+              </select>
+            </div>
+            <div class="field"><label>Producător / marcă</label><input type="text" id="stMarca" placeholder="ex: Longi, Solis, Huawei"></div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">📊 Cantități</div>
+          <div class="row2">
+            <div class="field"><label>Cantitate în stoc</label><input type="number" id="stCantitate" min="0" step="0.01" placeholder="0"></div>
+            <div class="field"><label>Unitate de măsură</label>
+              <select id="stUM">
+                <option value="buc">bucăți</option>
+                <option value="m">metri</option>
+                <option value="ml">metri liniari</option>
+                <option value="kg">kilograme</option>
+                <option value="set">seturi</option>
+                <option value="cutie">cutii</option>
+              </select>
+            </div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Prag de alertă (stoc minim)</label><input type="number" id="stPragMinim" min="0" step="0.01" placeholder="ex: 10"></div>
+            <div class="field"><label>Locație în depozit</label><input type="text" id="stLocatie" placeholder="ex: Raft A3, Hala 2"></div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">🔄 Mișcare stoc</div>
+          <div class="row2">
+            <div class="field"><label>Tip mișcare</label>
+              <select id="stMiscareTip">
+                <option value="intrare">Intrare (recepție marfă)</option>
+                <option value="iesire">Ieșire (către șantier)</option>
+              </select>
+            </div>
+            <div class="field"><label>Cantitate mișcare</label><input type="number" id="stMiscareQty" min="0" step="0.01" placeholder="0"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Lucrare / client (opțional)</label><select id="stCrmProject"><option value="">— Fără legătură —</option></select></div>
+            <div class="field"><label>Observație</label><input type="text" id="stMiscareNota" placeholder="ex: factură 12345 / bon consum"></div>
+          </div>
+          <button class="btn btn-green btn-sm" id="btnAddMiscare">➕ Înregistrează mișcarea</button>
+          <div id="stIstoricList" style="margin-top:14px;"></div>
+        </div>
+
+        <button class="btn btn-blue" id="btnSaveStoc">💾 Salvează articolul</button>
+      </div>
     </div>
   </div>
 </div>
@@ -393,9 +473,11 @@ const DEFAULT_USERS = [
 ];
 
 let db=null, currentUser=null, loginUsers=[...DEFAULT_USERS], adminPw='12345', adminPin='1000';
-let comenzi={}, procese={}, solicitari={}, crmProjects=[];
-let activeTab='comenzi'; // 'comenzi' | 'procese' | 'solicitari'
-let activeComandaId=null, activeProcesId=null, activeSolicitareId=null;
+let comenzi={}, procese={}, solicitari={}, stoc={}, crmProjects=[];
+function clientCodeOf(p){ return (p&&p.clientCode)||('SHC-C-'+String((p&&p.id)||0).padStart(4,'0')); }
+
+let activeTab='comenzi'; // 'comenzi' | 'procese' | 'solicitari' | 'stoc'
+let activeComandaId=null, activeProcesId=null, activeSolicitareId=null, activeStocId=null;
 let procesItems=[];
 
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
@@ -445,6 +527,12 @@ function loadFirebase(){
     Object.values(raw).filter(v=>v&&v.id).forEach(v=>{ procese[v.id]=v; });
     renderList();
   });
+  db.ref('shc_logistica/stoc').on('value', snap=>{
+    const raw=snap.val()||{};
+    stoc={};
+    Object.values(raw).filter(Boolean).forEach(v=>{ stoc[v.id]=v; });
+    if(activeTab==='stoc') renderList();
+  });
   db.ref('shc_logistica/solicitari').on('value', snap=>{
     const raw=snap.val()||{};
     solicitari={};
@@ -460,7 +548,7 @@ function loadFirebase(){
     if(cfg.adminPin) adminPin=cfg.adminPin;
     populateLoginUsers();
   });
-  db.ref('solarcrm_v2/projects').on('value', snap=>{
+  db.ref('solarcrm_v2/projects').once('value', snap=>{
     const raw=snap.val()||{};
     crmProjects=Object.values(raw).filter(p=>p&&p.id);
     populateCrmDropdowns();
@@ -620,7 +708,7 @@ function populateCrmDropdowns(){
     sel.innerHTML='<option value="">— Fără legătură —</option>';
     crmProjects.forEach(p=>{
       const o=document.createElement('option'); o.value=p.id;
-      o.textContent=(p.client||'Fără nume')+(p.address?' — '+p.address:'');
+      o.textContent='['+clientCodeOf(p)+'] '+(p.client||'Fără nume')+(p.address?' — '+p.address:'');
       sel.appendChild(o);
     });
     sel.value=cur;
@@ -643,49 +731,54 @@ document.getElementById('sCrmProject').addEventListener('change',e=>{
 document.getElementById('tabComenzi').addEventListener('click',()=>switchTab('comenzi'));
 document.getElementById('tabProcese').addEventListener('click',()=>switchTab('procese'));
 document.getElementById('tabSolicitari').addEventListener('click',()=>switchTab('solicitari'));
+document.getElementById('tabStoc').addEventListener('click',()=>switchTab('stoc'));
 function switchTab(tab){
   activeTab=tab;
   document.getElementById('tabComenzi').classList.toggle('active',tab==='comenzi');
   document.getElementById('tabProcese').classList.toggle('active',tab==='procese');
   document.getElementById('tabSolicitari').classList.toggle('active',tab==='solicitari');
-  document.getElementById('btnNewItem').textContent=tab==='comenzi'?'+ Comandă nouă':tab==='procese'?'+ Proces nou':'+ Solicitare nouă';
+  document.getElementById('tabStoc').classList.toggle('active',tab==='stoc');
+  document.getElementById('btnNewItem').textContent=tab==='comenzi'?'+ Comandă nouă':tab==='procese'?'+ Proces nou':tab==='solicitari'?'+ Solicitare nouă':'+ Articol nou';
   document.getElementById('comandaEditor').style.display='none';
   document.getElementById('procesEditor').style.display='none';
   document.getElementById('solicitareEditor').style.display='none';
+  document.getElementById('stocEditor').style.display='none';
   document.getElementById('emptyState').style.display='block';
-  activeComandaId=null; activeProcesId=null; activeSolicitareId=null;
+  activeComandaId=null; activeProcesId=null; activeSolicitareId=null; activeStocId=null;
   renderList();
 }
 
 document.getElementById('btnNewItem').addEventListener('click',()=>{
-  if(activeTab==='comenzi') newComanda(); else if(activeTab==='procese') newProces(); else newSolicitare();
+  if(activeTab==='comenzi') newComanda(); else if(activeTab==='procese') newProces(); else if(activeTab==='solicitari') newSolicitare(); else newStoc();
 });
 
 // ── List rendering ──
 function renderList(){
   const list=document.getElementById('itemList');
-  const dataset = activeTab==='comenzi' ? comenzi : activeTab==='procese' ? procese : solicitari;
+  const dataset = activeTab==='comenzi' ? comenzi : activeTab==='procese' ? procese : activeTab==='solicitari' ? solicitari : stoc;
   const arr=Object.values(dataset).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
   if(!arr.length){ list.innerHTML='<div style="padding:20px 14px;font-size:12px;color:#334155;text-align:center;">Niciun element</div>'; return; }
   const groups={};
-  arr.forEach(v=>{ const k=v.client||v.destinatar||'Fără client'; (groups[k]=groups[k]||[]).push(v); });
+  arr.forEach(v=>{ const k=activeTab==='stoc'?(v.categorie||'Fără categorie'):(v.client||v.destinatar||'Fără client'); (groups[k]=groups[k]||[]).push(v); });
   let html='';
   Object.keys(groups).sort((a,b)=>a.localeCompare(b,'ro')).forEach(client=>{
     html+=`<div class="group-header">${esc(client)}</div>`;
     groups[client].forEach(v=>{
-      const activeId = activeTab==='comenzi'?activeComandaId:activeTab==='procese'?activeProcesId:activeSolicitareId;
-      const title = activeTab==='comenzi' ? (v.transportator||'Comandă fără transportator') : activeTab==='procese' ? (v.nrProces||'Proces verbal') : (v.tipSolicitare||'Solicitare');
-      const meta = activeTab==='comenzi' ? (v.nrComanda?('SCH'+v.nrComanda+(v.dataComanda?' · '+isoToDmy(v.dataComanda):'')):(v.dataComanda?isoToDmy(v.dataComanda):'')) : activeTab==='procese' ? (v.dataProces?isoToDmy(v.dataProces):'') : (v.nrInreg?('Nr. '+v.nrInreg+(v.dataSolicitare?' · '+isoToDmy(v.dataSolicitare):'')):(v.dataSolicitare?isoToDmy(v.dataSolicitare):''));
+      const activeId = activeTab==='comenzi'?activeComandaId:activeTab==='procese'?activeProcesId:activeTab==='solicitari'?activeSolicitareId:activeStocId;
+      const lowStock = activeTab==='stoc' && v.pragMinim!=null && v.pragMinim!=='' && Number(v.cantitate||0) <= Number(v.pragMinim);
+      const title = activeTab==='comenzi' ? (v.transportator||'Comandă fără transportator') : activeTab==='procese' ? (v.nrProces||'Proces verbal') : activeTab==='solicitari' ? (v.tipSolicitare||'Solicitare') : ((lowStock?'⚠️ ':'')+(v.denumire||'Articol fără nume'));
+      const meta = activeTab==='comenzi' ? (v.nrComanda?('SCH'+v.nrComanda+(v.dataComanda?' · '+isoToDmy(v.dataComanda):'')):(v.dataComanda?isoToDmy(v.dataComanda):'')) : activeTab==='procese' ? (v.dataProces?isoToDmy(v.dataProces):'') : activeTab==='solicitari' ? (v.nrInreg?('Nr. '+v.nrInreg+(v.dataSolicitare?' · '+isoToDmy(v.dataSolicitare):'')):(v.dataSolicitare?isoToDmy(v.dataSolicitare):'')) : ((v.cantitate!=null?v.cantitate:0)+' '+(v.um||'buc')+(v.cod?(' · '+v.cod):''));
+      const metaHtml = (activeTab==='stoc'&&lowStock) ? (esc(meta)+' · <span style="color:#fca5a5;font-weight:700;">SUB PRAG</span>') : esc(meta);
       html+=`<div class="list-item${v.id===activeId?' active':''}" data-id="${v.id}">
         <div class="li-name">${esc(title)}</div>
-        <div class="li-meta">${esc(meta)}</div>
+        <div class="li-meta">${metaHtml}</div>
       </div>`;
     });
   });
   list.innerHTML=html;
   list.querySelectorAll('.list-item').forEach(el=>{
     el.addEventListener('click',()=>{
-      if(activeTab==='comenzi') openComanda(el.dataset.id); else if(activeTab==='procese') openProces(el.dataset.id); else openSolicitare(el.dataset.id);
+      if(activeTab==='comenzi') openComanda(el.dataset.id); else if(activeTab==='procese') openProces(el.dataset.id); else if(activeTab==='solicitari') openSolicitare(el.dataset.id); else openStoc(el.dataset.id);
       if(window.innerWidth<=768){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarBackdrop').style.display='none'; }
     });
   });
@@ -1002,7 +1095,7 @@ function openSolicitare(id){
   document.getElementById('solicitareTitleDisplay').textContent=v.tipSolicitare||'Solicitare nouă';
   document.getElementById('solicitareMetaDisplay').textContent=v.createdBy?('Creat de '+v.createdBy):'';
   const sel=document.getElementById('sCrmProject');
-  sel.innerHTML='<option value="">— Fără legătură —</option>'+crmProjects.map(p=>`<option value="${p.id}">${esc(p.client)}</option>`).join('');
+  sel.innerHTML='<option value="">— Fără legătură —</option>'+crmProjects.map(p=>`<option value="${p.id}">[${clientCodeOf(p)}] ${esc(p.client)}</option>`).join('');
   sel.value=v.crmId||'';
   document.getElementById('sNrInreg').value=v.nrInreg||'';
   document.getElementById('sDataSolicitare').value=v.dataSolicitare?isoToDmy(v.dataSolicitare):'';
@@ -1120,6 +1213,112 @@ document.getElementById('btnExportPdfSolicitare').addEventListener('click',()=>{
 });
 
 loadFirebase();
+
+// ═══════════════════════ STOC DEPOZIT ═══════════════════════
+function newStoc(){
+  const v={id:uid(),denumire:'',cod:'',categorie:'Panouri PV',marca:'',cantitate:0,um:'buc',
+    pragMinim:'',locatie:'',istoric:[],createdAt:Date.now(),updatedAt:Date.now(),createdBy:currentUser?currentUser.name:''};
+  stoc[v.id]=v;
+  activeStocId=v.id;
+  openStoc(v.id);
+  renderList();
+}
+function openStoc(id){
+  const v=stoc[id]; if(!v) return;
+  activeStocId=id;
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('comandaEditor').style.display='none';
+  document.getElementById('procesEditor').style.display='none';
+  document.getElementById('solicitareEditor').style.display='none';
+  document.getElementById('stocEditor').style.display='block';
+  document.getElementById('stocMetaDisplay').textContent=v.createdBy?('Creat de '+v.createdBy):'';
+  document.getElementById('stDenumire').value=v.denumire||'';
+  document.getElementById('stCod').value=v.cod||'';
+  document.getElementById('stCategorie').value=v.categorie||'Panouri PV';
+  document.getElementById('stMarca').value=v.marca||'';
+  document.getElementById('stCantitate').value=v.cantitate!=null?v.cantitate:0;
+  document.getElementById('stUM').value=v.um||'buc';
+  document.getElementById('stPragMinim').value=v.pragMinim!=null?v.pragMinim:'';
+  document.getElementById('stLocatie').value=v.locatie||'';
+  document.getElementById('stMiscareQty').value='';
+  document.getElementById('stMiscareNota').value='';
+  const sel=document.getElementById('stCrmProject');
+  sel.innerHTML='<option value="">— Fără legătură —</option>'+crmProjects.map(p=>`<option value="${p.id}">[${clientCodeOf(p)}] ${esc(p.client||'')}</option>`).join('');
+  renderStocIstoric(v);
+  renderList();
+}
+function renderStocIstoric(v){
+  const wrap=document.getElementById('stIstoricList');
+  const ist=(v.istoric||[]).slice().sort((a,b)=>b.ts-a.ts);
+  if(!ist.length){ wrap.innerHTML='<div style="font-size:11.5px;color:#475569;">Nicio mișcare înregistrată.</div>'; return; }
+  wrap.innerHTML='<div style="font-size:11.5px;font-weight:700;color:#94a3b8;margin-bottom:6px;">Ultimele mișcări</div>'+
+    ist.slice(0,15).map(m=>{
+      const isIn=m.tip==='intrare';
+      return `<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:#1e293b;margin-bottom:4px;font-size:11.5px;">
+        <span style="font-weight:800;color:${isIn?'#10b981':'#f97316'};min-width:52px;">${isIn?'+ '+m.qty:'− '+m.qty}</span>
+        <span style="color:#94a3b8;flex:1;">${esc(m.nota||'')}${m.client?(' · '+esc(m.client)):''}</span>
+        <span style="color:#475569;font-size:10.5px;">${isoToDmy(new Date(m.ts).toISOString().slice(0,10))} · ${esc(m.user||'')}</span>
+      </div>`;
+    }).join('');
+}
+function collectStoc(){
+  const v=stoc[activeStocId]; if(!v) return null;
+  v.denumire=document.getElementById('stDenumire').value.trim();
+  v.cod=document.getElementById('stCod').value.trim();
+  v.categorie=document.getElementById('stCategorie').value;
+  v.marca=document.getElementById('stMarca').value.trim();
+  const q=parseFloat(document.getElementById('stCantitate').value);
+  v.cantitate=Number.isFinite(q)?q:0;
+  v.um=document.getElementById('stUM').value;
+  const pm=document.getElementById('stPragMinim').value.trim();
+  v.pragMinim=pm===''?'':parseFloat(pm);
+  v.locatie=document.getElementById('stLocatie').value.trim();
+  v.updatedAt=Date.now();
+  return v;
+}
+document.getElementById('btnSaveStoc').addEventListener('click',()=>{
+  const v=collectStoc(); if(!v) return;
+  if(!v.denumire){ alert('Completează denumirea produsului.'); return; }
+  saveFirebase('stoc',v);
+  renderList();
+  alert('Articol salvat.');
+});
+document.getElementById('btnAddMiscare').addEventListener('click',()=>{
+  const v=collectStoc(); if(!v) return;
+  if(!v.denumire){ alert('Completează întâi denumirea produsului și salvează.'); return; }
+  const tip=document.getElementById('stMiscareTip').value;
+  const qty=parseFloat(document.getElementById('stMiscareQty').value);
+  if(!Number.isFinite(qty)||qty<=0){ alert('Introdu o cantitate mai mare decât zero.'); return; }
+  const nou=tip==='intrare'?(Number(v.cantitate||0)+qty):(Number(v.cantitate||0)-qty);
+  if(nou<0){ alert('Stoc insuficient. În depozit sunt '+(v.cantitate||0)+' '+(v.um||'buc')+'.'); return; }
+  const crmId=document.getElementById('stCrmProject').value;
+  const proj=crmProjects.find(p=>String(p.id)===crmId);
+  v.istoric=(v.istoric||[]).concat([{ts:Date.now(),tip,qty,nota:document.getElementById('stMiscareNota').value.trim(),
+    crmId:crmId||'',client:proj?(proj.client||''):'',user:currentUser?currentUser.name:''}]);
+  v.cantitate=nou;
+  v.updatedAt=Date.now();
+  document.getElementById('stCantitate').value=nou;
+  document.getElementById('stMiscareQty').value='';
+  document.getElementById('stMiscareNota').value='';
+  saveFirebase('stoc',v);
+  renderStocIstoric(v);
+  renderList();
+  if(v.pragMinim!=='' && v.pragMinim!=null && nou<=Number(v.pragMinim)){
+    alert('⚠️ Atenție: stocul pentru "'+v.denumire+'" a ajuns la '+nou+' '+(v.um||'buc')+', sub pragul de '+v.pragMinim+'.');
+  }
+});
+document.getElementById('btnDeleteStoc').addEventListener('click',()=>{
+  if(!activeStocId) return;
+  if(!(currentUser&&(currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'))){ alert('Doar Alexandru Chirilă și Ionuț Nicoraș pot șterge articole din stoc.'); return; }
+  if(!confirm('Ștergi acest articol din stoc?')) return;
+  if(db) db.ref('shc_logistica/stoc/'+activeStocId).remove();
+  delete stoc[activeStocId];
+  activeStocId=null;
+  document.getElementById('stocEditor').style.display='none';
+  document.getElementById('emptyState').style.display='block';
+  renderList();
+});
+
 </script>
 </body>
 </html>
