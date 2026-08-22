@@ -35,7 +35,9 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',system-ui,sans-serif
 .btn-login{width:100%;padding:12px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:0;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
 .btn-login:hover{opacity:.9;}
 
+body.embedded #app{height:100%;}
 #app{display:none;height:100vh;flex-direction:column;}
+body.embedded #topBar{display:none!important;}
 #topBar{background:#0d1b2e;border-bottom:1px solid #1e3a5f;padding:0 18px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px;}
 #layout{display:flex;flex:1;overflow:hidden;}
 
@@ -376,6 +378,7 @@ function loadFirebase(){
     if(cfg.adminPw) adminPw=cfg.adminPw;
     if(cfg.adminPin) adminPin=cfg.adminPin;
     populateLoginUsers();
+    trySsoLogin();
   });
   db.ref('solarcrm_v2/projects').once('value', snap=>{
     const raw=snap.val()||{};
@@ -511,6 +514,27 @@ function officePinPress(k){
     document.getElementById('userName').textContent=u.name;
     resizeCanvas();
   }
+}
+function completeLoginAs(u){
+  currentUser=u;
+  document.getElementById('loginOverlay').style.display='none';
+  document.getElementById('officePinOverlay').style.display='none';
+  document.getElementById('app').style.display='flex';
+  const av=document.getElementById('userAvatar');
+  av.style.background=u.color||'#3b82f6'; av.textContent=initials(u.name);
+  document.getElementById('userName').textContent=u.name;
+  resizeCanvas();
+}
+function trySsoLogin(){
+  if(!/[?&]embed=1/.test(location.search)) return false;
+  try{
+    const raw=sessionStorage.getItem('shc_sso_user'); if(!raw) return false;
+    const su=JSON.parse(raw); if(!su||!su.id) return false;
+    const u=loginUsers.find(x=>x.id===su.id)||su;
+    document.body.classList.add('embedded');
+    completeLoginAs(u);
+    return true;
+  }catch(e){ return false; }
 }
 buildOfficePinGrid();
 document.getElementById('btnOpenOfficePin').addEventListener('click',e=>{
@@ -1148,6 +1172,7 @@ addCalendarPicker('fDate');
 
 populateLoginUsers();
 loadFirebase();
+trySsoLogin();
 
 // ── Team chat widget ── chatOpen=false;
 </script>

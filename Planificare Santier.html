@@ -25,7 +25,9 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',system-ui,sans-serif
 .btn-login:hover{opacity:.9;}
 
 /* ── App layout ── */
+body.embedded #app{height:100%;}
 #app{display:none;height:100vh;flex-direction:column;}
+body.embedded #topBar{display:none!important;}
 #topBar{background:#0d1b2e;border-bottom:1px solid #1e3a5f;padding:0 18px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px;}
 #layout{display:flex;flex:1;overflow:hidden;position:relative;}
 .hamburger{display:none;}
@@ -419,6 +421,7 @@ function loadFirebase(){
     if(cfg.adminPw) adminPw=cfg.adminPw;
     if(cfg.adminPin) adminPin=cfg.adminPin;
     populateLoginUsers();
+    trySsoLogin();
     populateStageResponsabili();
   });
 }
@@ -486,6 +489,18 @@ function completeLoginAs(u){
   document.getElementById('userName').textContent=u.name;
   populateStageResponsabili();
   renderAll();
+}
+
+function trySsoLogin(){
+  if(!/[?&]embed=1/.test(location.search)) return false;
+  try{
+    const raw=sessionStorage.getItem('shc_sso_user'); if(!raw) return false;
+    const su=JSON.parse(raw); if(!su||!su.id) return false;
+    const u=loginUsers.find(x=>x.id===su.id)||su;
+    document.body.classList.add('embedded');
+    completeLoginAs(u);
+    return true;
+  }catch(e){ return false; }
 }
 
 // ── PIN rapid (utilizatori birou) ──
@@ -1102,6 +1117,7 @@ document.getElementById('projectList').addEventListener('click',()=>{
 });
 populateLoginUsers();
 loadFirebase();
+trySsoLogin();
 
 // ── Team chat widget ── chatOpen=false;
 </script>
