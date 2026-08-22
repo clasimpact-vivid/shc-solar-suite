@@ -228,6 +228,7 @@ a:hover{color:#fbbf24;}
               <option value="normal">Normală</option>
               <option value="urgent">Urgentă</option>
               <option value="standby">Stand-by</option>
+              <option value="blocat">Blocat</option>
             </select>
           </div>
         </div>
@@ -1428,7 +1429,8 @@ document.querySelectorAll('.task-view-btn').forEach(b=>b.addEventListener('click
   renderTasks();
 }));
 document.getElementById('taskPriority').addEventListener('change',e=>{
-  document.getElementById('taskDueLabel').textContent=e.target.value==='standby'?'Termen finalizare (opțional pentru Stand-by)':'Termen finalizare (obligatoriu) *';
+  const p=e.target.value;
+  document.getElementById('taskDueLabel').textContent=(p==='standby'||p==='blocat')?'Termen finalizare (opțional)':'Termen finalizare (obligatoriu) *';
 });
 function updateAssigneeChainLocks(){
   const p=document.getElementById('taskAssignee2').value;
@@ -1523,7 +1525,8 @@ function renderTaskCard(t,admin){
   const overdue=!t.done && t.due && t.due<todayISO();
   const urgent=t.priority==='urgent';
   const standby=t.priority==='standby';
-  const cardBg=standby?'background:#334155;border:1px solid #1e293b;border-left:4px solid #cbd5e1;border-radius:8px;padding-left:10px;padding-right:8px;':'';
+  const blocat=t.priority==='blocat';
+  const cardBg=blocat?'background:#7f1d1d;border:1px solid #991b1b;border-left:4px solid #ef4444;border-radius:8px;padding-left:10px;padding-right:8px;':standby?'background:#334155;border:1px solid #1e293b;border-left:4px solid #cbd5e1;border-radius:8px;padding-left:10px;padding-right:8px;':'';
   return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #1e293b;${t.done&&!t.followUp?'opacity:0.5;':''}${t.done&&t.followUp?'background:#3a2e0f;border-radius:8px;padding-left:8px;padding-right:8px;':(!t.done?cardBg:'')}">
       <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} ${!canModifyTask(t)?'disabled':''} style="margin-top:3px;width:18px;height:18px;flex-shrink:0;cursor:pointer;">
       <div style="flex:1;">
@@ -1557,8 +1560,9 @@ function renderTaskCard(t,admin){
 }
 function renderTaskCardCompact(t){
   const overdue=!t.done && t.due && t.due<todayISO();
-  const standby=t.priority==='standby';
-  return `<div data-task-card="${t.id}" style="background:${standby?'#334155':'#fff'};border:1px solid ${standby?'#1e293b':'#e2e8f0'};${standby?'border-left:4px solid #cbd5e1;':''}border-radius:8px;padding:9px 10px;margin-bottom:7px;cursor:${t.assigneeId===currentUser.id&&!t.done?'pointer':'default'};">
+  const blocat=t.priority==='blocat';
+  const standby=t.priority==='standby'||blocat;
+  return `<div data-task-card="${t.id}" style="background:${blocat?'#7f1d1d':standby?'#334155':'#fff'};border:1px solid ${blocat?'#991b1b':standby?'#1e293b':'#e2e8f0'};${blocat?'border-left:4px solid #ef4444;':standby?'border-left:4px solid #cbd5e1;':''}border-radius:8px;padding:9px 10px;margin-bottom:7px;cursor:${t.assigneeId===currentUser.id&&!t.done?'pointer':'default'};">
     <div style="display:flex;align-items:flex-start;gap:7px;">
       <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} ${!canModifyTask(t)?'disabled':''} style="margin-top:2px;width:15px;height:15px;flex-shrink:0;cursor:pointer;">
       <div style="flex:1;min-width:0;">
@@ -1580,6 +1584,7 @@ function renderTaskCardCompact(t){
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;">
           ${t.due?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:600;color:${overdue?'#b91c1c':'#78350f'};background:${overdue?'#fee2e2':'#fef3c7'};padding:2px 7px;border-radius:999px;">🕐 Termen: ${isoToDmy(t.due)}${t.dueTime?' '+t.dueTime:''}</span>`:''}
           ${t.priority==='urgent'?`<span style="font-size:10.5px;font-weight:700;color:#b91c1c;background:#fee2e2;padding:2px 7px;border-radius:999px;">Urgent</span>`:''}
+          ${t.priority==='blocat'?`<span style="font-size:10.5px;font-weight:700;color:#fff;background:#dc2626;padding:2px 7px;border-radius:999px;">Blocat</span>`:''}
           <span style="font-size:10px;color:${standby?'#cbd5e1':'#94a3b8'};">creat ${t.ts?isoToDmy(new Date(t.ts).toISOString().slice(0,10)):'—'}</span>
         </div>
       </div>
@@ -1607,7 +1612,7 @@ function renderTaskSiteView(){
           <div style="font-size:11.5px;font-weight:700;color:${col.fg};background:${col.bg};display:inline-block;padding:3px 10px;border-radius:6px;margin-bottom:8px;">${c||'Fără capitol'}</div>
           ${byChapter[c].sort((a,b)=>(a.done===b.done?0:a.done?1:-1)).map(t=>{
             const overdue=!t.done && t.due && t.due<todayISO();
-            return `<div style="display:flex;flex-direction:column;gap:3px;padding:6px 8px;font-size:12.5px;${t.done?'opacity:.5;':''}${t.priority==='standby'?'background:#334155;border:1px solid #1e293b;border-left:4px solid #cbd5e1;border-radius:6px;color:#f1f5f9;':''}">
+            return `<div style="display:flex;flex-direction:column;gap:3px;padding:6px 8px;font-size:12.5px;${t.done?'opacity:.5;':''}${t.priority==='blocat'?'background:#7f1d1d;border:1px solid #991b1b;border-left:3px solid #ef4444;border-radius:6px;':t.priority==='standby'?'background:#334155;border:1px solid #1e293b;border-left:4px solid #cbd5e1;border-radius:6px;color:#f1f5f9;':''}">
               <div style="display:flex;align-items:center;gap:8px;">
                 <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} ${!canModifyTask(t)?'disabled':''} style="width:15px;height:15px;cursor:pointer;">
                 <span data-task-expand="${t.id}" style="flex:1;cursor:${t.desc?'pointer':'default'};${t.done?'text-decoration:line-through;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏰</span>':''}${t.priority==='standby'?'<span style="background:#64748b;color:#fff;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏸</span>':''}${t.title||t.desc||''}${t.desc&&t.title?' <span style="color:#94a3b8;font-size:10px;">▾</span>':''}</span>
@@ -1741,7 +1746,7 @@ document.getElementById('btnSubmitTask').addEventListener('click',()=>{
   const followUpDateDmy=document.getElementById('taskFollowUpDate').value.trim();
   const followUpDate=followUp&&followUpDateDmy?dmyToIso(followUpDateDmy):null;
   if(!assigneeId||!title){ alert('Completează colegul și titlul task-ului.'); return; }
-  if(!dueDmy&&priority!=='standby'){ alert('Termenul de finalizare este obligatoriu (exceptie: Stand-by).'); return; }
+  if(!dueDmy&&priority!=='standby'&&priority!=='blocat'){ alert('Termenul de finalizare este obligatoriu (excepție: Stand-by / Blocat).'); return; }
   if(editingTaskId){
     const t=tasks.find(x=>x.id===editingTaskId);
     if(t){
@@ -1817,7 +1822,7 @@ function sendTaskEmail(t,assignee){
   if(!window.emailjs) return;
   const subject='Task nou de la '+t.createdBy;
   const message='Bună, '+ (assignee.name||'').split(' ')[0] +'!\n\n'+
-    t.createdBy+' ți-a atribuit un task nou'+(t.priority==='urgent'?' (URGENT)':t.priority==='standby'?' (STAND-BY)':'')+':\n\n'+
+    t.createdBy+' ți-a atribuit un task nou'+(t.priority==='urgent'?' (URGENT)':t.priority==='standby'?' (STAND-BY)':t.priority==='blocat'?' (BLOCAT)':'')+':\n\n'+
     (t.title||t.desc)+(t.title&&t.desc?('\n\n'+t.desc):'')+'\n\n'+
     (t.due?('Termen: '+isoToDmy(t.due)+(t.dueTime?' ora '+t.dueTime:'')+'\n\n'):'')+
     'Îl poți vedea și bifa în aplicația Pontaj, tab Task-uri.\n\nSHC Solar Suite — Pontaj';
