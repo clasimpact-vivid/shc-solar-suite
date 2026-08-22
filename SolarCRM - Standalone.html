@@ -2417,13 +2417,38 @@ class Component extends DCLogic {
   openStatusModal(projectId,newStatus){ this.setState({statusModal:{show:true,projectId,newStatus,reason:''}}); }
   confirmStatusChange(){
     const {statusModal}=this.state; const {projectId,newStatus,reason}=statusModal;
+    let oldStatus='?', proj=null;
     this.setState(s=>{
       const old=s.projects.find(p=>p.id===projectId);
+      if(old){ oldStatus=old.status; proj=old; }
       const entry=this.buildAuditEntry('status_change','Status: '+(old?old.status:'?')+' → '+newStatus,reason.trim()||null);
       const projects=s.projects.map(p=>p.id===projectId?{...p,status:newStatus,auditLog:[...(p.auditLog||[]),entry]}:p);
       this.persist(projectId,projects);
       return {projects,statusModal:{show:false,projectId:null,newStatus:'',reason:''}};
     });
+    this.notifyStatusChange(proj,oldStatus,newStatus,reason.trim());
+  }
+  notifyStatusChange(p,oldStatus,newStatus,reason){
+    if(!window.emailjs||!p) return;
+    const KEY=['Contract','În execuție','Finalizat','Anulat'];
+    if(KEY.indexOf(newStatus)===-1) return;
+    const by=this.state.currentUser?this.state.currentUser.name:'Necunoscut';
+    const users=this.state.loginUsers||[];
+    const to=new Set(['office@shc-group.ro']);
+    users.forEach(u=>{
+      if(!u.email) return;
+      const full=u.name==='Alexandru Chirila'||u.name==='Ionut Nicoras';
+      if(full||u.name===p.responsabil) to.add(u.email);
+    });
+    const code=p.clientCode||('SHC-C-'+String(p.id).padStart(4,'0'));
+    const subject='['+code+'] '+p.client+' — status: '+newStatus;
+    const message='Bună,\n\n'+by+' a schimbat statusul lucrării „'+(p.client||'—')+'" ('+code+').\n\n'+
+      oldStatus+' → '+newStatus+'\n\n'+
+      (reason?('Motiv: '+reason+'\n\n'):'')+
+      (p.responsabil?('Responsabil: '+p.responsabil+'\n'):'')+
+      (p.value?('Valoare: '+Number(p.value).toLocaleString('ro-RO')+' RON\n'):'')+
+      '\nDeschide SolarCRM pentru detalii.\n\nSHC Solar Suite — SolarCRM';
+    to.forEach(addr=>{ emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:addr,subject,message}).catch(()=>{}); });
   }
 
   shcGetLock(){try{return JSON.parse(localStorage.getItem('shc_lock_solarcrm')||'{"fails":0,"until":0}');}catch(e){return{fails:0,until:0};}}
