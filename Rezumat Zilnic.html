@@ -160,6 +160,7 @@ async function render(){
   try{
     await renderInner(iso);
   } catch(e){
+    console.error('Rezumat render error:', e);
     document.getElementById('content').innerHTML = `<div class="empty">Eroare la încărcare. Reîncearcă.</div>`;
     document.getElementById('refreshFooter').textContent = 'eroare';
   }
@@ -290,7 +291,7 @@ async function renderInner(iso){
 
   const todayIsoLocal = isoDate(new Date());
   const relevantTasks = allTasks.filter(t=>!t.done && (!agentFilter || t.assigneeName===agentFilter));
-  html += section('📌 Task-uri neterminate', taskItems.length, relevantTasks.sort((a,b)=>(a.due||'').localeCompare(b.due||'')).map(t=>{
+  html += section('📌 Task-uri neterminate', relevantTasks.length, relevantTasks.sort((a,b)=>(a.due||'').localeCompare(b.due||'')).map(t=>{
     const overdue = t.due && t.due<todayIsoLocal;
     return `<li>${t.priority==='urgent'?'<span class="badge-late">Urgent</span> ':''}${overdue?'<span class="badge-late">⚠ restant</span> ':''}<strong>${esc(t.assigneeName||'?')}</strong> — ${esc(t.desc||'')} <span class="muted">· de la ${esc(t.createdBy||'—')}</span> ${t.due?'<span class="muted">· termen '+dmy(t.due)+(t.dueTime?' ora '+esc(t.dueTime):'')+'</span>':''}</li>`;
   }));
