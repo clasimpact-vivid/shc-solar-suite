@@ -234,7 +234,7 @@ a:hover{color:#fbbf24;}
         </div>
         <div class="row2" style="margin-bottom:10px;">
           <div class="field"><label>Șantier / proiect (opțional)</label><input type="text" id="taskSite" class="form-input" placeholder="ex: Șantier Jandarmi"></div>
-          <div class="field"><label>Tip finanțare</label><select id="taskFunding" class="form-select"><option value="">— nespecificat —</option><option value="eu">🇪🇺 Fonduri europene</option><option value="privat">🏢 Privat</option></select></div>
+          <div class="field"><label>Tip finanțare</label><select id="taskFunding" class="form-select"><option value="">— nespecificat —</option><option value="eu">Fonduri europene</option><option value="privat">Privat</option></select></div>
         </div>
         <div class="field" style="margin-bottom:10px;"><label>Capitol (dacă e task de șantier)</label>
           <select id="taskChapter" class="form-select">
@@ -288,8 +288,8 @@ a:hover{color:#fbbf24;}
         <style>#taskBoard::-webkit-scrollbar,#taskBoardScrollTop::-webkit-scrollbar{height:16px;} #taskBoard::-webkit-scrollbar-thumb,#taskBoardScrollTop::-webkit-scrollbar-thumb{background:#64748b;border-radius:8px;border:3px solid #1e293b;} #taskBoard::-webkit-scrollbar-track,#taskBoardScrollTop::-webkit-scrollbar-track{background:#1e293b;}</style>
         <div id="taskSiteFilterBar" style="display:none;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
           <button class="btn btn-sm fundingF active" data-funding="" style="background:#1e3a5f;color:#93c5fd;">Toate</button>
-          <button class="btn btn-sm fundingF" data-funding="eu" style="background:#0f2942;color:#64748b;">🇪🇺 Fonduri europene</button>
-          <button class="btn btn-sm fundingF" data-funding="privat" style="background:#0f2942;color:#64748b;">🏢 Privat</button>
+          <button class="btn btn-sm fundingF" data-funding="eu" style="background:#0f2942;color:#64748b;">Fonduri europene</button>
+          <button class="btn btn-sm fundingF" data-funding="privat" style="background:#0f2942;color:#64748b;">Privat</button>
         </div>
         <div id="taskSiteView" style="display:none;"></div>
       </div>
@@ -635,6 +635,11 @@ function loadFirebase(){
     const raw=snap.val()||{}; probReports=Object.values(raw).filter(Boolean).sort((a,b)=>b.ts-a.ts);
     if(activeTab==='pv') renderCereri();
   });
+  db.ref('solarcrm_v2/pontajSiteDeadlines').on('value', snap=>{
+    const raw=snap.val()||{}; siteDeadlines={};
+    Object.keys(raw).forEach(k=>{ try{ siteDeadlines[decodeURIComponent(k)]=raw[k]; }catch(e){ siteDeadlines[k]=raw[k]; } });
+    if(activeTab==='taskuri'&&taskView==='site') renderTaskSiteView();
+  });
   db.ref('solarcrm_v2/pontajTasks').on('value', snap=>{
     const raw=snap.val()||{}; tasks=Object.values(raw).filter(Boolean).sort((a,b)=>b.ts-a.ts);
     if(activeTab==='taskuri') renderTasks(); else if(currentUser) updateTaskBadge();
@@ -669,6 +674,8 @@ function taskMatchesSearch(t){
   const q=taskSearchQuery.toLowerCase();
   return [t.title,t.desc,t.assigneeName,t.assigneeSecName,t.assigneeTerName,t.site,t.createdBy].some(v=>v&&v.toLowerCase().includes(q));
 }
+let siteDeadlines={};
+function saveSiteDeadline(site,iso){ if(!site) return; siteDeadlines[site]=iso||null; if(db) db.ref('solarcrm_v2/pontajSiteDeadlines/'+encodeURIComponent(site).replace(/[.#$\[\]]/g,'_')).set(iso||null); renderTaskSiteView(); }
 function saveTask(t){ if(db) db.ref('solarcrm_v2/pontajTasks/'+t.id).set(t); else { tasks=[t,...tasks.filter(x=>x.id!==t.id)]; renderTasks(); } }
 let pvRecords=[];
 function savePv(pv){ if(db) db.ref('solarcrm_v2/pontajPv/'+pv.id).set(pv); else { pvRecords=[pv,...pvRecords.filter(x=>x.id!==pv.id)]; renderPv(); } }
@@ -1740,6 +1747,19 @@ function renderTaskCardCompact(t,role){
 const CHAPTER_COLORS={'Șantier - Execuție':{bg:'#1e3a5f',fg:'#93c5fd'},'Documentație':{bg:'#4a3a1e',fg:'#fbbf24'},'Racordare la rețea':{bg:'#1e4a2e',fg:'#4ade80'},'Decontare':{bg:'#3a1e4a',fg:'#c4b5fd'},'Fișe tehnice':{bg:'#1e3a4a',fg:'#67e8f9'},'Garanție':{bg:'#4a1e2e',fg:'#fca5a5'},'PIF':{bg:'#3a4a1e',fg:'#bef264'},'Verificare tehnică':{bg:'#4a2e1e',fg:'#fdba74'},'Recepție la terminarea lucrărilor':{bg:'#1e2e4a',fg:'#a5b4fc'},'Recepție finală':{bg:'#2e1e4a',fg:'#d8b4fe'},'Reparații':{bg:'#4a2222',fg:'#fda4af'},'Revizii':{bg:'#22344a',fg:'#7dd3fc'}};
 let siteFundingFilter='';
 document.addEventListener('click',e=>{
+  const dlEl=e.target.closest('[data-site-dl]');
+  if(dlEl){
+    const site=decodeURIComponent(dlEl.dataset.siteDl);
+    const cur=siteDeadlines[site]?isoToDmy(siteDeadlines[site]):'';
+    const v=prompt('Termen finalizare pentru "'+site+'" (dd/mm/aaaa, gol = șterge):',cur);
+    if(v===null) return;
+    const t=v.trim();
+    if(!t){ saveSiteDeadline(site,null); return; }
+    const iso=dmyToIso(t);
+    if(!iso){ alert('Dată invalidă. Folosește formatul dd/mm/aaaa.'); return; }
+    saveSiteDeadline(site,iso);
+    return;
+  }
   const b=e.target.closest('.fundingF'); if(!b) return;
   siteFundingFilter=b.dataset.funding||'';
   document.querySelectorAll('.fundingF').forEach(x=>{ const on=(x.dataset.funding||'')===siteFundingFilter; x.style.background=on?'#1e3a5f':'#0f2942'; x.style.color=on?'#93c5fd':'#64748b'; });
@@ -1756,7 +1776,7 @@ function renderTaskSiteView(){
     const chapters=['Decontare','Documentație','Fișe tehnice','Garanție','PIF','Racordare la rețea','Recepție la terminarea lucrărilor','Recepție finală','Reparații','Revizii','Șantier - Execuție','Verificare tehnică',''];
     const byChapter={}; items.forEach(t=>{ (byChapter[t.chapter||'']=byChapter[t.chapter||'']||[]).push(t); });
     return `<div style="margin-bottom:18px;border:1px solid #1e293b;border-radius:10px;overflow:hidden;">
-      <div style="background:#0f172a;padding:10px 14px;font-size:13.5px;font-weight:800;color:#f1f5f9;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">${site}${(()=>{const fs=[...new Set(items.map(x=>x.funding).filter(Boolean))];return fs.map(fv=>fv==='eu'?'<span style="font-size:10px;font-weight:800;color:#93c5fd;background:#1e3a5f;padding:2px 8px;border-radius:999px;">🇪🇺 Fonduri europene</span>':'<span style="font-size:10px;font-weight:800;color:#cbd5e1;background:#334155;padding:2px 8px;border-radius:999px;">🏢 Privat</span>').join('');})()}</div>
+      <div style="background:#0f172a;padding:10px 14px;font-size:13.5px;font-weight:800;color:#f1f5f9;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">${site}${(()=>{const dl=siteDeadlines[site]; const od=dl&&dl<todayISO(); return '<span data-site-dl="'+encodeURIComponent(site)+'" title="Click pentru a seta termenul de finalizare" style="cursor:pointer;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;'+(dl?(od?'color:#fecaca;background:#7f1d1d;':'color:#fcd34d;background:#4a3a1e;'):'color:#64748b;background:#1e293b;')+'">'+(dl?('Termen: '+isoToDmy(dl)+(od?' ⚠':'')):'+ termen')+'</span>';})()}${(()=>{const fs=[...new Set(items.map(x=>x.funding).filter(Boolean))];return fs.map(fv=>fv==='eu'?'<span style="font-size:10px;font-weight:800;color:#93c5fd;background:#1e3a5f;padding:2px 8px;border-radius:999px;">Fonduri europene</span>':'<span style="font-size:10px;font-weight:800;color:#cbd5e1;background:#334155;padding:2px 8px;border-radius:999px;">Privat</span>').join('');})()}</div>
       ${chapters.filter(c=>byChapter[c]&&byChapter[c].length).map(c=>{
         const col=CHAPTER_COLORS[c]||{bg:'#1e293b',fg:'#94a3b8'};
         return `<div style="padding:10px 14px;border-top:1px solid #1e293b;">
