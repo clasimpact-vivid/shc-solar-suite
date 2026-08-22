@@ -255,10 +255,7 @@ a:hover{color:#fbbf24;}
 
         <!-- 4. UNDE -->
         <div style="font-size:10.5px;font-weight:800;color:#475569;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">Context șantier (opțional)</div>
-        <div class="row2" style="margin-bottom:10px;">
-          <div class="field"><label>Șantier / proiect</label><input type="text" id="taskSite" class="form-input" placeholder="ex: Șantier Jandarmi"></div>
-          <div class="field"><label>Tip finanțare</label><select id="taskFunding" class="form-select"><option value="">— nespecificat —</option><option value="eu">Fonduri europene</option><option value="privat">Privat</option></select></div>
-        </div>
+        <div class="field" style="margin-bottom:10px;"><label>Șantier / proiect</label><input type="text" id="taskSite" class="form-input" placeholder="ex: Șantier Jandarmi" style="width:100%;"></div>
         <div class="row2" style="margin-bottom:10px;">
           <div class="field"><label>Capitol</label>
             <select id="taskChapter" class="form-select">
@@ -276,14 +273,14 @@ a:hover{color:#fbbf24;}
               <option value="Șantier - Execuție">Șantier - Execuție</option>
               <option value="Verificare tehnică">Verificare tehnică</option>
             </select>
+            <button class="btn btn-sm" id="btnTaskTemplate" style="display:none;background:#1e3a5f;color:#93c5fd;margin-top:6px;width:100%;"></button>
           </div>
-          <div class="field"></div>
+          <div class="field"><label>Tip finanțare</label><select id="taskFunding" class="form-select"><option value="">— nespecificat —</option><option value="eu">Fonduri europene</option><option value="pnrr">PNRR</option><option value="afm">AFM / Casa Verde</option><option value="privat">Privat</option><option value="mixt">Mixt (privat + finanțare)</option></select></div>
         </div>
         <div class="field" id="taskFollowUpDateWrap" style="margin-bottom:10px;display:none;"><label>Data follow-up</label><input type="text" id="taskFollowUpDate" class="form-input" placeholder="dd/mm/yyyy" maxlength="10"></div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <button class="btn btn-sm" id="btnSubmitTask" style="background:#f59e0b;color:#fff;">Atribuie task</button>
           <button class="btn btn-sm" id="btnCancelEditTask" style="display:none;background:#334155;color:#fff;">Anulează editarea</button>
-          <button class="btn btn-sm" id="btnTaskTemplate" style="background:#1e3a5f;color:#93c5fd;">📋 Șablon pe capitol</button>
         </div>
       </div>
       <div class="card">
@@ -305,7 +302,10 @@ a:hover{color:#fbbf24;}
         <div id="taskSiteFilterBar" style="display:none;gap:10px;margin:14px 0 16px;flex-wrap:wrap;align-items:center;">
           <button class="btn btn-sm fundingF active" data-funding="" style="background:#1e3a5f;color:#93c5fd;padding:7px 16px;">Toate</button>
           <button class="btn btn-sm fundingF" data-funding="eu" style="background:#0f2942;color:#64748b;padding:7px 16px;"><span style="display:inline-block;width:11px;height:8px;background:#003399;border-radius:2px;vertical-align:-1px;margin-right:5px;position:relative;"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#ffcc00;font-size:7px;line-height:1;">★</span></span>Fonduri europene</button>
-          <button class="btn btn-sm fundingF" data-funding="privat" style="background:#0f2942;color:#64748b;padding:7px 16px;"><span style="display:inline-block;width:11px;height:8px;background:#64748b;border-radius:2px;vertical-align:-1px;margin-right:5px;"></span>Privat</button>
+          <button class="btn btn-sm fundingF" data-funding="pnrr" style="background:#0f2942;color:#64748b;padding:7px 16px;"><span style="display:inline-block;width:11px;height:8px;background:#1d4ed8;border-radius:2px;vertical-align:-1px;margin-right:5px;position:relative;"></span>PNRR</button>
+          <button class="btn btn-sm fundingF" data-funding="afm" style="background:#0f2942;color:#64748b;padding:7px 16px;"><span style="display:inline-block;width:11px;height:8px;background:#15803d;border-radius:2px;vertical-align:-1px;margin-right:5px;position:relative;"></span>AFM / Casa Verde</button>
+          <button class="btn btn-sm fundingF" data-funding="privat" style="background:#0f2942;color:#64748b;padding:7px 16px;"><span style="display:inline-block;width:11px;height:8px;background:#64748b;border-radius:2px;vertical-align:-1px;margin-right:5px;position:relative;"></span>Privat</button>
+          <button class="btn btn-sm fundingF" data-funding="mixt" style="background:#0f2942;color:#64748b;padding:7px 16px;"><span style="display:inline-block;width:11px;height:8px;background:#a16207;border-radius:2px;vertical-align:-1px;margin-right:5px;position:relative;"></span>Mixt</button>
         </div>
         <div id="taskSiteView" style="display:none;"></div>
       </div>
@@ -1533,7 +1533,6 @@ const TASK_TEMPLATES={
 function openTaskTemplateDialog(){
   const chapter=document.getElementById('taskChapter').value;
   if(!chapter||!TASK_TEMPLATES[chapter]){
-    alert('Alege întâi un capitol care are șablon:\n\n'+Object.keys(TASK_TEMPLATES).join('\n'));
     return;
   }
   const assigneeId=document.getElementById('taskAssignee2').value;
@@ -1608,6 +1607,15 @@ function updateAssigneeChainLocks(){
 }
 ['taskAssignee2','taskAssigneeSec'].forEach(id=>document.getElementById(id).addEventListener('change',updateAssigneeChainLocks));
 document.getElementById('btnTaskTemplate').addEventListener('click',openTaskTemplateDialog);
+function syncTemplateBtn(){
+  const ch=document.getElementById('taskChapter').value;
+  const b=document.getElementById('btnTaskTemplate');
+  const list=TASK_TEMPLATES[ch];
+  if(list&&list.length){ b.style.display='block'; b.textContent='📋 Generează '+list.length+' task-uri standard'; }
+  else b.style.display='none';
+}
+document.getElementById('taskChapter').addEventListener('change',syncTemplateBtn);
+syncTemplateBtn();
 document.getElementById('taskFollowUp').addEventListener('change',e=>{
   document.getElementById('taskFollowUpDateWrap').style.display=e.target.checked?'block':'none';
 });
@@ -1792,7 +1800,7 @@ function renderTaskSiteView(){
     const chapters=['Decontare','Documentație','Fișe tehnice','Garanție','PIF','Racordare la rețea','Recepție la terminarea lucrărilor','Recepție finală','Reparații','Revizii','Șantier - Execuție','Verificare tehnică',''];
     const byChapter={}; items.forEach(t=>{ (byChapter[t.chapter||'']=byChapter[t.chapter||'']||[]).push(t); });
     return `<div style="margin-bottom:18px;border:1px solid #1e293b;border-radius:10px;overflow:hidden;">
-      <div style="background:#0f172a;padding:10px 14px;font-size:13.5px;font-weight:800;color:#f1f5f9;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">${site}${(()=>{const dl=siteDeadlines[site]; const od=dl&&dl<todayISO(); return '<span data-site-dl="'+encodeURIComponent(site)+'" title="Click pentru a seta termenul de finalizare" style="cursor:pointer;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;'+(dl?(od?'color:#fecaca;background:#7f1d1d;':'color:#fcd34d;background:#4a3a1e;'):'color:#64748b;background:#1e293b;')+'">'+(dl?('Termen: '+isoToDmy(dl)+(od?' ⚠':'')):'+ termen')+'</span>';})()}${(()=>{const fs=[...new Set(items.map(x=>x.funding).filter(Boolean))];return fs.map(fv=>fv==='eu'?'<span style="font-size:10px;font-weight:800;color:#93c5fd;background:#1e3a5f;padding:2px 8px;border-radius:999px;"><span style="display:inline-block;width:11px;height:8px;background:#003399;border-radius:2px;vertical-align:-1px;margin-right:5px;position:relative;"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#ffcc00;font-size:7px;line-height:1;">★</span></span>Fonduri europene</span>':'<span style="font-size:10px;font-weight:800;color:#cbd5e1;background:#334155;padding:2px 8px;border-radius:999px;"><span style="display:inline-block;width:11px;height:8px;background:#64748b;border-radius:2px;vertical-align:-1px;margin-right:5px;"></span>Privat</span>').join('');})()}</div>
+      <div style="background:#0f172a;padding:10px 14px;font-size:13.5px;font-weight:800;color:#f1f5f9;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">${site}${(()=>{const dl=siteDeadlines[site]; const od=dl&&dl<todayISO(); return '<span data-site-dl="'+encodeURIComponent(site)+'" title="Click pentru a seta termenul de finalizare" style="cursor:pointer;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;'+(dl?(od?'color:#fecaca;background:#7f1d1d;':'color:#fcd34d;background:#4a3a1e;'):'color:#64748b;background:#1e293b;')+'">'+(dl?('Termen: '+isoToDmy(dl)+(od?' ⚠':'')):'+ termen')+'</span>';})()}${(()=>{const M={"eu":{"l":"Fonduri europene","m":"<span style=\"display:inline-block;width:11px;height:8px;background:#003399;border-radius:2px;vertical-align:-1px;margin-right:5px;position:relative;\"><span style=\"position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#ffcc00;font-size:7px;line-height:1;\">★</span></span>","b":"#1e3a5f","f":"#93c5fd"},"pnrr":{"l":"PNRR","m":"<span style=\"display:inline-block;width:11px;height:8px;background:#1d4ed8;border-radius:2px;vertical-align:-1px;margin-right:5px;position:relative;\"></span>","b":"#1e3a5f","f":"#bfdbfe"},"afm":{"l":"AFM / Casa Verde","m":"<span style=\"display:inline-block;width:11px;height:8px;background:#15803d;border-radius:2px;vertical-align:-1px;margin-right:5px;position:relative;\"></span>","b":"#14532d","f":"#86efac"},"privat":{"l":"Privat","m":"<span style=\"display:inline-block;width:11px;height:8px;background:#64748b;border-radius:2px;vertical-align:-1px;margin-right:5px;position:relative;\"></span>","b":"#334155","f":"#cbd5e1"},"mixt":{"l":"Mixt","m":"<span style=\"display:inline-block;width:11px;height:8px;background:#a16207;border-radius:2px;vertical-align:-1px;margin-right:5px;position:relative;\"></span>","b":"#422006","f":"#fcd34d"}};const fs=[...new Set(items.map(x=>x.funding).filter(Boolean))];return fs.map(fv=>{const d=M[fv];return d?('<span style="font-size:10px;font-weight:800;color:'+d.f+';background:'+d.b+';padding:2px 8px;border-radius:999px;">'+d.m+d.l+'</span>'):'';}).join('');})()}</div>
       ${chapters.filter(c=>byChapter[c]&&byChapter[c].length).map(c=>{
         const col=CHAPTER_COLORS[c]||{bg:'#1e293b',fg:'#94a3b8'};
         return `<div style="padding:10px 14px;border-top:1px solid #1e293b;">
