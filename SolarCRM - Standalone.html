@@ -289,8 +289,9 @@ try {
     <!-- TABLE VIEW -->
     <sc-if value="{{ isTableView }}" hint-placeholder-val="{{ true }}">
       <div class="crm-table-scroll crm-table-desktop">
-        <div style="min-width:980px;display:grid;grid-template-columns:38px 150px 86px 132px 150px 108px 88px 84px 90px 96px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-bottom:2px solid #e2e8f0;gap:10px;position:sticky;top:0;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,0.04);will-change:transform;transform:translateZ(0);">
+        <div style="min-width:1072px;display:grid;grid-template-columns:38px 92px 150px 86px 132px 150px 108px 88px 84px 90px 96px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-bottom:2px solid #e2e8f0;gap:10px;position:sticky;top:0;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,0.04);will-change:transform;transform:translateZ(0);">
           <div style="font-size:11px;font-weight:700;color:#94a3b8;text-align:center;">#</div>
+          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Cod</div>
           <div onClick="{{ sortByClient }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Client{{ sortArrowClient }}</div>
           <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Tip</div>
           <div onClick="{{ sortByStatus }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Status{{ sortArrowStatus }}</div>
@@ -303,8 +304,9 @@ try {
         </div>
         <div style="background:#fff;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;overflow:hidden;">
           <sc-for list="{{ filtered }}" as="p" hint-placeholder-count="8">
-            <div onClick="{{ p.onClick }}" style="min-width:980px;display:grid;grid-template-columns:38px 150px 86px 132px 150px 108px 88px 84px 90px 96px;padding:11px 14px;border-bottom:1px solid #f1f5f9;cursor:pointer;gap:10px;align-items:center;background:{{ p.rowBg }};" style-hover="background:#eff6ff;">
+            <div onClick="{{ p.onClick }}" style="min-width:1072px;display:grid;grid-template-columns:38px 92px 150px 86px 132px 150px 108px 88px 84px 90px 96px;padding:11px 14px;border-bottom:1px solid #f1f5f9;cursor:pointer;gap:10px;align-items:center;background:{{ p.rowBg }};" style-hover="background:#eff6ff;">
               <div style="font-size:12px;color:#cbd5e1;font-weight:700;text-align:center;">{{ p.rowNum }}</div>
+              <div style="font-size:11px;font-weight:700;color:#1d4ed8;white-space:nowrap;letter-spacing:.3px;">{{ p.clientCode }}</div>
               <div style="font-size:13px;font-weight:600;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.client }}</div>
               <div><span style="background:{{ p.typeBg }};color:{{ p.typeColor }};font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;white-space:nowrap;">{{ p.typeLabel }}</span></div>
               <div><span style="background:{{ p.statusBg }};color:{{ p.statusColor }};font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap;">{{ p.status }}</span></div>
@@ -490,6 +492,7 @@ try {
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;">
         <div style="min-width:0;">
           <div style="font-size:19px;font-weight:700;color:#0f172a;line-height:1.2;margin-bottom:3px;">{{ sel.client }}</div>
+          <div style="font-size:11px;font-weight:700;color:#1d4ed8;background:#eff6ff;border:1px solid #bfdbfe;padding:2px 8px;border-radius:999px;display:inline-block;margin-bottom:4px;letter-spacing:.4px;">{{ sel.clientCode }}</div>
           <div style="font-size:12px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ sel.addressShort }}</div>
         </div>
         <div style="display:flex;gap:6px;flex:none;align-items:center;">
@@ -1762,7 +1765,7 @@ function migrate(p){
   let att=p.attachments;
   if(att && typeof att==='object' && !Array.isArray(att)) att=Object.values(att);
   const fixedId=Number.isFinite(Number(p.id))?Number(p.id):Date.now()+Math.floor(Math.random()*1000);
-  return {...p,id:fixedId,types:p.types||(p.type?[p.type]:['PV']),responsabil:p.responsabil||p.technician||null,date_executie:p.date_executie||null,date_inserted:p.date_inserted||p.date_start||new Date().toISOString().slice(0,10),auditLog:p.auditLog||[],attachments:att||[],bessKwh:p.bessKwh||null,capexBESS:p.capexBESS||null,capexSTS:p.capexSTS||null};
+  return {...p,id:fixedId,clientCode:p.clientCode||('SHC-C-'+String(fixedId).padStart(4,'0')),types:p.types||(p.type?[p.type]:['PV']),responsabil:p.responsabil||p.technician||null,date_executie:p.date_executie||null,date_inserted:p.date_inserted||p.date_start||new Date().toISOString().slice(0,10),auditLog:p.auditLog||[],attachments:att||[],bessKwh:p.bessKwh||null,capexBESS:p.capexBESS||null,capexSTS:p.capexSTS||null};
 }
 
 function buildContractHTML(p, company) {
@@ -2294,7 +2297,7 @@ class Component extends DCLogic {
         if(!visible) return false;
       }
       if(filterType!=='all'){ const types=p.types||[p.type||'']; if(!types.includes(filterType))return false; }
-      if(q){ const hay=[p.client,p.address,p.equipment,p.responsabil,p.notes].filter(Boolean).join(' ').toLowerCase(); if(!hay.includes(q))return false; }
+      if(q){ const hay=[p.client,p.clientCode,p.address,p.equipment,p.responsabil,p.notes].filter(Boolean).join(' ').toLowerCase(); if(!hay.includes(q))return false; }
       return true;
     });
   }
@@ -2394,8 +2397,9 @@ class Component extends DCLogic {
         affectedId=editingId;
       } else {
         const newId=(()=>{ const ids=s.projects.map(p=>Number(p.id)).filter(n=>Number.isFinite(n)); return ids.length?Math.max(...ids)+1:1; })();
+        const clientCode='SHC-C-'+String(newId).padStart(4,'0');
         const entry=this.buildAuditEntry('create','Lucrare creată');
-        projects=[{id:newId,...data,date_inserted:new Date().toISOString().slice(0,10),auditLog:[entry],attachments:[]}, ...s.projects];
+        projects=[{id:newId,clientCode,...data,date_inserted:new Date().toISOString().slice(0,10),auditLog:[entry],attachments:[]}, ...s.projects];
         affectedId=newId;
       }
       this.persist(affectedId,projects);
@@ -2687,7 +2691,7 @@ class Component extends DCLogic {
 
   exportExcel(){
     const doExport=()=>{
-      const rows=this.getFiltered().map(p=>({'Client':p.client||'','Tip':(p.types||[]).join(', '),'Status':p.status||'','Adresă':p.address||'','Valoare (RON)':p.value||'','Responsabil':p.responsabil||'','Data contract':p.date_start||'','Data execuției':p.date_executie||'','Data finalizare':p.date_end||'','Echipamente':p.equipment||'','kWp':p.kwp||'','Nr. panouri':p.panels||'','Montaj':p.mounting||'','Prosumator':p.prosumator?'Da':'Nu','Note':p.notes||''}));
+      const rows=this.getFiltered().map(p=>({'Cod':p.clientCode||'','Client':p.client||'','Tip':(p.types||[]).join(', '),'Status':p.status||'','Adresă':p.address||'','Valoare (RON)':p.value||'','Responsabil':p.responsabil||'','Data contract':p.date_start||'','Data execuției':p.date_executie||'','Data finalizare':p.date_end||'','Echipamente':p.equipment||'','kWp':p.kwp||'','Nr. panouri':p.panels||'','Montaj':p.mounting||'','Prosumator':p.prosumator?'Da':'Nu','Note':p.notes||''}));
       const wb=window.XLSX.utils.book_new(); const ws=window.XLSX.utils.json_to_sheet(rows);
       ws['!cols']=[{wch:22},{wch:18},{wch:14},{wch:26},{wch:13},{wch:14},{wch:13},{wch:13},{wch:14},{wch:36},{wch:6},{wch:8},{wch:10},{wch:10},{wch:30}];
       window.XLSX.utils.book_append_sheet(wb,ws,'Lucrări SolarCRM');
@@ -2889,7 +2893,7 @@ class Component extends DCLogic {
     const topResp=Object.values(respMap).sort((a,b)=>b.value-a.value).slice(0,5).map(r=>({...r,valueFmt:r.value.toLocaleString('ro-RO')+' RON',barWidth:Math.round(r.value/maxRespVal*100)+'%'}));
 
     // Selected project
-    let sel={client:'',addressShort:'—',phone:'—',email:'—',responsabil:'—',date_start:'—',date_executie:'—',date_end:'—',valueFormatted:'—',equipment:'',notes:'',types:[],typeBadges:[],statusBg:'#f1f5f9',statusColor:'#475569',status:'',isPV:false,hasEquipment:false,hasNotes:false,prosumatorText:'Nu',kwp:'—',panels:'—',mounting:'—',canContract:false};
+    let sel={client:'',clientCode:'',addressShort:'—',phone:'—',email:'—',responsabil:'—',date_start:'—',date_executie:'—',date_end:'—',valueFormatted:'—',equipment:'',notes:'',types:[],typeBadges:[],statusBg:'#f1f5f9',statusColor:'#475569',status:'',isPV:false,hasEquipment:false,hasNotes:false,prosumatorText:'Nu',kwp:'—',panels:'—',mounting:'—',canContract:false};
     const statusButtons=[]; let auditEntries=[],hasAuditEntries=false,noAuditEntries=true,attachmentItems=[],hasAttachments=false,noAttachments=true;
     if(selected){
       const f=this.fmt(selected); const sc=STATUS_COLORS[selected.status]||STATUS_COLORS.Lead;
