@@ -125,9 +125,25 @@ async function main() {
     const sorted = [...relevant].sort((a,b)=>(a.due||'').localeCompare(b.due||''));
     const rows = sorted.map(t => {
       const overdue = t.due && t.due < todayISO;
-      return `<li>${t.priority==='urgent'?'<strong style="color:#dc2626;">[Urgent]</strong> ':''}${overdue?'<strong style="color:#dc2626;">[Restant]</strong> ':''}${isFull?'<strong>'+(t.assigneeName||'?')+'</strong> — ':''}${t.desc||''}${t.due?' <span style="color:#94a3b8">· termen '+t.due.split('-').reverse().join('/')+'</span>':''}</li>`;
+      return `<li>${t.priority==='urgent'?'<strong style="color:#dc2626;">[Urgent]</strong> ':''}${overdue?'<strong style="color:#dc2626;">[Restant]</strong> ':''}${isFull?'<strong>'+(t.assigneeName||'?')+'</strong> — ':''}${t.desc||''} <span style="color:#94a3b8">· de la ${t.createdBy||'—'}</span>${t.due?' <span style="color:#94a3b8">· termen '+t.due.split('-').reverse().join('/')+(t.dueTime?' ora '+t.dueTime:'')+'</span>':''}</li>`;
     }).join('');
     return `<h3 style="color:#f59e0b;margin:18px 0 8px;">📌 Task-uri neterminate</h3><ul style="margin:0;padding-left:20px;">${rows}</ul>`;
+  }
+
+  // ── Alerte: task-uri cu termen în următoarele 2 zile ──
+  function fmtRo(iso){ return iso ? iso.split('-').reverse().join('/') : ''; }
+  const in2days = (() => { const d = new Date(todayISO + 'T12:00:00'); d.setDate(d.getDate() + 2); return d.toISOString().slice(0,10); })();
+  function alerteTermenFor(user, isFull) {
+    const soon = pontajTasksAll.filter(t =>
+      !t.done && t.due && t.due >= todayISO && t.due <= in2days &&
+      (isFull || t.assigneeId === user.id || t.assigneeSecId === user.id || t.assigneeTerId === user.id || t.assigneeQuatId === user.id)
+    );
+    if (!soon.length) return '';
+    const rows = [...soon].sort((a,b)=>(a.due||'').localeCompare(b.due||'')).map(t => {
+      const azi = t.due === todayISO;
+      return `<li><strong style="color:${azi?'#dc2626':'#d97706'};">[${azi?'AZI':'în 2 zile'}]</strong> ${t.title || t.desc || '—'}${isFull ? ' <span style="color:#94a3b8">· ' + (t.assigneeName || '?') + '</span>' : ''} <span style="color:#94a3b8">· termen ${fmtRo(t.due)}${t.dueTime ? ' ora ' + t.dueTime : ''}</span></li>`;
+    }).join('');
+    return `<h3 style="color:#dc2626;margin:18px 0 8px;">⏳ Termene apropiate</h3><ul style="margin:0;padding-left:20px;">${rows}</ul>`;
   }
 
   // ── Pontaj: deplasări >50km de Arad azi (pentru ordin de deplasare + diurnă) ──
@@ -190,6 +206,7 @@ async function main() {
     if (isFull || notif.planificare) body += planningSectionFor(user, isFull);
     if (isFull || notif.vizita) body += visitsSectionFor(isFull);
     if (isFull || notif.pontaj) body += pontajSectionFor(isFull);
+    body += alerteTermenFor(user, isFull);
     body += tasksSectionFor(user, isFull);
     body += deplasariSectionFor(user, isFull);
 
