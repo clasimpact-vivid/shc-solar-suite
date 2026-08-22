@@ -1559,7 +1559,8 @@ function renderTaskCard(t,admin){
     </div>`;
   wireTaskEvents(box);
 }
-function renderTaskCardCompact(t){
+function renderTaskCardCompact(t,role){
+  const roleLabel=role==='sec'?'Secundar':role==='ter'?'Terțiar':role==='quat'?'Cuaternar':'';
   const overdue=!t.done && t.due && t.due<todayISO();
   const blocat=t.priority==='blocat';
   const standby=t.priority==='standby'||blocat;
@@ -1567,6 +1568,7 @@ function renderTaskCardCompact(t){
     <div style="display:flex;align-items:flex-start;gap:7px;">
       <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} ${!canModifyTask(t)?'disabled':''} style="margin-top:2px;width:15px;height:15px;flex-shrink:0;cursor:pointer;">
       <div style="flex:1;min-width:0;">
+        ${roleLabel?`<div style="font-size:9.5px;font-weight:800;color:${standby?'#cbd5e1':'#64748b'};text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px;">${roleLabel}</div>`:''}
         <div data-task-expand="${t.id}" style="font-size:12.5px;font-weight:600;color:${standby?'#f1f5f9':'#0f172a'};cursor:${t.desc?'pointer':'default'};${t.done?'text-decoration:line-through;color:#94a3b8;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏰</span>':''}${t.priority==='standby'?'<span style="background:#94a3b8;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏸</span>':''}${t.title||t.desc||''}${t.desc&&t.title?' <span style="color:'+(standby?'#cbd5e1':'#94a3b8')+';font-size:10px;">▾</span>':''}</div>
         ${t.desc&&t.title?`<div data-task-desc="${t.id}" style="display:none;font-size:11px;color:${standby?'#cbd5e1':'#64748b'};margin-top:3px;white-space:pre-wrap;">${t.desc}</div>`:''}
         ${t.site?`<div style="font-size:10.5px;color:${standby?'#cbd5e1':'#64748b'};margin-top:2px;">${t.site}</div>`:''}
@@ -1645,18 +1647,23 @@ function renderTaskSiteView(){
 function renderTaskBoard(admin){
   const board=document.getElementById('taskBoard');
   const byUser={};
-  tasks.filter(taskMatchesSearch).forEach(t=>{ (byUser[t.assigneeId]=byUser[t.assigneeId]||{name:t.assigneeName,items:[]}).items.push(t); });
+  tasks.filter(taskMatchesSearch).forEach(t=>{
+    [[t.assigneeId,t.assigneeName,''],[t.assigneeSecId,t.assigneeSecName,'sec'],[t.assigneeTerId,t.assigneeTerName,'ter'],[t.assigneeQuatId,t.assigneeQuatName,'quat']].forEach(([id,name,role])=>{
+      if(!id) return;
+      (byUser[id]=byUser[id]||{name,items:[]}).items.push({t,role});
+    });
+  });
   const ids=Object.keys(byUser).sort((a,b)=>(byUser[a].name||'').localeCompare(byUser[b].name||''));
   if(!ids.length){ board.innerHTML='<div style="color:#475569;font-size:12.5px;">Niciun task.</div>'; return; }
   board.innerHTML=ids.map(id=>{
     const g=byUser[id];
-    const active=g.items.filter(t=>!t.done).sort((a,b)=>(a.due||'').localeCompare(b.due||''));
-    const done=g.items.filter(t=>t.done);
+    const active=g.items.filter(x=>!x.t.done).sort((a,b)=>(a.t.due||'').localeCompare(b.t.due||''));
+    const done=g.items.filter(x=>x.t.done);
     return `<div style="min-width:190px;max-width:190px;flex-shrink:0;background:#111d35;border-right:1px solid rgba(255,255,255,0.09);padding:10px 12px 10px 0;margin-right:0;">
       <div style="font-size:11.5px;font-weight:800;color:#f1f5f9;text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px;">${g.name||'—'}</div>
-      ${active.map(t=>renderTaskCardCompact(t)).join('')}
+      ${active.map(x=>renderTaskCardCompact(x.t,x.role)).join('')}
       ${!active.length?'<div style="font-size:11px;color:#64748b;">Niciun task activ.</div>':''}
-      ${done.length?`<details style="margin-top:6px;"><summary style="font-size:10.5px;color:#64748b;cursor:pointer;">Finalizate (${done.length})</summary>${done.map(t=>renderTaskCardCompact(t)).join('')}</details>`:''}
+      ${done.length?`<details style="margin-top:6px;"><summary style="font-size:10.5px;color:#64748b;cursor:pointer;">Finalizate (${done.length})</summary>${done.map(x=>renderTaskCardCompact(x.t,x.role)).join('')}</details>`:''}
     </div>`;
   }).join('');
   wireTaskEvents(board);
@@ -1760,6 +1767,11 @@ document.getElementById('btnSubmitTask').addEventListener('click',()=>{
   const t={id:'task_'+Date.now(),assigneeId,assigneeName,assigneeSecId:assigneeSecId||null,assigneeSecName:assigneeSecName||null,assigneeTerId:assigneeTerId||null,assigneeTerName:assigneeTerName||null,assigneeQuatId:assigneeQuatId||null,assigneeQuatName:assigneeQuatName||null,title,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,chapter:document.getElementById('taskChapter').value||null,followUp,followUpDate,done:false,ts:Date.now(),createdBy:currentUser.name};
   saveTask(t);
   sendTaskEmail(t,assignee);
+  [assigneeSecId,assigneeTerId,assigneeQuatId].forEach(id=>{
+    if(!id) return;
+    const u=loginUsers.find(x=>x.id===id);
+    if(u&&u.email) sendTaskEmail(t,u,true);
+  });
   document.getElementById('taskSite').value='';
   document.getElementById('taskChapter').value='';
   document.getElementById('taskFollowUp').checked=false;
@@ -1819,20 +1831,21 @@ function sendTaskDoneEmail(t){
     emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:creator.email, subject, message}).catch(()=>{});
   }
 }
-function sendTaskEmail(t,assignee){
+function sendTaskEmail(t,assignee,isSecondary){
   if(!window.emailjs) return;
-  const subject='Task nou de la '+t.createdBy;
+  const subject=isSecondary?('Ai fost adăugat ca responsabil la un task de la '+t.createdBy):('Task nou de la '+t.createdBy);
   const message='Bună, '+ (assignee.name||'').split(' ')[0] +'!\n\n'+
-    t.createdBy+' ți-a atribuit un task nou'+(t.priority==='urgent'?' (URGENT)':t.priority==='standby'?' (STAND-BY)':t.priority==='blocat'?' (BLOCAT)':'')+':\n\n'+
+    t.createdBy+(isSecondary?' te-a adăugat ca responsabil la un task':' ți-a atribuit un task nou')+(t.priority==='urgent'?' (URGENT)':t.priority==='standby'?' (STAND-BY)':t.priority==='blocat'?' (BLOCAT)':'')+':\n\n'+
     (t.title||t.desc)+(t.title&&t.desc?('\n\n'+t.desc):'')+'\n\n'+
     (t.due?('Termen: '+isoToDmy(t.due)+(t.dueTime?' ora '+t.dueTime:'')+'\n\n'):'')+
+    (isSecondary?('Responsabil principal: '+(t.assigneeName||'—')+'\n\n'):'')+
     'Îl poți vedea și bifa în aplicația Pontaj, tab Task-uri.\n\nSHC Solar Suite — Pontaj';
-  emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:'office@shc-group.ro', subject, message}).catch(()=>{});
+  if(!isSecondary) emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:'office@shc-group.ro', subject, message}).catch(()=>{});
   if(assignee.email){
     emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:assignee.email, subject, message}).catch(()=>{});
   }
   const creator=loginUsers.find(u=>u.name===t.createdBy);
-  if(creator && creator.email && creator.email!==assignee.email){
+  if(!isSecondary && creator && creator.email && creator.email!==assignee.email){
     const subject2='Confirmare: task trimis către '+(assignee.name||'—');
     const message2='Ai atribuit task-ul următor către '+(assignee.name||'—')+':\n\n'+t.desc+'\n\n'+
       (t.due?('Termen: '+isoToDmy(t.due)+(t.dueTime?' ora '+t.dueTime:'')+'\n\n'):'')+
