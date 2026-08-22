@@ -42,9 +42,11 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',system-ui,sans-serif
 
 #sidebar{width:270px;background:#0d1b2e;border-right:1px solid #1e3a5f;display:flex;flex-direction:column;flex-shrink:0;}
 #sidebarHeader{padding:12px;border-bottom:1px solid #1e3a5f;display:flex;flex-direction:column;gap:8px;}
-.tab-switch{display:flex;gap:4px;background:#0a1628;border-radius:9px;padding:3px;}
-.tab-btn{flex:1;padding:7px 4px;border:0;background:transparent;color:#64748b;font-size:11.5px;font-weight:700;border-radius:7px;cursor:pointer;font-family:inherit;}
-.tab-btn.active{background:#1e3a5f;color:#f1f5f9;}
+.tab-switch{display:flex;flex-direction:column;gap:2px;background:#0a1628;border-radius:10px;padding:4px;}
+.tab-btn{display:flex;align-items:center;gap:9px;width:100%;padding:9px 11px;border:0;background:transparent;color:#94a3b8;font-size:12.5px;font-weight:600;border-radius:7px;cursor:pointer;font-family:inherit;text-align:left;white-space:nowrap;transition:background .12s,color .12s;}
+.tab-btn:hover{background:#132741;color:#cbd5e1;}
+.tab-btn.active{background:#1e3a5f;color:#f1f5f9;font-weight:700;}
+.tab-btn .ico{font-size:14px;line-height:1;flex:none;}
 #itemList{flex:1;overflow-y:auto;padding:6px 0;}
 .group-header{padding:8px 14px 4px;font-size:10px;font-weight:800;color:#3b82f6;text-transform:uppercase;letter-spacing:.6px;}
 .list-item{padding:9px 14px;cursor:pointer;border-left:3px solid transparent;transition:background .1s;}
@@ -176,10 +178,10 @@ a:hover{color:#93c5fd;}
     <div id="sidebar">
       <div id="sidebarHeader">
         <div class="tab-switch">
-          <button class="tab-btn active" id="tabComenzi">🚚 Comenzi Transport</button>
-          <button class="tab-btn" id="tabProcese">📝 Procese Verbale</button>
-          <button class="tab-btn" id="tabSolicitari">📨 Solicitări</button>
-          <button class="tab-btn" id="tabStoc">📦 Stoc depozit</button>
+          <button class="tab-btn active" id="tabComenzi"><span class="ico">🚚</span>Comenzi transport</button>
+          <button class="tab-btn" id="tabProcese"><span class="ico">📝</span>Procese verbale</button>
+          <button class="tab-btn" id="tabSolicitari"><span class="ico">📨</span>Solicitări</button>
+          <button class="tab-btn" id="tabStoc"><span class="ico">📦</span>Stoc depozit</button>
         </div>
         <button class="btn btn-green" id="btnNewItem" style="width:100%;font-size:12px;">+ Comandă nouă</button>
       </div>
