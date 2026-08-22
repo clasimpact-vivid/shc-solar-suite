@@ -157,7 +157,7 @@ a:hover{color:#93c5fd;}
 </div>
 
 <!-- PIN keypad overlay (implicit — toți colegii) -->
-<div id="officePinOverlay" style="position:fixed;inset:0;z-index:10000;background:#090f1c;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;">
+<div id="officePinOverlay" style="position:fixed;inset:0;z-index:10000;background:#090f1c;display:flex;align-items:center;justify-content:flex-start;flex-direction:column;gap:20px;overflow-y:auto;padding:24px 0;">
   <a href="./index.html" style="align-self:center;font-size:11px;color:#64748b;text-decoration:none;padding:4px 10px;border:1px solid #334155;border-radius:6px;">← Pagina principală</a>
   <div style="display:flex;align-items:center;gap:12px;">
     <div style="width:40px;height:40px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -297,7 +297,7 @@ function doLogin(){
   if(!u){err.textContent='Utilizator negăsit.';return;}
   const stored=u.id==='_admin'?adminPw:(u.password||'');
   if(stored&&pw!==stored){err.textContent='Parolă incorectă.';return;}
-  if(u.apps && u.apps.planificare===false){ err.textContent='Nu ai acces la Planificare Șantier. Contactează administratorul.'; return; }
+  if(u.apps && u.apps.planificare===false && u.apps.vizita===false){ err.textContent='Nu ai acces la Șantier. Contactează administratorul.'; return; }
   completeLoginAs(u);
 }
 
@@ -335,9 +335,9 @@ function officePinPress(k){
       setTimeout(()=>{ officePinBuffer=''; renderOfficePinDots(false); },900);
       return;
     }
-    if(u.apps && u.apps.planificare===false){
+    if(u.apps && u.apps.planificare===false && u.apps.vizita===false){
       renderOfficePinDots(true);
-      document.getElementById('officePinErr').textContent='Nu ai acces la Planificare Șantier.';
+      document.getElementById('officePinErr').textContent='Nu ai acces la Șantier.';
       setTimeout(()=>{ officePinBuffer=''; renderOfficePinDots(false); },1200);
       return;
     }
@@ -370,6 +370,12 @@ function completeLoginAs(u){
   document.getElementById('loginOverlay').style.display='none';
   const pin=document.getElementById('officePinOverlay'); if(pin) pin.style.display='none';
   document.getElementById('shellApp').style.display='flex';
+  const noPlan = !!(u.apps && u.apps.planificare===false);
+  const noViz  = !!(u.apps && u.apps.vizita===false);
+  document.getElementById('segPlanificare').style.display = noPlan ? 'none' : '';
+  document.getElementById('segVizita').style.display      = noViz  ? 'none' : '';
+  if(noPlan && !noViz) switchPane('vizita');
+  else if(noViz && !noPlan) switchPane('planificare');
   const av=document.getElementById('shellAvatar');
   av.style.background=u.color||'#3b82f6';
   av.textContent=(u.name||'').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
@@ -398,7 +404,7 @@ document.getElementById('btnLogout').addEventListener('click',()=>{
   if(pin){ officePinBuffer=''; if(typeof renderOfficePinDots==='function') renderOfficePinDots(false); pin.style.display='flex'; }
   else document.getElementById('loginOverlay').style.display='flex';
 });
-try{ const p=sessionStorage.getItem('shc_santier_pane'); if(p) switchPane(p); }catch(e){}
+try{ const p=sessionStorage.getItem('shc_santier_pane'); if(p && document.getElementById('seg'+(p==='vizita'?'Vizita':'Planificare')).style.display!=='none') switchPane(p); }catch(e){}
 function buildOfficePinGrid(){
   const grid=document.getElementById('officePinGrid'); grid.innerHTML='';
   ['1','2','3','4','5','6','7','8','9','clear','0','del'].forEach(k=>{
@@ -425,9 +431,9 @@ function officePinPress(k){
       setTimeout(()=>{ officePinBuffer=''; renderOfficePinDots(false); },900);
       return;
     }
-    if(u.apps && u.apps.planificare===false){
+    if(u.apps && u.apps.planificare===false && u.apps.vizita===false){
       renderOfficePinDots(true);
-      document.getElementById('officePinErr').textContent='Nu ai acces la Planificare Șantier.';
+      document.getElementById('officePinErr').textContent='Nu ai acces la Șantier.';
       setTimeout(()=>{ officePinBuffer=''; renderOfficePinDots(false); },1200);
       return;
     }

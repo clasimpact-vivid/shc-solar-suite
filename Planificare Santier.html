@@ -497,6 +497,7 @@ function trySsoLogin(){
     const raw=sessionStorage.getItem('shc_sso_user'); if(!raw) return false;
     const su=JSON.parse(raw); if(!su||!su.id) return false;
     const u=loginUsers.find(x=>x.id===su.id)||su;
+    if(u.apps && u.apps.planificare===false){ document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#94a3b8;font-family:system-ui,sans-serif;font-size:13px;text-align:center;padding:20px;">Nu ai acces la Planificare Șantier.<br>Contactează administratorul.</div>'; return true; }
     document.body.classList.add('embedded');
     completeLoginAs(u);
     return true;
