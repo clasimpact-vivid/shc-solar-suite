@@ -702,6 +702,10 @@
           <button type="button" onclick="document.getElementById('tva').value=21;document.getElementById('tva').dispatchEvent(new Event('input',{bubbles:true}));" style="font-size:11px;padding:2px 8px;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:4px;cursor:pointer;">21%</button>
         </div>
       </div>
+      <div class="field" style="margin-top:12px;">
+        <label>Discount comercial (%)</label>
+        <input type="number" id="discountComercial" value="0" step="0.5" min="0" max="100">
+      </div>
       <input type="hidden" id="marjaComercial" value="0">
       <strong id="marjaOut" style="display:none">0%</strong>
       <p id="marjaCalc" style="display:none"></p>
@@ -1357,7 +1361,8 @@ function compute(){
     capexBmsExtern: capexBmsExtern, bmsExternOn: bmsExternOn,
     capexPcs: capexPcs, pcsOn: pcsOn,
     marjaComercial: getVal('marjaComercial'),
-    pretVanzare: capexTotal * (1 + getVal('marjaComercial')/100),
+    discountComercial: getVal('discountComercial'),
+    pretVanzare: capexTotal * (1 + getVal('marjaComercial')/100) * (1 - getVal('discountComercial')/100),
     tvaAmount: capexTotal*tva,
     prodAn1: prodAn1, economiiAn1: economiiAn1,
     paybackYear: paybackYear, finalValue: finalValue, roiPct: roiPct,
@@ -3274,7 +3279,7 @@ function renderDeviz(){
     var rbg=i%2===0?'var(--card2)':'var(--card)';
     return '<tr style="background:'+rbg+'">'+
       '<td style="text-align:center;color:var(--text3);padding:5px 6px">'+(i+1)+'</td>'+
-      '<td style="padding:5px 6px"><select data-di="'+i+'" data-df="grup" style="width:100%;'+ic+'">'+['','A. Sistem PV','B. Invertor','C. Stocare BESS','D. STS / ATS / EMS','E. Structuri de montaj','F. Cablare & protecții AC/DC','G. Proiectare & avize','H. Montaj & punere în funcțiune','I. Alte lucrări','Locația 1','Locația 2'].map(function(g){return '<option value="'+g+'" '+(row.grup===g?'selected':'')+'>'+(g||'—')+'</option>';}).join('')+'</select></td>'+
+      '<td style="padding:5px 6px"><select data-di="'+i+'" data-df="grup" style="width:100%;'+ic+'">'+['','A. Sistem PV','B. Invertor','C. Stocare BESS','D. STS / ATS / EMS','E. Structuri de montaj','F. Cablare & protecții AC/DC','G. Proiectare & avize','H. Montaj & punere în funcțiune','I. Alte lucrări','J. Tablou Electric de Protecție & Conectică (Accesorii)','K. Lucrări Pregătitoare Opțional (Socluri)','L. Cabinete BESS'].map(function(g){return '<option value="'+g+'" '+(row.grup===g?'selected':'')+'>'+(g||'—')+'</option>';}).join('')+'</select></td>'+
       '<td style="padding:5px 6px"><input type="text" data-di="'+i+'" data-df="cod" value="'+String(row.cod||'').replace(/"/g,'&quot;')+'" placeholder="ex: GW112.6-BAT" style="width:100%;'+ic+';font-family:monospace;font-size:11px"></td>'+
       '<td style="padding:5px 6px"><input type="text" data-di="'+i+'" data-df="capitol" value="'+String(row.capitol||'').replace(/"/g,'&quot;')+'" style="width:100%;'+ic+'"></td>'+
       '<td style="padding:5px 6px"><input type="text" data-di="'+i+'" data-df="um" value="'+String(row.um||'').replace(/"/g,'&quot;')+'" style="width:100%;'+ic+'"></td>'+
