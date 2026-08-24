@@ -3735,7 +3735,7 @@ window._crmSharedUsers = [];
   // restore session
   try{
     var sess=JSON.parse(sessionStorage.getItem('pvbessSession')||'null');
-    if(sess){var u=loadUsers().find(function(x){return x.id===sess.userId&&x.active;});if(u){SESSION=sess;startSession(u);return;}}
+    if(sess){var u=loadUsers().find(function(x){return x.id===sess.userId&&x.active;});if(u){SESSION=sess;startSession(u);}}
   }catch(e){}
 
   // Avatar color palette
