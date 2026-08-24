@@ -8,9 +8,14 @@
 <body>
 <x-dc>
 <helmet>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
-if(window.emailjs) emailjs.init({publicKey:'2rsJRlc7YG1yT_wQI'});
+window.sendMailViaWorker = function(to_email, subject, message){
+  return fetch('https://shc-mail-relay.damp-resonance-4b65.workers.dev/', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({to_email, subject, message})
+  });
+};
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&amp;display=swap" rel="stylesheet">
@@ -2448,7 +2453,7 @@ class Component extends DCLogic {
       (p.responsabil?('Responsabil: '+p.responsabil+'\n'):'')+
       (p.value?('Valoare: '+Number(p.value).toLocaleString('ro-RO')+' RON\n'):'')+
       '\nDeschide SolarCRM pentru detalii.\n\nSHC Solar Suite — SolarCRM';
-    to.forEach(addr=>{ emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:addr,subject,message}).catch(()=>{}); });
+    to.forEach(addr=>{ window.sendMailViaWorker(addr,subject,message).catch(()=>{}); });
   }
 
   shcGetLock(){try{return JSON.parse(localStorage.getItem('shc_lock_solarcrm')||'{"fails":0,"until":0}');}catch(e){return{fails:0,until:0};}}
@@ -2624,7 +2629,7 @@ class Component extends DCLogic {
     const addedBy=this.state.currentUser?this.state.currentUser.name:'Necunoscut';
     const subject='Atașament nou — '+(p.client||'client');
     const message='Bună,\n\n'+addedBy+' a adăugat fișierul "'+filename+'" la lucrarea "'+(p.client||'—')+'".\n\nDeschide SolarCRM pentru detalii.\n\nSHC Solar Suite — SolarCRM';
-    emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:to, subject, message}).catch(()=>{});
+    window.sendMailViaWorker(to, subject, message).catch(()=>{});
   }
   removeAttachment(projectId,attId){
     this.setState(s=>{const projects=s.projects.map(p=>p.id===projectId?{...p,attachments:(p.attachments||[]).filter(a=>a.id!==attId)}:p);return {projects};});

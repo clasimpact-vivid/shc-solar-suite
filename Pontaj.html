@@ -513,9 +513,15 @@ a:hover{color:#fbbf24;}
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
-if(window.emailjs) emailjs.init({publicKey:'2rsJRlc7YG1yT_wQI'});
+window.sendMailViaWorker = function(to_email, subject, message){
+  return fetch('https://shc-mail-relay.damp-resonance-4b65.workers.dev/', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({to_email, subject, message})
+  });
+};
+window.emailjs = { send: function(_svc, _tpl, data){ return window.sendMailViaWorker(data.to_email, data.subject, data.message); } };
 </script>
 <script>
 // ═══════════════════════════════════════════════════════════
