@@ -566,6 +566,10 @@
           <input type="number" id="puterInvertor" value="0" step="1" placeholder="ex: 100">
         </div>
         <div class="field">
+          <label>Nr. invertoare</label>
+          <input type="number" id="numInvertoare2" value="1" step="1" min="1">
+        </div>
+        <div class="field">
           <label>Garanție (ani)</label>
           <input type="number" id="garantieInvertor" value="10" step="1">
         </div>
@@ -4468,7 +4472,7 @@ function buildOfferHTML(r){
         specR('Număr panouri', r.numPanouri+' buc.')+
         specR('Tip panou', panelStr)+
         specR('Tip invertor', esc(invStr2))+
-        specR('Nr. invertoare', document.getElementById('invertorMarca')?'—':'—')+
+        specR('Nr. invertoare', (getVal('numInvertoare2')||1) > 0 ? String(getVal('numInvertoare2')||1) : '—')+
         specR('Stocare BESS totală', bessKwhV>0?fmt0(bessKwhV)+' kWh':(function(){
           var consumZ=getVal('consumZilnic')||0, dailyProd=r.kwp>0?(r.prodAn1/365):0;
           if(consumZ<=0&&dailyProd<=0) return '—';
