@@ -1871,7 +1871,7 @@ function renderTaskBoard(admin){
     const active=g.items.filter(x=>!x.t.done).sort((a,b)=>(a.t.due||'').localeCompare(b.t.due||''));
     const done=g.items.filter(x=>x.t.done);
     return `<div style="min-width:190px;max-width:190px;flex-shrink:0;background:#111d35;border-right:1px solid rgba(255,255,255,0.09);padding:10px 12px 10px 0;margin-right:0;">
-      <div style="font-size:11.5px;font-weight:800;color:#f1f5f9;text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px;">${g.name||'—'}</div>
+      <div style="font-size:11.5px;font-weight:800;color:#f1f5f9;text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px;">${g.name||'—'} <span style="color:#64748b;font-weight:700;">(${active.length})</span></div>
       ${active.map(x=>renderTaskCardCompact(x.t,x.role)).join('')}
       ${!active.length?'<div style="font-size:11px;color:#64748b;">Niciun task activ.</div>':''}
       ${done.length?`<details style="margin-top:6px;"><summary style="font-size:10.5px;color:#64748b;cursor:pointer;">Finalizate (${done.length})</summary>${done.map(x=>renderTaskCardCompact(x.t,x.role)).join('')}</details>`:''}
