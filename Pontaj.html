@@ -222,6 +222,15 @@ a:hover{color:#fbbf24;}
         <div class="field" style="margin-bottom:10px;"><label>Titlu task *</label><input type="text" id="taskTitle" class="form-input" placeholder="ex: Cerere ATR transformator" style="width:100%;"></div>
         <div class="field" style="margin-bottom:16px;"><label>Descriere (opțional, detalii)</label><textarea id="taskDesc" class="form-input" rows="2" style="width:100%;"></textarea></div>
 
+        <div id="taskIntervWrap" style="display:none;background:#2e1065;border:1px solid #4c1d95;border-radius:8px;padding:12px;margin-bottom:16px;">
+          <div style="font-size:10.5px;font-weight:800;color:#c4b5fd;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">Date intervenție</div>
+          <div class="row2" style="margin-bottom:10px;">
+            <div class="field"><label style="color:#ddd6fe;">Nume client</label><input type="text" id="taskIntervNume" class="form-input" placeholder="Nume și prenume" style="width:100%;"></div>
+            <div class="field"><label style="color:#ddd6fe;">Telefon</label><input type="text" id="taskIntervTel" class="form-input" placeholder="07xx xxx xxx" style="width:100%;"></div>
+          </div>
+          <div class="field"><label style="color:#ddd6fe;">Problemă semnalată</label><textarea id="taskIntervProblema" class="form-input" rows="2" style="width:100%;" placeholder="Ce nu funcționează, ce a raportat clientul..."></textarea></div>
+        </div>
+
         <!-- 2. CINE -->
         <div style="font-size:10.5px;font-weight:800;color:#475569;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">Cine răspunde</div>
         <div class="row2" style="margin-bottom:10px;">
@@ -246,6 +255,7 @@ a:hover{color:#fbbf24;}
               <option value="urgent">Urgentă</option>
               <option value="standby">Stand-by</option>
               <option value="blocat">Blocat</option>
+              <option value="interventie">Intervenție</option>
             </select>
           </div>
           <div class="field"><label>Repetare</label><select id="taskRecurring" class="form-select"><option value="">Fără repetare</option><option value="weekly">Săptămânal</option><option value="monthly">Lunar</option><option value="quarterly">Trimestrial</option><option value="semiannual">Semestrial</option><option value="yearly">Anual</option></select><div style="font-size:10.5px;color:#64748b;margin-top:4px;">La finalizare se creează automat următorul task, cu termenul mutat înainte.</div></div>
@@ -1610,6 +1620,7 @@ document.querySelectorAll('.task-view-btn').forEach(b=>b.addEventListener('click
 document.getElementById('taskPriority').addEventListener('change',e=>{
   const p=e.target.value;
   document.getElementById('taskDueLabel').textContent=(p==='standby'||p==='blocat')?'Termen finalizare (opțional)':'Termen finalizare (obligatoriu) *';
+  document.getElementById('taskIntervWrap').style.display=p==='interventie'?'block':'none';
   const bw=document.getElementById('taskBlockedByWrap');
   bw.style.display=p==='blocat'?'block':'none';
   if(p==='blocat') populateBlockedBySelect();
@@ -1717,13 +1728,15 @@ function renderTaskCard(t,admin){
   const urgent=t.priority==='urgent';
   const standby=t.priority==='standby';
   const blocat=t.priority==='blocat';
-  const tinted=standby||blocat;
-  const cardBg=blocat?'background:#7f1d1d;border:1px solid #991b1b;border-left:4px solid #ef4444;border-radius:8px;padding-left:10px;padding-right:8px;':standby?'background:#334155;border:1px solid #1e293b;border-left:4px solid #cbd5e1;border-radius:8px;padding-left:10px;padding-right:8px;':'';
+  const interventie=t.priority==='interventie';
+  const tinted=standby||blocat||interventie;
+  const cardBg=blocat?'background:#7f1d1d;border:1px solid #991b1b;border-left:4px solid #ef4444;border-radius:8px;padding-left:10px;padding-right:8px;':interventie?'background:#3b0764;border:1px solid #6b21a8;border-left:4px solid #a855f7;border-radius:8px;padding-left:10px;padding-right:8px;':standby?'background:#334155;border:1px solid #1e293b;border-left:4px solid #cbd5e1;border-radius:8px;padding-left:10px;padding-right:8px;':'';
   return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #1e293b;${t.done&&!t.followUp?'opacity:0.72;background:#0d2a1c;border-left:3px solid #22c55e;border-radius:6px;padding-left:9px;padding-right:8px;':''}${t.done&&t.followUp?'background:#3a2e0f;border-radius:8px;padding-left:8px;padding-right:8px;':(!t.done?cardBg:'')}">
       <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} ${!canModifyTask(t)?'disabled':''} style="margin-top:3px;width:18px;height:18px;flex-shrink:0;cursor:pointer;">
       <div style="flex:1;">
-        <div data-task-expand="${t.id}" style="font-size:13.5px;cursor:${t.desc?'pointer':'default'};${t.done&&!t.followUp?'text-decoration:line-through;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;margin-right:6px;">⏰ FOLLOW-UP</span>':''}${standby?'<span style="background:#64748b;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;margin-right:6px;">⏸ STAND-BY</span>':''}${blocat?'<span style="background:#dc2626;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;margin-right:6px;">⛔ BLOCAT</span>':''}${t.title||t.desc||''}${t.desc&&t.title?(' <span style="color:'+(tinted?'#cbd5e1':'#64748b')+';font-size:11px;">▾</span>'):''}</div>
+        <div data-task-expand="${t.id}" style="font-size:13.5px;cursor:${t.desc?'pointer':'default'};${t.done&&!t.followUp?'text-decoration:line-through;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;margin-right:6px;">⏰ FOLLOW-UP</span>':''}${standby?'<span style="background:#64748b;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;margin-right:6px;">⏸ STAND-BY</span>':''}${blocat?'<span style="background:#dc2626;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;margin-right:6px;">⛔ BLOCAT</span>':''}${interventie?'<span style="background:#a855f7;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;margin-right:6px;">🔧 INTERVENȚIE</span>':''}${t.title||t.desc||''}${t.desc&&t.title?(' <span style="color:'+(tinted?'#cbd5e1':'#64748b')+';font-size:11px;">▾</span>'):''}</div>
         ${t.desc&&t.title?`<div data-task-desc="${t.id}" style="display:none;font-size:12px;color:${tinted?'#cbd5e1':'#94a3b8'};margin-top:4px;white-space:pre-wrap;">${t.desc}</div>`:''}
+        ${interventie&&(t.intervNume||t.intervTel||t.intervProblema)?`<div style="font-size:12px;color:#e9d5ff;background:rgba(107,33,168,.35);border-radius:6px;padding:6px 9px;margin-top:5px;">${t.intervNume?('<strong>'+t.intervNume+'</strong>'):''}${t.intervTel?(' · 📞 '+t.intervTel):''}${t.intervProblema?('<br>'+t.intervProblema):''}</div>`:''}
         <div style="font-size:11.5px;color:${tinted?'#cbd5e1':'#94a3b8'};margin-top:3px;">
           ${t.site?('<span class="badge" style="background:#1e3a5f;color:#93c5fd;">'+t.site+'</span> '):''}${blockedByLabel(t)?('<span style="background:#7f1d1d;color:#fecaca;font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;margin-right:5px;">⛔ '+blockedByLabel(t)+'</span> '):''}${t.recurring?('<span style="background:#1e3a5f;color:#93c5fd;font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;margin-right:5px;">🔁 '+(RECUR_LABEL[t.recurring]||'')+'</span> '):''}
           către <strong>${t.assigneeName||'—'}</strong>${t.assigneeSecName?(' + <span style="color:'+(tinted?'#cbd5e1':'#94a3b8')+';">'+t.assigneeSecName+'</span>'):''}${t.assigneeTerName?(' + <span style="color:'+(tinted?'#cbd5e1':'#94a3b8')+';">'+t.assigneeTerName+'</span>'):''} ·
@@ -1754,14 +1767,16 @@ function renderTaskCardCompact(t,role){
   const roleLabel=role==='sec'?'Secundar':role==='ter'?'Terțiar':'';
   const overdue=!t.done && t.due && t.due<todayISO();
   const blocat=t.priority==='blocat';
-  const standby=t.priority==='standby'||blocat;
-  return `<div data-task-card="${t.id}" style="background:${t.done?'#eafaf1':blocat?'#7f1d1d':standby?'#334155':'#fff'};border:1px solid ${t.done?'#a7f3d0':blocat?'#991b1b':standby?'#1e293b':'#e2e8f0'};${t.done?'border-left:4px solid #22c55e;':blocat?'border-left:4px solid #ef4444;':standby?'border-left:4px solid #cbd5e1;':''}border-radius:8px;padding:9px 10px;margin-bottom:7px;cursor:${t.assigneeId===currentUser.id&&!t.done?'pointer':'default'};">
+  const interventie=t.priority==='interventie';
+  const standby=t.priority==='standby'||blocat||interventie;
+  return `<div data-task-card="${t.id}" style="background:${t.done?'#eafaf1':blocat?'#7f1d1d':interventie?'#3b0764':standby?'#334155':'#fff'};border:1px solid ${t.done?'#a7f3d0':blocat?'#991b1b':interventie?'#6b21a8':standby?'#1e293b':'#e2e8f0'};${t.done?'border-left:4px solid #22c55e;':blocat?'border-left:4px solid #ef4444;':interventie?'border-left:4px solid #a855f7;':standby?'border-left:4px solid #cbd5e1;':''}border-radius:8px;padding:9px 10px;margin-bottom:7px;cursor:${t.assigneeId===currentUser.id&&!t.done?'pointer':'default'};">
     <div style="display:flex;align-items:flex-start;gap:7px;">
       <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} ${!canModifyTask(t)?'disabled':''} style="margin-top:2px;width:15px;height:15px;flex-shrink:0;cursor:pointer;">
       <div style="flex:1;min-width:0;">
         ${roleLabel?`<div style="font-size:9.5px;font-weight:800;color:${standby?'#cbd5e1':'#64748b'};text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px;">${roleLabel}</div>`:''}
-        <div data-task-expand="${t.id}" style="font-size:12.5px;font-weight:600;color:${standby?'#f1f5f9':'#0f172a'};cursor:${t.desc?'pointer':'default'};${t.done?'text-decoration:line-through;color:#94a3b8;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏰</span>':''}${t.priority==='standby'?'<span style="background:#94a3b8;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏸</span>':''}${t.title||t.desc||''}${t.desc&&t.title?' <span style="color:'+(standby?'#cbd5e1':'#94a3b8')+';font-size:10px;">▾</span>':''}</div>
+        <div data-task-expand="${t.id}" style="font-size:12.5px;font-weight:600;color:${standby?'#f1f5f9':'#0f172a'};cursor:${t.desc?'pointer':'default'};${t.done?'text-decoration:line-through;color:#94a3b8;':''}">${t.followUp?'<span style="background:#f59e0b;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏰</span>':''}${blocat?'<span style="background:#dc2626;color:#fff;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⛔</span>':''}${interventie?'<span style="background:#a855f7;color:#fff;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">🔧</span>':''}${t.priority==='standby'?'<span style="background:#94a3b8;color:#1e293b;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;margin-right:5px;">⏸</span>':''}${t.title||t.desc||''}${t.desc&&t.title?' <span style="color:'+(standby?'#cbd5e1':'#94a3b8')+';font-size:10px;">▾</span>':''}</div>
         ${t.desc&&t.title?`<div data-task-desc="${t.id}" style="display:none;font-size:11px;color:${standby?'#cbd5e1':'#64748b'};margin-top:3px;white-space:pre-wrap;">${t.desc}</div>`:''}
+        ${interventie&&(t.intervNume||t.intervTel)?`<div style="font-size:10.5px;color:#e9d5ff;margin-top:3px;">${t.intervNume||''}${t.intervTel?(' · '+t.intervTel):''}</div>`:''}
         ${t.site?`<div style="font-size:10.5px;color:${standby?'#cbd5e1':'#64748b'};margin-top:2px;">${t.site}</div>`:''}${blockedByLabel(t)?`<div style="font-size:10px;font-weight:700;color:#fecaca;background:rgba(127,29,29,.55);padding:2px 6px;border-radius:5px;margin-top:3px;display:inline-block;">⛔ ${blockedByLabel(t)}</div>`:''}${t.recurring?`<div style="font-size:10px;font-weight:700;color:${standby?'#93c5fd':'#1d4ed8'};margin-top:3px;">🔁 ${RECUR_LABEL[t.recurring]||''}</div>`:''}
         <div style="font-size:10.5px;color:${standby?'#cbd5e1':'#64748b'};margin-top:2px;">→ <strong style="color:${standby?'#f1f5f9':'inherit'};">${t.assigneeName||'—'}</strong>${t.assigneeSecName?(' + '+t.assigneeSecName):''}${t.assigneeTerName?(' + '+t.assigneeTerName):''}</div>
         ${!t.done?`<div style="margin-top:5px;">
@@ -1970,13 +1985,13 @@ document.getElementById('btnSubmitTask').addEventListener('click',()=>{
   if(editingTaskId){
     const t=tasks.find(x=>x.id===editingTaskId);
     if(t){
-      Object.assign(t,{recurring,blockedBy:priority==="blocat"?blockedBy:null,assigneeId,assigneeName,assigneeSecId:assigneeSecId||null,assigneeSecName:assigneeSecName||null,assigneeTerId:assigneeTerId||null,assigneeTerName:assigneeTerName||null,title,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,funding:document.getElementById('taskFunding').value||null,chapter:document.getElementById('taskChapter').value||null,followUp,followUpDate});
+      Object.assign(t,{recurring,blockedBy:priority==="blocat"?blockedBy:null,intervNume:priority==='interventie'?document.getElementById('taskIntervNume').value.trim()||null:null,intervTel:priority==='interventie'?document.getElementById('taskIntervTel').value.trim()||null:null,intervProblema:priority==='interventie'?document.getElementById('taskIntervProblema').value.trim()||null:null,assigneeId,assigneeName,assigneeSecId:assigneeSecId||null,assigneeSecName:assigneeSecName||null,assigneeTerId:assigneeTerId||null,assigneeTerName:assigneeTerName||null,title,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,funding:document.getElementById('taskFunding').value||null,chapter:document.getElementById('taskChapter').value||null,followUp,followUpDate});
       saveTask(t);
     }
     cancelTaskEdit();
     return;
   }
-  const t={id:'task_'+Date.now(),recurring,blockedBy:priority==='blocat'?blockedBy:null,assigneeId,assigneeName,assigneeSecId:assigneeSecId||null,assigneeSecName:assigneeSecName||null,assigneeTerId:assigneeTerId||null,assigneeTerName:assigneeTerName||null,title,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,funding:document.getElementById('taskFunding').value||null,chapter:document.getElementById('taskChapter').value||null,followUp,followUpDate,done:false,ts:Date.now(),createdBy:currentUser.name};
+  const t={id:'task_'+Date.now(),recurring,blockedBy:priority==='blocat'?blockedBy:null,intervNume:priority==='interventie'?document.getElementById('taskIntervNume').value.trim()||null:null,intervTel:priority==='interventie'?document.getElementById('taskIntervTel').value.trim()||null:null,intervProblema:priority==='interventie'?document.getElementById('taskIntervProblema').value.trim()||null:null,assigneeId,assigneeName,assigneeSecId:assigneeSecId||null,assigneeSecName:assigneeSecName||null,assigneeTerId:assigneeTerId||null,assigneeTerName:assigneeTerName||null,title,desc,due:dueDmy?dmyToIso(dueDmy):null,dueTime:dueTime||null,priority,site:document.getElementById('taskSite').value.trim()||null,funding:document.getElementById('taskFunding').value||null,chapter:document.getElementById('taskChapter').value||null,followUp,followUpDate,done:false,progress:0,ts:Date.now(),createdBy:currentUser.name};
   saveTask(t);
   sendTaskEmail(t,assignee);
   [assigneeSecId,assigneeTerId].forEach(id=>{
@@ -2009,6 +2024,10 @@ function openTaskEdit(id){
   document.getElementById('taskDue').value=t.due?isoToDmy(t.due):'';
   document.getElementById('taskDueTime').value=t.dueTime||'';
   document.getElementById('taskPriority').value=t.priority||'normal';
+  document.getElementById('taskIntervWrap').style.display=t.priority==='interventie'?'block':'none';
+  document.getElementById('taskIntervNume').value=t.intervNume||'';
+  document.getElementById('taskIntervTel').value=t.intervTel||'';
+  document.getElementById('taskIntervProblema').value=t.intervProblema||'';
   document.getElementById('taskSite').value=t.site||'';
   document.getElementById('taskFunding').value=t.funding||'';
   document.getElementById('taskChapter').value=t.chapter||'';
