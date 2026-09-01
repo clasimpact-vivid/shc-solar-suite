@@ -776,7 +776,7 @@ function populateLoginUsers(){
   if(cur) sel.value=cur;
 }
 function resetRestrictedTabs(){
-  ['tabTeamBtn','tabMapBtn','tabPlannerBtn','tabMyWeekBtn','tabAlerteBtn'].forEach(id=>{ document.getElementById(id).style.display='none'; });
+  ['tabTeamBtn','tabMapBtn','tabMyWeekBtn','tabAlerteBtn'].forEach(id=>{ document.getElementById(id).style.display='none'; });
   document.getElementById('exportUserField').style.display='none';
   document.getElementById('tabExportBtn').style.display='';
   document.getElementById('tabPvBtn').style.display='';
@@ -806,9 +806,7 @@ function completeLoginAsOffice(u){
     document.getElementById('tabMapBtn').style.display='';
     document.getElementById('exportUserField').style.display='';
   }
-  if(isFullAccess()){
-    document.getElementById('tabPlannerBtn').style.display='';
-  }
+  document.getElementById('tabPlannerBtn').style.display='';
   document.getElementById('btnDeleteAllPontaj').style.display=isSuperAdminPontaj()?'':'none';
   document.getElementById('btnPublishPlan').style.display=isFullAccess()?'':'none';
   if(isFieldWorker()){
