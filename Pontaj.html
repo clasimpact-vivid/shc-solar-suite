@@ -303,6 +303,7 @@ a:hover{color:#fbbf24;}
             <button data-task-view="site" class="task-view-btn" style="padding:5px 12px;border:none;border-radius:6px;background:transparent;color:#94a3b8;font-size:11.5px;font-weight:700;cursor:pointer;">Pe șantier</button>
           </div>
         </div>
+        <div id="taskPriorityCounters" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;margin-bottom:12px;"></div>
         <input type="text" id="taskSearchInput" placeholder="🔍 Caută task după titlu, descriere sau nume..." style="width:100%;padding:8px 12px;border:1px solid #334155;border-radius:8px;background:#0f172a;color:#f1f5f9;font-size:12.5px;margin-bottom:10px;outline:none;" />
         <div id="taskCalendarView" style="display:none;"></div>
         <div id="taskList" style="display:none;"></div>
@@ -713,8 +714,9 @@ let leaveReqs=[], probReports=[];
 const LEAVE_LABELS={CO:'Concediu de odihnă',CM:'Concediu medical',IV:'Învoire / liber o zi',LN:'Liber neplătit'};
 function saveLeave(l){ if(db) db.ref('solarcrm_v2/pontajLeave/'+l.id).set(l); else { leaveReqs=[l,...leaveReqs.filter(x=>x.id!==l.id)]; renderCereri(); } }
 function saveProb(p){ if(db) db.ref('solarcrm_v2/pontajProbs/'+p.id).set(p); else { probReports=[p,...probReports.filter(x=>x.id!==p.id)]; renderCereri(); } }
-let tasks=[]; let taskView='board'; let taskSearchQuery='';
+let tasks=[]; let taskView='board'; let taskSearchQuery=''; let taskPriorityFilter=null;
 function taskMatchesSearch(t){
+  if(taskPriorityFilter!==null && (t.priority||'normal')!==taskPriorityFilter) return false;
   if(!taskSearchQuery) return true;
   const q=taskSearchQuery.toLowerCase();
   return [t.title,t.desc,t.assigneeName,t.assigneeSecName,t.assigneeTerName,t.site,t.createdBy].some(v=>v&&v.toLowerCase().includes(q));
@@ -1930,9 +1932,35 @@ function wireTaskEvents(root){
     if(db) db.ref('solarcrm_v2/pontajTasks/'+b.dataset.taskDel).remove(); else { tasks=tasks.filter(x=>x.id!==b.dataset.taskDel); renderTasks(); }
   }));
 }
+function renderTaskPriorityCounters(){
+  const box=document.getElementById('taskPriorityCounters');
+  if(!box) return;
+  const active=tasks.filter(t=>!t.done);
+  const PRI=[
+    {key:'normal',label:'Normală',bg:'#1e293b',fg:'#e2e8f0'},
+    {key:'urgent',label:'Urgentă',bg:'#7f1d1d',fg:'#fecaca'},
+    {key:'standby',label:'Stand-by',bg:'#334155',fg:'#cbd5e1'},
+    {key:'blocat',label:'Blocat',bg:'#7f1d1d',fg:'#fff',border:'#ef4444'},
+    {key:'interventie',label:'Intervenție',bg:'#3b0764',fg:'#e9d5ff'}
+  ];
+  const totalActive=taskPriorityFilter===null;
+  box.innerHTML='<div data-pri-filter="__all" style="cursor:pointer;background:#0f172a;border:1px solid '+(totalActive?'#60a5fa':'#334155')+';border-radius:8px;padding:8px 10px;text-align:center;">'+
+    '<div style="font-size:20px;font-weight:800;color:#f1f5f9;">'+active.length+'</div><div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.3px;">Total active</div></div>'+
+    PRI.map(p=>{
+      const n=active.filter(t=>(t.priority||'normal')===p.key).length;
+      const sel=taskPriorityFilter===p.key;
+      return '<div data-pri-filter="'+p.key+'" style="cursor:pointer;background:'+p.bg+';border:1px solid '+(sel?'#60a5fa':(p.border||'#334155'))+';border-radius:8px;padding:8px 10px;text-align:center;'+(sel?'box-shadow:0 0 0 2px rgba(96,165,250,.35);':'')+'"><div style="font-size:20px;font-weight:800;color:'+p.fg+';">'+n+'</div><div style="font-size:10px;color:'+p.fg+';opacity:.85;text-transform:uppercase;letter-spacing:.3px;">'+p.label+'</div></div>';
+    }).join('');
+  box.querySelectorAll('[data-pri-filter]').forEach(el=>el.addEventListener('click',()=>{
+    const k=el.dataset.priFilter;
+    taskPriorityFilter = (k==='__all') ? null : (taskPriorityFilter===k ? null : k);
+    renderTasks();
+  }));
+}
 function renderTasks(){
   const admin=!!currentUser;
   document.getElementById('taskAssignCard').style.display=admin?'block':'none';
+  renderTaskPriorityCounters();
   if(admin){
     ['taskAssignee2','taskAssigneeSec','taskAssigneeTer'].forEach(id=>{
       const sel=document.getElementById(id);
