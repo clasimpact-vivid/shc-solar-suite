@@ -288,7 +288,7 @@ a:hover{color:#fbbf24;}
           <div class="field"><label>Tip finanțare</label><select id="taskFunding" class="form-select"><option value="">— nespecificat —</option><option value="afm">AFM / Casa Verde</option><option value="exec_fm">Execuție - fondul pentru modernizare</option><option value="mixt">Mixt (privat + finanțare)</option><option value="pnrr">PNRR</option><option value="privat">Privat</option><option value="pth_fm">PTh - fondul pentru modernizare</option><option value="sf_fm">SF - fondul pentru modernizare</option><option value="sf_tj">SF - tranziție justă</option></select></div>
         </div>
         <div class="field" id="taskFollowUpDateWrap" style="margin-bottom:10px;display:none;"><label>Data follow-up</label><input type="text" id="taskFollowUpDate" class="form-input" placeholder="dd/mm/yyyy" maxlength="10"></div>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px solid #1e293b;">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px solid #1e293b;justify-content:center;">
           <button class="btn" id="btnSubmitTask" style="background:#f59e0b;color:#fff;padding:12px 32px;font-size:14px;font-weight:700;border-radius:9px;box-shadow:0 2px 10px rgba(245,158,11,.28);">Atribuie task</button>
           <button class="btn" id="btnCancelEditTask" style="display:none;background:#334155;color:#fff;padding:12px 24px;font-size:13.5px;border-radius:9px;">Anulează editarea</button>
         </div>
@@ -1730,7 +1730,7 @@ function renderTaskCard(t,admin){
   const blocat=t.priority==='blocat';
   const interventie=t.priority==='interventie';
   const tinted=standby||blocat||interventie;
-  const cardBg=blocat?'background:#7f1d1d;border:1px solid #991b1b;border-left:4px solid #ef4444;border-radius:8px;padding-left:10px;padding-right:8px;':interventie?'background:#3b0764;border:1px solid #6b21a8;border-left:4px solid #a855f7;border-radius:8px;padding-left:10px;padding-right:8px;':standby?'background:#334155;border:1px solid #1e293b;border-left:4px solid #cbd5e1;border-radius:8px;padding-left:10px;padding-right:8px;':'';
+  const cardBg=blocat?'background:#7c2d12;border:1px solid #9a3412;border-left:4px solid #f97316;border-radius:8px;padding-left:10px;padding-right:8px;':interventie?'background:#3b0764;border:1px solid #6b21a8;border-left:4px solid #a855f7;border-radius:8px;padding-left:10px;padding-right:8px;':standby?'background:#334155;border:1px solid #1e293b;border-left:4px solid #cbd5e1;border-radius:8px;padding-left:10px;padding-right:8px;':'';
   return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #1e293b;${t.done&&!t.followUp?'opacity:0.72;background:#0d2a1c;border-left:3px solid #22c55e;border-radius:6px;padding-left:9px;padding-right:8px;':''}${t.done&&t.followUp?'background:#3a2e0f;border-radius:8px;padding-left:8px;padding-right:8px;':(!t.done?cardBg:'')}">
       <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} ${!canModifyTask(t)?'disabled':''} style="margin-top:3px;width:18px;height:18px;flex-shrink:0;cursor:pointer;">
       <div style="flex:1;">
@@ -1769,7 +1769,7 @@ function renderTaskCardCompact(t,role){
   const blocat=t.priority==='blocat';
   const interventie=t.priority==='interventie';
   const standby=t.priority==='standby'||blocat||interventie;
-  return `<div data-task-card="${t.id}" style="background:${t.done?'#eafaf1':blocat?'#7f1d1d':interventie?'#3b0764':standby?'#334155':'#fff'};border:1px solid ${t.done?'#a7f3d0':blocat?'#991b1b':interventie?'#6b21a8':standby?'#1e293b':'#e2e8f0'};${t.done?'border-left:4px solid #22c55e;':blocat?'border-left:4px solid #ef4444;':interventie?'border-left:4px solid #a855f7;':standby?'border-left:4px solid #cbd5e1;':''}border-radius:8px;padding:9px 10px;margin-bottom:7px;cursor:${t.assigneeId===currentUser.id&&!t.done?'pointer':'default'};">
+  return `<div data-task-card="${t.id}" style="background:${t.done?'#eafaf1':blocat?'#7c2d12':interventie?'#3b0764':standby?'#334155':'#fff'};border:1px solid ${t.done?'#a7f3d0':blocat?'#9a3412':interventie?'#6b21a8':standby?'#1e293b':'#e2e8f0'};${t.done?'border-left:4px solid #22c55e;':blocat?'border-left:4px solid #f97316;':interventie?'border-left:4px solid #a855f7;':standby?'border-left:4px solid #cbd5e1;':''}border-radius:8px;padding:9px 10px;margin-bottom:7px;cursor:${t.assigneeId===currentUser.id&&!t.done?'pointer':'default'};">
     <div style="display:flex;align-items:flex-start;gap:7px;">
       <input type="checkbox" data-task-done="${t.id}" ${t.done?'checked':''} ${!canModifyTask(t)?'disabled':''} style="margin-top:2px;width:15px;height:15px;flex-shrink:0;cursor:pointer;">
       <div style="flex:1;min-width:0;">
@@ -1940,7 +1940,7 @@ function renderTaskPriorityCounters(){
     {key:'normal',label:'Normală',bg:'#1e293b',fg:'#e2e8f0'},
     {key:'urgent',label:'Urgentă',bg:'#7f1d1d',fg:'#fecaca'},
     {key:'standby',label:'Stand-by',bg:'#334155',fg:'#cbd5e1'},
-    {key:'blocat',label:'Blocat',bg:'#7f1d1d',fg:'#fff',border:'#ef4444'},
+    {key:'blocat',label:'Blocat',bg:'#7c2d12',fg:'#fff',border:'#f97316'},
     {key:'interventie',label:'Intervenție',bg:'#3b0764',fg:'#e9d5ff'}
   ];
   const totalActive=taskPriorityFilter===null;
