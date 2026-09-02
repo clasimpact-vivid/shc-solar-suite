@@ -714,8 +714,9 @@ let leaveReqs=[], probReports=[];
 const LEAVE_LABELS={CO:'Concediu de odihnă',CM:'Concediu medical',IV:'Învoire / liber o zi',LN:'Liber neplătit'};
 function saveLeave(l){ if(db) db.ref('solarcrm_v2/pontajLeave/'+l.id).set(l); else { leaveReqs=[l,...leaveReqs.filter(x=>x.id!==l.id)]; renderCereri(); } }
 function saveProb(p){ if(db) db.ref('solarcrm_v2/pontajProbs/'+p.id).set(p); else { probReports=[p,...probReports.filter(x=>x.id!==p.id)]; renderCereri(); } }
-let tasks=[]; let taskView='board'; let taskSearchQuery=''; let taskPriorityFilter=null;
+let tasks=[]; let taskView='board'; let taskSearchQuery=''; let taskPriorityFilter=null; let taskMineOnly=false;
 function taskMatchesSearch(t){
+  if(taskMineOnly && t.createdBy!==currentUser.name) return false;
   if(taskPriorityFilter!==null && (t.priority||'normal')!==taskPriorityFilter) return false;
   if(!taskSearchQuery) return true;
   const q=taskSearchQuery.toLowerCase();
@@ -1936,6 +1937,7 @@ function renderTaskPriorityCounters(){
   const box=document.getElementById('taskPriorityCounters');
   if(!box) return;
   const active=tasks.filter(t=>!t.done);
+  const mineActive=active.filter(t=>t.createdBy===currentUser.name);
   const PRI=[
     {key:'normal',label:'Normală',bg:'#1e293b',fg:'#e2e8f0'},
     {key:'urgent',label:'Urgentă',bg:'#7f1d1d',fg:'#fecaca'},
@@ -1943,17 +1945,20 @@ function renderTaskPriorityCounters(){
     {key:'blocat',label:'Blocat',bg:'#7c2d12',fg:'#fff',border:'#f97316'},
     {key:'interventie',label:'Intervenție',bg:'#3b0764',fg:'#e9d5ff'}
   ];
-  const totalActive=taskPriorityFilter===null;
+  const totalActive=taskPriorityFilter===null && !taskMineOnly;
+  const mineSel=taskMineOnly;
   box.innerHTML='<div data-pri-filter="__all" style="cursor:pointer;background:#0f172a;border:1px solid '+(totalActive?'#60a5fa':'#334155')+';border-radius:8px;padding:8px 10px;text-align:center;">'+
     '<div style="font-size:20px;font-weight:800;color:#f1f5f9;">'+active.length+'</div><div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.3px;">Total active</div></div>'+
+    '<div data-pri-filter="__mine" style="cursor:pointer;background:#0c4a6e;border:1px solid '+(mineSel?'#60a5fa':'#0369a1')+';border-radius:8px;padding:8px 10px;text-align:center;'+(mineSel?'box-shadow:0 0 0 2px rgba(96,165,250,.35);':'')+'"><div style="font-size:20px;font-weight:800;color:#bae6fd;">'+mineActive.length+'</div><div style="font-size:10px;color:#bae6fd;opacity:.9;text-transform:uppercase;letter-spacing:.3px;">Ale mele</div></div>'+
     PRI.map(p=>{
       const n=active.filter(t=>(t.priority||'normal')===p.key).length;
-      const sel=taskPriorityFilter===p.key;
+      const sel=taskPriorityFilter===p.key && !taskMineOnly;
       return '<div data-pri-filter="'+p.key+'" style="cursor:pointer;background:'+p.bg+';border:1px solid '+(sel?'#60a5fa':(p.border||'#334155'))+';border-radius:8px;padding:8px 10px;text-align:center;'+(sel?'box-shadow:0 0 0 2px rgba(96,165,250,.35);':'')+'"><div style="font-size:20px;font-weight:800;color:'+p.fg+';">'+n+'</div><div style="font-size:10px;color:'+p.fg+';opacity:.85;text-transform:uppercase;letter-spacing:.3px;">'+p.label+'</div></div>';
     }).join('');
   box.querySelectorAll('[data-pri-filter]').forEach(el=>el.addEventListener('click',()=>{
     const k=el.dataset.priFilter;
-    taskPriorityFilter = (k==='__all') ? null : (taskPriorityFilter===k ? null : k);
+    if(k==='__mine'){ taskMineOnly=!taskMineOnly; taskPriorityFilter=null; }
+    else { taskMineOnly=false; taskPriorityFilter = (k==='__all') ? null : (taskPriorityFilter===k ? null : k); }
     renderTasks();
   }));
 }
