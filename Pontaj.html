@@ -645,7 +645,7 @@ function loadFirebase(){
     Object.values(raw).filter(r=>r&&r.id).forEach(r=>{ records[r.id]=r; });
     renderCurrentTab();
   });
-  db.ref('solarcrm_v2/config').once('value', snap=>{
+  db.ref('solarcrm_v2/config').on('value', snap=>{
     const cfg=snap.val()||{};
     if(cfg.users&&Array.isArray(cfg.users)&&cfg.users.length){
       loginUsers=[{id:'_admin',name:'Administrator',color:'#dc2626',password:cfg.adminPw||'12345'},
@@ -659,13 +659,16 @@ function loadFirebase(){
     if(cfg.adminPw) adminPw=cfg.adminPw;
     if(cfg.adminPin) adminPin=cfg.adminPin;
     if(cfg.fieldWorkers&&Array.isArray(cfg.fieldWorkers)&&cfg.fieldWorkers.length){ fieldWorkers=cfg.fieldWorkers; }
-    else { fieldWorkers=seedFieldWorkers(); db.ref('solarcrm_v2/config/fieldWorkers').set(fieldWorkers); }
+    else if(!cfg.fieldWorkers){ fieldWorkers=seedFieldWorkers(); db.ref('solarcrm_v2/config/fieldWorkers').set(fieldWorkers); }
     if(cfg.jobs&&Array.isArray(cfg.jobs)&&cfg.jobs.length){ jobs=cfg.jobs; }
-    else { jobs=seedJobs(); db.ref('solarcrm_v2/config/jobs').set(jobs); }
+    else if(!cfg.jobs){ jobs=seedJobs(); db.ref('solarcrm_v2/config/jobs').set(jobs); }
     if(cfg.teams&&Array.isArray(cfg.teams)&&cfg.teams.length){ teams=cfg.teams; }
-    else { teams=seedTeams(fieldWorkers); db.ref('solarcrm_v2/config/teams').set(teams); }
+    else if(!cfg.teams){ teams=seedTeams(fieldWorkers); db.ref('solarcrm_v2/config/teams').set(teams); }
     populateLoginUsers();
     populateExportUsers();
+    if(activeTab==='myweek') renderMyWeek();
+    if(activeTab==='planner'){ renderJobsMgmt(); renderFieldWorkersList(); renderPlannerBody(); }
+    if(activeTab==='team') renderTeam();
   });
   db.ref('solarcrm_v2/pontajPlans').on('value', snap=>{
     weekPlans=snap.val()||{};
