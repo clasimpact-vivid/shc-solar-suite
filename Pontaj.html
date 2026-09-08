@@ -2479,7 +2479,7 @@ function exportLeavePdf(l){
       <div>Aprobat de<div class="line">Ionuț Nicoraș / Alexandru Chirilă</div></div>
     </div>
     <div class="foot">Document generat automat — SHC Solar Suite / Pontaj — ${new Date().toLocaleDateString('ro-RO')}</div>
-    <script>window.onload=function(){ setTimeout(function(){ window.focus(); window.print(); },300); };</script>
+    <script>window.onload=function(){ setTimeout(function(){ window.focus(); window.print(); },300); };</` + `script>
   </body></html>`;
   const blob=new Blob([html],{type:'text/html'});
   const url=URL.createObjectURL(blob);
