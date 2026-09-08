@@ -2398,38 +2398,75 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
 // ── BOOT ──
 // ── DATE/TIME HELPERS dd/mm/yyyy și HH:mm (24h) ──
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function isRoHoliday(iso){
+  const d=new Date(iso+'T00:00:00');
+  const y=d.getFullYear();
+  const mmdd=iso.slice(5);
+  const fixed=['01-01','01-02','01-24','05-01','06-01','08-15','11-30','12-01','12-25','12-26'];
+  if(fixed.includes(mmdd)) return true;
+  // Orthodox Easter (Meeus/Jones/Butcher algorithm, Julian->Gregorian)
+  function orthodoxEaster(year){
+    const a=year%4, b=year%7, c=year%19;
+    const d2=(19*c+15)%30, e=(2*a+4*b-d2+34)%7;
+    const month=Math.floor((d2+e+114)/31), day=((d2+e+114)%31)+1;
+    const jul=new Date(Date.UTC(year,month-1,day));
+    jul.setUTCDate(jul.getUTCDate()+13); // Julian -> Gregorian offset (20th/21st century: 13 days)
+    return jul;
+  }
+  const easter=orthodoxEaster(y);
+  const easterIso=d=>d.toISOString().slice(0,10);
+  const easterFri=new Date(easter); easterFri.setUTCDate(easter.getUTCDate()-2);
+  const easterMon=new Date(easter); easterMon.setUTCDate(easter.getUTCDate()+1);
+  const pentecostMon=new Date(easter); pentecostMon.setUTCDate(easter.getUTCDate()+50);
+  const movable=[easterIso(easterFri),easterIso(easter),easterIso(easterMon),easterIso(pentecostMon)];
+  return movable.includes(iso);
+}
+function countWorkingDays(fromIso,toIso){
+  let n=0; const d=new Date(fromIso+'T00:00:00'); const end=new Date(toIso+'T00:00:00');
+  while(d<=end){
+    const iso=d.toISOString().slice(0,10);
+    const dow=d.getDay();
+    if(dow!==0 && dow!==6 && !isRoHoliday(iso)) n++;
+    d.setDate(d.getDate()+1);
+  }
+  return n;
+}
 function exportLeavePdf(l){
-  const daysCount=Math.round((new Date(l.to)-new Date(l.from))/86400000)+1;
+  const daysCount=countWorkingDays(l.from,l.to);
   const submittedStr=l.ts?new Date(l.ts).toLocaleDateString('ro-RO',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
   const statusLabel=l.status==='A'?'APROBATĂ':l.status==='R'?'RESPINSĂ':'ÎN AȘTEPTARE';
   const statusColor=l.status==='A'?'#16a34a':l.status==='R'?'#dc2626':'#d97706';
   const win=window.open('','_blank');
   win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Cerere de concediu — ${esc(l.userName||'')}</title>
   <style>
-    @page{size:A4;margin:22mm 20mm;}
-    body{font-family:Georgia,'Times New Roman',serif;color:#0f172a;line-height:1.55;}
-    .hdr{text-align:center;border-bottom:2px solid #0f172a;padding-bottom:14px;margin-bottom:26px;}
-    .hdr .co{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#334155;font-weight:700;}
-    .hdr h1{font-size:22px;letter-spacing:.04em;text-transform:uppercase;margin:10px 0 0;}
-    table.meta{width:100%;border-collapse:collapse;margin:22px 0;font-size:14px;}
-    table.meta td{padding:8px 4px;border-bottom:1px solid #cbd5e1;}
-    table.meta td.k{color:#475569;width:38%;}
+    @page{size:A4;margin:20mm 22mm;}
+    body{font-family:Georgia,'Times New Roman',serif;color:#0f172a;line-height:1.7;font-size:14px;}
+    .hdr{display:flex;align-items:center;gap:18px;border-bottom:2px solid #0f172a;padding-bottom:18px;margin-bottom:36px;}
+    .hdr img{width:56px;height:56px;object-fit:contain;flex-shrink:0;}
+    .hdr .co{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#334155;font-weight:700;}
+    .hdr h1{font-size:23px;letter-spacing:.04em;text-transform:uppercase;margin:6px 0 0;}
+    table.meta{width:100%;border-collapse:collapse;margin:30px 0;font-size:14.5px;}
+    table.meta td{padding:12px 6px;border-bottom:1px solid #cbd5e1;}
+    table.meta td.k{color:#475569;width:40%;}
     table.meta td.v{font-weight:600;}
-    .status{display:inline-block;padding:3px 12px;border-radius:999px;color:#fff;font-size:12px;font-weight:700;letter-spacing:.03em;background:${statusColor};}
-    .body-text{margin:26px 0;font-size:14.5px;text-align:justify;}
-    .sig{display:flex;justify-content:space-between;margin-top:70px;font-size:13.5px;}
-    .sig div{width:45%;text-align:center;}
-    .sig .line{border-top:1px solid #0f172a;margin-top:46px;padding-top:6px;}
-    .foot{margin-top:60px;font-size:10.5px;color:#94a3b8;text-align:center;}
+    .status{display:inline-block;padding:4px 14px;border-radius:999px;color:#fff;font-size:12px;font-weight:700;letter-spacing:.03em;background:${statusColor};}
+    .body-text{margin:34px 0;font-size:14.5px;text-align:justify;}
+    .sig{display:flex;justify-content:space-between;margin-top:90px;font-size:13.5px;}
+    .sig div{width:44%;text-align:center;}
+    .sig .line{border-top:1px solid #0f172a;margin-top:52px;padding-top:8px;}
+    .foot{margin-top:80px;font-size:10.5px;color:#94a3b8;text-align:center;}
   </style></head><body>
     <div class="hdr">
-      <div class="co">SC Smart House Color SRL — SHC Group</div>
-      <h1>Cerere de concediu</h1>
+      <img src="${LOGO_DATA_URI}" alt="logo">
+      <div>
+        <div class="co">SC Smart House Color SRL — SHC Group</div>
+        <h1>Cerere de concediu</h1>
+      </div>
     </div>
     <table class="meta">
       <tr><td class="k">Solicitant</td><td class="v">${esc(l.userName||'—')}</td></tr>
       <tr><td class="k">Tip cerere</td><td class="v">${esc(LEAVE_LABELS[l.type]||l.type)}</td></tr>
-      <tr><td class="k">Perioadă solicitată</td><td class="v">${isoToDmy(l.from)} – ${isoToDmy(l.to)} (${daysCount} zi${daysCount===1?'':'le'})</td></tr>
+      <tr><td class="k">Perioadă solicitată</td><td class="v">${isoToDmy(l.from)} – ${isoToDmy(l.to)} (${daysCount} zi${daysCount===1?'':'le'} lucrătoare)</td></tr>
       <tr><td class="k">Motiv / observații</td><td class="v">${esc(l.reason||'—')}</td></tr>
       <tr><td class="k">Dată depunere</td><td class="v">${submittedStr}</td></tr>
       <tr><td class="k">Status</td><td class="v"><span class="status">${statusLabel}</span></td></tr>
