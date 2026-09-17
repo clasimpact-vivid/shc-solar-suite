@@ -587,6 +587,7 @@ function seedTeams(fws){
 let teams=[];
 
 let fieldWorkers=[], jobs=[], weekPlans={}; // weekPlans[weekKey] = {workerId:{0:jobId,...5:jobId}}
+let _fwWriting=false, _jobsWriting=false, _teamsWriting=false;
 let myWeekOffset=0, planWeekOffset=0;
 function isoWeekMonday(offsetWeeks){
   const d=new Date(); const day=(d.getDay()+6)%7;
@@ -658,11 +659,11 @@ function loadFirebase(){
     }
     if(cfg.adminPw) adminPw=cfg.adminPw;
     if(cfg.adminPin) adminPin=cfg.adminPin;
-    if(cfg.fieldWorkers&&Array.isArray(cfg.fieldWorkers)&&cfg.fieldWorkers.length){ fieldWorkers=cfg.fieldWorkers; }
+    if(cfg.fieldWorkers&&Array.isArray(cfg.fieldWorkers)&&cfg.fieldWorkers.length){ if(!_fwWriting) fieldWorkers=cfg.fieldWorkers; }
     else if(!cfg.fieldWorkers){ fieldWorkers=seedFieldWorkers(); db.ref('solarcrm_v2/config/fieldWorkers').set(fieldWorkers); }
-    if(cfg.jobs&&Array.isArray(cfg.jobs)&&cfg.jobs.length){ jobs=cfg.jobs; }
+    if(cfg.jobs&&Array.isArray(cfg.jobs)&&cfg.jobs.length){ if(!_jobsWriting) jobs=cfg.jobs; }
     else if(!cfg.jobs){ jobs=seedJobs(); db.ref('solarcrm_v2/config/jobs').set(jobs); }
-    if(cfg.teams&&Array.isArray(cfg.teams)&&cfg.teams.length){ teams=cfg.teams; }
+    if(cfg.teams&&Array.isArray(cfg.teams)&&cfg.teams.length){ if(!_teamsWriting) teams=cfg.teams; }
     else if(!cfg.teams){ teams=seedTeams(fieldWorkers); db.ref('solarcrm_v2/config/teams').set(teams); }
     populateLoginUsers();
     populateExportUsers();
@@ -708,9 +709,9 @@ function saveRecord(r){
   db.ref('shc_pontaj/records/'+String(r.id)).set(r);
 }
 
-function saveFieldWorkers(){ if(db) db.ref('solarcrm_v2/config/fieldWorkers').set(fieldWorkers); }
-function saveJobs(){ if(db) db.ref('solarcrm_v2/config/jobs').set(jobs); }
-function saveTeams(){ if(db) db.ref('solarcrm_v2/config/teams').set(teams); }
+function saveFieldWorkers(){ if(db){ _fwWriting=true; db.ref('solarcrm_v2/config/fieldWorkers').set(fieldWorkers).then(()=>{_fwWriting=false;}); } }
+function saveJobs(){ if(db){ _jobsWriting=true; db.ref('solarcrm_v2/config/jobs').set(jobs).then(()=>{_jobsWriting=false;}); } }
+function saveTeams(){ if(db){ _teamsWriting=true; db.ref('solarcrm_v2/config/teams').set(teams).then(()=>{_teamsWriting=false;}); } }
 function savePlan(weekKey,plan){ if(db) db.ref('solarcrm_v2/pontajPlans/'+weekKey).set(plan); weekPlans[weekKey]=plan; }
 function isFieldWorker(){ return !!currentUser && currentUser.isField===true; }
 let leaveReqs=[], probReports=[];
