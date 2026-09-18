@@ -2277,8 +2277,11 @@ class Component extends DCLogic {
             }
           }
         }
-        // Config separat
-        db.ref('solarcrm_v2/config').set({users,adminPw:this.adminPassword,adminPin:this.adminPin,companyInfo});
+        // Config separat — scrie doar cheile proprii, nu tot nodul (Pontaj ține și el date sub config: fieldWorkers/jobs/teams)
+        db.ref('solarcrm_v2/config/users').set(users);
+        db.ref('solarcrm_v2/config/adminPw').set(this.adminPassword);
+        db.ref('solarcrm_v2/config/adminPin').set(this.adminPin);
+        db.ref('solarcrm_v2/config/companyInfo').set(companyInfo);
       }
       return writePromise;
     } catch(e){ return null; }

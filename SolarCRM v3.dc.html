@@ -8,9 +8,14 @@
 <body>
 <x-dc>
 <helmet>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
-if(window.emailjs) emailjs.init({publicKey:'2rsJRlc7YG1yT_wQI'});
+window.sendMailViaWorker = function(to_email, subject, message){
+  return fetch('https://shc-mail-relay.damp-resonance-4b65.workers.dev/', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({to_email, subject, message})
+  });
+};
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&amp;display=swap" rel="stylesheet">
@@ -38,7 +43,7 @@ input,select,textarea,button{font-family:inherit;}
   .crm-topbar-hide{display:none!important;}
   .crm-topbar-title{font-size:13px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;}
   /* Search bar full width */
-  .crm-search-wrap{flex:1!important;min-width:0!important;}
+  .crm-search-wrap{flex:1!important;min-width:120px!important;width:auto!important;}
   /* Filter bar scroll horizontal */
   .crm-filter-bar{overflow-x:auto!important;-webkit-overflow-scrolling:touch;flex-wrap:nowrap!important;padding:8px 10px!important;}
   .crm-filter-bar button{flex:none!important;font-size:11px!important;padding:5px 10px!important;white-space:nowrap!important;}
@@ -164,7 +169,7 @@ try {
   <div style="padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,0.07);">
     <div style="display:flex;align-items:center;gap:10px;">
       <div style="width:34px;height:34px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:9px;display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 2px 8px rgba(249,115,22,0.4);">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 2L14.09 8.26L21 9.27L16.5 13.64L17.82 20.52L12 17.27L6.18 20.52L7.5 13.64L3 9.27L9.91 8.26L12 2Z" fill="white"></path></svg>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 2L14.09 8.26L21 9.27L16.5 13.64L17.82 20.52L12 17.27L6.18 20.52L7.5 13.64L3 9.27L9.91 8.26L12 2Z" fill="#0a1628"></path></svg>
       </div>
       <div style="flex:1;min-width:0;">
         <div style="color:#f8fafc;font-weight:700;font-size:15px;letter-spacing:-0.4px;">SolarCRM</div>
@@ -227,9 +232,9 @@ try {
     </button>
     <div class="crm-topbar-title" style="font-size:16px;font-weight:700;color:#0f172a;white-space:nowrap;">{{ pageTitle }}</div>
     <div style="flex:1;"></div>
-    <div class="crm-search-wrap crm-topbar-hide" style="position:relative;">
+    <div class="crm-search-wrap" style="position:relative;width:260px;">
       <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
-      <input value="{{ search }}" onChange="{{ onSearch }}" placeholder="Caută client, adresă..." style="padding:7px 12px 7px 30px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;width:100%;min-width:140px;outline:none;color:#0f172a;background:#f8fafc;">
+      <input value="{{ search }}" onChange="{{ onSearch }}" placeholder="Caută client, adresă..." style="padding:7px 12px 7px 30px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;width:100%;min-width:180px;outline:none;color:#0f172a;background:#f8fafc;">
     </div>
     <button class="crm-topbar-hide" onClick="{{ exportExcel }}" style="display:flex;align-items:center;gap:5px;padding:7px 13px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:#374151;white-space:nowrap;" style-hover="background:#f8fafc;">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -289,22 +294,24 @@ try {
     <!-- TABLE VIEW -->
     <sc-if value="{{ isTableView }}" hint-placeholder-val="{{ true }}">
       <div class="crm-table-scroll crm-table-desktop">
-        <div style="min-width:980px;display:grid;grid-template-columns:38px 150px 86px 132px 150px 108px 88px 84px 90px 96px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-bottom:2px solid #e2e8f0;gap:10px;position:sticky;top:0;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,0.04);will-change:transform;transform:translateZ(0);">
+        <div style="min-width:1072px;display:grid;grid-template-columns:38px 92px 150px 86px 132px 150px 108px 88px 84px 90px 96px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-bottom:2px solid #e2e8f0;gap:10px;position:sticky;top:0;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,0.04);will-change:transform;transform:translateZ(0);">
           <div style="font-size:11px;font-weight:700;color:#94a3b8;text-align:center;">#</div>
+          <div onClick="{{ sortByCode }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Cod{{ sortArrowCode }}</div>
           <div onClick="{{ sortByClient }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Client{{ sortArrowClient }}</div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Tip</div>
+          <div onClick="{{ sortByType }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Tip{{ sortArrowType }}</div>
           <div onClick="{{ sortByStatus }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Status{{ sortArrowStatus }}</div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Adresă</div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Valoare</div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Responsabil</div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Data exec.</div>
+          <div onClick="{{ sortByAddress }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Adresă{{ sortArrowAddress }}</div>
+          <div onClick="{{ sortByValue }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Valoare{{ sortArrowValue }}</div>
+          <div onClick="{{ sortByResponsabil }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Responsabil{{ sortArrowResponsabil }}</div>
+          <div onClick="{{ sortByDateExec }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Data exec.{{ sortArrowDateExec }}</div>
           <div onClick="{{ sortByDateInserted }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Înreg. CRM{{ sortArrowDateInserted }}</div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Follow-up</div>
+          <div onClick="{{ sortByFollowUp }}" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;">Follow-up{{ sortArrowFollowUp }}</div>
         </div>
         <div style="background:#fff;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;overflow:hidden;">
           <sc-for list="{{ filtered }}" as="p" hint-placeholder-count="8">
-            <div onClick="{{ p.onClick }}" style="min-width:980px;display:grid;grid-template-columns:38px 150px 86px 132px 150px 108px 88px 84px 90px 96px;padding:11px 14px;border-bottom:1px solid #f1f5f9;cursor:pointer;gap:10px;align-items:center;background:{{ p.rowBg }};" style-hover="background:#eff6ff;">
+            <div onClick="{{ p.onClick }}" style="min-width:1072px;display:grid;grid-template-columns:38px 92px 150px 86px 132px 150px 108px 88px 84px 90px 96px;padding:11px 14px;border-bottom:1px solid #f1f5f9;cursor:pointer;gap:10px;align-items:center;background:{{ p.rowBg }};" style-hover="background:#eff6ff;">
               <div style="font-size:12px;color:#cbd5e1;font-weight:700;text-align:center;">{{ p.rowNum }}</div>
+              <div style="font-size:11px;font-weight:700;color:#0f172a;white-space:nowrap;letter-spacing:.3px;">{{ p.clientCode }}</div>
               <div style="font-size:13px;font-weight:600;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.client }}</div>
               <div><span style="background:{{ p.typeBg }};color:{{ p.typeColor }};font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;white-space:nowrap;">{{ p.typeLabel }}</span></div>
               <div><span style="background:{{ p.statusBg }};color:{{ p.statusColor }};font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap;">{{ p.status }}</span></div>
@@ -358,7 +365,8 @@ try {
 
     <!-- KANBAN VIEW -->
     <sc-if value="{{ isKanbanView }}" hint-placeholder-val="{{ false }}">
-      <div style="display:flex;gap:14px;overflow-x:auto;padding-bottom:12px;padding-top:20px;align-items:flex-start;">
+      <div style="display:flex;gap:14px;overflow-x:auto;padding-bottom:14px;padding-top:20px;align-items:flex-start;scrollbar-width:auto;">
+        <style>#app div[style*="overflow-x:auto"]::-webkit-scrollbar{height:10px;} #app div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:5px;} #app div[style*="overflow-x:auto"]::-webkit-scrollbar-track{background:#f1f5f9;}</style>
         <sc-for list="{{ kanbanCols }}" as="col" hint-placeholder-count="8">
           <div style="flex:none;width:258px;display:flex;flex-direction:column;">
             <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px 8px;">
@@ -489,6 +497,7 @@ try {
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;">
         <div style="min-width:0;">
           <div style="font-size:19px;font-weight:700;color:#0f172a;line-height:1.2;margin-bottom:3px;">{{ sel.client }}</div>
+          <div style="font-size:11px;font-weight:700;color:#0f172a;background:#f1f5f9;border:1px solid #e2e8f0;padding:2px 8px;border-radius:999px;display:inline-block;margin-bottom:4px;letter-spacing:.4px;">{{ sel.clientCode }}</div>
           <div style="font-size:12px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ sel.addressShort }}</div>
         </div>
         <div style="display:flex;gap:6px;flex:none;align-items:center;">
@@ -508,8 +517,8 @@ try {
       <button onClick="{{ setTabInfo }}" style="padding:10px 16px;border:none;border-bottom:2px solid {{ tabInfoBorder }};background:transparent;font-size:13px;font-weight:{{ tabInfoWeight }};color:{{ tabInfoColor }};cursor:pointer;flex:1;">Informații</button>
       <button onClick="{{ setTabJournal }}" style="padding:10px 16px;border:none;border-bottom:2px solid {{ tabJournalBorder }};background:transparent;font-size:13px;font-weight:{{ tabJournalWeight }};color:{{ tabJournalColor }};cursor:pointer;flex:1;">Jurnal</button>
       <button onClick="{{ setTabAttach }}" style="padding:10px 16px;border:none;border-bottom:2px solid {{ tabAttachBorder }};background:transparent;font-size:13px;font-weight:{{ tabAttachWeight }};color:{{ tabAttachColor }};cursor:pointer;flex:1;">Atașamente</button>
-      <button onClick="{{ setTabOffers }}" style="padding:10px 16px;border:none;border-bottom:2px solid {{ tabOffersBorder }};background:transparent;font-size:13px;font-weight:{{ tabOffersWeight }};color:{{ tabOffersColor }};cursor:pointer;flex:1;">📄 Oferte</button>
-      <button onClick="{{ setTabOrders }}" style="padding:10px 16px;border:none;border-bottom:2px solid {{ tabOrdersBorder }};background:transparent;font-size:13px;font-weight:{{ tabOrdersWeight }};color:{{ tabOrdersColor }};cursor:pointer;flex:1;">📦 Comenzi{{ ordersLateBadge }}</button>
+      <button onClick="{{ setTabOffers }}" style="padding:10px 16px;border:none;border-bottom:2px solid {{ tabOffersBorder }};background:transparent;font-size:13px;font-weight:{{ tabOffersWeight }};color:{{ tabOffersColor }};cursor:pointer;flex:1;">Oferte</button>
+      <button onClick="{{ setTabOrders }}" style="padding:10px 16px;border:none;border-bottom:2px solid {{ tabOrdersBorder }};background:transparent;font-size:13px;font-weight:{{ tabOrdersWeight }};color:{{ tabOrdersColor }};cursor:pointer;flex:1;">Comenzi{{ ordersLateBadge }}</button>
     </div>
     <div style="flex:1;overflow-y:auto;padding:20px;">
 
@@ -994,44 +1003,48 @@ try {
             </div>
             <div style="grid-column:span 2;border-top:1px dashed #e2e8f0;padding-top:14px;margin-top:2px;">
               <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">Mărci & termene de livrare (contract)</div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                <div>
-                  <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Marcă panouri</label>
-                  <input value="{{ form.panelBrand }}" onChange="{{ onFormPanelBrand }}" placeholder="ex: Jinko Solar" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
-                </div>
-                <div>
-                  <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Livrare panouri</label>
+
+              <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Panouri</div>
+              <sc-for list="{{ panelEntriesRows }}" as="row" hint-placeholder-count="1">
+                <div style="display:grid;grid-template-columns:1fr 1fr 28px;gap:8px;margin-bottom:8px;align-items:center;">
+                  <input value="{{ row.brand }}" onChange="{{ row.onBrand }}" placeholder="ex: Jinko Solar" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
                   <div style="position:relative;">
-                    <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ form.deliveryPanouriDmy }}" onChange="{{ onFormDeliveryPanouri }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
-                    <input type="date" value="{{ form.deliveryPanouri }}" onChange="{{ onFormDeliveryPanouriPicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;">
+                    <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ row.deliveryDmy }}" onChange="{{ row.onDelivery }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
+                    <input type="date" value="{{ row.delivery }}" onChange="{{ row.onDeliveryPicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;">
                     <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;">📅</span>
                   </div>
+                  <button type="button" onClick="{{ row.onRemove }}" style="width:28px;height:28px;border:1px solid #fecaca;background:#fff5f5;border-radius:6px;color:#dc2626;cursor:pointer;font-size:13px;">✕</button>
                 </div>
-                <div>
-                  <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Marcă invertor</label>
-                  <input value="{{ form.inverterBrand }}" onChange="{{ onFormInverterBrand }}" placeholder="ex: Huawei" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
-                </div>
-                <div>
-                  <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Livrare invertor</label>
+              </sc-for>
+              <button type="button" onClick="{{ addPanelEntry }}" style="font-size:12px;font-weight:600;color:#2563eb;background:none;border:none;cursor:pointer;padding:0 0 14px;">+ Adaugă tip de panou</button>
+
+              <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Invertoare</div>
+              <sc-for list="{{ inverterEntriesRows }}" as="row" hint-placeholder-count="1">
+                <div style="display:grid;grid-template-columns:1fr 1fr 28px;gap:8px;margin-bottom:8px;align-items:center;">
+                  <input value="{{ row.brand }}" onChange="{{ row.onBrand }}" placeholder="ex: Huawei" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
                   <div style="position:relative;">
-                    <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ form.deliveryInvertorDmy }}" onChange="{{ onFormDeliveryInvertor }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
-                    <input type="date" value="{{ form.deliveryInvertor }}" onChange="{{ onFormDeliveryInvertorPicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;">
+                    <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ row.deliveryDmy }}" onChange="{{ row.onDelivery }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
+                    <input type="date" value="{{ row.delivery }}" onChange="{{ row.onDeliveryPicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;">
                     <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;">📅</span>
                   </div>
+                  <button type="button" onClick="{{ row.onRemove }}" style="width:28px;height:28px;border:1px solid #fecaca;background:#fff5f5;border-radius:6px;color:#dc2626;cursor:pointer;font-size:13px;">✕</button>
                 </div>
-                <div>
-                  <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Marcă baterie</label>
-                  <input value="{{ form.bessBrand }}" onChange="{{ onFormBessBrand }}" placeholder="ex: Pylontech" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
-                </div>
-                <div>
-                  <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Livrare baterie</label>
+              </sc-for>
+              <button type="button" onClick="{{ addInverterEntry }}" style="font-size:12px;font-weight:600;color:#2563eb;background:none;border:none;cursor:pointer;padding:0 0 14px;">+ Adaugă tip de invertor</button>
+
+              <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Baterii</div>
+              <sc-for list="{{ bessEntriesRows }}" as="row" hint-placeholder-count="1">
+                <div style="display:grid;grid-template-columns:1fr 1fr 28px;gap:8px;margin-bottom:8px;align-items:center;">
+                  <input value="{{ row.brand }}" onChange="{{ row.onBrand }}" placeholder="ex: Pylontech" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
                   <div style="position:relative;">
-                    <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ form.deliveryBaterieDmy }}" onChange="{{ onFormDeliveryBaterie }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
-                    <input type="date" value="{{ form.deliveryBaterie }}" onChange="{{ onFormDeliveryBateriePicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;">
+                    <input type="text" placeholder="dd/mm/yyyy" maxlength="10" value="{{ row.deliveryDmy }}" onChange="{{ row.onDelivery }}" style="width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;box-sizing:border-box;">
+                    <input type="date" value="{{ row.delivery }}" onChange="{{ row.onDeliveryPicker }}" tabIndex="-1" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;">
                     <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;">📅</span>
                   </div>
+                  <button type="button" onClick="{{ row.onRemove }}" style="width:28px;height:28px;border:1px solid #fecaca;background:#fff5f5;border-radius:6px;color:#dc2626;cursor:pointer;font-size:13px;">✕</button>
                 </div>
-              </div>
+              </sc-for>
+              <button type="button" onClick="{{ addBessEntry }}" style="font-size:12px;font-weight:600;color:#2563eb;background:none;border:none;cursor:pointer;padding:0;">+ Adaugă tip de baterie</button>
             </div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:20px;">
               <input type="checkbox" id="fPros3" checked="{{ form.prosumator }}" onChange="{{ onFormProsumator }}" style="width:16px;height:16px;cursor:pointer;accent-color:#2563eb;flex:none;">
@@ -1115,9 +1128,32 @@ try {
   </div>
 </sc-if>
 
-<!-- USER MANAGEMENT MODAL (Admin) -->
+<!-- CHANGE PIN MODAL (self-service) -->
+<sc-if value="{{ showChangePinModal }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;inset:0;background:rgba(15,23,41,0.65);z-index:200;backdrop-filter:blur(2px);"></div>
+  <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:340px;background:#fff;border-radius:16px;z-index:210;padding:24px;box-shadow:0 24px 72px rgba(0,0,0,.28);">
+    <div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:20px;">🔢 Schimbă PIN-ul</div>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">PIN curent</label>
+      <input type="password" inputMode="numeric" maxlength="4" value="{{ cpinOldVal }}" onChange="{{ onCpinOld }}" placeholder="••••" style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:16px;letter-spacing:6px;outline:none;color:#0f172a;">
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">PIN nou (4 cifre)</label>
+      <input type="password" inputMode="numeric" maxlength="4" value="{{ cpinNewVal }}" onChange="{{ onCpinNew }}" placeholder="••••" style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:16px;letter-spacing:6px;outline:none;color:#0f172a;">
+    </div>
+    <div style="margin-bottom:8px;">
+      <label style="display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Confirmă PIN-ul nou</label>
+      <input type="password" inputMode="numeric" maxlength="4" value="{{ cpinConfirmVal }}" onChange="{{ onCpinConfirm }}" placeholder="••••" style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:16px;letter-spacing:6px;outline:none;color:#0f172a;">
+    </div>
+    <p style="font-size:12px;color:#dc2626;min-height:16px;margin:6px 0 16px;">{{ cpinErrMsg }}</p>
+    <div style="display:flex;gap:10px;">
+      <button onClick="{{ closeCpinModal }}" style="flex:1;padding:9px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:13px;cursor:pointer;">Anulează</button>
+      <button onClick="{{ submitCpinModal }}" style="flex:2;padding:9px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Salvează</button>
+    </div>
+  </div>
+</sc-if>
 <div onClick="{{ closeUserMgmt }}" style="position:fixed;inset:0;background:rgba(15,23,41,0.55);z-index:120;animation:fadeIn 0.18s;display:{{ umOverlayDisplay }};pointer-events:{{ umPointerEvents }};"></div>
-<div class="crm-usermgmt-modal" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:540px;max-height:85vh;background:#fff;border-radius:16px;z-index:130;display:{{ umModalDisplay }};flex-direction:column;box-shadow:0 24px 72px rgba(0,0,0,.28);animation:scaleIn .18s cubic-bezier(0.16,1,0.3,1);overflow:hidden;pointer-events:{{ umPointerEvents }};">
+<div class="crm-usermgmt-modal" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:540px;max-height:85vh;background:#fff;border-radius:16px;z-index:130;display:{{ umModalDisplay }};flex-direction:column;box-shadow:{{ loginModalShadow }};animation:scaleIn .18s cubic-bezier(0.16,1,0.3,1);overflow:hidden;pointer-events:{{ umPointerEvents }};">
 
     <div style="padding:18px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;flex:none;background:#fff;">
       <div>
@@ -1181,6 +1217,10 @@ try {
         <button onClick="{{ umGoBulk }}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px;border:1.5px solid #cbd5e1;background:#fff;border-radius:10px;margin-top:10px;font-size:13px;color:#334155;" style-hover="background:#f1f5f9;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-8H7v8M7 3v5h8"></path><path d="M21 21V7l-4-4H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2z"></path></svg>
           Import angajați în bloc
+        </button>
+        <button onClick="{{ umExportPins }}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px;border:1.5px solid #cbd5e1;background:#fff;border-radius:10px;margin-top:10px;font-size:13px;font-weight:700;color:#334155;cursor:pointer;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3m0 12l-4-4m4 4l4-4M3 17v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"></path></svg>
+          Exportă toate PIN-urile
         </button>
       </sc-if>
 
@@ -1484,15 +1524,15 @@ AVRAMUT	SORIN-ILIE	Electrician" style="width:100%;min-height:220px;font-family:m
     <sc-if value="{{ isLoginMode }}" hint-placeholder-val="{{ false }}">
       <a href="./index.html" onClick="{{ onSuiteLinkClick }}" style="flex:none;pointer-events:auto;font-size:11px;color:#94a3b8;text-decoration:none;padding:4px 10px;border:1px solid #334155;border-radius:6px;">← Pagina principală</a>
     </sc-if>
-    <div style="flex:none;pointer-events:auto;width:{{ loginModalWidth }};max-height:82vh;background:{{ loginModalBg }};border-radius:16px;display:flex;flex-direction:column;box-shadow:0 24px 72px rgba(0,0,0,.28);animation:scaleIn .18s cubic-bezier(0.16,1,0.3,1);overflow:hidden;border:{{ loginModalBorder }};">
+    <div style="flex:none;pointer-events:auto;width:{{ loginModalWidth }};max-height:82vh;background:{{ loginModalBg }};border-radius:16px;display:flex;flex-direction:column;box-shadow:{{ loginModalShadow }};animation:scaleIn .18s cubic-bezier(0.16,1,0.3,1);overflow:hidden;border:{{ loginModalBorder }};">
     <div style="padding:20px 20px 16px;border-bottom:1px solid {{ loginDivider }};flex:none;">
       <sc-if value="{{ isLoginMode }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;align-items:center;gap:12px;">
-          <div style="width:40px;height:40px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:10px;display:flex;align-items:center;justify-content:center;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L14.09 8.26L21 9.27L16.5 13.64L17.82 20.52L12 17.27L6.18 20.52L7.5 13.64L3 9.27L9.91 8.26L12 2Z" fill="white"></path></svg>
+          <div style="width:40px;height:40px;background:#60a5fa;border-radius:10px;display:flex;align-items:center;justify-content:center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L14.09 8.26L21 9.27L16.5 13.64L17.82 20.52L12 17.27L6.18 20.52L7.5 13.64L3 9.27L9.91 8.26L12 2Z" fill="#0a1628"></path></svg>
           </div>
           <div>
-            <div style="font-weight:800;font-size:16px;color:#f1f5f9;">SolarCRM</div>
+            <div style="font-weight:800;font-size:16px;color:#60a5fa;">SolarCRM</div>
             <div style="font-size:11px;color:#64748b;">Smart House Color · Autentificare necesară</div>
           </div>
         </div>
@@ -1521,10 +1561,33 @@ AVRAMUT	SORIN-ILIE	Electrician" style="width:100%;min-height:220px;font-family:m
         </div>
       </sc-if>
 
+      <!-- PIN STEP FOR NON-PASSWORD USER -->
+      <sc-if value="{{ showPinUserStep }}" hint-placeholder-val="{{ false }}">
+        <div style="text-align:center;padding:8px 0 20px;">
+          <div style="width:60px;height:60px;border-radius:50%;background:{{ pinStepColor }};display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:700;margin:0 auto 12px;">{{ pinStepInitials }}</div>
+          <div style="font-size:17px;font-weight:700;color:#0f172a;">{{ pinStepUserName }}</div>
+          <div style="font-size:12px;color:#94a3b8;margin-top:3px;">{{ pinUserErrMsg }}</div>
+        </div>
+        <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;">
+          <sc-for list="{{ pinUserDots }}" as="d" hint-placeholder-count="4">
+            <div style="width:14px;height:14px;border-radius:50%;border:2px solid {{ d.color }};background:{{ d.bg }};"></div>
+          </sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:260px;margin:0 auto 14px;">
+          <sc-for list="{{ pinUserKeys }}" as="k" hint-placeholder-count="12">
+            <sc-if value="{{ k.visible }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ k.onClick }}" style="height:52px;border-radius:12px;border:1px solid #e2e8f0;background:#f8fafc;font-size:19px;font-weight:700;color:#0f172a;cursor:pointer;">{{ k.label }}</button>
+            </sc-if>
+            <sc-if value="{{ !k.visible }}" hint-placeholder-val="{{ false }}"><div></div></sc-if>
+          </sc-for>
+        </div>
+        <button onClick="{{ cancelPinUserStep }}" style="width:100%;padding:10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:#374151;">← Înapoi</button>
+      </sc-if>
+
       <!-- PIN QUICK LOGIN (implicit) -->
       <sc-if value="{{ showPinStep }}" hint-placeholder-val="{{ true }}">
         <div style="text-align:center;padding:4px 0 18px;">
-          <div style="font-size:15px;font-weight:800;color:#f1f5f9;">Introdu codul PIN (4 cifre)</div>
+          <div style="font-size:15px;font-weight:800;color:#60a5fa;">Introdu codul PIN (4 cifre)</div>
           <div style="font-size:12px;color:#64748b;margin-top:3px;">{{ pinErrMsg }}</div>
         </div>
         <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;">
@@ -1535,7 +1598,7 @@ AVRAMUT	SORIN-ILIE	Electrician" style="width:100%;min-height:220px;font-family:m
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:240px;margin:0 auto 16px;">
           <sc-for list="{{ pinKeys }}" as="k" hint-placeholder-count="12">
             <sc-if value="{{ k.visible }}" hint-placeholder-val="{{ true }}">
-              <button onClick="{{ k.onClick }}" style="width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:{{ k.bg }};color:#f1f5f9;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .25s;">{{ k.label }}</button>
+              <button onClick="{{ k.onClick }}" style="width:72px;height:72px;border-radius:50%;border:1px solid #334155;background:{{ k.bg }};color:#60a5fa;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .25s;">{{ k.label }}</button>
             </sc-if>
             <sc-if value="{{ k.blank }}" hint-placeholder-val="{{ false }}">
               <div style="width:72px;height:72px;"></div>
@@ -1575,6 +1638,9 @@ AVRAMUT	SORIN-ILIE	Electrician" style="width:100%;min-height:220px;font-family:m
   </div>
 
 </div>
+
+</sc-if>
+
 
 </div></x-dc>
 <script type="text/x-dc" data-dc-script>
@@ -1667,7 +1733,7 @@ const STATUSES_LIST = ['Lead','Ofertă','Contract','Programat','În execuție','
 const USER_COLORS = ['#2563eb','#16a34a','#7c3aed','#d97706','#0e7490','#9333ea','#c2410c','#0f766e','#b45309','#be185d'];
 const NAV_TYPES = [{key:'all',label:'Toate lucrările',dot:'#94a3b8'},{key:'PV',label:'PV (Fotovoltaic)',dot:'#f59e0b'},{key:'Inverter',label:'Inverter',dot:'#3b82f6'},{key:'Baterie',label:'Baterie',dot:'#8b5cf6'},{key:'BESS',label:'BESS',dot:'#22c55e'}];
 const EMPTY_FORM_DMY_FIELDS = {date_start_dmy:'',date_executie_dmy:'',date_end_dmy:''};
-const EMPTY_FORM = {typePV:true,typeInverter:false,typeBaterie:false,typeBESS:false,status:'Lead',client:'',phonePrefix:'+40',phoneNum:'',email:'',address:'',value:'',responsabil:'',date_start:'',date_executie:'',date_end:'',date_start_dmy:'',date_executie_dmy:'',date_end_dmy:'',equipment:'',kwp:'',panels:'',mounting:'acoperiș',prosumator:false,notes:'',bessKwh:'',capexBESS:'',capexSTS:'',followUpDays:'14',durataZile:'30',numInvertoare:'1',numBaterii:'1',contractNrManual:'',transa1Paid:false,transa2Paid:false,addressStreet:'',addressCity:'',addressJud:'',addressCountry:'România',entityCui:'',entityRegCom:'',entityBank:'',entityIban:'',entityRepLegal:'',entityRepFunctie:'',panelBrand:'',inverterBrand:'',bessBrand:'',deliveryPanouri:'',deliveryInvertor:'',deliveryBaterie:'',deliveryPanouriDmy:'',deliveryInvertorDmy:'',deliveryBaterieDmy:''};
+const EMPTY_FORM = {typePV:true,typeInverter:false,typeBaterie:false,typeBESS:false,status:'Lead',client:'',phonePrefix:'+40',phoneNum:'',email:'',address:'',value:'',responsabil:'',date_start:'',date_executie:'',date_end:'',date_start_dmy:'',date_executie_dmy:'',date_end_dmy:'',equipment:'',kwp:'',panels:'',mounting:'acoperiș',prosumator:false,notes:'',bessKwh:'',capexBESS:'',capexSTS:'',followUpDays:'14',durataZile:'30',numInvertoare:'1',numBaterii:'1',contractNrManual:'',transa1Paid:false,transa2Paid:false,addressStreet:'',addressCity:'',addressJud:'',addressCountry:'România',entityCui:'',entityRegCom:'',entityBank:'',entityIban:'',entityRepLegal:'',entityRepFunctie:'',panelEntries:[{brand:'',delivery:'',deliveryDmy:''}],inverterEntries:[{brand:'',delivery:'',deliveryDmy:''}],bessEntries:[{brand:'',delivery:'',deliveryDmy:''}]};
 const APP_ROLE_TEMPLATES = {
   montator:{appCrm:false,appCalculator:false,appPlanificare:false,appVizita:false,appPontaj:true},
   sefechipa:{appCrm:false,appCalculator:false,appPlanificare:true,appVizita:true,appPontaj:true},
@@ -1704,7 +1770,7 @@ function migrate(p){
   let att=p.attachments;
   if(att && typeof att==='object' && !Array.isArray(att)) att=Object.values(att);
   const fixedId=Number.isFinite(Number(p.id))?Number(p.id):Date.now()+Math.floor(Math.random()*1000);
-  return {...p,id:fixedId,types:p.types||(p.type?[p.type]:['PV']),responsabil:p.responsabil||p.technician||null,date_executie:p.date_executie||null,date_inserted:p.date_inserted||p.date_start||new Date().toISOString().slice(0,10),auditLog:p.auditLog||[],attachments:att||[],bessKwh:p.bessKwh||null,capexBESS:p.capexBESS||null,capexSTS:p.capexSTS||null};
+  return {...p,id:fixedId,clientCode:p.clientCode||('SHC-C-'+String(fixedId).padStart(4,'0')),types:p.types||(p.type?[p.type]:['PV']),responsabil:p.responsabil||p.technician||null,date_executie:p.date_executie||null,date_inserted:p.date_inserted||p.date_start||new Date().toISOString().slice(0,10),auditLog:p.auditLog||[],attachments:att||[],bessKwh:p.bessKwh||null,capexBESS:p.capexBESS||null,capexSTS:p.capexSTS||null};
 }
 
 function buildContractHTML(p, company) {
@@ -1735,18 +1801,19 @@ function buildContractHTML(p, company) {
   const sysLabel = sysLabelParts.length ? sysLabelParts.join(', ') : 'PV';
   const compRows = [];
   let compIdx = 1;
+  function brandsStr(entries){ const arr=(entries||[]).filter(function(r){return r&&r.brand;}); return arr.length?arr.map(function(r){return r.brand;}).join(' / '):'______________________'; }
   if ((p.types||[]).includes('PV')) {
     compRows.push({main:true, nr:compIdx, product:'Sistem fotovoltaic '+(p.kwp||'___')+' kWp', desc:nrPanouri+' panouri × '+wpPanou+' Wp, montaj '+(p.mounting||'acoperiș')});
-    compRows.push({nr:compIdx+'.1', product:'Panouri fotovoltaice', desc:'marca '+(p.panelBrand||'______________________')+', '+wpPanou+' Wp/buc'});
+    compRows.push({nr:compIdx+'.1', product:'Panouri fotovoltaice', desc:'marca '+brandsStr(p.panelEntries)+', '+wpPanou+' Wp/buc'});
     compIdx++;
   }
   if ((p.types||[]).includes('Inverter')) {
-    compRows.push({main:true, nr:compIdx, product:nInv>1?(nInv+' × Invertoare'):'Invertor', desc:'marca '+(p.inverterBrand||'______________________')+', '+kwInvertor+' kW'});
+    compRows.push({main:true, nr:compIdx, product:nInv>1?(nInv+' × Invertoare'):'Invertor', desc:'marca '+brandsStr(p.inverterEntries)+', '+kwInvertor+' kW'});
     compIdx++;
   }
   if ((p.types||[]).includes('BESS') || (p.types||[]).includes('Baterie')) {
     compRows.push({main:true, nr:compIdx, product:(nBat>1?(nBat+' × Baterii'):'Sistem de stocare BESS')+(p.bessKwh?(' '+p.bessKwh+' kWh'):''), desc:'baterii LiFePO4, BMS integrat, PCS, sistem de răcire'});
-    compRows.push({nr:compIdx+'.1', product:nBat>1?'Baterii':'Baterie', desc:'marca '+(p.bessBrand||'______________________')+', capacitate '+(p.bessKwh||'________')+' kWh'});
+    compRows.push({nr:compIdx+'.1', product:nBat>1?'Baterii':'Baterie', desc:'marca '+brandsStr(p.bessEntries)+', capacitate '+(p.bessKwh||'________')+' kWh'});
     compRows.push({nr:compIdx+'.2', product:'PCS / Invertor hibrid stocare', desc:'marca ______________________, ________________ kW'});
     compIdx++;
   }
@@ -1864,7 +1931,12 @@ table.spec .lbl{font-family:Georgia,sans-serif;font-size:8pt;letter-spacing:.6px
 
   <h2><span class="num">2</span><span class="txt">Durata</span></h2>
   <p class="art">Durata de executare a lucrărilor este de <strong>${p.durataZile||30} zile calendaristice</strong>, aferente montării și punerii în funcțiune, de la data semnării contractului.</p>
-  ${(p.deliveryPanouri||p.deliveryInvertor||p.deliveryBaterie) ? `<p class="art">Termenele estimate de livrare pe echipamente sunt: ${[p.deliveryPanouri?('panouri fotovoltaice – '+fmtDate(p.deliveryPanouri)):null,p.deliveryInvertor?('invertor'+(nInv>1?'e':'')+' – '+fmtDate(p.deliveryInvertor)):null,p.deliveryBaterie?('baterie'+(nBat>1?'i':'')+' de stocare – '+fmtDate(p.deliveryBaterie)):null].filter(Boolean).join(', ')}, urmând ca montarea și punerea în funcțiune să se realizeze după recepția tuturor echipamentelor.</p>` : ''}
+  ${(function(){
+    function fmtEntries(entries,label){ return (entries||[]).filter(function(r){return r&&r.delivery;}).map(function(r){ return (r.brand?(label+' '+r.brand):label)+' – '+fmtDate(r.delivery); }); }
+    const parts=[].concat(fmtEntries(p.panelEntries,'panouri fotovoltaice'),fmtEntries(p.inverterEntries,nInv>1?'invertoare':'invertor'),fmtEntries(p.bessEntries,nBat>1?'baterii de stocare':'baterie de stocare'));
+    if(!parts.length) return '';
+    return '<p class="art">Termenele estimate de livrare pe echipamente sunt: '+parts.join(', ')+', urmând ca montarea și punerea în funcțiune să se realizeze după recepția tuturor echipamentelor.</p>';
+  })()}
 
   <h2><span class="num">3</span><span class="txt">Începerea, finalizarea și amplasamentul</span></h2>
   <p class="art"><b class="n">3.1.</b> Începerea lucrărilor se va face în termen de maxim 30 de zile calendaristice, după îndeplinirea tuturor cerințelor și condițiilor, respectiv: achitarea tranșei nr.1 la acceptarea ofertei financiare și semnarea prezentului contract, dovedit prin chitanță/OP.</p>
@@ -2009,6 +2081,7 @@ class Component extends DCLogic {
     currentUser:null, users:[...DEFAULT_USERS],
     showUserModal:true, userModalMode:'login',
     pwStep:null, pwInput:'',
+    pinStepUser:null, pinStepBuffer:'', pinStepErr:false,
     pinMode:true, pinBuffer:'', pinErr:false,
     statusModal:{show:false,projectId:null,newStatus:'',reason:''},
     showUserMgmt:false, userMgmtMode:'list', editingUserId:null,
@@ -2050,12 +2123,17 @@ class Component extends DCLogic {
     this._fbTimeout = setTimeout(()=>{
       if(!this._initialized) this._loadFromLS();
     }, 5000);
-    this._fbRef = db.ref('solarcrm_v2');
-    this._fbRef.on('value', snap => {
+    // Ascultăm DOAR nodurile de care are nevoie CRM-ul (projects + config), nu întreg arborele
+    // solarcrm_v2 — altfel orice pontaj/task creat retrimite toată baza către fiecare CRM deschis.
+    this._fbRefProjects = db.ref('solarcrm_v2/projects');
+    this._fbRefConfig = db.ref('solarcrm_v2/config');
+    this._fbData = {projects:null, config:null};
+    const applyData = () => {
+      if(this._fbData.projects===null) return;
       clearTimeout(this._fbTimeout);
       this._firebaseLoaded = true;
       if(!this.state.fbConnected) this.setState({fbConnected:true});
-      const data = snap.val() || {};
+      const data = {projects:this._fbData.projects, config:this._fbData.config||{}};
       // Suporta atat structura noua (data.projects obiect, data.config) cat si veche (data.projects array, data.users)
       let projects;
       const rawP = data.projects;
@@ -2077,12 +2155,13 @@ class Component extends DCLogic {
       }
       projects.sort((a,b)=>b.id-a.id);
       const cfg = data.config||{};
-      const users = (cfg.users&&cfg.users.length)?cfg.users:(data.users&&data.users.length?data.users:DEFAULT_USERS);
-      const adminPw = cfg.adminPw||data.adminPw||null;
+      const legacyU = this._fbData.legacyUsers;
+      const users = (cfg.users&&cfg.users.length)?cfg.users:((legacyU&&legacyU.length)?legacyU:DEFAULT_USERS);
+      const adminPw = cfg.adminPw||null;
       if(adminPw) this.adminPassword = adminPw;
-      const adminPin = cfg.adminPin||data.adminPin||null;
+      const adminPin = cfg.adminPin||null;
       if(adminPin) this.adminPin = adminPin;
-      const ci = cfg.companyInfo||data.companyInfo||null;
+      const ci = cfg.companyInfo||this._fbData.legacyCompanyInfo||null;
       const companyInfo = ci ? {...COMPANY_INFO,...ci} : this.state.companyInfo;
       if(!this._initialized){
         this._initialized=true;
@@ -2110,10 +2189,24 @@ class Component extends DCLogic {
       } else {
         this.setState({projects,users,companyInfo});
       }
-    }, ()=>{ clearTimeout(this._fbTimeout); this._loadFromLS(); });
+    };
+    const onErr = ()=>{ clearTimeout(this._fbTimeout); this._loadFromLS(); };
+    this._fbRefProjects.on('value', snap => { this._fbData.projects = snap.val()||{}; applyData(); }, onErr);
+    this._fbRefConfig.on('value', snap => { this._fbData.config = snap.val()||{}; applyData(); }, onErr);
+    // Fallback unic pentru structura veche (users/adminPw direct în rădăcină), citit o singură dată
+    db.ref('solarcrm_v2').once('value', snap => {
+      const d = snap.val()||{};
+      if(!this._fbData.config || !this._fbData.config.users){
+        if(d.users) this._fbData.legacyUsers = d.users;
+        if(d.adminPw) this.adminPassword = d.adminPw;
+        if(d.adminPin) this.adminPin = d.adminPin;
+        if(d.companyInfo) this._fbData.legacyCompanyInfo = d.companyInfo;
+        applyData();
+      }
+    }).catch(()=>{});
   }
 
-  componentWillUnmount(){ if(this._fbRef) this._fbRef.off(); if(this._fbTimeout) clearTimeout(this._fbTimeout); }
+  componentWillUnmount(){ if(this._fbRefProjects) this._fbRefProjects.off(); if(this._fbRefConfig) this._fbRefConfig.off(); if(this._fbTimeout) clearTimeout(this._fbTimeout); }
 
   _initAuth(){
     if(this.state.currentUser) return;
@@ -2184,8 +2277,11 @@ class Component extends DCLogic {
             }
           }
         }
-        // Config separat
-        db.ref('solarcrm_v2/config').set({users,adminPw:this.adminPassword,adminPin:this.adminPin,companyInfo});
+        // Config separat — scrie doar cheile proprii, nu tot nodul (Pontaj ține și el date sub config: fieldWorkers/jobs/teams)
+        db.ref('solarcrm_v2/config/users').set(users);
+        db.ref('solarcrm_v2/config/adminPw').set(this.adminPassword);
+        db.ref('solarcrm_v2/config/adminPin').set(this.adminPin);
+        db.ref('solarcrm_v2/config/companyInfo').set(companyInfo);
       }
       return writePromise;
     } catch(e){ return null; }
@@ -2209,7 +2305,7 @@ class Component extends DCLogic {
         if(!visible) return false;
       }
       if(filterType!=='all'){ const types=p.types||[p.type||'']; if(!types.includes(filterType))return false; }
-      if(q){ const hay=[p.client,p.address,p.equipment,p.responsabil,p.notes].filter(Boolean).join(' ').toLowerCase(); if(!hay.includes(q))return false; }
+      if(q){ const hay=[p.client,p.clientCode,p.address,p.equipment,p.responsabil,p.notes].filter(Boolean).join(' ').toLowerCase(); if(!hay.includes(q))return false; }
       return true;
     });
   }
@@ -2235,6 +2331,13 @@ class Component extends DCLogic {
         if(sortBy==='client'){ va=(a.client||'').toLowerCase(); vb=(b.client||'').toLowerCase(); }
         else if(sortBy==='status'){ va=(a.status||'').toLowerCase(); vb=(b.status||'').toLowerCase(); }
         else if(sortBy==='dateInserted'){ va=a.date_inserted||a.date_start||''; vb=b.date_inserted||b.date_start||''; }
+        else if(sortBy==='code'){ va=(a.clientCode||''); vb=(b.clientCode||''); }
+        else if(sortBy==='type'){ va=((a.types||[]).join(',')).toLowerCase(); vb=((b.types||[]).join(',')).toLowerCase(); }
+        else if(sortBy==='address'){ va=(a.address||'').toLowerCase(); vb=(b.address||'').toLowerCase(); }
+        else if(sortBy==='value'){ va=Number(a.value)||0; vb=Number(b.value)||0; }
+        else if(sortBy==='responsabil'){ va=(a.responsabil||'').toLowerCase(); vb=(b.responsabil||'').toLowerCase(); }
+        else if(sortBy==='dateExec'){ va=a.date_executie||''; vb=b.date_executie||''; }
+        else if(sortBy==='followUp'){ va=a.nextFollowUp||'9999-99-99'; vb=b.nextFollowUp||'9999-99-99'; }
         if(va<vb) return -1*dir;
         if(va>vb) return 1*dir;
         return 0;
@@ -2252,6 +2355,32 @@ class Component extends DCLogic {
     return {...tf,statusBg:sc.statusBg,statusColor:sc.statusColor,valueFormatted:p.value!=null?p.value.toLocaleString('ro-RO')+' RON':'—',addressShort:p.address||'—',responsabilShort:p.responsabil||'—',dateExec:fmtDate(p.date_executie)||'—',onClick:()=>this.setState({selectedId:p.id,detailTab:'info'})};
   }
   setForm(k,v){ this.setState(s=>({form:{...s.form,[k]:v}})); }
+  setEntry(listKey,idx,patch){
+    this.setState(s=>{
+      const list=[...(s.form[listKey]||[])];
+      list[idx]={...list[idx],...patch};
+      return {form:{...s.form,[listKey]:list}};
+    });
+  }
+  addEntry(listKey){
+    this.setState(s=>({form:{...s.form,[listKey]:[...(s.form[listKey]||[]),{brand:'',delivery:'',deliveryDmy:''}]}}));
+  }
+  removeEntry(listKey,idx){
+    this.setState(s=>{
+      const list=(s.form[listKey]||[]).filter((_,i)=>i!==idx);
+      return {form:{...s.form,[listKey]:list.length?list:[{brand:'',delivery:'',deliveryDmy:''}]}};
+    });
+  }
+  buildEntryRows(listKey){
+    return (this.state.form[listKey]||[]).map((row,idx)=>({
+      brand:row.brand||'', delivery:row.delivery||'', deliveryDmy:row.deliveryDmy||'',
+      onBrand:e=>this.setEntry(listKey,idx,{brand:e.target.value}),
+      onDelivery:e=>{ const v=maskDmy(row.deliveryDmy,e.target.value); this.setEntry(listKey,idx,{deliveryDmy:v,delivery:dmyToIso(v)}); },
+      onDeliveryPicker:e=>{ const iso=e.target.value; this.setEntry(listKey,idx,{delivery:iso,deliveryDmy:isoToDmy(iso)}); },
+      onRemove:()=>this.removeEntry(listKey,idx),
+    }));
+  }
+
 
   buildAuditEntry(action,description,reason=null){
     const {currentUser}=this.state;
@@ -2266,7 +2395,7 @@ class Component extends DCLogic {
     const cuiFinal=(form.cuiPrefix||'')+(form.cuiNum||'');
     const phoneFinal=(form.phonePrefix||'+40')+(form.phoneNum||'');
     const addrParts=[form.addressStreet.trim(),form.addressCity.trim(),form.addressJud.trim()?('jud. '+form.addressJud.trim()):'',form.addressCountry.trim()&&form.addressCountry.trim().toLowerCase()!=='românia'?form.addressCountry.trim():''].filter(Boolean);
-    const data={types,status:form.status,client:form.client.trim(),phone:phoneFinal||null,email:form.email.trim()||null,address:addrParts.join(', ')||null,addressStreet:form.addressStreet.trim()||null,addressCity:form.addressCity.trim()||null,addressJud:form.addressJud.trim()||null,addressCountry:form.addressCountry.trim()||null,value:form.value!==''?parseFloat(form.value):null,responsabil:form.responsabil.trim()||null,date_start:form.date_start||null,date_executie:form.date_executie||null,date_end:form.date_end||null,equipment:form.equipment.trim()||null,kwp:hasPV&&form.kwp!==''?parseFloat(form.kwp):null,panels:hasPV&&form.panels!==''?parseInt(form.panels):null,mounting:hasPV?(form.mounting||null):null,prosumator:hasPV?!!form.prosumator:false,notes:form.notes.trim()||null,bessKwh:form.bessKwh!==''?parseFloat(form.bessKwh):null,capexBESS:form.capexBESS!==''?parseFloat(form.capexBESS):null,capexSTS:form.capexSTS!==''?parseFloat(form.capexSTS):null,durataZile:form.durataZile!==''?parseInt(form.durataZile):null,numInvertoare:form.numInvertoare!==''?parseInt(form.numInvertoare):1,numBaterii:form.numBaterii!==''?parseInt(form.numBaterii):1,contractNrManual:form.contractNrManual.trim()||null,transa1Paid:!!form.transa1Paid,transa2Paid:!!form.transa2Paid,entityCui:cuiFinal||null,entityRegCom:form.entityRegCom.trim()||null,entityBank:form.entityBank.trim()||null,entityIban:form.entityIban.trim()||null,entityRepLegal:form.entityRepLegal.trim()||null,entityRepFunctie:form.entityRepFunctie.trim()||null,panelBrand:form.panelBrand.trim()||null,inverterBrand:form.inverterBrand.trim()||null,bessBrand:form.bessBrand.trim()||null,deliveryPanouri:form.deliveryPanouri||null,deliveryInvertor:form.deliveryInvertor||null,deliveryBaterie:form.deliveryBaterie||null};
+    const data={types,status:form.status,client:form.client.trim(),phone:phoneFinal||null,email:form.email.trim()||null,address:addrParts.join(', ')||null,addressStreet:form.addressStreet.trim()||null,addressCity:form.addressCity.trim()||null,addressJud:form.addressJud.trim()||null,addressCountry:form.addressCountry.trim()||null,value:form.value!==''?parseFloat(form.value):null,responsabil:form.responsabil.trim()||null,date_start:form.date_start||null,date_executie:form.date_executie||null,date_end:form.date_end||null,equipment:form.equipment.trim()||null,kwp:hasPV&&form.kwp!==''?parseFloat(form.kwp):null,panels:hasPV&&form.panels!==''?parseInt(form.panels):null,mounting:hasPV?(form.mounting||null):null,prosumator:hasPV?!!form.prosumator:false,notes:form.notes.trim()||null,bessKwh:form.bessKwh!==''?parseFloat(form.bessKwh):null,capexBESS:form.capexBESS!==''?parseFloat(form.capexBESS):null,capexSTS:form.capexSTS!==''?parseFloat(form.capexSTS):null,durataZile:form.durataZile!==''?parseInt(form.durataZile):null,numInvertoare:form.numInvertoare!==''?parseInt(form.numInvertoare):1,numBaterii:form.numBaterii!==''?parseInt(form.numBaterii):1,contractNrManual:form.contractNrManual.trim()||null,transa1Paid:!!form.transa1Paid,transa2Paid:!!form.transa2Paid,entityCui:cuiFinal||null,entityRegCom:form.entityRegCom.trim()||null,entityBank:form.entityBank.trim()||null,entityIban:form.entityIban.trim()||null,entityRepLegal:form.entityRepLegal.trim()||null,entityRepFunctie:form.entityRepFunctie.trim()||null,panelEntries:(form.panelEntries||[]).filter(function(r){return r.brand&&r.brand.trim();}).map(function(r){return {brand:r.brand.trim(),delivery:r.delivery||null};}),inverterEntries:(form.inverterEntries||[]).filter(function(r){return r.brand&&r.brand.trim();}).map(function(r){return {brand:r.brand.trim(),delivery:r.delivery||null};}),bessEntries:(form.bessEntries||[]).filter(function(r){return r.brand&&r.brand.trim();}).map(function(r){return {brand:r.brand.trim(),delivery:r.delivery||null};})};
     if(!editingId){
       const days=form.followUpDays!==''?parseInt(form.followUpDays):14;
       const fu=new Date(); fu.setDate(fu.getDate()+(isNaN(days)?14:days));
@@ -2283,8 +2412,9 @@ class Component extends DCLogic {
         affectedId=editingId;
       } else {
         const newId=(()=>{ const ids=s.projects.map(p=>Number(p.id)).filter(n=>Number.isFinite(n)); return ids.length?Math.max(...ids)+1:1; })();
+        const clientCode='SHC-C-'+String(newId).padStart(4,'0');
         const entry=this.buildAuditEntry('create','Lucrare creată');
-        projects=[{id:newId,...data,date_inserted:new Date().toISOString().slice(0,10),auditLog:[entry],attachments:[]}, ...s.projects];
+        projects=[{id:newId,clientCode,...data,date_inserted:new Date().toISOString().slice(0,10),auditLog:[entry],attachments:[]}, ...s.projects];
         affectedId=newId;
       }
       this.persist(affectedId,projects);
@@ -2295,13 +2425,38 @@ class Component extends DCLogic {
   openStatusModal(projectId,newStatus){ this.setState({statusModal:{show:true,projectId,newStatus,reason:''}}); }
   confirmStatusChange(){
     const {statusModal}=this.state; const {projectId,newStatus,reason}=statusModal;
+    let oldStatus='?', proj=null;
     this.setState(s=>{
       const old=s.projects.find(p=>p.id===projectId);
+      if(old){ oldStatus=old.status; proj=old; }
       const entry=this.buildAuditEntry('status_change','Status: '+(old?old.status:'?')+' → '+newStatus,reason.trim()||null);
       const projects=s.projects.map(p=>p.id===projectId?{...p,status:newStatus,auditLog:[...(p.auditLog||[]),entry]}:p);
       this.persist(projectId,projects);
       return {projects,statusModal:{show:false,projectId:null,newStatus:'',reason:''}};
     });
+    this.notifyStatusChange(proj,oldStatus,newStatus,reason.trim());
+  }
+  notifyStatusChange(p,oldStatus,newStatus,reason){
+    if(!window.emailjs||!p) return;
+    const KEY=['Contract','În execuție','Finalizat','Anulat'];
+    if(KEY.indexOf(newStatus)===-1) return;
+    const by=this.state.currentUser?this.state.currentUser.name:'Necunoscut';
+    const users=this.state.loginUsers||[];
+    const to=new Set(['office@shc-group.ro']);
+    users.forEach(u=>{
+      if(!u.email) return;
+      const full=u.name==='Alexandru Chirila'||u.name==='Ionut Nicoras';
+      if(full||u.name===p.responsabil) to.add(u.email);
+    });
+    const code=p.clientCode||('SHC-C-'+String(p.id).padStart(4,'0'));
+    const subject='['+code+'] '+p.client+' — status: '+newStatus;
+    const message='Bună,\n\n'+by+' a schimbat statusul lucrării „'+(p.client||'—')+'" ('+code+').\n\n'+
+      oldStatus+' → '+newStatus+'\n\n'+
+      (reason?('Motiv: '+reason+'\n\n'):'')+
+      (p.responsabil?('Responsabil: '+p.responsabil+'\n'):'')+
+      (p.value?('Valoare: '+Number(p.value).toLocaleString('ro-RO')+' RON\n'):'')+
+      '\nDeschide SolarCRM pentru detalii.\n\nSHC Solar Suite — SolarCRM';
+    to.forEach(addr=>{ window.sendMailViaWorker(addr,subject,message).catch(()=>{}); });
   }
 
   shcGetLock(){try{return JSON.parse(localStorage.getItem('shc_lock_solarcrm')||'{"fails":0,"until":0}');}catch(e){return{fails:0,until:0};}}
@@ -2347,7 +2502,7 @@ class Component extends DCLogic {
       const users=this.state.users;
       const allForLogin=[{...ADMIN_USER,password:this.adminPassword,pin:this.adminPin},...users];
       const match=allForLogin.find(u=>u.pin && u.pin===buf);
-      if(!match){
+      if(!match || (match.apps && match.apps.crm===false)){
         this.shcRegisterFail();
         this.setState({pinErr:true});
         if(this.shcIsLocked()){ this.setState({pinBuffer:''}); this.shcStartLockCountdown(); return; }
@@ -2368,9 +2523,30 @@ class Component extends DCLogic {
   tryLogin(user){
     if(user.apps && user.apps.crm===false){ window.alert('Nu ai acces la SolarCRM. Contactează administratorul.'); return; }
     const pw = user.id===ADMIN_ID ? this.adminPassword : user.password;
-    if(!pw){ this.loginUser(user); return; }
+    if(!pw){ this.setState({pwStep:null,pinStepUser:user.id,pinStepBuffer:'',pinStepErr:false}); return; }
     this.setState({pwStep:user.id,pwInput:''});
   }
+  confirmPinStep(){
+    const {pinStepUser,pinStepBuffer,users}=this.state;
+    const user=users.find(u=>u.id===pinStepUser);
+    if(!user)return;
+    if(!user.pin || pinStepBuffer!==user.pin){
+      this.setState({pinStepErr:true});
+      setTimeout(()=>this.setState(s=>({pinStepBuffer:'',pinStepErr:false})),700);
+      return;
+    }
+    if(user.apps && user.apps.crm===false){ window.alert('Nu ai acces la SolarCRM. Contactează administratorul.'); return; }
+    this.setState({pinStepUser:null,pinStepBuffer:''});
+    this.loginUser(user);
+  }
+  pinStepDigit(d){
+    this.setState(s=>{
+      const buf=(s.pinStepBuffer||'')+d;
+      if(buf.length>=4){ setTimeout(()=>this.confirmPinStep(),50); return {pinStepBuffer:buf.slice(0,4),pinStepErr:false}; }
+      return {pinStepBuffer:buf,pinStepErr:false};
+    });
+  }
+  pinStepBack(){ this.setState(s=>({pinStepBuffer:(s.pinStepBuffer||'').slice(0,-1),pinStepErr:false})); }
   confirmPassword(){
     const {pwStep,pwInput,users}=this.state;
     if(pwStep===ADMIN_ID){
@@ -2456,7 +2632,7 @@ class Component extends DCLogic {
     const addedBy=this.state.currentUser?this.state.currentUser.name:'Necunoscut';
     const subject='Atașament nou — '+(p.client||'client');
     const message='Bună,\n\n'+addedBy+' a adăugat fișierul "'+filename+'" la lucrarea "'+(p.client||'—')+'".\n\nDeschide SolarCRM pentru detalii.\n\nSHC Solar Suite — SolarCRM';
-    emailjs.send('service_4t7t08c','template_rffz9zh',{to_email:to, subject, message}).catch(()=>{});
+    window.sendMailViaWorker(to, subject, message).catch(()=>{});
   }
   removeAttachment(projectId,attId){
     this.setState(s=>{const projects=s.projects.map(p=>p.id===projectId?{...p,attachments:(p.attachments||[]).filter(a=>a.id!==attId)}:p);return {projects};});
@@ -2526,6 +2702,19 @@ class Component extends DCLogic {
     this.setState({showChangePwModal:false,cpErr:''});
     alert('✅ Parola a fost schimbată cu succes!');
   }
+  submitChangePin(){
+    const {currentUser,cpinOld,cpinNew,cpinConfirm,users}=this.state;
+    if(!cpinOld||!cpinNew||!cpinConfirm){this.setState({cpinErr:'Completează toate câmpurile.'});return;}
+    if(!currentUser){this.setState({cpinErr:'Nu ești autentificat.'});return;}
+    if(cpinOld!==currentUser.pin){this.setState({cpinErr:'PIN-ul curent este greșit.'});return;}
+    if(cpinNew.length!==4){this.setState({cpinErr:'PIN-ul nou trebuie să aibă 4 cifre.'});return;}
+    if(cpinNew!==cpinConfirm){this.setState({cpinErr:'PIN-urile noi nu coincid.'});return;}
+    const taken=(users||[]).some(u=>u.id!==currentUser.id && u.pin===cpinNew) || cpinNew===this.adminPin;
+    if(taken){this.setState({cpinErr:'Acest PIN este deja folosit de alt utilizator. Alege altul.'});return;}
+    const newUsers=users.map(u=>u.id===currentUser.id?{...u,pin:cpinNew}:u);
+    this.setState({users:newUsers,currentUser:{...currentUser,pin:cpinNew},showChangePinModal:false,cpinErr:''},()=>this.persist('users'));
+    alert('✅ PIN-ul a fost schimbat cu succes!');
+  }
 
   generateOfferForSelected(){
     const {selectedId,projects}=this.state;
@@ -2542,9 +2731,9 @@ class Component extends DCLogic {
 
   exportExcel(){
     const doExport=()=>{
-      const rows=this.getFiltered().map(p=>({'Client':p.client||'','Tip':(p.types||[]).join(', '),'Status':p.status||'','Adresă':p.address||'','Valoare (RON)':p.value||'','Responsabil':p.responsabil||'','Data contract':p.date_start||'','Data execuției':p.date_executie||'','Data finalizare':p.date_end||'','Echipamente':p.equipment||'','kWp':p.kwp||'','Nr. panouri':p.panels||'','Montaj':p.mounting||'','Prosumator':p.prosumator?'Da':'Nu','Note':p.notes||''}));
+      const rows=this.getFiltered().map(p=>({'Cod':p.clientCode||'','Client':p.client||'','Tip':(p.types||[]).join(', '),'Status':p.status||'','Adresă':p.address||'','Valoare (RON)':p.value||'','Responsabil':p.responsabil||'','Data contract':p.date_start||'','Data execuției':p.date_executie||'','Data finalizare':p.date_end||'','Echipamente':p.equipment||'','kWp':p.kwp||'','Nr. panouri':p.panels||'','Montaj':p.mounting||'','Prosumator':p.prosumator?'Da':'Nu','Note':p.notes||''}));
       const wb=window.XLSX.utils.book_new(); const ws=window.XLSX.utils.json_to_sheet(rows);
-      ws['!cols']=[{wch:22},{wch:18},{wch:14},{wch:26},{wch:13},{wch:14},{wch:13},{wch:13},{wch:14},{wch:36},{wch:6},{wch:8},{wch:10},{wch:10},{wch:30}];
+      ws['!cols']=[{wch:12},{wch:22},{wch:18},{wch:14},{wch:26},{wch:13},{wch:14},{wch:13},{wch:13},{wch:14},{wch:36},{wch:6},{wch:8},{wch:10},{wch:10},{wch:30}];
       window.XLSX.utils.book_append_sheet(wb,ws,'Lucrări SolarCRM');
       window.XLSX.writeFile(wb,'SolarCRM_'+new Date().toISOString().slice(0,10)+'.xlsx');
     };
@@ -2559,12 +2748,23 @@ class Component extends DCLogic {
   umGoAdd(){ this.setState({userMgmtMode:'add',editingUserId:null,umErrMsg:'',umForm:{...EMPTY_UM_FORM,pin:genUniquePin5(this.state.users)}}); }
   umGoBack(){ this.setState({userMgmtMode:'list',umErrMsg:'',umForm:{...EMPTY_UM_FORM}}); }
   umGoBulk(){ this.setState({userMgmtMode:'bulk',bulkText:'',bulkResult:null,umErrMsg:''}); }
+  umExportPins(){
+    const users=[...this.state.users].sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    const lines=['Nume\tFuncție\tPIN\tPAROLĂ'];
+    lines.push('Administrator\t—\t'+this.adminPin+'\t(parolă separată)');
+    users.forEach(u=>{ lines.push((u.name||'')+'\t'+(u.functie||'')+'\t'+(u.pin||'—')+'\t'+(u.password?'(setată)':'—')); });
+    const blob=new Blob([lines.join('\n')],{type:'text/plain'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download='PIN-uri_SHC_Solar_Suite.txt'; a.click();
+    URL.revokeObjectURL(url);
+  }
   setBulkText(v){ this.setState({bulkText:v}); }
   mapFunctieToRoleTemplate(fn){
     const f=(fn||'').toLowerCase();
     if(!f) return 'montator';
-    if(f.indexOf('montator')>=0||f.indexOf('electrician')>=0||f.indexOf('gestionar')>=0||f.indexOf('technician')>=0||f.indexOf('tehnician')>=0) return 'montator';
-    if(f.indexOf('inginer')>=0) return 'sefechipa';
+    if(f.indexOf('administrator')>=0) return 'birou';
+    if(f.indexOf('dir. vanz')>=0||f.indexOf('director vanzari')>=0||f.indexOf('rep vanzari')>=0||f.indexOf('reprezentant vanzari')>=0) return 'agent';
+    if(f.indexOf('montator')>=0||f.indexOf('electrician')>=0||f.indexOf('technician')>=0||f.indexOf('tehnician')>=0) return 'montator';
     return 'birou';
   }
   umSubmitBulk(){
@@ -2660,7 +2860,7 @@ class Component extends DCLogic {
 
   // ─── RENDER ────────────────────────────────────────────────────────────────
   renderVals(){
-    const {view,filterType,filterStatus,search,selectedId,detailTab,showModal,editingId,form,projects:allProjects,currentUser,users,showUserModal,userModalMode,pwStep,pwInput,statusModal,showUserMgmt,showFollowUpForm,fuNoteInput,fuDateInput,fuDateInputDmy,userMgmtMode,editingUserId,umForm,mobileSidebarOpen}=this.state;
+    const {view,filterType,filterStatus,search,selectedId,detailTab,showModal,editingId,form,projects:allProjects,currentUser,users,showUserModal,userModalMode,pwStep,pwInput,statusModal,showUserMgmt,showFollowUpForm,fuNoteInput,fuDateInput,fuDateInputDmy,userMgmtMode,editingUserId,umForm,mobileSidebarOpen,chatUnread}=this.state;
     let projects = allProjects;
 
     const preFiltered=this.getPreFiltered();
@@ -2733,7 +2933,7 @@ class Component extends DCLogic {
     const topResp=Object.values(respMap).sort((a,b)=>b.value-a.value).slice(0,5).map(r=>({...r,valueFmt:r.value.toLocaleString('ro-RO')+' RON',barWidth:Math.round(r.value/maxRespVal*100)+'%'}));
 
     // Selected project
-    let sel={client:'',addressShort:'—',phone:'—',email:'—',responsabil:'—',date_start:'—',date_executie:'—',date_end:'—',valueFormatted:'—',equipment:'',notes:'',types:[],typeBadges:[],statusBg:'#f1f5f9',statusColor:'#475569',status:'',isPV:false,hasEquipment:false,hasNotes:false,prosumatorText:'Nu',kwp:'—',panels:'—',mounting:'—',canContract:false};
+    let sel={client:'',clientCode:'',addressShort:'—',phone:'—',email:'—',responsabil:'—',date_start:'—',date_executie:'—',date_end:'—',valueFormatted:'—',equipment:'',notes:'',types:[],typeBadges:[],statusBg:'#f1f5f9',statusColor:'#475569',status:'',isPV:false,hasEquipment:false,hasNotes:false,prosumatorText:'Nu',kwp:'—',panels:'—',mounting:'—',canContract:false};
     const statusButtons=[]; let auditEntries=[],hasAuditEntries=false,noAuditEntries=true,attachmentItems=[],hasAttachments=false,noAttachments=true;
     if(selected){
       const f=this.fmt(selected); const sc=STATUS_COLORS[selected.status]||STATUS_COLORS.Lead;
@@ -2831,6 +3031,8 @@ class Component extends DCLogic {
 
     const pwStepAll=[{...ADMIN_USER,password:this.adminPassword},...users];
     const pwUser=pwStep?pwStepAll.find(u=>u.id===pwStep):null;
+    const {pinStepUser,pinStepBuffer,pinStepErr}=this.state;
+    const pinUserObj=pinStepUser?pwStepAll.find(u=>u.id===pinStepUser):null;
 
     // Form
     const fPV=!!form.typePV,fInv=!!form.typeInverter,fBat=!!form.typeBaterie,fBESS=!!form.typeBESS;
@@ -2847,6 +3049,12 @@ class Component extends DCLogic {
     return {
       mobileSidebarClass: mobileSidebarOpen ? 'open' : '',
       toggleMobileSidebar: () => this.setState(s => ({mobileSidebarOpen: !s.mobileSidebarOpen})),
+      panelEntriesRows:this.buildEntryRows('panelEntries'),
+      inverterEntriesRows:this.buildEntryRows('inverterEntries'),
+      bessEntriesRows:this.buildEntryRows('bessEntries'),
+      addPanelEntry:()=>this.addEntry('panelEntries'),
+      addInverterEntry:()=>this.addEntry('inverterEntries'),
+      addBessEntry:()=>this.addEntry('bessEntries'),
       closeMobileSidebar: () => this.setState({mobileSidebarOpen: false}),
       navItems,
       reportsBg:reportsActive?'rgba(59,130,246,0.14)':'transparent',
@@ -2871,10 +3079,10 @@ class Component extends DCLogic {
       fbDotStyle:'display:inline-block;width:7px;height:7px;border-radius:50%;background:'+(this.state.fbConnected?'#22c55e':'#ef4444'),
       fbStatusText:this.state.fbConnected?'Sincronizat live':'Neconectat — se salvează doar local',
       openUserSwitcher:()=>this.setState({showUserModal:true,userModalMode:'switch',pwStep:null,pwInput:''}),
-      changePwTitle:(currentUser&&(currentUser.id==='_admin'||currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'))?'Schimbă parola':'PIN-ul se schimbă din SolarCRM → Utilizatori',
+      changePwTitle:(currentUser&&(currentUser.id==='_admin'||currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'))?'Schimbă parola':'Schimbă PIN-ul',
       openChangePw:()=>{
         const isPwUser=currentUser&&(currentUser.id==='_admin'||currentUser.id==='u_chirila'||currentUser.id==='u_nicoras');
-        if(!isPwUser){ window.alert('PIN-ul tău se schimbă din secțiunea Utilizatori (îl poate reseta Alexandru Chirila sau Ionuț Nicoraș).'); return; }
+        if(!isPwUser){ this.setState({showChangePinModal:true,cpinOld:'',cpinNew:'',cpinConfirm:'',cpinErr:''}); return; }
         this.setState({showChangePwModal:true,cpOld:'',cpNew:'',cpConfirm:'',cpErr:''});
       },
       doLogout:()=>{try{sessionStorage.removeItem('solarcrm_uid_v3');}catch(e){}this.setState({currentUser:null,showUserModal:true,userModalMode:'login',pinMode:true,pinBuffer:'',pinErr:false});},
@@ -2886,14 +3094,35 @@ class Component extends DCLogic {
       onCpConfirm:e=>this.setState({cpConfirm:e.target.value}),
       closeCpModal:()=>this.setState({showChangePwModal:false}),
       submitCpModal:()=>this.submitChangePw(),
+      showChangePinModal:this.state.showChangePinModal||false,
+      cpinOldVal:this.state.cpinOld||'',cpinNewVal:this.state.cpinNew||'',cpinConfirmVal:this.state.cpinConfirm||'',cpinErrMsg:this.state.cpinErr||'',
+      onCpinOld:e=>this.setState({cpinOld:e.target.value.replace(/\D/g,'').slice(0,4)}),
+      onCpinNew:e=>this.setState({cpinNew:e.target.value.replace(/\D/g,'').slice(0,4)}),
+      onCpinConfirm:e=>this.setState({cpinConfirm:e.target.value.replace(/\D/g,'').slice(0,4)}),
+      closeCpinModal:()=>this.setState({showChangePinModal:false}),
+      submitCpinModal:()=>this.submitChangePin(),
       filtered:filteredRows,isEmpty:filtered.length===0,filteredCount:filtered.length,
       sortByClient:()=>this.toggleSort('client'),
       sortByStatus:()=>this.toggleSort('status'),
       sortByDateInserted:()=>this.toggleSort('dateInserted'),
+      sortByCode:()=>this.toggleSort('code'),
+      sortByType:()=>this.toggleSort('type'),
+      sortByAddress:()=>this.toggleSort('address'),
+      sortByValue:()=>this.toggleSort('value'),
+      sortByResponsabil:()=>this.toggleSort('responsabil'),
+      sortByDateExec:()=>this.toggleSort('dateExec'),
+      sortByFollowUp:()=>this.toggleSort('followUp'),
       sortArrow:(col)=>this.state.sortBy===col?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
       sortArrowClient:this.state.sortBy==='client'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
       sortArrowStatus:this.state.sortBy==='status'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
       sortArrowDateInserted:this.state.sortBy==='dateInserted'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
+      sortArrowCode:this.state.sortBy==='code'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
+      sortArrowType:this.state.sortBy==='type'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
+      sortArrowAddress:this.state.sortBy==='address'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
+      sortArrowValue:this.state.sortBy==='value'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
+      sortArrowResponsabil:this.state.sortBy==='responsabil'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
+      sortArrowDateExec:this.state.sortBy==='dateExec'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
+      sortArrowFollowUp:this.state.sortBy==='followUp'?(this.state.sortDir==='asc'?' ▲':' ▼'):'',
       kanbanCols,
       monthlyBars,typeDist,statusDist,topResp,
       reportTotalCount:projects.length,reportTotalValue:totalVal.toLocaleString('ro-RO')+' RON',
@@ -2952,7 +3181,7 @@ class Component extends DCLogic {
           if(selected.entityCui.startsWith('RO')){ cuiPrefix='RO'; cuiNum=selected.entityCui.slice(2).replace(/\D/g,''); }
           else { cuiPrefix=''; cuiNum=selected.entityCui.replace(/\D/g,''); }
         }
-        const form={typePV:types.includes('PV'),typeInverter:types.includes('Inverter'),typeBaterie:types.includes('Baterie'),typeBESS:types.includes('BESS'),status:selected.status||'Lead',client:selected.client||'',phonePrefix,phoneNum,email:selected.email||'',address:selected.address||'',addressStreet:selected.addressStreet||(selected.address&&!selected.addressJud?selected.address:''),addressCity:selected.addressCity||'',addressJud:selected.addressJud||'',addressCountry:selected.addressCountry||'România',value:selected.value!=null?String(selected.value):'',responsabil:selected.responsabil||'',date_start:selected.date_start||'',date_executie:selected.date_executie||'',date_end:selected.date_end||'',date_start_dmy:isoToDmy(selected.date_start||''),date_executie_dmy:isoToDmy(selected.date_executie||''),date_end_dmy:isoToDmy(selected.date_end||''),equipment:selected.equipment||'',kwp:selected.kwp!=null?String(selected.kwp):'',panels:selected.panels!=null?String(selected.panels):'',mounting:selected.mounting||'acoperiș',prosumator:!!selected.prosumator,notes:selected.notes||'',bessKwh:selected.bessKwh!=null?String(selected.bessKwh):'',capexBESS:selected.capexBESS!=null?String(selected.capexBESS):'',capexSTS:selected.capexSTS!=null?String(selected.capexSTS):'',durataZile:selected.durataZile!=null?String(selected.durataZile):'30',numInvertoare:selected.numInvertoare!=null?String(selected.numInvertoare):'1',numBaterii:selected.numBaterii!=null?String(selected.numBaterii):'1',contractNrManual:selected.contractNrManual||'',transa1Paid:!!selected.transa1Paid,transa2Paid:!!selected.transa2Paid,cuiPrefix,cuiNum,entityRegCom:selected.entityRegCom||'',entityBank:selected.entityBank||'',entityIban:selected.entityIban||'',entityRepLegal:selected.entityRepLegal||'',entityRepFunctie:selected.entityRepFunctie||'',panelBrand:selected.panelBrand||'',inverterBrand:selected.inverterBrand||'',bessBrand:selected.bessBrand||'',deliveryPanouri:selected.deliveryPanouri||'',deliveryPanouriDmy:isoToDmy(selected.deliveryPanouri||''),deliveryInvertor:selected.deliveryInvertor||'',deliveryInvertorDmy:isoToDmy(selected.deliveryInvertor||''),deliveryBaterie:selected.deliveryBaterie||'',deliveryBaterieDmy:isoToDmy(selected.deliveryBaterie||''),deliveryATS:selected.deliveryATS||'',deliveryATSDmy:isoToDmy(selected.deliveryATS||''),atsCapex:selected.atsCapex!=null?String(selected.atsCapex):'',emsCapex:selected.emsCapex!=null?String(selected.emsCapex):'',stsTipBrand:selected.stsTipBrand||'',stsCapex:selected.stsCapex!=null?String(selected.stsCapex):'',backupCapex:selected.backupCapex!=null?String(selected.backupCapex):'',backupType:selected.backupType||''};
+        const form={typePV:types.includes('PV'),typeInverter:types.includes('Inverter'),typeBaterie:types.includes('Baterie'),typeBESS:types.includes('BESS'),status:selected.status||'Lead',client:selected.client||'',phonePrefix,phoneNum,email:selected.email||'',address:selected.address||'',addressStreet:selected.addressStreet||(selected.address&&!selected.addressJud?selected.address:''),addressCity:selected.addressCity||'',addressJud:selected.addressJud||'',addressCountry:selected.addressCountry||'România',value:selected.value!=null?String(selected.value):'',responsabil:selected.responsabil||'',date_start:selected.date_start||'',date_executie:selected.date_executie||'',date_end:selected.date_end||'',date_start_dmy:isoToDmy(selected.date_start||''),date_executie_dmy:isoToDmy(selected.date_executie||''),date_end_dmy:isoToDmy(selected.date_end||''),equipment:selected.equipment||'',kwp:selected.kwp!=null?String(selected.kwp):'',panels:selected.panels!=null?String(selected.panels):'',mounting:selected.mounting||'acoperiș',prosumator:!!selected.prosumator,notes:selected.notes||'',bessKwh:selected.bessKwh!=null?String(selected.bessKwh):'',capexBESS:selected.capexBESS!=null?String(selected.capexBESS):'',capexSTS:selected.capexSTS!=null?String(selected.capexSTS):'',durataZile:selected.durataZile!=null?String(selected.durataZile):'30',numInvertoare:selected.numInvertoare!=null?String(selected.numInvertoare):'1',numBaterii:selected.numBaterii!=null?String(selected.numBaterii):'1',contractNrManual:selected.contractNrManual||'',transa1Paid:!!selected.transa1Paid,transa2Paid:!!selected.transa2Paid,cuiPrefix,cuiNum,entityRegCom:selected.entityRegCom||'',entityBank:selected.entityBank||'',entityIban:selected.entityIban||'',entityRepLegal:selected.entityRepLegal||'',entityRepFunctie:selected.entityRepFunctie||'',panelBrand:selected.panelBrand||'',inverterBrand:selected.inverterBrand||'',bessBrand:selected.bessBrand||'',deliveryPanouri:selected.deliveryPanouri||'',deliveryPanouriDmy:isoToDmy(selected.deliveryPanouri||''),deliveryInvertor:selected.deliveryInvertor||'',deliveryInvertorDmy:isoToDmy(selected.deliveryInvertor||''),deliveryBaterie:selected.deliveryBaterie||'',deliveryBaterieDmy:isoToDmy(selected.deliveryBaterie||''),deliveryATS:selected.deliveryATS||'',deliveryATSDmy:isoToDmy(selected.deliveryATS||''),atsCapex:selected.atsCapex!=null?String(selected.atsCapex):'',emsCapex:selected.emsCapex!=null?String(selected.emsCapex):'',stsTipBrand:selected.stsTipBrand||'',stsCapex:selected.stsCapex!=null?String(selected.stsCapex):'',backupCapex:selected.backupCapex!=null?String(selected.backupCapex):'',backupType:selected.backupType||'',panelEntries:(selected.panelEntries&&selected.panelEntries.length)?selected.panelEntries.map(function(r){return {brand:r.brand||'',delivery:r.delivery||'',deliveryDmy:isoToDmy(r.delivery||'')};}):[{brand:selected.panelBrand||'',delivery:selected.deliveryPanouri||'',deliveryDmy:isoToDmy(selected.deliveryPanouri||'')}],inverterEntries:(selected.inverterEntries&&selected.inverterEntries.length)?selected.inverterEntries.map(function(r){return {brand:r.brand||'',delivery:r.delivery||'',deliveryDmy:isoToDmy(r.delivery||'')};}):[{brand:selected.inverterBrand||'',delivery:selected.deliveryInvertor||'',deliveryDmy:isoToDmy(selected.deliveryInvertor||'')}],bessEntries:(selected.bessEntries&&selected.bessEntries.length)?selected.bessEntries.map(function(r){return {brand:r.brand||'',delivery:r.delivery||'',deliveryDmy:isoToDmy(r.delivery||'')};}):[{brand:selected.bessBrand||'',delivery:selected.deliveryBaterie||'',deliveryDmy:isoToDmy(selected.deliveryBaterie||'')}]};
         this.setState({showModal:true,editingId:selected.id,form});
       },
       deleteSelected:()=>{
@@ -3022,26 +3251,18 @@ class Component extends DCLogic {
       onFormEntityIban:e=>this.setForm('entityIban',e.target.value),
       onFormEntityRepLegal:e=>this.setForm('entityRepLegal',e.target.value),
       onFormEntityRepFunctie:e=>this.setForm('entityRepFunctie',e.target.value),
-      onFormPanelBrand:e=>this.setForm('panelBrand',e.target.value),
-      onFormInverterBrand:e=>this.setForm('inverterBrand',e.target.value),
-      onFormBessBrand:e=>this.setForm('bessBrand',e.target.value),
-      onFormDeliveryPanouri:e=>{ const v=maskDmy(this.state.form.deliveryPanouriDmy,e.target.value); this.setState(s=>({form:{...s.form,deliveryPanouriDmy:v,deliveryPanouri:dmyToIso(v)}})); },
-      onFormDeliveryPanouriPicker:e=>{ const iso=e.target.value; this.setState(s=>({form:{...s.form,deliveryPanouri:iso,deliveryPanouriDmy:isoToDmy(iso)}})); },
-      onFormDeliveryInvertor:e=>{ const v=maskDmy(this.state.form.deliveryInvertorDmy,e.target.value); this.setState(s=>({form:{...s.form,deliveryInvertorDmy:v,deliveryInvertor:dmyToIso(v)}})); },
-      onFormDeliveryInvertorPicker:e=>{ const iso=e.target.value; this.setState(s=>({form:{...s.form,deliveryInvertor:iso,deliveryInvertorDmy:isoToDmy(iso)}})); },
-      onFormDeliveryBaterie:e=>{ const v=maskDmy(this.state.form.deliveryBaterieDmy,e.target.value); this.setState(s=>({form:{...s.form,deliveryBaterieDmy:v,deliveryBaterie:dmyToIso(v)}})); },
-      onFormDeliveryBateriePicker:e=>{ const iso=e.target.value; this.setState(s=>({form:{...s.form,deliveryBaterie:iso,deliveryBaterieDmy:isoToDmy(iso)}})); },
       onFormNotes:e=>this.setForm('notes',e.target.value),
       statusModal:{...statusModal},setStatusReason:e=>this.setState(s=>({statusModal:{...s.statusModal,reason:e.target.value}})),
       confirmStatus:()=>this.confirmStatusChange(),cancelStatus:()=>this.setState(s=>({statusModal:{...s.statusModal,show:false}})),
       showUserModal,
       showLoginScreen: showUserModal && userModalMode==='login' && !pwStep,
-      isLoginMode: userModalMode==='login',
+    isLoginMode: userModalMode==='login',
       loginBgStyle: userModalMode==='login' ? 'rgba(9,15,28,0.97)' : 'rgba(15,23,41,0.65)',
-      loginModalBg: userModalMode==='login' ? '#111827' : '#fff',
-      loginModalWidth: userModalMode==='login' ? '380px' : '420px',
-      loginModalBorder: userModalMode==='login' ? '1px solid #1e3a5f' : 'none',
-      loginDivider: userModalMode==='login' ? '#1e3a5f' : '#e2e8f0',
+      loginModalBg: (userModalMode==='login' && this.state.pinMode===true && !pinStepUser) ? 'transparent' : (userModalMode==='login' ? '#111827' : '#fff'),
+      loginModalWidth: (userModalMode==='login' && this.state.pinMode===true && !pinStepUser) ? '340px' : (userModalMode==='login' ? '380px' : '420px'),
+      loginModalBorder: (userModalMode==='login' && this.state.pinMode===true && !pinStepUser) ? 'none' : (userModalMode==='login' ? '1px solid #1e3a5f' : 'none'),
+      loginDivider: (userModalMode==='login' && this.state.pinMode===true && !pinStepUser) ? 'transparent' : (userModalMode==='login' ? '#1e3a5f' : '#e2e8f0'),
+      loginModalShadow: (userModalMode==='login' && this.state.pinMode===true && !pinStepUser) ? 'none' : '0 24px 72px rgba(0,0,0,.28)',
       loginTitleColor: userModalMode==='login' ? '#f1f5f9' : '#0f172a',
       loginInputBg: userModalMode==='login' ? '#1e293b' : '#fff',
       loginInputColor: userModalMode==='login' ? '#f1f5f9' : '#0f172a',
@@ -3050,17 +3271,22 @@ class Component extends DCLogic {
       userModalTitle:pwStep?'Autentificare':(userModalMode==='login'?'Bun venit în SolarCRM':'Schimbă contul'),
       userModalSubtitle:pwStep?'Contul este protejat prin parolă':'Toate conturile sunt protejate prin parolă',
       userModalBgClick:()=>{ if(userModalMode==='switch')this.setState({showUserModal:false,pwStep:null,pwInput:''}); },
-      showPwStep:pwStep!==null && !this.state.pinMode,showNormalStep:pwStep===null && !this.state.pinMode,
-      showPinStep:this.state.pinMode===true,
+      showPwStep:pwStep!==null && !this.state.pinMode && !pinStepUser,showNormalStep:pwStep===null && !this.state.pinMode && !pinStepUser,
+      showPinStep:this.state.pinMode===true && !pinStepUser,
       openPinMode:e=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({pinMode:true,pinBuffer:'',pinErr:false}); },
       closePinMode:e=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({pinMode:false,pinBuffer:'',pinErr:false}); },
       fbWriteError:this.state.fbWriteError||null,
       dismissFbWriteError:()=>this.setState({fbWriteError:null}),
       pinErrMsg:this.state.pinLockMsg?this.state.pinLockMsg:(this.state.pinErr?'Cod greșit — încearcă din nou':'Introdu codul primit de la administrator'),
-      pinDots:[0,1,2,3].map(i=>({color:this.state.pinErr?'#ef4444':'#f59e0b',bg:i<this.state.pinBuffer.length?(this.state.pinErr?'#ef4444':'#f59e0b'):'transparent'})),
+      pinDots:[0,1,2,3].map(i=>({color:this.state.pinErr?'#ef4444':'#60a5fa',bg:i<this.state.pinBuffer.length?(this.state.pinErr?'#ef4444':'#60a5fa'):'transparent'})),
       pinKeys:['1','2','3','4','5','6','7','8','9','clear','0','del'].map(k=>({label:k==='del'?'⌫':(k==='clear'?'C':k),visible:true,blank:false,bg:this.state.pinFlash===k?'#7f1d1d':'#1e293b',onClick:()=>this.pinPress(k)})),
       pwStepUser:pwUser?pwUser.name:'',pwStepColor:pwUser?pwUser.color:'#94a3b8',pwStepInitials:pwUser?initials(pwUser.name):'?',
-      pwInput,onPwInput:e=>this.setState({pwInput:e.target.value}),
+      showPinUserStep:!!pinStepUser,
+      pinStepUserName:pinUserObj?pinUserObj.name:'',pinStepColor:pinUserObj?pinUserObj.color:'#94a3b8',pinStepInitials:pinUserObj?initials(pinUserObj.name):'?',
+      pinUserErrMsg:pinStepErr?'Cod greșit — încearcă din nou':'Introdu codul PIN personal',
+      pinUserDots:[0,1,2,3].map(i=>({color:pinStepErr?'#ef4444':'#2563eb',bg:i<(pinStepBuffer||'').length?(pinStepErr?'#ef4444':'#2563eb'):'transparent'})),
+      pinUserKeys:['1','2','3','4','5','6','7','8','9','clear','0','del'].map(k=>({label:k==='del'?'⌫':(k==='clear'?'C':k),visible:true,onClick:()=>{ if(k==='del')this.pinStepBack(); else if(k==='clear')this.setState({pinStepBuffer:''}); else this.pinStepDigit(k); }})),
+      cancelPinUserStep:()=>this.setState({pinStepUser:null,pinStepBuffer:''}),      pwInput,onPwInput:e=>this.setState({pwInput:e.target.value}),
       onPwKeyDown:e=>{ if(e.key==='Enter')this.confirmPassword(); },
       confirmPassword:()=>this.confirmPassword(),cancelPwStep:()=>this.setState({pwStep:null,pwInput:''}),
       allUsersList,noRegularUsers,
@@ -3070,6 +3296,7 @@ class Component extends DCLogic {
       umShowBack:userMgmtMode!=='list',umGoBack:()=>this.umGoBack(),
       umIsList,umIsAdd,umIsEdit,umIsChangePw,umIsCompany,umIsBulk,
       umGoBulk:()=>this.umGoBulk(),
+      umExportPins:()=>this.umExportPins(),
       bulkText:this.state.bulkText||'',
       onBulkText:e=>this.setBulkText(e.target.value),
       umSubmitBulk:()=>this.umSubmitBulk(),
