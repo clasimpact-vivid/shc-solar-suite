@@ -156,6 +156,11 @@ a:hover{color:#fbbf24;}
 </div>
 
 <div id="app">
+  <div id="fbOfflineBanner" style="display:none;background:#dc2626;color:#fff;padding:8px 16px;align-items:center;gap:10px;font-size:12.5px;font-weight:600;flex-wrap:wrap;">
+    <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#fff;flex:none;"></span>
+    <span style="flex:1;min-width:180px;">Neconectat la server — vezi date locale, posibil vechi. Nu editezi date reale până nu se reconectează.</span>
+    <button onclick="tryInitFirebase()" style="background:#fff;color:#dc2626;border:none;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;flex:none;">Reconectează</button>
+  </div>
   <div id="topBar">
     <div style="display:flex;align-items:center;gap:12px;">
       <div style="width:32px;height:32px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:8px;display:flex;align-items:center;justify-content:center;">
@@ -624,10 +629,28 @@ function getDeviceFingerprint(){
 function getUserById(id){ return loginUsers.find(u=>u.id===id); }
 
 // ── Firebase ──
-try{
-  if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
-  db=firebase.database();
-}catch(e){ console.warn('Firebase:',e); }
+let fbConnected=false, fbInitAttempts=0;
+function tryInitFirebase(){
+  if(typeof firebase==='undefined'){
+    fbInitAttempts++;
+    if(fbInitAttempts<40){ setTimeout(tryInitFirebase,250); return; }
+    updateFbBanner();
+    if(!window._fbBgRetry) window._fbBgRetry=setInterval(()=>{ if(typeof firebase!=='undefined'){ clearInterval(window._fbBgRetry); tryInitFirebase(); } },5000);
+    return;
+  }
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+    db=firebase.database();
+    fbConnected=true;
+  }catch(e){ console.warn('Firebase:',e); }
+  updateFbBanner();
+  if(db) loadFirebase();
+}
+function updateFbBanner(){
+  const el=document.getElementById('fbOfflineBanner');
+  if(el) el.style.display=fbConnected?'none':'flex';
+}
+tryInitFirebase();
 
 function migrateFundingEU(){
   if(!db) return;
