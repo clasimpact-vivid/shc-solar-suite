@@ -225,6 +225,14 @@ try {
 <!-- MAIN -->
 <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;">
 
+  <!-- Offline banner: full-width, visible on any screen including mobile -->
+  <sc-if value="{{ showOfflineBanner }}" hint-placeholder-val="{{ false }}">
+  <div style="background:#dc2626;color:#fff;padding:8px 16px;display:flex;align-items:center;gap:10px;flex:none;font-size:12.5px;font-weight:600;flex-wrap:wrap;">
+    <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#fff;flex:none;"></span>
+    <span style="flex:1;min-width:180px;">Neconectat la server — vezi date locale, posibil vechi. Nu editezi date reale până nu se reconectează.</span>
+    <button onClick="{{ retryFbConnect }}" style="background:#fff;color:#dc2626;border:none;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;flex:none;">Reconectează</button>
+  </div>
+  </sc-if>
   <!-- Top bar -->
   <div class="crm-topbar" style="background:#fff;border-bottom:1px solid #e2e8f0;padding:0 20px;height:58px;display:flex;align-items:center;gap:12px;flex:none;overflow-x:auto;">
     <button class="crm-hamburger" onClick="{{ toggleMobileSidebar }}" aria-label="Meniu">
@@ -2164,6 +2172,11 @@ class Component extends DCLogic {
       this._fbInitAttempts = (this._fbInitAttempts||0) + 1;
       if(this._fbInitAttempts < 40){ setTimeout(()=>this._tryConnectFirebase(), 250); return; }
       this._loadFromLS();
+      // Nu renunțăm definitiv: pe semnal slab SDK-ul poate ajunge cu întârziere — continuăm
+      // să reîncercăm periodic în fundal, ca sincronizarea să pornească singură când se poate.
+      if(!this._fbBackgroundRetry){
+        this._fbBackgroundRetry = setInterval(()=>{ if(getDb()){ clearInterval(this._fbBackgroundRetry); this._tryConnectFirebase(); } }, 5000);
+      }
       return;
     }
     // Fallback dacă Firebase nu răspunde în timp util (rețea mobilă lentă/blocată) —
@@ -3132,6 +3145,8 @@ class Component extends DCLogic {
       userColor,userInitials:initials(userName),userName,
       fbDotStyle:'display:inline-block;width:7px;height:7px;border-radius:50%;background:'+(this.state.fbConnected?'#22c55e':'#ef4444'),
       fbStatusText:this.state.fbConnected?'Sincronizat live':'Neconectat — se salvează doar local',
+      showOfflineBanner: this._initialized && !this.state.fbConnected,
+      retryFbConnect:()=>{ this._fbInitAttempts=0; this._tryConnectFirebase(); },
       openUserSwitcher:()=>this.setState({showUserModal:true,userModalMode:'switch',pwStep:null,pwInput:''}),
       changePwTitle:(currentUser&&(currentUser.id==='_admin'||currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'))?'Schimbă parola':'Schimbă PIN-ul',
       openChangePw:()=>{
