@@ -149,6 +149,11 @@ a:hover{color:#93c5fd;}
 </div>
 
 <div id="app">
+  <div id="fbOfflineBanner" style="display:none;background:#dc2626;color:#fff;padding:8px 16px;align-items:center;gap:10px;font-size:12.5px;font-weight:600;flex-wrap:wrap;">
+    <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#fff;flex:none;"></span>
+    <span style="flex:1;min-width:180px;">Neconectat la server — vezi date locale, posibil vechi. Nu editezi date reale până nu se reconectează.</span>
+    <button onclick="location.reload()" style="background:#fff;color:#dc2626;border:none;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;flex:none;">Reconectează</button>
+  </div>
   <div id="topBar">
     <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
       <button class="hamburger" id="btnHamburger" aria-label="Meniu">
@@ -512,7 +517,11 @@ function attachDateAutoFormat(id){
 try{
   if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
   db=firebase.database();
-}catch(e){ console.warn('Firebase:',e); }
+  db.ref('.info/connected').on('value', snap=>{
+    const el=document.getElementById('fbOfflineBanner');
+    if(el) el.style.display = snap.val()===true ? 'none' : 'flex';
+  });
+}catch(e){ console.warn('Firebase:',e); const el=document.getElementById('fbOfflineBanner'); if(el) el.style.display='flex'; }
 
 function loadFirebase(){
   if(!db) return;
