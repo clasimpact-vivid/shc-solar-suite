@@ -2517,13 +2517,26 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
   csv+='\nSumar pentru tichete de masă,,,,,,,,,\n';
   csv+='Zile lucrate,'+workedDays+'\n';
   csv+='Zile de concediu/învoire,'+leaveDaysCount+'\n';
-  if(exportAll){
-    csv+='\nTotaluri per angajat,,,,,,,,,\n';
-    csv+='Angajat,Zile lucrate,Zile concediu/învoire,Ore lucrate,Deplasare totală (km)\n';
-    Object.values(perUser).sort((a,b)=>a.name.localeCompare(b.name)).forEach(p=>{
-      csv+=[p.name,p.worked,p.leave,p.hours.toFixed(2),p.km.toFixed(0)].join(',')+'\n';
-    });
-  }
+  // Centralizator per angajat — ore din pontaj, concedii din cererile aprobate (zile lucrătoare din perioadă)
+  const cent={};
+  Object.values(perUser).forEach(p=>{ cent[p.name]={name:p.name,worked:p.worked,hours:p.hours,byType:{}}; });
+  approvedLeaves.filter(l=>l.from<=dateTo && l.to>=dateFrom).forEach(l=>{
+    const a=l.from<dateFrom?dateFrom:l.from, b=l.to>dateTo?dateTo:l.to;
+    const d=countWorkingDays(a,b); if(!d) return;
+    const nm=(getUserById(l.userId)||{}).name||l.userName||l.userId;
+    cent[nm]=cent[nm]||{name:nm,worked:0,hours:0,byType:{}};
+    cent[nm].byType[l.type]=(cent[nm].byType[l.type]||0)+d;
+  });
+  const lvTypes=Object.keys(LEAVE_LABELS);
+  csv+='\nCENTRALIZATOR PE ANGAJAT ('+isoToDmy(dateFrom)+' - '+isoToDmy(dateTo)+')\n';
+  csv+=['Angajat','Zile lucrate','Total ore lucrate',...lvTypes.map(t=>LEAVE_LABELS[t]+' (zile)'),'Total zile concediu'].join(',')+'\n';
+  const tot={worked:0,hours:0,leave:0,byType:{}};
+  Object.values(cent).sort((a,b)=>a.name.localeCompare(b.name,'ro')).forEach(p=>{
+    const lvTot=lvTypes.reduce((s2,t)=>s2+(p.byType[t]||0),0);
+    tot.worked+=p.worked; tot.hours+=p.hours; tot.leave+=lvTot; lvTypes.forEach(t=>tot.byType[t]=(tot.byType[t]||0)+(p.byType[t]||0));
+    csv+=['"'+p.name.replace(/"/g,'""')+'"',p.worked,p.hours.toFixed(2),...lvTypes.map(t=>p.byType[t]||0),lvTot].join(',')+'\n';
+  });
+  csv+=['TOTAL',tot.worked,tot.hours.toFixed(2),...lvTypes.map(t=>tot.byType[t]||0),tot.leave].join(',')+'\n';
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
