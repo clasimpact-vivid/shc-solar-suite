@@ -1488,7 +1488,12 @@ document.getElementById('btnPublishPlan').addEventListener('click',()=>{
 });
 
 // ── CERERI TAB (concedii + probleme) ──
-function canApproveLeave(){ return isFullAccess() || (!!currentUser && currentUser.pontajHR===true); }
+function canApproveLeave(){
+  if(!currentUser) return false;
+  if(currentUser.id==='_admin'||currentUser.id==='u_chirila'||currentUser.id==='u_nicoras') return true;
+  const n=_nameTokens(currentUser.name);
+  return (n.includes('chirila')&&n.includes('alexandru'))||(n.includes('nicoras')&&n.includes('ionut'))||(n.includes('simon')&&n.includes('eszter'));
+}
 function populateBlockedBySelect(){
   const sel=document.getElementById('taskBlockedBy');
   const cur=sel.value;
@@ -2191,17 +2196,33 @@ function renderCereri(){
       const sentDt=l.ts?new Date(l.ts):null;
       const sentStr=sentDt?(sentDt.toLocaleDateString('ro-RO',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+sentDt.toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit',hour12:false})):'—';
       html+='<tr>'+(admin?'<td>'+(l.userName||'—')+'</td>':'')+'<td>'+(LEAVE_LABELS[l.type]||l.type)+'</td><td>'+isoToDmy(l.from)+' – '+isoToDmy(l.to)+' ('+countWorkingDays(l.from,l.to)+' zile lucrătoare)</td><td style="white-space:nowrap;color:#94a3b8;font-size:12px;">'+sentStr+'</td><td>'+(l.reason||'—')+'</td><td>'+st+'</td>';
-      if(admin&&l.status==='P'){
-        html+='<td style="white-space:nowrap;"><button class="btn btn-sm" data-approve="'+l.id+'" style="background:#16a34a;color:#fff;margin-right:4px;">✓</button><button class="btn btn-sm" data-reject="'+l.id+'" style="background:#dc2626;color:#fff;margin-right:4px;">✕</button><button class="btn btn-sm" data-pdf="'+l.id+'" style="background:#334155;color:#fff;">🖨</button></td>';
-      } else if(admin) html+='<td><button class="btn btn-sm" data-pdf="'+l.id+'" style="background:#334155;color:#fff;">🖨</button></td>';
+      if(admin){
+        html+='<td style="white-space:nowrap;">'+(l.status!=='A'?'<button class="btn btn-sm" title="Aprobă" data-approve="'+l.id+'" style="background:#16a34a;color:#fff;margin-right:4px;">✓</button>':'')+(l.status!=='R'?'<button class="btn btn-sm" title="Respinge" data-reject="'+l.id+'" style="background:#dc2626;color:#fff;margin-right:4px;">✕</button>':'')+'<button class="btn btn-sm" title="Modifică" data-edit="'+l.id+'" style="background:#2563eb;color:#fff;margin-right:4px;">✎</button><button class="btn btn-sm" title="Adnotare" data-note="'+l.id+'" style="background:#b45309;color:#fff;margin-right:4px;">📝</button><button class="btn btn-sm" title="PDF" data-pdf="'+l.id+'" style="background:#334155;color:#fff;">🖨</button></td>';
+      }
       html+='</tr>';
     });
     tbl.innerHTML=html+'</tbody>';
     tbl.querySelectorAll('button[data-approve]').forEach(b=>b.addEventListener('click',()=>{
-      const l=leaveReqs.find(x=>x.id===b.dataset.approve); if(l){ l.status='A'; saveLeave(l); sendLeaveEmail(l,'A'); }
+      const l=leaveReqs.find(x=>x.id===b.dataset.approve); if(l){ l.status='A'; l.decidedBy=currentUser.name; l.decidedAt=Date.now(); saveLeave(l); sendLeaveEmail(l,'A'); }
     }));
     tbl.querySelectorAll('button[data-reject]').forEach(b=>b.addEventListener('click',()=>{
-      const l=leaveReqs.find(x=>x.id===b.dataset.reject); if(l){ l.status='R'; saveLeave(l); sendLeaveEmail(l,'R'); }
+      const l=leaveReqs.find(x=>x.id===b.dataset.reject); if(l){ l.status='R'; l.decidedBy=currentUser.name; l.decidedAt=Date.now(); saveLeave(l); sendLeaveEmail(l,'R'); }
+    }));
+    tbl.querySelectorAll('button[data-note]').forEach(b=>b.addEventListener('click',()=>{
+      const l=leaveReqs.find(x=>x.id===b.dataset.note); if(!l) return;
+      const v=prompt('Adnotare pentru cererea lui '+(l.userName||'')+':', l.note||''); if(v===null) return;
+      l.note=v.trim(); l.noteBy=currentUser.name; l.noteAt=Date.now(); saveLeave(l);
+    }));
+    tbl.querySelectorAll('button[data-edit]').forEach(b=>b.addEventListener('click',()=>{
+      const l=leaveReqs.find(x=>x.id===b.dataset.edit); if(!l) return;
+      const f=prompt('De la (ZZ/LL/AAAA):', isoToDmy(l.from)); if(f===null) return;
+      const t=prompt('Până la (ZZ/LL/AAAA):', isoToDmy(l.to)); if(t===null) return;
+      const fi=dmyToIso(f.trim()), ti=dmyToIso(t.trim());
+      if(!fi||!ti||ti<fi){ alert('Perioadă invalidă.'); return; }
+      const types=Object.keys(LEAVE_LABELS);
+      const ty=prompt('Tip ('+types.map(k=>k+'='+LEAVE_LABELS[k]).join(', ')+'):', l.type); if(ty===null) return;
+      if(types.includes(ty.trim())) l.type=ty.trim();
+      l.from=fi; l.to=ti; l.editedBy=currentUser.name; l.editedAt=Date.now(); saveLeave(l);
     }));
     tbl.querySelectorAll('button[data-pdf]').forEach(b=>b.addEventListener('click',()=>{
       const l=leaveReqs.find(x=>x.id===b.dataset.pdf); if(l) exportLeavePdf(l);
