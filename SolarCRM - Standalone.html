@@ -2823,7 +2823,7 @@ class Component extends DCLogic {
     const {selectedId,projects}=this.state;
     const p=projects.find(pr=>pr.id===selectedId); if(!p)return;
     const today=new Date().toLocaleDateString('ro-RO',{day:'2-digit',month:'2-digit',year:'numeric'}).replace(/\//g,'.');
-    const payload={client:p.client||'',address:p.address||'',kwp:p.kwp||null,panels:p.panels||null,hasBESS:!!(p.types||[]).includes('BESS'),bessKwh:p.bessKwh||null,capexBESS:p.capexBESS||null,capexSTS:p.capexSTS||null,nrOferta:'SHC-'+new Date().getFullYear()+'-'+String(p.id).padStart(3,'0'),dataOferta:today,fromCRM:true};
+    const payload={client:p.client||'',address:p.address||'',kwp:p.kwp||null,panels:p.panels||null,hasBESS:!!(p.types||[]).includes('BESS'),bessKwh:p.bessKwh||null,capexBESS:p.capexBESS||null,capexSTS:p.capexSTS||null,nrOferta:'SHC-'+new Date().getFullYear()+'-'+String(p.id).padStart(3,'0'),dataOferta:today,fromCRM:true,sso:(this.state.currentUser?{userId:this.state.currentUser.id,userName:this.state.currentUser.name,exp:Date.now()+120000}:null)};
     try{localStorage.setItem('shc_offer_prefill',JSON.stringify(payload));}catch(e){}
     // Navigăm în același tab; butonul Back revine la CRM
     const entry=this.buildAuditEntry('offer','Ofertă PV-BESS generată');

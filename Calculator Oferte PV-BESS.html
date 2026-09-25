@@ -3561,6 +3561,7 @@ function applyCrmPrefill(){
   var p;
   try{ p = JSON.parse(raw); }catch(e){ return; }
   if(!p || !p.fromCRM) return;
+  window._crmPrefill = p;
   try{
     if(p.client){ var elC=document.getElementById('numeClient'); if(elC) elC.value = p.client; }
     if(p.nrOferta){ var elN=document.getElementById('nrOfertaSuffix'); if(elN) elN.value = p.nrOferta.replace(/^SHC-/,''); }
@@ -3573,6 +3574,27 @@ function applyCrmPrefill(){
     if(typeof render==='function') render();
   }catch(e){ console.warn('CRM prefill:', e); }
   try{ localStorage.removeItem('shc_offer_prefill'); }catch(e){}
+  setTimeout(reapplyCrmIdentity, 0); setTimeout(reapplyCrmIdentity, 800);
+}
+function reapplyCrmIdentity(){
+  var p=window._crmPrefill; if(!p) return;
+  var elC=document.getElementById('numeClient'); if(elC && p.client) elC.value=p.client;
+  var elN=document.getElementById('nrOfertaSuffix'); if(elN && p.nrOferta) elN.value=p.nrOferta.replace(/^SHC-/,'');
+  var elD=document.getElementById('dataOferta'); if(elD && p.dataOferta) elD.value=p.dataOferta;
+  try{ if(typeof render==='function') render(); }catch(e){}
+}
+// Autentificare directă când vii din SolarCRM (Generează ofertă) — valabil 2 minute, o singură dată
+function tryCrmSso(){
+  if(window.SESSION) return;
+  var raw; try{ raw=localStorage.getItem('shc_offer_prefill'); }catch(e){ return; }
+  if(!raw) return; var p; try{ p=JSON.parse(raw); }catch(e){ return; }
+  if(!p||!p.fromCRM||!p.sso||!(p.sso.exp>Date.now())) return;
+  var list=[]; try{ list=loadUsers()||[]; }catch(e){}
+  var norm=function(n){ return String(n||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z]/g,''); };
+  var u=list.find(function(x){ return x.id===p.sso.userId; })||list.find(function(x){ return norm(x.name)===norm(p.sso.userName); });
+  if(!u || u.active===false || (u.apps && u.apps.calculator===false)) return;
+  try{ var o=document.getElementById('officePinOverlay'); if(o) o.style.display='none'; var s3=document.getElementById('loginStep3'); if(s3) s3.style.display='none'; }catch(e){}
+  startSession(u);
 }
 
 function logout(){
@@ -3741,6 +3763,7 @@ window._crmSharedUsers = [];
     var sess=JSON.parse(sessionStorage.getItem('pvbessSession')||'null');
     if(sess){var u=loadUsers().find(function(x){return x.id===sess.userId&&x.active;});if(u){SESSION=sess;startSession(u);}}
   }catch(e){}
+  try{ tryCrmSso(); setTimeout(tryCrmSso,1200); setTimeout(tryCrmSso,3000); }catch(e){}
 
   // Avatar color palette
   var avatarColors=['#e74c3c','#3498db','#27ae60','#9b59b6','#e67e22','#1abc9c','#e91e63','#2196f3'];
@@ -4664,6 +4687,7 @@ try {
     if(emailEl && emailEl.value==='nicorasionut@shc-group.ro') emailEl.value = 'office@shc-group.ro';
   }
 } catch(e) {}
+try{ if(typeof reapplyCrmIdentity==='function') reapplyCrmIdentity(); }catch(e){}
 
 render();
 })();
