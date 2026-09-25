@@ -1406,6 +1406,47 @@ document.getElementById('btnDeleteStoc').addEventListener('click',()=>{
 
 </script>
 <script>
+function addDateMask(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('input',function(){
+    const prev=this._prev||''; const cur=this.value;
+    let v=cur.replace(/[^0-9\/]/g,'');
+    if(prev.length<cur.length){
+      const digits=v.replace(/\//g,'');
+      v='';
+      for(let i=0;i<Math.min(digits.length,8);i++){
+        if(i===2||i===4) v+='/';
+        v+=digits[i];
+      }
+    }
+    this.value=v.slice(0,10);
+    this._prev=this.value;
+  });
+}
+function addCalendarPicker(textId){
+  const textEl=document.getElementById(textId);
+  if(!textEl) return;
+  const wrap=document.createElement('span');
+  wrap.style.cssText='position:relative;display:block;width:100%;';
+  textEl.parentNode.insertBefore(wrap,textEl);
+  wrap.appendChild(textEl);
+  textEl.style.paddingRight='32px';
+  textEl.style.boxSizing='border-box';
+  const hidden=document.createElement('input');
+  hidden.type='date';
+  hidden.tabIndex=-1;
+  hidden.style.cssText='position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;opacity:0;cursor:pointer;border:none;background:none;';
+  wrap.appendChild(hidden);
+  const icon=document.createElement('span');
+  icon.textContent='📅';
+  icon.style.cssText='position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:13px;opacity:.75;';
+  wrap.appendChild(icon);
+  hidden.addEventListener('click',(e)=>{ const iso=dmyToIso(textEl.value); hidden.value=iso||''; if(hidden.showPicker){ e.preventDefault(); try{hidden.showPicker();}catch(err){} } });
+  hidden.addEventListener('input',()=>{
+    if(hidden.value){ textEl.value=isoToDmy(hidden.value); textEl.dispatchEvent(new Event('input',{bubbles:true})); }
+  });
+}
 // ═════════════ GESTIUNE — stoc scriptic, zona gri, transferuri, inventar ═════════════
 const G_GRI_DAYS=14;
 const G_UM_MAP={BUIC:'BUC',BYUC:'BUC',BU8C:'BUC','B UC':'BUC',BUCS:'BUC',BUV:'BUC',BCU:'BUC',BIC:'BUC','BUC D':'BUC',UNIT:'BUC',LM:'ML','':'BUC'};
@@ -1610,8 +1651,10 @@ function gRenderInventar(){
     const keys=new Set([...Object.keys(F),...Object.keys(S)]);
     const griAt=k=>Object.values(gGri).filter(x=>x&&x.k===k&&x.date<=fDate&&(x.status==='open'||(x.closedAt&&new Date(x.closedAt).toISOString().slice(0,10)>fDate))).reduce((a,x)=>a+gN(x.qty),0);
     gInvRows=[...keys].map(k=>{ const s=S[k]||{}, f=F[k]||{}; const it={...s,...f}; const scr=gN(s.fin), fap=gN(f.fin), gri=griAt(k), pm=gN(s.pm)||gN(f.pm); const exp=scr-gri; const diff=fap-exp; return {k,g:it.g,cod:it.cod,den:it.den||s.den,um:it.um,scr,gri,exp,fap,diff,pm,val:diff*pm,inF:!!F[k]}; })
-      .filter(r=>(!gf||r.g===gf)&&(!only||Math.abs(r.diff)>1e-9)).sort((a,b)=>Math.abs(b.val)-Math.abs(a.val));
-    const plus=gInvRows.filter(r=>r.diff>0).reduce((a,r)=>a+r.val,0), minus=gInvRows.filter(r=>r.diff<0).reduce((a,r)=>a+r.val,0), griExpl=gInvRows.reduce((a,r)=>a+r.gri*r.pm,0);
+      .filter(r=>(!gf||r.g===gf));
+    const griExpl=gInvRows.reduce((a,r)=>a+r.gri*r.pm,0);
+    gInvRows=gInvRows.filter(r=>!only||Math.abs(r.diff)>1e-9).sort((a,b)=>Math.abs(b.val)-Math.abs(a.val));
+    const plus=gInvRows.filter(r=>r.diff>0).reduce((a,r)=>a+r.val,0), minus=gInvRows.filter(r=>r.diff<0).reduce((a,r)=>a+r.val,0);
     const kpi=(l,v,c)=>'<div style="background:#0d1b2e;border:1px solid #1e3a5f;border-radius:10px;padding:10px 12px;"><div style="font-size:10.5px;color:#64748b;font-weight:700;text-transform:uppercase;">'+l+'</div><div style="font-size:17px;font-weight:800;color:'+c+';margin-top:2px;">'+v+'</div></div>';
     document.getElementById('invKpi').innerHTML=kpi('Articole cu diferențe',gQ(gInvRows.filter(r=>Math.abs(r.diff)>1e-9).length),'#f1f5f9')+kpi('Plusuri',gFmt(plus)+' lei','#4ade80')+kpi('Minusuri',gFmt(minus)+' lei','#f87171')+kpi('Net',gFmt(plus+minus)+' lei',(plus+minus)<0?'#f87171':'#4ade80')+kpi('Explicat prin zona gri',gFmt(griExpl)+' lei','#fbbf24');
     const th='style="text-align:right;padding:9px 10px;background:#0a1628;color:#64748b;font-size:10.5px;text-transform:uppercase;white-space:nowrap;"', thl='style="text-align:left;padding:9px 10px;background:#0a1628;color:#64748b;font-size:10.5px;text-transform:uppercase;"';
