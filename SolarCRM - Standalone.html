@@ -1201,7 +1201,8 @@ try {
         <!-- Regular users -->
         <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Utilizatori echipă</div>
         <sc-if value="{{ umHasUsers }}">
-          <sc-for list="{{ umUsersList }}" as="u" hint-placeholder-count="3">
+          <input type="text" value="{{ userSearch }}" onInput="{{ onUserSearch }}" placeholder="🔍 Caută utilizator..." style="width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:9px;font-size:14px;margin-bottom:10px;background:#fff;color:#0f172a;outline:none;">
+        <sc-for list="{{ umUsersList }}" as="u" hint-placeholder-count="3">
             <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:8px;">
               <div style="width:38px;height:38px;border-radius:50%;background:{{ u.color }};display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:700;flex:none;">{{ u.initials }}</div>
               <div style="flex:1;">
@@ -1222,6 +1223,10 @@ try {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"></path></svg>
           Adaugă utilizator nou
         </button>
+        <button onClick="{{ umGoEmails }}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px;border:1.5px solid #2563eb;background:#eff6ff;border-radius:10px;margin-top:10px;font-size:13px;font-weight:700;color:#1d4ed8;cursor:pointer;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M22 6l-10 7L2 6"></path></svg>
+          Emailuri — toți pe o pagină
+        </button>
         <button onClick="{{ umGoBulk }}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px;border:1.5px solid #cbd5e1;background:#fff;border-radius:10px;margin-top:10px;font-size:13px;color:#334155;" style-hover="background:#f1f5f9;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-8H7v8M7 3v5h8"></path><path d="M21 21V7l-4-4H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2z"></path></svg>
           Import angajați în bloc
@@ -1235,6 +1240,25 @@ try {
           ⚠️ Restaurează cei 51 de utilizatori (o singură dată)
         </button>
         </sc-if>
+      </sc-if>
+
+      <!-- BULK EMAILS MODE -->
+      <sc-if value="{{ umIsEmails }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="font-size:12.5px;color:#64748b;line-height:1.5;">Completează adresele și apasă o singură dată <strong>Salvează toate</strong>. Câmpurile goale sunt ignorate. Unde am știut adresa, am pre-completat-o.</div>
+          <div style="max-height:52vh;overflow-y:auto;border:1px solid #e2e8f0;border-radius:10px;">
+            <sc-for list="{{ umEmailRows }}" as="r" hint-placeholder-count="8">
+              <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:8px;align-items:center;padding:7px 10px;border-bottom:1px solid #f1f5f9;">
+                <div style="min-width:0;">
+                  <div style="font-size:12.5px;font-weight:700;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ r.name }}</div>
+                  <div style="font-size:10.5px;color:#94a3b8;">{{ r.role }}</div>
+                </div>
+                <input type="email" value="{{ r.value }}" onChange="{{ r.onChange }}" placeholder="nume@shc-group.ro" style="width:100%;padding:7px 9px;border:1px solid #cbd5e1;border-radius:7px;font-size:12.5px;min-width:0;">
+              </div>
+            </sc-for>
+          </div>
+          <button onClick="{{ umSaveEmails }}" style="width:100%;padding:11px;background:#1d4ed8;color:#fff;border:none;border-radius:10px;font-size:13.5px;font-weight:700;cursor:pointer;">Salvează toate</button>
+        </div>
       </sc-if>
 
       <!-- BULK IMPORT MODE -->
@@ -1626,6 +1650,7 @@ AVRAMUT	SORIN-ILIE	Electrician" style="width:100%;min-height:220px;font-family:m
       <!-- USER LIST -->
       <sc-if value="{{ showNormalStep }}" hint-placeholder-val="{{ true }}">
         <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">{{ loginSelectLabel }}</div>
+        <input type="text" value="{{ userSearch }}" onInput="{{ onUserSearch }}" placeholder="🔍 Caută după nume sau funcție..." style="width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:9px;font-size:14px;margin-bottom:10px;background:#fff;color:#0f172a;outline:none;">
         <sc-for list="{{ allUsersList }}" as="u" hint-placeholder-count="3">
           <div onClick="{{ u.onClick }}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid {{ u.borderColor }};border-radius:10px;cursor:pointer;margin-bottom:8px;background:{{ u.rowBg }};" style-hover="background:#f8fafc;border-color:#cbd5e1;">
             <div style="width:40px;height:40px;border-radius:50%;background:{{ u.color }};display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700;flex:none;">{{ u.initials }}</div>
@@ -2813,6 +2838,26 @@ class Component extends DCLogic {
   umGoAdd(){ this.setState({userMgmtMode:'add',editingUserId:null,umErrMsg:'',umForm:{...EMPTY_UM_FORM,pin:genUniquePin5(this.state.users)}}); }
   umGoBack(){ this.setState({userMgmtMode:'list',umErrMsg:'',umForm:{...EMPTY_UM_FORM}}); }
   umGoBulk(){ this.setState({userMgmtMode:'bulk',bulkText:'',bulkResult:null,umErrMsg:''}); }
+  umGoEmails(){
+    const KNOWN={u_chirila:'alexandru.chirila@shc-group.ro',u_nicoras:'nicorasionut@shc-group.ro'};
+    const byName=[[/simon.*eszter|eszter.*simon/i,'eszter.simon@shc-group.ro'],[/palcu/i,'cristi.palcu@shc-group.ro']];
+    const draft={};
+    (this.state.users||[]).forEach(u=>{
+      let e=u.email||KNOWN[u.id]||'';
+      if(!e){ const hit=byName.find(([re])=>re.test(u.name||'')); if(hit) e=hit[1]; }
+      draft[u.id]=e;
+    });
+    this.setState({userMgmtMode:'emails',emailDraft:draft,umErrMsg:''});
+  }
+  umSaveEmails(){
+    const draft=this.state.emailDraft||{};
+    const bad=Object.entries(draft).filter(([,v])=>v&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()));
+    if(bad.length){ window.alert('Adresă invalidă la: '+bad.map(([id])=>((this.state.users.find(u=>u.id===id)||{}).name||id)).join(', ')); return; }
+    const newUsers=this.state.users.map(u=>{ const v=(draft[u.id]||'').trim(); return v?{...u,email:v}:u; });
+    this.setState({users:newUsers,userMgmtMode:'list'});
+    this.persist('users',null,newUsers);
+    window.alert('Salvat: '+newUsers.filter(u=>u.email).length+' utilizatori au email.');
+  }
   umRestore51(){
     if(!confirm('Restaurează lista completă de 51 de utilizatori (cu PIN-uri noi pentru cei adăugați ulterior)? Această acțiune înlocuiește lista curentă de utilizatori.')) return;
     this.setState({users:[...DEFAULT_USERS]});
@@ -3094,9 +3139,10 @@ class Component extends DCLogic {
 
     // Login modal
     const allUsersForLogin=[{...ADMIN_USER,password:this.adminPassword},{...users.map(u=>({...u}))}];
+    const _uq=(this.state.userSearch||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); const _um=u=>!_uq||((u.name||'')+' '+(u.role||'')).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').includes(_uq); const _usorted=users.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'','ro'));
     const allUsersList=[
       {id:ADMIN_ID,name:'Administrator',role:'Admin',color:'#dc2626',initials:'A',borderColor:'#fecaca',rowBg:'#fff5f5',onClick:()=>this.tryLogin({...ADMIN_USER,password:this.adminPassword})},
-      ...users.map(u=>({...u,initials:initials(u.name),borderColor:'#e2e8f0',rowBg:'#fff',onClick:()=>this.tryLogin(u)}))
+      ..._usorted.filter(_um).map(u=>({...u,initials:initials(u.name),borderColor:'#e2e8f0',rowBg:'#fff',onClick:()=>this.tryLogin(u)}))
     ];
     const noRegularUsers=allUsersList.length<=1;
 
@@ -3111,9 +3157,9 @@ class Component extends DCLogic {
 
     // User management
     const umIsList=userMgmtMode==='list',umIsAdd=userMgmtMode==='add',umIsEdit=userMgmtMode==='edit',umIsChangePw=userMgmtMode==='changepw',umIsCompany=userMgmtMode==='company',umIsBulk=userMgmtMode==='bulk';
-    const umTitles={list:'Gestionare Utilizatori',add:'Utilizator nou',edit:'Editare utilizator',changepw:'Schimbă parola Admin',company:'Setări Firmă',bulk:'Import angajați în bloc'};
+    const umTitles={list:'Gestionare Utilizatori',add:'Utilizator nou',edit:'Editare utilizator',changepw:'Schimbă parola Admin',company:'Setări Firmă',bulk:'Import angajați în bloc',emails:'Emailuri utilizatori'};
     const umSubs={list:'Admin · gestiune conturi echipă',add:'Completați toate câmpurile',edit:'Modificați datele utilizatorului',changepw:'Introduceți parola curentă și cea nouă',company:'Date firmă folosite la generarea contractelor'};
-    const umUsersList=users.map(u=>({...u,initials:initials(u.name),onEdit:()=>this.umStartEdit(u.id),onDelete:()=>this.umDeleteUser(u.id)}));
+    const umUsersList=_usorted.filter(_um).map(u=>({...u,initials:initials(u.name),onEdit:()=>this.umStartEdit(u.id),onDelete:()=>this.umDeleteUser(u.id)}));
     const pw2Match=!umForm.password||!umForm.password2||umForm.password===umForm.password2;
     const umFormExp={...umForm,pw2Border:pw2Match?'#e2e8f0':'#fca5a5'};
 
@@ -3368,6 +3414,11 @@ class Component extends DCLogic {
       umTitle:umTitles[userMgmtMode]||'Utilizatori',umSubtitle:umSubs[userMgmtMode]||'',
       umShowBack:userMgmtMode!=='list',umGoBack:()=>this.umGoBack(),
       umIsList,umIsAdd,umIsEdit,umIsChangePw,umIsCompany,umIsBulk,
+      umIsEmails:userMgmtMode==='emails',
+      userSearch:this.state.userSearch||'',
+      onUserSearch:e=>this.setState({userSearch:e.target.value}),
+      umGoEmails:()=>this.umGoEmails(),umSaveEmails:()=>this.umSaveEmails(),
+      umEmailRows:(this.state.users||[]).slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'','ro')).map(u=>({name:u.name,role:u.role||'',value:(this.state.emailDraft||{})[u.id]||'',onChange:e=>{const v=e.target.value;this.setState(st=>({emailDraft:{...(st.emailDraft||{}),[u.id]:v}}));}})),
       umShowRestore:(this.state.users||[]).length<20,
       umRestore51:()=>this.umRestore51(),
       umGoBulk:()=>this.umGoBulk(),
