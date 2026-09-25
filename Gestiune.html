@@ -1453,7 +1453,7 @@ function gCode(g,cod){ const p=G_PREFIX[String(g||'').toUpperCase().trim()]||Str
 const G_GRI_DAYS=14;
 const G_UM_MAP={BUIC:'BUC',BYUC:'BUC',BU8C:'BUC','B UC':'BUC',BUCS:'BUC',BUV:'BUC',BCU:'BUC',BIC:'BUC','BUC D':'BUC',UNIT:'BUC',LM:'ML','':'BUC'};
 let gStocSortCol=null, gStocSortDir=1;
-let gImports={}, gSnap=null, gSnapId=null, gGri={}, gTr={}, gTab='stoc', gStocLimit=200, gSnapCache={};
+let gImports={}, gSnap=null, gSnapId=null, gGri={}, gTr={}, gTab='stoc', gStocLimit=1e9, gSnapCache={};
 const gN=v=>{ const x=parseFloat(String(v==null?'':v).replace(/\s/g,'').replace(',','.')); return isNaN(x)?0:x; };
 const gFmt=(v,d=2)=>Number(v||0).toLocaleString('ro-RO',{minimumFractionDigits:d,maximumFractionDigits:d});
 const gQ=v=>Number(v||0).toLocaleString('ro-RO',{maximumFractionDigits:3});
@@ -1668,10 +1668,9 @@ function gRenderInventar(){
     document.getElementById('invKpi').innerHTML=kpi('Articole cu diferențe',gQ(gInvRows.filter(r=>Math.abs(r.diff)>1e-9).length),'#f1f5f9')+kpi('Plusuri',gFmt(plus)+' lei','#4ade80')+kpi('Minusuri',gFmt(minus)+' lei','#f87171')+kpi('Net',gFmt(plus+minus)+' lei',(plus+minus)<0?'#f87171':'#4ade80')+kpi('Explicat prin zona gri',gFmt(griExpl)+' lei','#fbbf24');
     const th='style="text-align:right;padding:9px 10px;background:#0a1628;color:#64748b;font-size:10.5px;text-transform:uppercase;white-space:nowrap;"', thl='style="text-align:left;padding:9px 10px;background:#0a1628;color:#64748b;font-size:10.5px;text-transform:uppercase;"';
     let h='<thead><tr><th '+thl+'>Cod</th><th '+thl+'>Denumire</th><th '+thl+'>Gest.</th><th '+th+'>Scriptic</th><th '+th+'>− Zona gri</th><th '+th+'>= Așteptat</th><th '+th+'>Faptic</th><th '+th+'>Diferență</th><th '+th+'>Valoare dif.</th></tr></thead><tbody>';
-    gInvRows.slice(0,500).forEach(r=>{ const td='style="padding:7px 10px;border-top:1px solid #16263f;color:#cbd5e1;"', tr='style="padding:7px 10px;border-top:1px solid #16263f;color:#cbd5e1;text-align:right;white-space:nowrap;"'; const c=r.diff>0?'#4ade80':r.diff<0?'#f87171':'#94a3b8';
+    gInvRows.forEach(r=>{ const td='style="padding:7px 10px;border-top:1px solid #16263f;color:#cbd5e1;"', tr='style="padding:7px 10px;border-top:1px solid #16263f;color:#cbd5e1;text-align:right;white-space:nowrap;"'; const c=r.diff>0?'#4ade80':r.diff<0?'#f87171':'#94a3b8';
       h+='<tr><td '+td+'><span style="font-family:monospace;color:#94a3b8;">'+gE(gCode(r.g,r.cod))+'</span></td><td '+td+'>'+gE(r.den)+(!r.inF?' <span style="font-size:10px;color:#fbbf24;">nenumărat</span>':'')+'</td><td '+td+'>'+gE(r.g)+'</td><td '+tr+'>'+gQ(r.scr)+'</td><td '+tr+'>'+(r.gri?gQ(r.gri):'—')+'</td><td '+tr+'>'+gQ(r.exp)+'</td><td '+tr+'><b style="color:#f1f5f9;">'+gQ(r.fap)+'</b></td><td '+tr+'><b style="color:'+c+';">'+(r.diff>0?'+':'')+gQ(r.diff)+'</b></td><td '+tr+'><span style="color:'+c+';">'+gFmt(r.val)+'</span></td></tr>'; });
     if(!gInvRows.length) h+='<tr><td colspan="9" style="padding:18px;color:#4ade80;text-align:center;">Nicio diferență. Faptic = scriptic − zona gri.</td></tr>';
-    if(gInvRows.length>500) h+='<tr><td colspan="9" style="padding:10px;color:#64748b;text-align:center;">Afișate primele 500 — exportul Excel le conține pe toate ('+gInvRows.length+').</td></tr>';
     t.innerHTML=h+'</tbody>';
     // salvăm sumarul pentru istoric
     if(db && gImports[fid] && (!gImports[fid].cmp || gImports[fid].cmp.sid!==sid)) db.ref('shc_gestiune/imports/'+fid+'/cmp').set({sid,plus,minus,n:gInvRows.filter(r=>Math.abs(r.diff)>1e-9).length,ts:Date.now()});
@@ -1768,10 +1767,10 @@ function gShowTab(t){
   if(t==='inventar') gRenderInventar(); if(t==='transfer') gRenderTransfers(); if(t==='gri'){ gRenderGri(); gRenderProposals(); } if(t==='calitate') gRenderCalitate();
 }
 document.querySelectorAll('.gtab').forEach(b=>b.addEventListener('click',()=>gShowTab(b.dataset.gtab)));
-['stocSearch'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{ gStocLimit=200; gRenderStoc(); }));
-['stocGest','stocFilter'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{ gStocLimit=200; gRenderStoc(); }));
-document.getElementById('stocSort').addEventListener('change',()=>{ gStocSortCol=null; gStocLimit=200; gRenderStoc(); });
-document.getElementById('stocMore').addEventListener('click',()=>{ gStocLimit+=300; gRenderStoc(); });
+['stocSearch'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{ gStocLimit=1e9; gRenderStoc(); }));
+['stocGest','stocFilter'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{ gStocLimit=1e9; gRenderStoc(); }));
+document.getElementById('stocSort').addEventListener('change',()=>{ gStocSortCol=null; gStocLimit=1e9; gRenderStoc(); });
+document.getElementById('stocMore').addEventListener('click',()=>{ gStocLimit=1e9; gRenderStoc(); });
 ['griStatus'].forEach(id=>document.getElementById(id).addEventListener('change',gRenderGri));
 document.getElementById('griSearch').addEventListener('input',gRenderGri);
 ['invFaptic','invScriptic','invGest','invOnlyDiff'].forEach(id=>document.getElementById(id).addEventListener('change',gRenderInventar));
