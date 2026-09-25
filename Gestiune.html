@@ -1738,6 +1738,21 @@ function gRenderCalitate(){
     sec('Aceeași denumire pe coduri diferite ('+dups.length+')','De corectat în programul de contabilitate. Sortate după valoare.'+(dups.length?' <button id="btnDupExport" style="margin-left:8px;background:#16a34a;color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:11.5px;font-weight:700;cursor:pointer;">📊 Export Excel (comasate)</button>':''), dups.map(l=>'<div style="padding:7px 0;border-top:1px solid #16263f;font-size:12.5px;color:#cbd5e1;"><b>'+gE(l[0].den)+'</b><div style="color:#94a3b8;">'+l.map(i=>'<span style="font-family:monospace;">'+gE(i.cod)+'</span> ('+gE(i.g)+': '+gQ(i.fin)+' '+gE(i.um)+', '+gFmt(i.val)+' lei)').join(' · ')+'</div></div>').join('')||'<div style="color:#4ade80;font-size:12.5px;">Niciun duplicat.</div>')+
     sec('Stoc fără preț mediu ('+noPrice.length+')','Afectează valoarea stocului și calculul diferențelor de inventar.', noPrice.map(i=>'<div style="padding:6px 0;border-top:1px solid #16263f;font-size:12.5px;color:#cbd5e1;"><span style="font-family:monospace;color:#94a3b8;">'+gE(i.cod)+'</span> '+gE(i.den)+' — '+gQ(i.fin)+' '+gE(i.um)+' ('+gE(i.g)+')</div>').join('')||'<div style="color:#4ade80;font-size:12.5px;">Toate au preț.</div>')+
     '' + sec('Unități de măsură corectate automat','La ultimul import: <b style="color:#f1f5f9;">'+(meta.umFixed||0)+'</b> rânduri (BUIC/BYUC/BU8C/B UC/goale → BUC, LM → ML).','');
+  const bx=document.getElementById('btnDupExport'); if(bx) bx.onclick=()=>gExportDuplicates(dups);
+}
+function gExportDuplicates(dups){
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"'; const n=(v,d=3)=>String(Math.round(v*Math.pow(10,d))/Math.pow(10,d)).replace('.',',');
+  const uniq=a=>[...new Set(a.filter(Boolean))].join(' / ');
+  let csv=['Cod','Denumire','Gest.','UM','Stoc','Gri','Disponibil','Preț mediu','Valoare'].map(q).join(';')+'\n';
+  const T={fin:0,gri:0,val:0};
+  dups.forEach(l=>{
+    const rows=l.map(it=>{ const k=gKey(it.g,it.cod); const pd=gPendInv(k); return {cod:it.cod,g:it.g,um:it.um,fin:it.fin-pd,gri:gGriQty(k),val:it.val-pd*it.pm}; });
+    const fin=rows.reduce((a,r)=>a+r.fin,0), gri=rows.reduce((a,r)=>a+r.gri,0), val=rows.reduce((a,r)=>a+r.val,0);
+    T.fin+=fin; T.gri+=gri; T.val+=val;
+    csv+=[q(uniq(rows.map(r=>r.cod))),q(l[0].den),q(uniq(rows.map(r=>r.g))),q(uniq(rows.map(r=>r.um))),n(fin),n(gri),n(fin-gri),n(fin?val/fin:0,4),n(val,2)].join(';')+'\n';
+  });
+  csv+='\n'+[q('TOTAL ('+dups.length+' produse comasate)'),'','','',n(T.fin),n(T.gri),n(T.fin-T.gri),'',n(T.val,2)].join(';')+'\n';
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'})); a.download='Duplicate_comasate_'+gToday()+'.csv'; document.body.appendChild(a); a.click(); a.remove();
 }
 
 // ── Navigare ──
