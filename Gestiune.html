@@ -1452,6 +1452,7 @@ const G_PREFIX={'SEDIU':'SD','CLIMATIZARE':'CL','PR.PISCINA':'PI','PISCINA':'PI'
 function gCode(g,cod){ const p=G_PREFIX[String(g||'').toUpperCase().trim()]||String(g||'').toUpperCase().replace(/[^A-Z]/g,'').slice(0,2)||'XX'; return p+'-'+cod; }
 const G_GRI_DAYS=14;
 const G_UM_MAP={BUIC:'BUC',BYUC:'BUC',BU8C:'BUC','B UC':'BUC',BUCS:'BUC',BUV:'BUC',BCU:'BUC',BIC:'BUC','BUC D':'BUC',UNIT:'BUC',LM:'ML','':'BUC'};
+let gStocSortCol=null, gStocSortDir=1;
 let gImports={}, gSnap=null, gSnapId=null, gGri={}, gTr={}, gTab='stoc', gStocLimit=200, gSnapCache={};
 const gN=v=>{ const x=parseFloat(String(v==null?'':v).replace(/\s/g,'').replace(',','.')); return isNaN(x)?0:x; };
 const gFmt=(v,d=2)=>Number(v||0).toLocaleString('ro-RO',{minimumFractionDigits:d,maximumFractionDigits:d});
@@ -1532,18 +1533,21 @@ function gRenderStoc(){
   const dup=gDupSet();
   let arr=Object.entries(gSnap||{}).map(([k,i])=>{ const pend=gPendInv(k); return {...i,k,scrFin:i.fin,pend,fin:i.fin-pend,val:i.val-pend*i.pm,gri:gGriQty(k),dup:dup.has(i.cod),noPrice:i.fin>0&&!i.pm}; });
   arr=arr.filter(i=>(!gf||i.g===gf)&&(!q||gNorm(gCode(i.g,i.cod)+i.cod+i.den).includes(q))&&(flt!=='cu'||i.scrFin>0||i.pend>0)&&(flt!=='gri'||i.gri>0)&&(flt!=='flag'||i.dup||i.noPrice));
-  arr.sort((a,b)=>sort==='val'?b.val-a.val:sort==='fin'?b.fin-a.fin:sort==='cod'?a.cod.localeCompare(b.cod):a.den.localeCompare(b.den,'ro'));
+  if(gStocSortCol){ const c=gStocSortCol, d=gStocSortDir; const v=i=>c==='cod'?gCode(i.g,i.cod):c==='disp'?(i.fin-i.gri):i[c]; arr.sort((a,b)=>{ const x=v(a), y=v(b); return (typeof x==='number'&&typeof y==='number'?x-y:String(x||'').localeCompare(String(y||''),'ro',{numeric:true}))*d; }); }
+  else arr.sort((a,b)=>sort==='val'?b.val-a.val:sort==='fin'?b.fin-a.fin:sort==='cod'?a.cod.localeCompare(b.cod):a.den.localeCompare(b.den,'ro'));
   const totVal=arr.reduce((a,i)=>a+i.val,0), griVal=arr.reduce((a,i)=>a+i.gri*i.pm,0);
   const kpi=(l,v,c)=>'<div style="background:#0d1b2e;border:1px solid #1e3a5f;border-radius:10px;padding:10px 12px;"><div style="font-size:10.5px;color:#64748b;font-weight:700;text-transform:uppercase;">'+l+'</div><div style="font-size:17px;font-weight:800;color:'+(c||'#f1f5f9')+';margin-top:2px;">'+v+'</div></div>';
   document.getElementById('stocKpi').innerHTML=kpi('Articole',gQ(arr.length))+kpi('Valoare stoc',gFmt(totVal)+' lei')+kpi('În zona gri',gFmt(griVal)+' lei','#fbbf24')+kpi('Disponibil real',gFmt(totVal-griVal)+' lei','#a78bfa');
   const th='style="text-align:left;padding:9px 10px;background:#0a1628;color:#64748b;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;position:sticky;top:0;"';
-  let h='<thead><tr><th '+th+'>Cod</th><th '+th+'>Denumire</th><th '+th+'>Gest.</th><th '+th+'>UM</th><th '+th+' style="text-align:right;">Stoc</th><th '+th+'>Gri</th><th '+th+'>Disponibil</th><th '+th+'>Preț mediu</th><th '+th+'>Valoare</th></tr></thead><tbody>';
+  const cols=[['cod','Cod'],['den','Denumire'],['g','Gest.'],['um','UM'],['fin','Stoc'],['gri','Gri'],['disp','Disponibil'],['pm','Preț mediu'],['val','Valoare']];
+  let h='<thead><tr>'+cols.map(([c,l])=>{ const on=gStocSortCol===c; return '<th data-scol="'+c+'" title="Sortează" style="text-align:'+(['fin','gri','disp','pm','val'].includes(c)?'right':'left')+';padding:9px 10px;background:#0a1628;color:'+(on?'#a78bfa':'#64748b')+';font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;position:sticky;top:0;cursor:pointer;user-select:none;white-space:nowrap;">'+l+' <span style="opacity:'+(on?1:.35)+';">'+(on?(gStocSortDir>0?'▲':'▼'):'↕')+'</span></th>'; }).join('')+'</tr></thead><tbody>';
   arr.slice(0,gStocLimit).forEach(i=>{
     const td='style="padding:8px 10px;border-top:1px solid #16263f;color:#cbd5e1;"', tdr='style="padding:8px 10px;border-top:1px solid #16263f;color:#cbd5e1;text-align:right;white-space:nowrap;"';
     h+='<tr><td '+td+'><span style="font-family:monospace;color:#94a3b8;">'+gE(gCode(i.g,i.cod))+'</span></td><td '+td+'>'+gE(i.den)+(i.dup?' <span title="Aceeași denumire pe alt cod" style="background:#7c2d12;color:#fed7aa;font-size:10px;padding:1px 6px;border-radius:999px;">duplicat</span>':'')+(i.noPrice?' <span style="background:#7f1d1d;color:#fecaca;font-size:10px;padding:1px 6px;border-radius:999px;">fără preț</span>':'')+'</td><td '+td+'>'+gE(i.g)+'</td><td '+td+'>'+gE(i.um)+'</td><td '+tdr+'><b style="color:#f1f5f9;">'+gQ(i.fin)+'</b>'+(i.pend?'<div title="Facturat în aplicație, încă neapărut în importul din contabilitate" style="font-size:10.5px;color:#4ade80;font-weight:600;">−'+gQ(i.pend)+' facturat</div>':'')+'</td><td '+tdr+'>'+(i.gri?'<span style="color:#fbbf24;font-weight:700;">'+gQ(i.gri)+'</span>':'—')+'</td><td '+tdr+'>'+gQ(i.fin-i.gri)+'</td><td '+tdr+'>'+gFmt(i.pm,4).replace(/0{1,2}$/,'')+'</td><td '+tdr+'>'+gFmt(i.val)+'</td></tr>';
   });
   if(!arr.length) h+='<tr><td colspan="9" style="padding:18px;color:#64748b;text-align:center;">Niciun articol.</td></tr>';
   t.innerHTML=h+'</tbody>';
+  t.querySelectorAll('th[data-scol]').forEach(el=>el.onclick=()=>{ const c=el.dataset.scol; if(gStocSortCol===c) gStocSortDir=-gStocSortDir; else { gStocSortCol=c; gStocSortDir=['fin','gri','disp','pm','val'].includes(c)?-1:1; } gRenderStoc(); });
   const more=document.getElementById('stocMore'); more.style.display=arr.length>gStocLimit?'inline-block':'none'; more.textContent='Arată mai multe ('+(arr.length-gStocLimit)+' rămase)';
 }
 
@@ -1765,7 +1769,8 @@ function gShowTab(t){
 }
 document.querySelectorAll('.gtab').forEach(b=>b.addEventListener('click',()=>gShowTab(b.dataset.gtab)));
 ['stocSearch'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{ gStocLimit=200; gRenderStoc(); }));
-['stocGest','stocFilter','stocSort'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{ gStocLimit=200; gRenderStoc(); }));
+['stocGest','stocFilter'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{ gStocLimit=200; gRenderStoc(); }));
+document.getElementById('stocSort').addEventListener('change',()=>{ gStocSortCol=null; gStocLimit=200; gRenderStoc(); });
 document.getElementById('stocMore').addEventListener('click',()=>{ gStocLimit+=300; gRenderStoc(); });
 ['griStatus'].forEach(id=>document.getElementById(id).addEventListener('change',gRenderGri));
 document.getElementById('griSearch').addEventListener('input',gRenderGri);
