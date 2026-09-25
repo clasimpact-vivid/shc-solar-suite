@@ -2247,6 +2247,7 @@ class Component extends DCLogic {
       const cfg = data.config||{};
       const legacyU = this._fbData.legacyUsers;
       const users = (cfg.users&&cfg.users.length)?cfg.users:((legacyU&&legacyU.length)?legacyU:DEFAULT_USERS);
+      if(cfg.users&&cfg.users.length) this._serverUsersCount = cfg.users.length;
       const adminPw = cfg.adminPw||null;
       if(adminPw) this.adminPassword = adminPw;
       const adminPin = cfg.adminPin||null;
@@ -2368,10 +2369,22 @@ class Component extends DCLogic {
           }
         }
         // Config separat — scrie doar cheile proprii, nu tot nodul (Pontaj ține și el date sub config: fieldWorkers/jobs/teams)
-        db.ref('solarcrm_v2/config/users').set(users);
-        db.ref('solarcrm_v2/config/adminPw').set(this.adminPassword);
-        db.ref('solarcrm_v2/config/adminPin').set(this.adminPin);
-        db.ref('solarcrm_v2/config/companyInfo').set(companyInfo);
+        // Lista de utilizatori se scrie DOAR la modificări explicite de utilizatori (onlyId==='users' sau usersOverride),
+        // niciodată la salvarea unei lucrări — altfel un calculator cu listă veche/incompletă suprascrie lista tuturor.
+        const usersExplicit = onlyId==='users' || !!usersOverride;
+        const serverCount = this._serverUsersCount||0;
+        if(usersExplicit && this._initialized && Array.isArray(users) && users.length>0){
+          if(serverCount && users.length < serverCount - 3 && !this._allowUserShrink){
+            console.warn('[persist] Blocat: lista locală ('+users.length+') e mult mai mică decât cea de pe server ('+serverCount+').');
+          } else {
+            db.ref('solarcrm_v2/config/users').set(users);
+            this._serverUsersCount = users.length;
+          }
+          this._allowUserShrink=false;
+          db.ref('solarcrm_v2/config/adminPw').set(this.adminPassword);
+          db.ref('solarcrm_v2/config/adminPin').set(this.adminPin);
+        }
+        if(onlyId==='users' || onlyId==null) db.ref('solarcrm_v2/config/companyInfo').set(companyInfo);
       }
       return writePromise;
     } catch(e){ return null; }
