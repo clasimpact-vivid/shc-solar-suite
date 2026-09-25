@@ -149,6 +149,11 @@ a:hover{color:#93c5fd;}
 </div>
 
 <div id="app">
+  <div id="fbOfflineBanner" style="display:none;background:#dc2626;color:#fff;padding:8px 16px;align-items:center;gap:10px;font-size:12.5px;font-weight:600;flex-wrap:wrap;">
+    <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#fff;flex:none;"></span>
+    <span style="flex:1;min-width:180px;">Neconectat la server — vezi date locale, posibil vechi. Nu editezi date reale până nu se reconectează.</span>
+    <button onclick="location.reload()" style="background:#fff;color:#dc2626;border:none;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;flex:none;">Reconectează</button>
+  </div>
   <div id="topBar">
     <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
       <button class="hamburger" id="btnHamburger" aria-label="Meniu">
@@ -172,7 +177,106 @@ a:hover{color:#93c5fd;}
     </div>
   </div>
 
-  <div id="layout">
+  <div id="gestLayout" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+  <div style="display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid #1e3a5f;padding:0 12px;background:#0a1628;flex:none;">
+    <button data-gtab="stoc" class="gtab" style="background:none;border:none;border-bottom:2px solid transparent;color:#94a3b8;padding:12px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;">📦 Stoc</button><button data-gtab="gri" class="gtab" style="background:none;border:none;border-bottom:2px solid transparent;color:#94a3b8;padding:12px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;">⏳ Zona gri <span id="griBadge" style="display:none;background:#dc2626;color:#fff;border-radius:999px;padding:1px 7px;font-size:10.5px;margin-left:4px;"></span></button><button data-gtab="transfer" class="gtab" style="background:none;border:none;border-bottom:2px solid transparent;color:#94a3b8;padding:12px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;">🔁 Transferuri</button><button data-gtab="inventar" class="gtab" style="background:none;border:none;border-bottom:2px solid transparent;color:#94a3b8;padding:12px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;">📋 Inventar</button><button data-gtab="import" class="gtab" style="background:none;border:none;border-bottom:2px solid transparent;color:#94a3b8;padding:12px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;">⬆ Import</button><button data-gtab="calitate" class="gtab" style="background:none;border:none;border-bottom:2px solid transparent;color:#94a3b8;padding:12px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;">🧹 Calitate date</button>
+  </div>
+  <div id="gestMain" style="flex:1;overflow:auto;padding:16px;">
+    <div id="gView_stoc" class="gview">
+      <div id="stocMeta" style="font-size:12px;color:#94a3b8;margin-bottom:10px;"></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+        <input id="stocSearch" placeholder="🔍 Caută după cod sau denumire..." style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;flex:1;min-width:220px;">
+        <select id="stocGest" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;"><option value="">Toate gestiunile</option></select>
+        <select id="stocFilter" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;"><option value="cu">Doar cu stoc</option><option value="">Toate articolele</option><option value="gri">Cu marfă în zona gri</option><option value="flag">Cu probleme (duplicat / fără preț)</option></select>
+        <select id="stocSort" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;"><option value="den">Denumire A–Z</option><option value="val">Valoare ↓</option><option value="fin">Cantitate ↓</option><option value="cod">Cod</option></select>
+      </div>
+      <div id="stocKpi" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:12px;"></div>
+      <div style="overflow-x:auto;background:#0d1b2e;border:1px solid #1e3a5f;border-radius:12px;padding:16px;padding:0;"><table id="stocTable" style="width:100%;border-collapse:collapse;font-size:12.5px;"></table></div>
+      <div style="text-align:center;margin-top:10px;"><button id="stocMore" style="background:#1e3a5f;color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:none;">Arată mai multe</button></div>
+    </div>
+
+    <div id="gView_gri" class="gview" style="display:none;">
+      <div style="background:#0d1b2e;border:1px solid #1e3a5f;border-radius:12px;padding:16px;margin-bottom:14px;">
+        <div style="font-size:14px;font-weight:800;color:#f1f5f9;margin-bottom:4px;">Ieșire fără factură</div>
+        <div style="font-size:12px;color:#94a3b8;margin-bottom:12px;">Marfa predată fizic, dar nefacturată. Nu modifică stocul scriptic; scade doar „disponibilul real". Alertă după <b>14 zile</b> fără factură.</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+          <div style="grid-column:1/-1;position:relative;"><label style="display:block;font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Articol</label><input id="griArt" placeholder="Caută cod sau denumire..." style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;width:100%;" autocomplete="off"><div id="griArtList" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:50;background:#0b1426;border:1px solid #1e3a5f;border-radius:8px;max-height:260px;overflow:auto;"></div></div>
+          <div><label style="display:block;font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Cantitate</label><input id="griQty" type="number" min="0" step="any" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;width:100%;"></div>
+          <div><label style="display:block;font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Tip destinatar</label><select id="griToType" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;width:100%;"><option>Client</option><option>Șantier</option><option>Coleg</option></select></div>
+          <div><label style="display:block;font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Destinatar</label><input id="griTo" list="griToList" placeholder="Nume client / șantier / coleg" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;width:100%;"><datalist id="griToList"></datalist></div>
+          <div><label style="display:block;font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Termen facturare</label><input id="griDue" placeholder="ZZ/LL/AAAA" maxlength="10" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;width:100%;"></div>
+          <div style="grid-column:1/-1;"><label style="display:block;font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Observații</label><input id="griNote" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;width:100%;"></div>
+        </div>
+        <div id="griArtInfo" style="font-size:12px;color:#94a3b8;margin-top:8px;"></div>
+        <button id="griSave" style="background:#a78bfa;color:#1e1b4b;border:none;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:12px;">Înregistrează ieșirea</button>
+      </div>
+      <div id="griProposals"></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;align-items:center;">
+        <select id="griStatus" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;"><option value="open">Deschise</option><option value="overdue">Depășite (&gt;14 zile)</option><option value="invoiced">Facturate</option><option value="returned">Returnate</option><option value="">Toate</option></select>
+        <input id="griSearch" placeholder="🔍 Caută..." style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;flex:1;min-width:180px;">
+      </div>
+      <div style="overflow-x:auto;background:#0d1b2e;border:1px solid #1e3a5f;border-radius:12px;padding:16px;padding:0;"><table id="griTable" style="width:100%;border-collapse:collapse;font-size:12.5px;"></table></div>
+    </div>
+
+    <div id="gView_transfer" class="gview" style="display:none;">
+      <div style="background:#0d1b2e;border:1px solid #1e3a5f;border-radius:12px;padding:16px;margin-bottom:14px;">
+        <div style="font-size:14px;font-weight:800;color:#f1f5f9;margin-bottom:4px;">Transfer între gestiuni / pe șantier</div>
+        <div style="font-size:12px;color:#94a3b8;margin-bottom:12px;">Mutare internă — nu e vânzare, nu intră în zona gri. Se oglindește în contabilitate prin reimport.</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+          <div style="grid-column:1/-1;position:relative;"><label style="display:block;font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Articol</label><input id="trArt" placeholder="Caută cod sau denumire..." style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;width:100%;" autocomplete="off"><div id="trArtList" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:50;background:#0b1426;border:1px solid #1e3a5f;border-radius:8px;max-height:260px;overflow:auto;"></div></div>
+          <div><label style="display:block;font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Cantitate</label><input id="trQty" type="number" min="0" step="any" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;width:100%;"></div>
+          <div><label style="display:block;font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Din gestiunea</label><select id="trFrom" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;width:100%;"></select></div>
+          <div><label style="display:block;font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Către</label><select id="trToKind" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;width:100%;"><option value="gest">Altă gestiune</option><option value="santier">Șantier (lucrare SolarCRM)</option></select></div>
+          <div id="trToGestWrap"><label style="display:block;font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Gestiunea destinație</label><select id="trToGest" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;width:100%;"></select></div>
+          <div id="trToSantWrap" style="display:none;"><label style="display:block;font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Lucrare</label><select id="trToSant" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;width:100%;"></select></div>
+          <div style="grid-column:1/-1;"><label style="display:block;font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Observații</label><input id="trNote" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;width:100%;"></div>
+        </div>
+        <button id="trSave" style="background:#a78bfa;color:#1e1b4b;border:none;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:12px;">Înregistrează transferul</button>
+      </div>
+      <div style="font-size:13px;font-weight:800;color:#f1f5f9;margin:6px 0 8px;">Stoc pe șantiere (din transferuri)</div>
+      <div id="santSummary" style="margin-bottom:16px;"></div>
+      <div style="font-size:13px;font-weight:800;color:#f1f5f9;margin:6px 0 8px;">Istoric transferuri</div>
+      <div style="overflow-x:auto;background:#0d1b2e;border:1px solid #1e3a5f;border-radius:12px;padding:16px;padding:0;"><table id="trTable" style="width:100%;border-collapse:collapse;font-size:12.5px;"></table></div>
+    </div>
+
+    <div id="gView_inventar" class="gview" style="display:none;">
+      <div style="background:#0d1b2e;border:1px solid #1e3a5f;border-radius:12px;padding:16px;margin-bottom:14px;">
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;">
+          <div style="flex:1;min-width:200px;"><label style="display:block;font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Inventar faptic</label><select id="invFaptic" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;width:100%;"></select></div>
+          <div style="flex:1;min-width:200px;"><label style="display:block;font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Comparat cu stocul scriptic</label><select id="invScriptic" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;width:100%;"></select></div>
+          <div style="min-width:150px;"><label style="display:block;font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Gestiune</label><select id="invGest" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;width:100%;"><option value="">Toate</option></select></div>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#cbd5e1;padding-bottom:9px;"><input type="checkbox" id="invOnlyDiff" checked> Doar diferențe</label>
+          <button id="invExport" style="background:#16a34a;color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">📊 Export Excel</button>
+        </div>
+      </div>
+      <div id="invKpi" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:12px;"></div>
+      <div style="overflow-x:auto;background:#0d1b2e;border:1px solid #1e3a5f;border-radius:12px;padding:16px;padding:0;"><table id="invTable" style="width:100%;border-collapse:collapse;font-size:12.5px;"></table></div>
+      <div style="font-size:13px;font-weight:800;color:#f1f5f9;margin:18px 0 8px;">Istoric inventare</div>
+      <div style="overflow-x:auto;background:#0d1b2e;border:1px solid #1e3a5f;border-radius:12px;padding:16px;padding:0;"><table id="invHistory" style="width:100%;border-collapse:collapse;font-size:12.5px;"></table></div>
+    </div>
+
+    <div id="gView_import" class="gview" style="display:none;">
+      <div style="background:#0d1b2e;border:1px solid #1e3a5f;border-radius:12px;padding:16px;max-width:720px;">
+        <div style="font-size:14px;font-weight:800;color:#f1f5f9;margin-bottom:4px;">Import situație stocuri (CSV)</div>
+        <div style="font-size:12px;color:#94a3b8;margin-bottom:12px;line-height:1.55;">Din programul de contabilitate: Excel → <b>Salvare ca CSV</b>. Coloane așteptate: den_gest, denumire, cod_art, um, cant_init, cant_int, cant_ies, cant_fin, pret_mediu, valoare. Pentru inventarul faptic folosește același format (contează <b>cant_fin</b> = cantitatea numărată).</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+          <div><label style="display:block;font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Tip</label><select id="impType" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;width:100%;"><option value="scriptic">Stoc scriptic (contabilitate)</option><option value="faptic">Inventar faptic (numărat)</option></select></div>
+          <div><label style="display:block;font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Data situației</label><input id="impDate" placeholder="ZZ/LL/AAAA" maxlength="10" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;width:100%;"></div>
+          <div style="grid-column:1/-1;"><label style="display:block;font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Fișier CSV</label><input id="impFile" type="file" accept=".csv,text/csv" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;width:100%;"></div>
+        </div>
+        <div id="impPreview" style="margin-top:12px;font-size:12.5px;color:#cbd5e1;"></div>
+        <button id="impSave" style="background:#a78bfa;color:#1e1b4b;border:none;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:12px;display:none;">Salvează importul</button>
+      </div>
+      <div style="font-size:13px;font-weight:800;color:#f1f5f9;margin:18px 0 8px;">Importuri anterioare</div>
+      <div style="overflow-x:auto;background:#0d1b2e;border:1px solid #1e3a5f;border-radius:12px;padding:16px;padding:0;"><table id="impHistory" style="width:100%;border-collapse:collapse;font-size:12.5px;"></table></div>
+    </div>
+
+    <div id="gView_calitate" class="gview" style="display:none;">
+      <div id="calContent"></div>
+    </div>
+  </div>
+</div>
+<div id="layout" style="display:none !important;">
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
     <div id="sidebar">
       <div id="sidebarHeader">
@@ -512,34 +616,14 @@ function attachDateAutoFormat(id){
 try{
   if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
   db=firebase.database();
-}catch(e){ console.warn('Firebase:',e); }
+  db.ref('.info/connected').on('value', snap=>{
+    const el=document.getElementById('fbOfflineBanner');
+    if(el) el.style.display = snap.val()===true ? 'none' : 'flex';
+  });
+}catch(e){ console.warn('Firebase:',e); const el=document.getElementById('fbOfflineBanner'); if(el) el.style.display='flex'; }
 
 function loadFirebase(){
   if(!db) return;
-  db.ref('shc_logistica/comenzi').on('value', snap=>{
-    const raw=snap.val()||{};
-    comenzi={};
-    Object.values(raw).filter(v=>v&&v.id).forEach(v=>{ comenzi[v.id]=v; });
-    renderList();
-  });
-  db.ref('shc_logistica/procese').on('value', snap=>{
-    const raw=snap.val()||{};
-    procese={};
-    Object.values(raw).filter(v=>v&&v.id).forEach(v=>{ procese[v.id]=v; });
-    renderList();
-  });
-  db.ref('shc_logistica/stoc').on('value', snap=>{
-    const raw=snap.val()||{};
-    stoc={};
-    Object.values(raw).filter(Boolean).forEach(v=>{ stoc[v.id]=v; });
-    if(activeTab==='stoc') renderList();
-  });
-  db.ref('shc_logistica/solicitari').on('value', snap=>{
-    const raw=snap.val()||{};
-    solicitari={};
-    Object.values(raw).filter(v=>v&&v.id).forEach(v=>{ solicitari[v.id]=v; });
-    renderList();
-  });
   db.ref('solarcrm_v2/config').once('value', snap=>{
     const cfg=snap.val()||{};
     if(cfg.users&&Array.isArray(cfg.users)&&cfg.users.length){
@@ -1320,6 +1404,321 @@ document.getElementById('btnDeleteStoc').addEventListener('click',()=>{
   renderList();
 });
 
+</script>
+<script>
+// ═════════════ GESTIUNE — stoc scriptic, zona gri, transferuri, inventar ═════════════
+const G_GRI_DAYS=14;
+const G_UM_MAP={BUIC:'BUC',BYUC:'BUC',BU8C:'BUC','B UC':'BUC',BUCS:'BUC',BUV:'BUC',BCU:'BUC',BIC:'BUC','BUC D':'BUC',UNIT:'BUC',LM:'ML','':'BUC'};
+let gImports={}, gSnap=null, gSnapId=null, gGri={}, gTr={}, gTab='stoc', gStocLimit=200, gSnapCache={};
+const gN=v=>{ const x=parseFloat(String(v==null?'':v).replace(/\s/g,'').replace(',','.')); return isNaN(x)?0:x; };
+const gFmt=(v,d=2)=>Number(v||0).toLocaleString('ro-RO',{minimumFractionDigits:d,maximumFractionDigits:d});
+const gQ=v=>Number(v||0).toLocaleString('ro-RO',{maximumFractionDigits:3});
+const gE=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const gD2I=s=>{ const p=String(s||'').split('/'); return p.length===3&&p[2].length===4?p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0'):''; };
+const gI2D=s=>{ if(!s) return ''; const p=s.split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:''; };
+const gToday=()=>{ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const gAddDays=(iso,n)=>{ const d=new Date(iso+'T00:00:00'); d.setDate(d.getDate()+n); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const gKey=(g,c)=>String(g||'').replace(/[.#$\[\]\/]/g,'_')+'|'+String(c||'');
+const gNorm=n=>String(n||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/^[^A-Z0-9]+/,'').replace(/[^A-Z0-9]/g,'');
+const gTok=n=>String(n||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').split(/[^a-z]+/).filter(x=>x.length>1);
+function gHas(...w){ const t=gTok(currentUser&&currentUser.name); return w.every(x=>t.includes(x)); }
+function gCanAccess(u){ if(!u) return false; if(['_admin','u_chirila','u_nicoras'].includes(u.id)) return true; const t=gTok(u.name); return (t.includes('chirila')&&t.includes('alexandru'))||(t.includes('nicoras')&&t.includes('ionut'))||(t.includes('simon')&&t.includes('eszter'))||(t.includes('ardelean')&&t.includes('stefan')); }
+function gIsBoss(){ return !!currentUser && (['_admin','u_chirila','u_nicoras'].includes(currentUser.id)||gHas('chirila','alexandru')||gHas('nicoras','ionut')); }
+function gCanScriptic(){ return gIsBoss()||gHas('simon','eszter'); }
+
+function gParseCSV(t){ const delim=(t.split('\n')[0].split(';').length>=t.split('\n')[0].split(',').length)?';':','; const out=[]; let row=[],f='',q=false; for(let i=0;i<t.length;i++){ const c=t[i]; if(q){ if(c=='"'){ if(t[i+1]=='"'){f+='"';i++;} else q=false; } else f+=c; } else { if(c=='"') q=true; else if(c===delim){row.push(f);f='';} else if(c=='\n'){ row.push(f.replace(/\r$/,'')); out.push(row); row=[]; f=''; } else f+=c; } } if(f||row.length){row.push(f.replace(/\r$/,''));out.push(row);} return out.filter(r=>r.length>1||r[0]); }
+function gRowsFromCSV(text){
+  const all=gParseCSV(text.replace(/^\uFEFF/,'')); if(!all.length) return {items:{},err:'Fișier gol.'};
+  const hdr=all[0].map(h=>h.trim().toLowerCase());
+  const ix=n=>hdr.indexOf(n);
+  if(ix('cod_art')<0||ix('cant_fin')<0) return {items:{},err:'Lipsesc coloanele cod_art / cant_fin.'};
+  const items={}; let umFixed=0;
+  all.slice(1).forEach(c=>{
+    const cod=(c[ix('cod_art')]||'').trim(); if(!cod) return;
+    const g=(ix('den_gest')>=0?(c[ix('den_gest')]||'').trim():'')||'SEDIU';
+    let um=(ix('um')>=0?(c[ix('um')]||''):'').trim().toUpperCase();
+    if(G_UM_MAP[um]!==undefined){ if(G_UM_MAP[um]!==um) umFixed++; um=G_UM_MAP[um]; }
+    const it={g,cod,den:(c[ix('denumire')]||'').trim(),um,init:gN(c[ix('cant_init')]),intr:gN(c[ix('cant_int')]),ies:gN(c[ix('cant_ies')]),fin:gN(c[ix('cant_fin')]),pm:gN(c[ix('pret_mediu')]),val:gN(c[ix('valoare')])};
+    const k=gKey(g,cod);
+    if(items[k]){ items[k].fin+=it.fin; items[k].val+=it.val; items[k].ies+=it.ies; items[k].intr+=it.intr; items[k].init+=it.init; }
+    else items[k]=it;
+  });
+  return {items,umFixed};
+}
+function gSummary(items){ const v=Object.values(items); return {n:v.length,cuStoc:v.filter(i=>i.fin>0).length,val:v.reduce((a,i)=>a+i.val,0),gest:[...new Set(v.map(i=>i.g))]}; }
+
+// ── Firebase ──
+function gLoad(){
+  if(!db) return;
+  db.ref('shc_gestiune/imports').on('value',snap=>{ gImports=snap.val()||{}; gAfterImports(); });
+  db.ref('shc_gestiune/gri').on('value',snap=>{ gGri=snap.val()||{}; gRenderGri(); gRenderStoc(); gBadge(); });
+  db.ref('shc_gestiune/transfers').on('value',snap=>{ gTr=snap.val()||{}; gRenderTransfers(); });
+}
+function gImportsSorted(type){ return Object.values(gImports).filter(i=>!type||i.type===type).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.ts||0)-(a.ts||0)); }
+function gGetSnap(id){ if(gSnapCache[id]) return Promise.resolve(gSnapCache[id]); return db.ref('shc_gestiune/snapshots/'+id).once('value').then(s=>{ gSnapCache[id]=s.val()||{}; return gSnapCache[id]; }); }
+function gAfterImports(){
+  const latest=gImportsSorted('scriptic')[0];
+  if(latest && latest.id!==gSnapId){ gSnapId=latest.id; gGetSnap(latest.id).then(it=>{ gSnap=it; gFillGest(); gRenderStoc(); gRenderCalitate(); gRenderProposals(); }); }
+  else if(!latest){ gSnap={}; gRenderStoc(); gRenderCalitate(); }
+  gRenderImpHistory(); gFillInventarSelects();
+}
+function gFillGest(){
+  const gs=new Set(['SEDIU','CLIMATIZARE','PR.PISCINA','AUTO']); Object.values(gSnap||{}).forEach(i=>gs.add(i.g));
+  const opts=[...gs].map(g=>'<option>'+gE(g)+'</option>').join('');
+  const sg=document.getElementById('stocGest'); const cur=sg.value; sg.innerHTML='<option value="">Toate gestiunile</option>'+opts; sg.value=cur;
+  const ig=document.getElementById('invGest'); const c2=ig.value; ig.innerHTML='<option value="">Toate</option>'+opts; ig.value=c2;
+  document.getElementById('trFrom').innerHTML=opts; document.getElementById('trToGest').innerHTML=opts;
+}
+
+// ── Zona gri helpers ──
+function gGriOpen(){ return Object.values(gGri).filter(x=>x&&x.status==='open'); }
+function gGriQty(k){ return gGriOpen().filter(x=>x.k===k).reduce((a,x)=>a+gN(x.qty),0); }
+function gIsOverdue(x){ return x.status==='open' && (x.due||gAddDays(x.date||gToday(),G_GRI_DAYS))<gToday(); }
+function gBadge(){ const n=gGriOpen().filter(gIsOverdue).length; const b=document.getElementById('griBadge'); if(b){ b.style.display=n?'inline-block':'none'; b.textContent=n; } }
+function gDupSet(){ const by={}; Object.values(gSnap||{}).forEach(i=>{ const k=gNorm(i.den); if(!k) return; (by[k]=by[k]||new Set()).add(i.cod); }); const d=new Set(); Object.values(by).forEach(set=>{ if(set.size>1) set.forEach(c=>d.add(c)); }); return d; }
+
+// ── STOC ──
+function gRenderStoc(){
+  const t=document.getElementById('stocTable'); if(!t) return;
+  const meta=gImportsSorted('scriptic')[0];
+  document.getElementById('stocMeta').innerHTML=meta?('Stoc scriptic la <b style="color:#f1f5f9;">'+gI2D(meta.date)+'</b> · importat de '+gE(meta.by||'')+' · '+gQ(meta.n)+' articole'):'Niciun import încă. Mergi la <b>⬆ Import</b> și încarcă situația stocurilor din contabilitate.';
+  const q=gNorm(document.getElementById('stocSearch').value), gf=document.getElementById('stocGest').value, flt=document.getElementById('stocFilter').value, sort=document.getElementById('stocSort').value;
+  const dup=gDupSet();
+  let arr=Object.entries(gSnap||{}).map(([k,i])=>({...i,k,gri:gGriQty(k),dup:dup.has(i.cod),noPrice:i.fin>0&&!i.pm}));
+  arr=arr.filter(i=>(!gf||i.g===gf)&&(!q||gNorm(i.cod+i.den).includes(q))&&(flt!=='cu'||i.fin>0)&&(flt!=='gri'||i.gri>0)&&(flt!=='flag'||i.dup||i.noPrice));
+  arr.sort((a,b)=>sort==='val'?b.val-a.val:sort==='fin'?b.fin-a.fin:sort==='cod'?a.cod.localeCompare(b.cod):a.den.localeCompare(b.den,'ro'));
+  const totVal=arr.reduce((a,i)=>a+i.val,0), griVal=arr.reduce((a,i)=>a+i.gri*i.pm,0);
+  const kpi=(l,v,c)=>'<div style="background:#0d1b2e;border:1px solid #1e3a5f;border-radius:10px;padding:10px 12px;"><div style="font-size:10.5px;color:#64748b;font-weight:700;text-transform:uppercase;">'+l+'</div><div style="font-size:17px;font-weight:800;color:'+(c||'#f1f5f9')+';margin-top:2px;">'+v+'</div></div>';
+  document.getElementById('stocKpi').innerHTML=kpi('Articole',gQ(arr.length))+kpi('Valoare scriptică',gFmt(totVal)+' lei')+kpi('În zona gri',gFmt(griVal)+' lei','#fbbf24')+kpi('Disponibil real',gFmt(totVal-griVal)+' lei','#a78bfa');
+  const th='style="text-align:left;padding:9px 10px;background:#0a1628;color:#64748b;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;position:sticky;top:0;"';
+  let h='<thead><tr><th '+th+'>Cod</th><th '+th+'>Denumire</th><th '+th+'>Gest.</th><th '+th+'>UM</th><th '+th+' style="text-align:right;">Stoc</th><th '+th+'>Gri</th><th '+th+'>Disponibil</th><th '+th+'>Preț mediu</th><th '+th+'>Valoare</th></tr></thead><tbody>';
+  arr.slice(0,gStocLimit).forEach(i=>{
+    const td='style="padding:8px 10px;border-top:1px solid #16263f;color:#cbd5e1;"', tdr='style="padding:8px 10px;border-top:1px solid #16263f;color:#cbd5e1;text-align:right;white-space:nowrap;"';
+    h+='<tr><td '+td+'><span style="font-family:monospace;color:#94a3b8;">'+gE(i.cod)+'</span></td><td '+td+'>'+gE(i.den)+(i.dup?' <span title="Aceeași denumire pe alt cod" style="background:#7c2d12;color:#fed7aa;font-size:10px;padding:1px 6px;border-radius:999px;">duplicat</span>':'')+(i.noPrice?' <span style="background:#7f1d1d;color:#fecaca;font-size:10px;padding:1px 6px;border-radius:999px;">fără preț</span>':'')+'</td><td '+td+'>'+gE(i.g)+'</td><td '+td+'>'+gE(i.um)+'</td><td '+tdr+'><b style="color:#f1f5f9;">'+gQ(i.fin)+'</b></td><td '+tdr+'>'+(i.gri?'<span style="color:#fbbf24;font-weight:700;">'+gQ(i.gri)+'</span>':'—')+'</td><td '+tdr+'>'+gQ(i.fin-i.gri)+'</td><td '+tdr+'>'+gFmt(i.pm,4).replace(/0{1,2}$/,'')+'</td><td '+tdr+'>'+gFmt(i.val)+'</td></tr>';
+  });
+  if(!arr.length) h+='<tr><td colspan="9" style="padding:18px;color:#64748b;text-align:center;">Niciun articol.</td></tr>';
+  t.innerHTML=h+'</tbody>';
+  const more=document.getElementById('stocMore'); more.style.display=arr.length>gStocLimit?'inline-block':'none'; more.textContent='Arată mai multe ('+(arr.length-gStocLimit)+' rămase)';
+}
+
+// ── Article picker ──
+function gPicker(inputId,listId,onPick){
+  const inp=document.getElementById(inputId), list=document.getElementById(listId);
+  inp.addEventListener('input',()=>{
+    const q=gNorm(inp.value); inp.dataset.k='';
+    if(q.length<2){ list.style.display='none'; return; }
+    const res=Object.entries(gSnap||{}).filter(([k,i])=>gNorm(i.cod+i.den).includes(q)).sort((a,b)=>b[1].fin-a[1].fin).slice(0,40);
+    list.innerHTML=res.map(([k,i])=>'<div data-k="'+gE(k)+'" style="padding:8px 10px;cursor:pointer;border-bottom:1px solid #16263f;font-size:12.5px;color:#e2e8f0;"><span style="font-family:monospace;color:#94a3b8;">'+gE(i.cod)+'</span> '+gE(i.den)+' <span style="color:#64748b;">· '+gE(i.g)+' · stoc '+gQ(i.fin)+' '+gE(i.um)+'</span></div>').join('')||'<div style="padding:10px;color:#64748b;font-size:12px;">Niciun rezultat</div>';
+    list.style.display='block';
+    list.querySelectorAll('[data-k]').forEach(d=>d.addEventListener('mousedown',e=>{ e.preventDefault(); const it=gSnap[d.dataset.k]; inp.value=it.cod+' — '+it.den; inp.dataset.k=d.dataset.k; list.style.display='none'; onPick&&onPick(d.dataset.k,it); }));
+  });
+  inp.addEventListener('blur',()=>setTimeout(()=>list.style.display='none',150));
+}
+
+// ── ZONA GRI ──
+function gRenderGri(){
+  const t=document.getElementById('griTable'); if(!t) return;
+  const st=document.getElementById('griStatus').value, q=gNorm(document.getElementById('griSearch').value);
+  let arr=Object.values(gGri).filter(Boolean).filter(x=>st==='overdue'?gIsOverdue(x):(!st||x.status===st)).filter(x=>!q||gNorm(x.cod+x.den+x.to+x.by).includes(q)).sort((a,b)=>(b.ts||0)-(a.ts||0));
+  const th='style="text-align:left;padding:9px 10px;background:#0a1628;color:#64748b;font-size:10.5px;text-transform:uppercase;"';
+  let h='<thead><tr><th '+th+'>Data</th><th '+th+'>Articol</th><th '+th+'>Cant.</th><th '+th+'>Valoare</th><th '+th+'>Destinatar</th><th '+th+'>Scos de</th><th '+th+'>Termen</th><th '+th+'>Status</th><th '+th+'></th></tr></thead><tbody>';
+  arr.forEach(x=>{
+    const od=gIsOverdue(x); const td='style="padding:8px 10px;border-top:1px solid #16263f;color:#cbd5e1;vertical-align:top;"';
+    const stb=x.status==='invoiced'?'<span style="background:#14532d;color:#86efac;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;">Facturat '+gE(x.invoiceNo||'')+'</span>':x.status==='returned'?'<span style="background:#1e3a5f;color:#93c5fd;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;">Returnat</span>':od?'<span style="background:#7f1d1d;color:#fecaca;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;">Depășit</span>':'<span style="background:#78350f;color:#fde68a;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;">Deschis</span>';
+    h+='<tr style="'+(od?'background:rgba(127,29,29,.18);':'')+'"><td '+td+'>'+gI2D(x.date)+'</td><td '+td+'><span style="font-family:monospace;color:#94a3b8;">'+gE(x.cod)+'</span> '+gE(x.den)+'<div style="font-size:11px;color:#64748b;">'+gE(x.g)+(x.note?' · '+gE(x.note):'')+'</div></td><td '+td+'>'+gQ(x.qty)+' '+gE(x.um||'')+'</td><td '+td+'>'+gFmt(gN(x.qty)*gN(x.pm))+'</td><td '+td+'>'+gE(x.toType||'')+': <b>'+gE(x.to||'')+'</b></td><td '+td+'>'+gE(x.by||'')+'</td><td '+td+'>'+gI2D(x.due)+'</td><td '+td+'>'+stb+(x.closedBy?'<div style="font-size:10.5px;color:#64748b;margin-top:3px;">'+gE(x.closedBy)+'</div>':'')+'</td><td '+td+' style="white-space:nowrap;">'+(x.status==='open'?'<button data-inv="'+x.id+'" style="background:#16a34a;color:#fff;border:none;border-radius:6px;padding:5px 9px;font-size:11.5px;font-weight:700;cursor:pointer;margin-right:4px;">Facturat</button><button data-ret="'+x.id+'" style="background:#1e3a5f;color:#fff;border:none;border-radius:6px;padding:5px 9px;font-size:11.5px;font-weight:700;cursor:pointer;">Returnat</button>':'')+(gIsBoss()?'<button data-del="'+x.id+'" title="Șterge" style="background:none;color:#64748b;border:none;cursor:pointer;margin-left:4px;">✕</button>':'')+'</td></tr>';
+  });
+  if(!arr.length) h+='<tr><td colspan="9" style="padding:18px;color:#64748b;text-align:center;">Nimic aici.</td></tr>';
+  t.innerHTML=h+'</tbody>';
+  t.querySelectorAll('[data-inv]').forEach(b=>b.onclick=()=>{ const no=prompt('Număr factură:'); if(!no) return; gCloseGri(b.dataset.inv,'invoiced',no.trim()); });
+  t.querySelectorAll('[data-ret]').forEach(b=>b.onclick=()=>{ if(confirm('Marfa a revenit fizic în gestiune?')) gCloseGri(b.dataset.ret,'returned',''); });
+  t.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ if(confirm('Ștergi definitiv această înregistrare?')) db.ref('shc_gestiune/gri/'+b.dataset.del).remove(); });
+  // destinatar suggestions
+  const dl=document.getElementById('griToList'); if(dl){ const names=new Set(); (typeof crmProjects!=='undefined'?crmProjects:[]).forEach(p=>p.client&&names.add(p.client)); (typeof loginUsers!=='undefined'?loginUsers:[]).forEach(u=>u.id!=='_admin'&&names.add(u.name)); dl.innerHTML=[...names].sort().map(n=>'<option value="'+gE(n)+'">').join(''); }
+}
+function gCloseGri(id,status,no){ const x=gGri[id]; if(!x) return; db.ref('shc_gestiune/gri/'+id).update({status,invoiceNo:no||null,closedBy:currentUser.name,closedAt:Date.now(),suggested:null}); }
+document.getElementById('griSave').addEventListener('click',()=>{
+  const k=document.getElementById('griArt').dataset.k; const it=k&&gSnap[k];
+  const qty=gN(document.getElementById('griQty').value), to=document.getElementById('griTo').value.trim();
+  if(!it){ alert('Alege articolul din listă.'); return; }
+  if(!(qty>0)){ alert('Cantitate invalidă.'); return; }
+  if(!to){ alert('Completează destinatarul.'); return; }
+  const avail=it.fin-gGriQty(k); if(qty>avail && !confirm('Cantitatea depășește disponibilul real ('+gQ(avail)+' '+it.um+'). Continui?')) return;
+  const date=gToday(); const due=gD2I(document.getElementById('griDue').value)||gAddDays(date,G_GRI_DAYS);
+  const id='gri_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  db.ref('shc_gestiune/gri/'+id).set({id,k,g:it.g,cod:it.cod,den:it.den,um:it.um,pm:it.pm,qty,to,toType:document.getElementById('griToType').value,note:document.getElementById('griNote').value.trim(),by:currentUser.name,byId:currentUser.id,date,due,ts:Date.now(),status:'open',baseIes:it.ies,baseFin:it.fin,baseSnap:gSnapId});
+  ['griArt','griQty','griTo','griNote','griDue'].forEach(i=>{ const e=document.getElementById(i); e.value=''; e.dataset.k=''; });
+  document.getElementById('griArtInfo').textContent='';
+});
+// Propuneri de stingere: după reimport scriptic, ieșirile pe cod au crescut → probabil s-a facturat
+function gRenderProposals(){
+  const wrap=document.getElementById('griProposals'); if(!wrap) return;
+  const props=[];
+  const byK={}; gGriOpen().filter(x=>x.baseSnap&&x.baseSnap!==gSnapId).sort((a,b)=>(a.ts||0)-(b.ts||0)).forEach(x=>(byK[x.k]=byK[x.k]||[]).push(x));
+  Object.entries(byK).forEach(([k,list])=>{
+    const it=(gSnap||{})[k]; if(!it) return;
+    let budget=Math.max(0, (it.ies-(list[0].baseIes||0)), ((list[0].baseFin||0)-it.fin));
+    list.forEach(x=>{ if(budget>=gN(x.qty)-1e-9){ props.push(x); budget-=gN(x.qty); } });
+  });
+  if(!props.length){ wrap.innerHTML=''; return; }
+  wrap.innerHTML='<div style="background:#1a2e1a;border:1px solid #166534;border-radius:12px;padding:14px;margin-bottom:14px;"><div style="font-size:13.5px;font-weight:800;color:#86efac;margin-bottom:4px;">Propuneri de stingere ('+props.length+')</div><div style="font-size:12px;color:#a7f3d0;margin-bottom:10px;">La ultimul import din contabilitate, ieșirile pe aceste coduri au crescut cel puțin cu cantitatea dată fără factură. Probabil au fost facturate — confirmă.</div>'+
+    props.map(x=>'<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0;border-top:1px solid #14532d;font-size:12.5px;color:#dcfce7;"><div style="flex:1;min-width:220px;"><b>'+gE(x.den)+'</b> · '+gQ(x.qty)+' '+gE(x.um)+' → '+gE(x.to)+' <span style="color:#86efac;">('+gI2D(x.date)+')</span></div><button data-pinv="'+x.id+'" style="background:#16a34a;color:#fff;border:none;border-radius:6px;padding:5px 10px;font-weight:700;font-size:11.5px;cursor:pointer;">Confirmă facturat</button><button data-pskip="'+x.id+'" style="background:none;color:#86efac;border:1px solid #166534;border-radius:6px;padding:5px 10px;font-size:11.5px;cursor:pointer;">Nu încă</button></div>').join('')+'</div>';
+  wrap.querySelectorAll('[data-pinv]').forEach(b=>b.onclick=()=>{ const no=prompt('Număr factură (opțional):','')||'din contabilitate'; gCloseGri(b.dataset.pinv,'invoiced',no); });
+  wrap.querySelectorAll('[data-pskip]').forEach(b=>b.onclick=()=>{ const it=gSnap[gGri[b.dataset.pskip].k]; db.ref('shc_gestiune/gri/'+b.dataset.pskip).update({baseSnap:gSnapId,baseIes:it.ies,baseFin:it.fin}); });
+}
+
+// ── TRANSFERURI ──
+function gRenderTransfers(){
+  const t=document.getElementById('trTable'); if(!t) return;
+  const sel=document.getElementById('trToSant'); if(sel&&typeof crmProjects!=='undefined'){ const cur=sel.value; sel.innerHTML=crmProjects.slice().sort((a,b)=>(a.client||'').localeCompare(b.client||'','ro')).map(p=>'<option value="'+p.id+'">'+gE((p.clientCode?'['+p.clientCode+'] ':'')+(p.client||'Fără nume'))+'</option>').join(''); sel.value=cur; }
+  const arr=Object.values(gTr).filter(Boolean).sort((a,b)=>(b.ts||0)-(a.ts||0));
+  const th='style="text-align:left;padding:9px 10px;background:#0a1628;color:#64748b;font-size:10.5px;text-transform:uppercase;"', td='style="padding:8px 10px;border-top:1px solid #16263f;color:#cbd5e1;"';
+  t.innerHTML='<thead><tr><th '+th+'>Data</th><th '+th+'>Articol</th><th '+th+'>Cant.</th><th '+th+'>Din</th><th '+th+'>Către</th><th '+th+'>De</th></tr></thead><tbody>'+(arr.map(x=>'<tr><td '+td+'>'+gI2D(x.date)+'</td><td '+td+'><span style="font-family:monospace;color:#94a3b8;">'+gE(x.cod)+'</span> '+gE(x.den)+(x.note?'<div style="font-size:11px;color:#64748b;">'+gE(x.note)+'</div>':'')+'</td><td '+td+'>'+gQ(x.qty)+' '+gE(x.um||'')+'</td><td '+td+'>'+gE(x.from)+'</td><td '+td+'>'+gE(x.toLabel)+'</td><td '+td+'>'+gE(x.by)+'</td></tr>').join('')||'<tr><td colspan="6" style="padding:18px;color:#64748b;text-align:center;">Niciun transfer.</td></tr>')+'</tbody>';
+  const bySite={}; arr.filter(x=>x.toKind==='santier').forEach(x=>{ const s=bySite[x.toLabel]=bySite[x.toLabel]||{}; const key=x.cod+'|'+x.den; s[key]=(s[key]||{cod:x.cod,den:x.den,um:x.um,qty:0,val:0}); s[key].qty+=gN(x.qty); s[key].val+=gN(x.qty)*gN(x.pm); });
+  const ss=document.getElementById('santSummary');
+  ss.innerHTML=Object.keys(bySite).length?Object.entries(bySite).map(([site,items])=>{ const v=Object.values(items); return '<details style="background:#0d1b2e;border:1px solid #1e3a5f;border-radius:10px;padding:10px 12px;margin-bottom:8px;"><summary style="cursor:pointer;color:#f1f5f9;font-weight:700;font-size:13px;">'+gE(site)+' <span style="color:#94a3b8;font-weight:500;">· '+v.length+' articole · '+gFmt(v.reduce((a,i)=>a+i.val,0))+' lei</span></summary><div style="margin-top:8px;font-size:12.5px;color:#cbd5e1;">'+v.map(i=>'<div style="padding:4px 0;border-top:1px solid #16263f;">'+gE(i.den)+' — <b>'+gQ(i.qty)+' '+gE(i.um||'')+'</b></div>').join('')+'</div></details>'; }).join(''):'<div style="color:#64748b;font-size:12.5px;">Nimic transferat pe șantiere.</div>';
+}
+document.getElementById('trToKind').addEventListener('change',e=>{ const s=e.target.value==='santier'; document.getElementById('trToGestWrap').style.display=s?'none':''; document.getElementById('trToSantWrap').style.display=s?'':'none'; });
+document.getElementById('trSave').addEventListener('click',()=>{
+  const k=document.getElementById('trArt').dataset.k; const it=k&&gSnap[k]; const qty=gN(document.getElementById('trQty').value);
+  if(!it){ alert('Alege articolul din listă.'); return; } if(!(qty>0)){ alert('Cantitate invalidă.'); return; }
+  const kind=document.getElementById('trToKind').value, from=document.getElementById('trFrom').value;
+  let toLabel, crmId=null;
+  if(kind==='gest'){ toLabel=document.getElementById('trToGest').value; if(toLabel===from){ alert('Gestiunea destinație e aceeași cu sursa.'); return; } }
+  else { const sel=document.getElementById('trToSant'); crmId=sel.value; toLabel='Șantier: '+(sel.options[sel.selectedIndex]||{}).text; if(!crmId){ alert('Alege lucrarea.'); return; } }
+  const id='tr_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  db.ref('shc_gestiune/transfers/'+id).set({id,k,cod:it.cod,den:it.den,um:it.um,pm:it.pm,qty,from,toKind:kind,toLabel,crmId,note:document.getElementById('trNote').value.trim(),by:currentUser.name,date:gToday(),ts:Date.now()});
+  ['trArt','trQty','trNote'].forEach(i=>{ const e=document.getElementById(i); e.value=''; e.dataset.k=''; });
+});
+
+// ── INVENTAR ──
+function gFillInventarSelects(){
+  const f=document.getElementById('invFaptic'), sc=document.getElementById('invScriptic'); if(!f) return;
+  const cf=f.value, cs=sc.value;
+  f.innerHTML=gImportsSorted('faptic').map(i=>'<option value="'+i.id+'">'+gI2D(i.date)+' — '+gE(i.by||'')+'</option>').join('')||'<option value="">— niciun inventar faptic importat —</option>';
+  sc.innerHTML=gImportsSorted('scriptic').map(i=>'<option value="'+i.id+'">'+gI2D(i.date)+' — '+gE(i.by||'')+'</option>').join('')||'<option value="">— niciun stoc scriptic —</option>';
+  if(cf) f.value=cf; if(cs) sc.value=cs;
+  gRenderInvHistory();
+}
+let gInvRows=[];
+function gRenderInventar(){
+  const fid=document.getElementById('invFaptic').value, sid=document.getElementById('invScriptic').value;
+  const t=document.getElementById('invTable');
+  if(!fid||!sid){ t.innerHTML='<tr><td style="padding:18px;color:#64748b;">Importă un inventar faptic (tab ⬆ Import, tip „Inventar faptic") ca să vezi comparația.</td></tr>'; document.getElementById('invKpi').innerHTML=''; return; }
+  Promise.all([gGetSnap(fid),gGetSnap(sid)]).then(([F,S])=>{
+    const fDate=(gImports[fid]||{}).date||gToday();
+    const gf=document.getElementById('invGest').value, only=document.getElementById('invOnlyDiff').checked;
+    const keys=new Set([...Object.keys(F),...Object.keys(S)]);
+    const griAt=k=>Object.values(gGri).filter(x=>x&&x.k===k&&x.date<=fDate&&(x.status==='open'||(x.closedAt&&new Date(x.closedAt).toISOString().slice(0,10)>fDate))).reduce((a,x)=>a+gN(x.qty),0);
+    gInvRows=[...keys].map(k=>{ const s=S[k]||{}, f=F[k]||{}; const it={...s,...f}; const scr=gN(s.fin), fap=gN(f.fin), gri=griAt(k), pm=gN(s.pm)||gN(f.pm); const exp=scr-gri; const diff=fap-exp; return {k,g:it.g,cod:it.cod,den:it.den||s.den,um:it.um,scr,gri,exp,fap,diff,pm,val:diff*pm,inF:!!F[k]}; })
+      .filter(r=>(!gf||r.g===gf)&&(!only||Math.abs(r.diff)>1e-9)).sort((a,b)=>Math.abs(b.val)-Math.abs(a.val));
+    const plus=gInvRows.filter(r=>r.diff>0).reduce((a,r)=>a+r.val,0), minus=gInvRows.filter(r=>r.diff<0).reduce((a,r)=>a+r.val,0), griExpl=gInvRows.reduce((a,r)=>a+r.gri*r.pm,0);
+    const kpi=(l,v,c)=>'<div style="background:#0d1b2e;border:1px solid #1e3a5f;border-radius:10px;padding:10px 12px;"><div style="font-size:10.5px;color:#64748b;font-weight:700;text-transform:uppercase;">'+l+'</div><div style="font-size:17px;font-weight:800;color:'+c+';margin-top:2px;">'+v+'</div></div>';
+    document.getElementById('invKpi').innerHTML=kpi('Articole cu diferențe',gQ(gInvRows.filter(r=>Math.abs(r.diff)>1e-9).length),'#f1f5f9')+kpi('Plusuri',gFmt(plus)+' lei','#4ade80')+kpi('Minusuri',gFmt(minus)+' lei','#f87171')+kpi('Net',gFmt(plus+minus)+' lei',(plus+minus)<0?'#f87171':'#4ade80')+kpi('Explicat prin zona gri',gFmt(griExpl)+' lei','#fbbf24');
+    const th='style="text-align:right;padding:9px 10px;background:#0a1628;color:#64748b;font-size:10.5px;text-transform:uppercase;white-space:nowrap;"', thl='style="text-align:left;padding:9px 10px;background:#0a1628;color:#64748b;font-size:10.5px;text-transform:uppercase;"';
+    let h='<thead><tr><th '+thl+'>Cod</th><th '+thl+'>Denumire</th><th '+thl+'>Gest.</th><th '+th+'>Scriptic</th><th '+th+'>− Zona gri</th><th '+th+'>= Așteptat</th><th '+th+'>Faptic</th><th '+th+'>Diferență</th><th '+th+'>Valoare dif.</th></tr></thead><tbody>';
+    gInvRows.slice(0,500).forEach(r=>{ const td='style="padding:7px 10px;border-top:1px solid #16263f;color:#cbd5e1;"', tr='style="padding:7px 10px;border-top:1px solid #16263f;color:#cbd5e1;text-align:right;white-space:nowrap;"'; const c=r.diff>0?'#4ade80':r.diff<0?'#f87171':'#94a3b8';
+      h+='<tr><td '+td+'><span style="font-family:monospace;color:#94a3b8;">'+gE(r.cod)+'</span></td><td '+td+'>'+gE(r.den)+(!r.inF?' <span style="font-size:10px;color:#fbbf24;">nenumărat</span>':'')+'</td><td '+td+'>'+gE(r.g)+'</td><td '+tr+'>'+gQ(r.scr)+'</td><td '+tr+'>'+(r.gri?gQ(r.gri):'—')+'</td><td '+tr+'>'+gQ(r.exp)+'</td><td '+tr+'><b style="color:#f1f5f9;">'+gQ(r.fap)+'</b></td><td '+tr+'><b style="color:'+c+';">'+(r.diff>0?'+':'')+gQ(r.diff)+'</b></td><td '+tr+'><span style="color:'+c+';">'+gFmt(r.val)+'</span></td></tr>'; });
+    if(!gInvRows.length) h+='<tr><td colspan="9" style="padding:18px;color:#4ade80;text-align:center;">Nicio diferență. Faptic = scriptic − zona gri.</td></tr>';
+    if(gInvRows.length>500) h+='<tr><td colspan="9" style="padding:10px;color:#64748b;text-align:center;">Afișate primele 500 — exportul Excel le conține pe toate ('+gInvRows.length+').</td></tr>';
+    t.innerHTML=h+'</tbody>';
+    // salvăm sumarul pentru istoric
+    if(db && gImports[fid] && (!gImports[fid].cmp || gImports[fid].cmp.sid!==sid)) db.ref('shc_gestiune/imports/'+fid+'/cmp').set({sid,plus,minus,n:gInvRows.filter(r=>Math.abs(r.diff)>1e-9).length,ts:Date.now()});
+  });
+}
+function gRenderInvHistory(){
+  const t=document.getElementById('invHistory'); if(!t) return;
+  const arr=gImportsSorted('faptic');
+  const th='style="text-align:left;padding:9px 10px;background:#0a1628;color:#64748b;font-size:10.5px;text-transform:uppercase;"', td='style="padding:8px 10px;border-top:1px solid #16263f;color:#cbd5e1;"';
+  t.innerHTML='<thead><tr><th '+th+'>Data</th><th '+th+'>Numărat de</th><th '+th+'>Articole</th><th '+th+'>Comparat cu</th><th '+th+'>Diferențe</th><th '+th+'>Plus</th><th '+th+'>Minus</th></tr></thead><tbody>'+(arr.map(i=>{ const c=i.cmp||{}; const s=gImports[c.sid]; return '<tr data-hinv="'+i.id+'" style="cursor:pointer;"><td '+td+'>'+gI2D(i.date)+'</td><td '+td+'>'+gE(i.by)+'</td><td '+td+'>'+gQ(i.n)+'</td><td '+td+'>'+(s?gI2D(s.date):'—')+'</td><td '+td+'>'+(c.n!=null?gQ(c.n):'—')+'</td><td '+td+' style="color:#4ade80;padding:8px 10px;border-top:1px solid #16263f;">'+(c.plus!=null?gFmt(c.plus):'—')+'</td><td '+td+' style="color:#f87171;padding:8px 10px;border-top:1px solid #16263f;">'+(c.minus!=null?gFmt(c.minus):'—')+'</td></tr>'; }).join('')||'<tr><td colspan="7" style="padding:18px;color:#64748b;text-align:center;">Niciun inventar faptic încă.</td></tr>')+'</tbody>';
+  t.querySelectorAll('[data-hinv]').forEach(r=>r.onclick=()=>{ document.getElementById('invFaptic').value=r.dataset.hinv; gRenderInventar(); window.scrollTo&&document.getElementById('gestMain').scrollTo({top:0,behavior:'smooth'}); });
+}
+document.getElementById('invExport').addEventListener('click',()=>{
+  if(!gInvRows.length){ alert('Nimic de exportat.'); return; }
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"'; const n=v=>String(Math.round(v*1000)/1000).replace('.',',');
+  const f=gImports[document.getElementById('invFaptic').value]||{}, s=gImports[document.getElementById('invScriptic').value]||{};
+  let csv=q('Inventar faptic '+gI2D(f.date)+' vs scriptic '+gI2D(s.date))+'\n\n'+['Cod','Denumire','Gestiune','UM','Scriptic','Zona gri','Așteptat','Faptic','Diferență','Preț mediu','Valoare diferență'].map(q).join(';')+'\n';
+  gInvRows.forEach(r=>{ csv+=[q(r.cod),q(r.den),q(r.g),q(r.um),n(r.scr),n(r.gri),n(r.exp),n(r.fap),n(r.diff),n(r.pm),n(r.val)].join(';')+'\n'; });
+  const plus=gInvRows.filter(r=>r.diff>0).reduce((a,r)=>a+r.val,0), minus=gInvRows.filter(r=>r.diff<0).reduce((a,r)=>a+r.val,0);
+  csv+='\n'+q('Total plusuri')+';'+n(plus)+'\n'+q('Total minusuri')+';'+n(minus)+'\n'+q('Net')+';'+n(plus+minus)+'\n';
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'})); a.download='Inventar_'+(f.date||'')+'_diferente.csv'; document.body.appendChild(a); a.click(); a.remove();
+});
+
+// ── IMPORT ──
+let gPending=null;
+document.getElementById('impFile').addEventListener('change',e=>{
+  const file=e.target.files[0]; if(!file) return; const pv=document.getElementById('impPreview');
+  const rd=new FileReader();
+  rd.onload=()=>{
+    let text=rd.result; if(/\uFFFD/.test(text)){ const r2=new FileReader(); r2.onload=()=>gPreview(r2.result); r2.readAsText(file,'windows-1250'); return; }
+    gPreview(text);
+  };
+  rd.readAsText(file,'utf-8');
+  function gPreview(text){
+    const {items,err,umFixed}=gRowsFromCSV(text); if(err){ pv.innerHTML='<span style="color:#f87171;">'+err+'</span>'; gPending=null; document.getElementById('impSave').style.display='none'; return; }
+    const sm=gSummary(items); gPending={items,sm,umFixed};
+    pv.innerHTML='<div style="background:#0b1426;border:1px solid #1e3a5f;border-radius:8px;padding:10px 12px;line-height:1.7;">✓ <b>'+gQ(sm.n)+'</b> articole · <b>'+gQ(sm.cuStoc)+'</b> cu stoc · valoare <b>'+gFmt(sm.val)+' lei</b><br>Gestiuni: '+sm.gest.map(gE).join(', ')+(umFixed?'<br>UM corectate automat: <b>'+umFixed+'</b>':'')+'</div>';
+    document.getElementById('impSave').style.display='inline-block';
+  }
+});
+document.getElementById('impSave').addEventListener('click',()=>{
+  if(!gPending) return; const type=document.getElementById('impType').value;
+  if(type==='scriptic'&&!gCanScriptic()){ alert('Doar Chirilă, Nicoraș sau Eszter pot importa stocul scriptic.'); return; }
+  const date=gD2I(document.getElementById('impDate').value)||gToday();
+  const id='imp_'+date.replace(/-/g,'')+'_'+Date.now().toString(36);
+  const btn=document.getElementById('impSave'); btn.disabled=true; btn.textContent='Se salvează...';
+  db.ref('shc_gestiune/snapshots/'+id).set(gPending.items).then(()=>db.ref('shc_gestiune/imports/'+id).set({id,type,date,by:currentUser.name,ts:Date.now(),n:gPending.sm.n,cuStoc:gPending.sm.cuStoc,val:gPending.sm.val,umFixed:gPending.umFixed||0})).then(()=>{
+    alert('Import salvat.'); gPending=null; document.getElementById('impPreview').innerHTML=''; document.getElementById('impFile').value=''; btn.style.display='none';
+    if(type==='faptic'){ gShowTab('inventar'); setTimeout(()=>{ document.getElementById('invFaptic').value=id; gRenderInventar(); },400); }
+  }).catch(err=>alert('Eroare la salvare: '+(err&&err.message||err))).finally(()=>{ btn.disabled=false; btn.textContent='Salvează importul'; });
+});
+function gRenderImpHistory(){
+  const t=document.getElementById('impHistory'); if(!t) return;
+  const arr=gImportsSorted();
+  const th='style="text-align:left;padding:9px 10px;background:#0a1628;color:#64748b;font-size:10.5px;text-transform:uppercase;"', td='style="padding:8px 10px;border-top:1px solid #16263f;color:#cbd5e1;"';
+  t.innerHTML='<thead><tr><th '+th+'>Data</th><th '+th+'>Tip</th><th '+th+'>Articole</th><th '+th+'>Valoare</th><th '+th+'>Importat de</th><th '+th+'></th></tr></thead><tbody>'+(arr.map(i=>'<tr><td '+td+'>'+gI2D(i.date)+'</td><td '+td+'>'+(i.type==='scriptic'?'<span style="color:#a78bfa;font-weight:700;">Scriptic</span>':'<span style="color:#fbbf24;font-weight:700;">Faptic</span>')+'</td><td '+td+'>'+gQ(i.n)+'</td><td '+td+'>'+gFmt(i.val)+' lei</td><td '+td+'>'+gE(i.by)+'</td><td '+td+'>'+(gIsBoss()?'<button data-dimp="'+i.id+'" style="background:none;border:none;color:#64748b;cursor:pointer;">✕</button>':'')+'</td></tr>').join('')||'<tr><td colspan="6" style="padding:18px;color:#64748b;text-align:center;">Niciun import.</td></tr>')+'</tbody>';
+  t.querySelectorAll('[data-dimp]').forEach(b=>b.onclick=()=>{ if(!confirm('Ștergi acest import?')) return; db.ref('shc_gestiune/snapshots/'+b.dataset.dimp).remove(); db.ref('shc_gestiune/imports/'+b.dataset.dimp).remove(); delete gSnapCache[b.dataset.dimp]; if(gSnapId===b.dataset.dimp) gSnapId=null; });
+}
+
+// ── CALITATE DATE ──
+function gRenderCalitate(){
+  const w=document.getElementById('calContent'); if(!w) return;
+  const items=Object.values(gSnap||{}); if(!items.length){ w.innerHTML='<div style="color:#64748b;">Importă stocul scriptic.</div>'; return; }
+  const by={}; items.forEach(i=>{ const k=gNorm(i.den); if(!k) return; (by[k]=by[k]||[]).push(i); });
+  const dups=Object.values(by).filter(l=>new Set(l.map(i=>i.cod)).size>1).sort((a,b)=>b.reduce((s,i)=>s+i.val,0)-a.reduce((s,i)=>s+i.val,0));
+  const noPrice=items.filter(i=>i.fin>0&&!i.pm);
+  const meta=gImportsSorted('scriptic')[0]||{};
+  const sec=(title,sub,body)=>'<div style="background:#0d1b2e;border:1px solid #1e3a5f;border-radius:12px;padding:14px;margin-bottom:14px;"><div style="font-size:14px;font-weight:800;color:#f1f5f9;">'+title+'</div><div style="font-size:12px;color:#94a3b8;margin:3px 0 10px;">'+sub+'</div>'+body+'</div>';
+  w.innerHTML=
+    sec('Aceeași denumire pe coduri diferite ('+dups.length+')','De corectat în programul de contabilitate. Sortate după valoare.', dups.map(l=>'<div style="padding:7px 0;border-top:1px solid #16263f;font-size:12.5px;color:#cbd5e1;"><b>'+gE(l[0].den)+'</b><div style="color:#94a3b8;">'+l.map(i=>'<span style="font-family:monospace;">'+gE(i.cod)+'</span> ('+gE(i.g)+': '+gQ(i.fin)+' '+gE(i.um)+', '+gFmt(i.val)+' lei)').join(' · ')+'</div></div>').join('')||'<div style="color:#4ade80;font-size:12.5px;">Niciun duplicat.</div>')+
+    sec('Stoc fără preț mediu ('+noPrice.length+')','Afectează valoarea stocului și calculul diferențelor de inventar.', noPrice.map(i=>'<div style="padding:6px 0;border-top:1px solid #16263f;font-size:12.5px;color:#cbd5e1;"><span style="font-family:monospace;color:#94a3b8;">'+gE(i.cod)+'</span> '+gE(i.den)+' — '+gQ(i.fin)+' '+gE(i.um)+' ('+gE(i.g)+')</div>').join('')||'<div style="color:#4ade80;font-size:12.5px;">Toate au preț.</div>')+
+    sec('Unități de măsură corectate automat','La ultimul import: <b style="color:#f1f5f9;">'+(meta.umFixed||0)+'</b> rânduri (BUIC/BYUC/BU8C/B UC/goale → BUC, LM → ML).','');
+}
+
+// ── Navigare ──
+function gShowTab(t){
+  gTab=t; document.querySelectorAll('.gview').forEach(v=>v.style.display='none'); const v=document.getElementById('gView_'+t); if(v) v.style.display='block';
+  document.querySelectorAll('.gtab').forEach(b=>{ const on=b.dataset.gtab===t; b.style.color=on?'#a78bfa':'#94a3b8'; b.style.borderBottomColor=on?'#a78bfa':'transparent'; });
+  if(t==='inventar') gRenderInventar(); if(t==='transfer') gRenderTransfers(); if(t==='gri'){ gRenderGri(); gRenderProposals(); } if(t==='calitate') gRenderCalitate();
+}
+document.querySelectorAll('.gtab').forEach(b=>b.addEventListener('click',()=>gShowTab(b.dataset.gtab)));
+['stocSearch'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{ gStocLimit=200; gRenderStoc(); }));
+['stocGest','stocFilter','stocSort'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{ gStocLimit=200; gRenderStoc(); }));
+document.getElementById('stocMore').addEventListener('click',()=>{ gStocLimit+=300; gRenderStoc(); });
+['griStatus'].forEach(id=>document.getElementById(id).addEventListener('change',gRenderGri));
+document.getElementById('griSearch').addEventListener('input',gRenderGri);
+['invFaptic','invScriptic','invGest','invOnlyDiff'].forEach(id=>document.getElementById(id).addEventListener('change',gRenderInventar));
+gPicker('griArt','griArtList',(k,it)=>{ const g=gGriQty(k); document.getElementById('griArtInfo').innerHTML='Stoc scriptic <b>'+gQ(it.fin)+' '+gE(it.um)+'</b> · deja în zona gri <b style="color:#fbbf24;">'+gQ(g)+'</b> · disponibil real <b style="color:#a78bfa;">'+gQ(it.fin-g)+'</b> · preț mediu '+gFmt(it.pm)+' lei'; });
+gPicker('trArt','trArtList',(k,it)=>{ document.getElementById('trFrom').value=it.g; });
+['griDue','impDate'].forEach(id=>{ try{ if(typeof addDateMask==='function') addDateMask(id); if(typeof addCalendarPicker==='function') addCalendarPicker(id); }catch(e){} });
+
+// ── Acces + pornire ──
+const _gOrigEnter=enterApp;
+enterApp=function(u){
+  if(!gCanAccess(u)){ alert('Nu ai acces la Gestiune. Acces: Chirilă, Nicoraș, Eszter, Ardelean.'); try{ officePinBuffer=''; }catch(e){} location.reload(); return; }
+  _gOrigEnter(u);
+  if(!window._gStarted){ window._gStarted=true; gLoad(); }
+  gShowTab('stoc'); document.getElementById('impDate').value=gI2D(gToday());
+};
 </script>
 </body>
 </html>
