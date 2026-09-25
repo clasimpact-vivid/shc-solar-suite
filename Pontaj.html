@@ -2487,7 +2487,11 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
     perUser[name]=perUser[name]||{name,worked:0,leave:0,hours:0,km:0};
     perUser[name][field]+=amt;
   }
+  let _grpName=null, _grpDays=0, _grpHrs=0, grandHrs=0;
+  const _flushGrp=()=>{ if(exportAll && _grpName!==null){ csv+='"SUBTOTAL — '+_grpName.replace(/"/g,'""')+'",,Zile lucrate: '+_grpDays+',,,,,,,'+_grpHrs.toFixed(2)+',\n\n'; } };
   mine.forEach(r=>{
+    const _nm=recName(r);
+    if(exportAll && _nm!==_grpName){ _flushGrp(); _grpName=_nm; _grpDays=0; _grpHrs=0; }
     let hrs='';
     if(r.checkIn&&r.checkOut){
       const [h1,m1]=r.checkIn.time.split(':').map(Number), [h2,m2]=r.checkOut.time.split(':').map(Number);
@@ -2495,11 +2499,12 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
     }
     const lvType=leaveTypeFor(r.date,r.userId);
     const tipZi = r.checkIn ? 'Lucrat' : (lvType || 'Absent');
-    if(r.checkIn){ workedDays++; bumpUser(r,'worked',1); if(hrs) bumpUser(r,'hours',parseFloat(hrs)); } else if(lvType){ leaveDaysCount++; bumpUser(r,'leave',1); }
+    if(r.checkIn){ workedDays++; _grpDays++; bumpUser(r,'worked',1); if(hrs){ bumpUser(r,'hours',parseFloat(hrs)); _grpHrs+=parseFloat(hrs); grandHrs+=parseFloat(hrs); } } else if(lvType){ leaveDaysCount++; bumpUser(r,'leave',1); }
     const dist = r.checkIn&&r.checkIn.distKm!=null ? r.checkIn.distKm : '';
     if(dist) bumpUser(r,'km',parseFloat(dist)||0);
     csv+=(exportAll?(recName(r))+',':'')+[isoToDmy(r.date), tipZi, r.checkIn?'Da':'Nu', r.checkIn?r.checkIn.time:'', r.checkIn&&r.checkIn.editedManually?'Da':'Nu', r.checkOut?'Da':'Nu', r.checkOut?r.checkOut.time:'', r.checkOut&&r.checkOut.editedManually?'Da':'Nu', hrs, dist].join(',')+'\n';
   });
+  _flushGrp();
   // Zile de concediu aprobate care nu au niciun record de pontaj (ex: concediu întreaga zi, fără logare)
   const recordedDates=new Set(mine.map(r=>r.userId+'|'+r.date));
   approvedLeaves.forEach(lv=>{
@@ -2514,6 +2519,11 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
       d.setDate(d.getDate()+1);
     }
   });
+  csv+='\n========== TOTAL GENERAL ('+isoToDmy(dateFrom)+' - '+isoToDmy(dateTo)+') ==========\n';
+  csv+='Angajați în export,'+new Set(mine.map(r=>recName(r))).size+'\n';
+  csv+='Total zile lucrate,'+workedDays+'\n';
+  csv+='Total ore lucrate,'+grandHrs.toFixed(2)+'\n';
+  csv+='Total zile concediu/învoire,'+leaveDaysCount+'\n';
   csv+='\nSumar pentru tichete de masă,,,,,,,,,\n';
   csv+='Zile lucrate,'+workedDays+'\n';
   csv+='Zile de concediu/învoire,'+leaveDaysCount+'\n';
