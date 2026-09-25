@@ -215,6 +215,19 @@ a:hover{color:#fbbf24;}
         </div>
         <div class="field" style="margin-bottom:10px;"><label>Motiv (opțional)</label><textarea id="leaveReason" class="form-input" rows="2" style="width:100%;"></textarea></div>
         <button class="btn btn-sm" id="btnSubmitLeave" style="background:#f59e0b;color:#fff;">Trimite cererea</button>
+        <div id="leaveFilterBar" style="display:none;margin-top:16px;background:#0d1b2e;border:1px solid #1e3a5f;border-radius:10px;padding:12px;">
+          <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;">
+            <div class="field" style="flex:1;min-width:120px;"><label>De la</label><input type="text" id="lvFltFrom" class="form-input" placeholder="ZZ/LL/AAAA" maxlength="10"></div>
+            <div class="field" style="flex:1;min-width:120px;"><label>Până la</label><input type="text" id="lvFltTo" class="form-input" placeholder="ZZ/LL/AAAA" maxlength="10"></div>
+            <div class="field" style="flex:1;min-width:130px;"><label>Status</label><select id="lvFltStatus" class="form-select"><option value="">Toate</option><option value="A">Aprobate</option><option value="P">În așteptare</option><option value="R">Respinse</option></select></div>
+            <div class="field" style="flex:1;min-width:150px;"><label>Sortare</label><select id="lvFltSort" class="form-select"><option value="ts">Data depunerii (recente)</option><option value="from">Începutul perioadei</option><option value="name">Coleg (A–Z)</option></select></div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
+            <button class="btn btn-sm" id="btnLvExportPdf" style="background:#334155;color:#fff;">🖨 Export PDF (listă)</button>
+            <button class="btn btn-sm" id="btnLvExportXls" style="background:#16a34a;color:#fff;">📊 Centralizator Excel</button>
+            <button class="btn btn-sm" id="btnLvFltReset" style="background:transparent;color:#94a3b8;border:1px solid #334155;">Resetează filtrele</button>
+          </div>
+        </div>
         <div style="margin-top:16px;overflow-x:auto"><table id="leaveTable"></table></div>
       </div>
     </div>
@@ -618,7 +631,7 @@ function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.get
 function nowTime(){ const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
 function isFullAccess(){ return !!currentUser && (currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'||currentUser.pontajPlanner===true); }
 function isSuperAdminPontaj(){ return !!currentUser && (currentUser.id==='u_chirila'||currentUser.id==='u_nicoras'); }
-function canViewTeam(){ return isFullAccess() || (!!currentUser && currentUser.pontajHR===true); }
+function canViewTeam(){ return isFullAccess() || canApproveLeave() || (!!currentUser && currentUser.pontajHR===true); }
 function getDeviceFingerprint(){
   try{
     let id=localStorage.getItem('shc_device_id');
@@ -627,6 +640,8 @@ function getDeviceFingerprint(){
   }catch(e){ return null; }
 }
 function getUserById(id){ return loginUsers.find(u=>u.id===id); }
+function recName(r){ const u=getUserById(r.userId); if(u&&u.name) return u.name; if(r.userName) return r.userName; const fw=(typeof fieldWorkers!=='undefined'?fieldWorkers:[]).find(f=>f.id===r.userId); return (fw&&fw.name)||r.userId; }
+
 
 // ── Firebase ──
 let fbConnected=false, fbInitAttempts=0;
@@ -2187,7 +2202,8 @@ function sendLeaveEmail(l, decision){
 function renderCereri(){
   const admin=canApproveLeave();
   const tbl=document.getElementById('leaveTable');
-  const mine=admin?leaveReqs:leaveReqs.filter(l=>l.userId===currentUser.id);
+  const fb=document.getElementById('leaveFilterBar'); if(fb) fb.style.display=admin?'block':'none';
+  const mine=admin?getFilteredLeaves():leaveReqs.filter(l=>l.userId===currentUser.id);
   if(!mine.length){ tbl.innerHTML='<tr><td style="color:#475569;padding:12px 0;">Nicio cerere.</td></tr>'; }
   else{
     let html='<thead><tr>'+(admin?'<th>Coleg</th>':'')+'<th>Tip</th><th>Perioadă</th><th>Trimisă</th><th>Motiv</th><th>Status</th><th></th>'+(admin?'<th></th>':'')+'</tr></thead><tbody>';
@@ -2247,6 +2263,70 @@ function renderCereri(){
     const p=probReports.find(x=>x.id===b.dataset.resolve); if(p){ p.status='rezolvat'; saveProb(p); }
   }));
 }
+
+function getLeaveFilter(){
+  const g=id=>document.getElementById(id);
+  return {from:dmyToIso((g('lvFltFrom')||{}).value||''), to:dmyToIso((g('lvFltTo')||{}).value||''), status:(g('lvFltStatus')||{}).value||'', sort:(g('lvFltSort')||{}).value||'ts'};
+}
+function getFilteredLeaves(){
+  const f=getLeaveFilter();
+  let arr=leaveReqs.filter(l=>{
+    if(f.status && l.status!==f.status) return false;
+    if(f.from && l.to<f.from) return false;
+    if(f.to && l.from>f.to) return false;
+    return true;
+  });
+  arr=arr.slice().sort((a,b)=> f.sort==='from' ? (a.from||'').localeCompare(b.from||'') : f.sort==='name' ? (a.userName||'').localeCompare(b.userName||'','ro') : (b.ts||0)-(a.ts||0));
+  return arr;
+}
+function leavePeriodLabel(f){ return (f.from?isoToDmy(f.from):'început')+' – '+(f.to?isoToDmy(f.to):'prezent'); }
+function exportLeaveListPdf(){
+  const f=getLeaveFilter(); const arr=getFilteredLeaves();
+  if(!arr.length){ alert('Nicio cerere în perioada/filtrul selectat.'); return; }
+  const stL=x=>x==='A'?'Aprobată':x==='R'?'Respinsă':'În așteptare';
+  const rows=arr.map((l,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(l.userName||'')+'</td><td>'+esc(LEAVE_LABELS[l.type]||l.type)+'</td><td>'+isoToDmy(l.from)+' – '+isoToDmy(l.to)+'</td><td style="text-align:center;">'+countWorkingDays(l.from,l.to)+'</td><td>'+stL(l.status)+'</td><td>'+esc(l.decidedBy||'')+'</td><td>'+esc(l.note||l.reason||'')+'</td></tr>').join('');
+  const html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Cereri concediu '+leavePeriodLabel(f)+'</title><style>@page{size:A4 landscape;margin:14mm;}body{font-family:Arial,sans-serif;color:#0f172a;font-size:11.5px;}.hdr{display:flex;align-items:center;gap:14px;border-bottom:2px solid #0f172a;padding-bottom:10px;margin-bottom:14px;}.hdr img{width:44px;height:44px;object-fit:contain;}h1{font-size:18px;margin:2px 0 0;text-transform:uppercase;letter-spacing:.03em;}.co{font-size:10.5px;color:#475569;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}table{width:100%;border-collapse:collapse;}th{background:#0f172a;color:#fff;text-align:left;padding:6px;font-size:10.5px;}td{padding:6px;border-bottom:1px solid #e2e8f0;vertical-align:top;}tr:nth-child(even) td{background:#f8fafc;}.meta{margin-bottom:10px;color:#334155;}.foot{margin-top:18px;font-size:9.5px;color:#94a3b8;text-align:center;}</style></head><body><div class="hdr"><img src="'+LOGO_DATA_URI+'"><div><div class="co">SC Smart House Color SRL — SHC Group</div><h1>Registru cereri de concediu</h1></div></div><div class="meta">Perioadă: <b>'+leavePeriodLabel(f)+'</b> · Status: <b>'+(f.status?stL(f.status):'toate')+'</b> · Total cereri: <b>'+arr.length+'</b></div><table><thead><tr><th>#</th><th>Angajat</th><th>Tip</th><th>Perioadă</th><th>Zile lucr.</th><th>Status</th><th>Decis de</th><th>Observații</th></tr></thead><tbody>'+rows+'</tbody></table><div class="foot">Generat automat — SHC Solar Suite / Pontaj — '+new Date().toLocaleDateString('ro-RO')+'</div><script>window.onload=function(){setTimeout(function(){window.focus();window.print();},300);};</'+'script></body></html>';
+  const url=URL.createObjectURL(new Blob([html],{type:'text/html'}));
+  const w=window.open(url,'_blank'); if(!w) alert('Permiteți ferestrele pop-up pentru a deschide PDF-ul.');
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+function exportLeaveCentralizator(){
+  const f=getLeaveFilter();
+  if(!f.from||!f.to){ alert('Pentru centralizator selectează perioada (De la / Până la).'); return; }
+  const approved=leaveReqs.filter(l=>l.status==='A' && l.from<=f.to && l.to>=f.from);
+  if(!approved.length){ alert('Niciun concediu aprobat în această perioadă.'); return; }
+  const types=Object.keys(LEAVE_LABELS);
+  const per={};
+  approved.forEach(l=>{
+    const a=l.from<f.from?f.from:l.from, b=l.to>f.to?f.to:l.to;
+    const d=countWorkingDays(a,b);
+    const k=l.userId||l.userName;
+    per[k]=per[k]||{name:l.userName||k, byType:{}, total:0, items:[]};
+    per[k].byType[l.type]=(per[k].byType[l.type]||0)+d; per[k].total+=d;
+    per[k].items.push(isoToDmy(a)+'-'+isoToDmy(b));
+  });
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  let csv=q('Centralizator concedii aprobate — perioada '+leavePeriodLabel(f))+'\n\n';
+  csv+=['Angajat',...types.map(t=>LEAVE_LABELS[t]+' (zile lucr.)'),'Total zile lucrătoare','Intervale'].map(q).join(',')+'\n';
+  const list=Object.values(per).sort((a,b)=>a.name.localeCompare(b.name,'ro'));
+  const tot={}; let grand=0;
+  list.forEach(p=>{ types.forEach(t=>tot[t]=(tot[t]||0)+(p.byType[t]||0)); grand+=p.total; csv+=[p.name,...types.map(t=>p.byType[t]||0),p.total,p.items.join('; ')].map(q).join(',')+'\n'; });
+  csv+=['TOTAL',...types.map(t=>tot[t]||0),grand,''].map(q).join(',')+'\n';
+  csv+='\n'+q('Detaliu cereri')+'\n'+['Angajat','Tip','De la','Până la','Zile lucr. în perioadă','Aprobat de','Observații'].map(q).join(',')+'\n';
+  approved.slice().sort((a,b)=>(a.userName||'').localeCompare(b.userName||'','ro')||a.from.localeCompare(b.from)).forEach(l=>{
+    const a=l.from<f.from?f.from:l.from, b=l.to>f.to?f.to:l.to;
+    csv+=[l.userName,LEAVE_LABELS[l.type]||l.type,isoToDmy(l.from),isoToDmy(l.to),countWorkingDays(a,b),l.decidedBy||'',l.note||l.reason||''].map(q).join(',')+'\n';
+  });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download='Centralizator_concedii_'+f.from+'_'+f.to+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+['lvFltFrom','lvFltTo'].forEach(id=>{ try{ addDateMask(id); addCalendarPicker(id); }catch(e){} const el=document.getElementById(id); if(el){ el.addEventListener('input',()=>{ if(!el.value||dmyToIso(el.value)) renderCereri(); }); el.addEventListener('change',renderCereri); } });
+['lvFltStatus','lvFltSort'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('change',renderCereri); });
+document.getElementById('btnLvExportPdf').addEventListener('click',exportLeaveListPdf);
+document.getElementById('btnLvExportXls').addEventListener('click',exportLeaveCentralizator);
+document.getElementById('btnLvFltReset').addEventListener('click',()=>{ ['lvFltFrom','lvFltTo'].forEach(id=>document.getElementById(id).value=''); document.getElementById('lvFltStatus').value=''; document.getElementById('lvFltSort').value='ts'; renderCereri(); });
 document.getElementById('btnSubmitLeave').addEventListener('click',()=>{
   const type=document.getElementById('leaveType').value;
   const from=dmyToIso(document.getElementById('leaveFrom').value);
@@ -2391,7 +2471,7 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
   const targetUserId = canViewTeam() ? document.getElementById('exportUser').value : currentUser.id;
   const exportAll = targetUserId==='__ALL__';
   const u=exportAll?null:getUserById(targetUserId);
-  const mine=Object.values(records).filter(r=>(exportAll||r.userId===targetUserId) && r.date>=dateFrom && r.date<=dateTo);
+  const mine=Object.values(records).filter(r=>(exportAll||r.userId===targetUserId) && r.date>=dateFrom && r.date<=dateTo).sort((a,b)=>recName(a).localeCompare(recName(b),'ro')||a.date.localeCompare(b.date));
   mine.sort((a,b)=>a.date.localeCompare(b.date)||(getUserById(a.userId)?.name||'').localeCompare(getUserById(b.userId)?.name||''));
   // Cereri de concediu/învoire aprobate, pentru a marca zilele fără pontaj dar cu absență motivată
   const approvedLeaves=leaveReqs.filter(l=>(exportAll||l.userId===targetUserId) && l.status==='A');
@@ -2402,10 +2482,10 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
   let csv=(exportAll?'Angajat,':'')+'Data,Tip zi,Intrare,Ora intrare,Editat,Ieșire,Ora ieșire,Editat,Ore lucrate,Deplasare (km)\n';
   let workedDays=0, leaveDaysCount=0;
   const perUser={};
-  function bumpUser(userId,field,amt){
-    const name=getUserById(userId)?.name||userId;
-    perUser[userId]=perUser[userId]||{name,worked:0,leave:0,hours:0,km:0};
-    perUser[userId][field]+=amt;
+  function bumpUser(r,field,amt){
+    const name=recName(r);
+    perUser[name]=perUser[name]||{name,worked:0,leave:0,hours:0,km:0};
+    perUser[name][field]+=amt;
   }
   mine.forEach(r=>{
     let hrs='';
@@ -2415,10 +2495,10 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
     }
     const lvType=leaveTypeFor(r.date,r.userId);
     const tipZi = r.checkIn ? 'Lucrat' : (lvType || 'Absent');
-    if(r.checkIn){ workedDays++; bumpUser(r.userId,'worked',1); if(hrs) bumpUser(r.userId,'hours',parseFloat(hrs)); } else if(lvType){ leaveDaysCount++; bumpUser(r.userId,'leave',1); }
+    if(r.checkIn){ workedDays++; bumpUser(r,'worked',1); if(hrs) bumpUser(r,'hours',parseFloat(hrs)); } else if(lvType){ leaveDaysCount++; bumpUser(r,'leave',1); }
     const dist = r.checkIn&&r.checkIn.distKm!=null ? r.checkIn.distKm : '';
-    if(dist) bumpUser(r.userId,'km',parseFloat(dist)||0);
-    csv+=(exportAll?(getUserById(r.userId)?.name||r.userId)+',':'')+[isoToDmy(r.date), tipZi, r.checkIn?'Da':'Nu', r.checkIn?r.checkIn.time:'', r.checkIn&&r.checkIn.editedManually?'Da':'Nu', r.checkOut?'Da':'Nu', r.checkOut?r.checkOut.time:'', r.checkOut&&r.checkOut.editedManually?'Da':'Nu', hrs, dist].join(',')+'\n';
+    if(dist) bumpUser(r,'km',parseFloat(dist)||0);
+    csv+=(exportAll?(recName(r))+',':'')+[isoToDmy(r.date), tipZi, r.checkIn?'Da':'Nu', r.checkIn?r.checkIn.time:'', r.checkIn&&r.checkIn.editedManually?'Da':'Nu', r.checkOut?'Da':'Nu', r.checkOut?r.checkOut.time:'', r.checkOut&&r.checkOut.editedManually?'Da':'Nu', hrs, dist].join(',')+'\n';
   });
   // Zile de concediu aprobate care nu au niciun record de pontaj (ex: concediu întreaga zi, fără logare)
   const recordedDates=new Set(mine.map(r=>r.userId+'|'+r.date));
