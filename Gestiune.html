@@ -188,6 +188,8 @@ a:hover{color:#93c5fd;}
         <input id="stocSearch" placeholder="🔍 Caută după cod sau denumire..." style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;flex:1;min-width:220px;">
         <select id="stocGest" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;"><option value="">Toate gestiunile</option></select>
         <select id="stocFilter" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;"><option value="cu">Doar cu stoc</option><option value="">Toate articolele</option><option value="gri">Cu marfă în zona gri</option><option value="flag">Cu probleme (duplicat / fără preț)</option></select>
+        <button id="stocExport" style="background:#16a34a;color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">📊 Export gestiune</button>
+        <button id="stocFisa" title="Listă pentru numărat — completezi coloana cant_fin și o imporți ca inventar faptic" style="background:#a78bfa;color:#1e1b4b;border:none;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">📋 Fișă inventar</button>
         <select id="stocSort" style="background:#0b1426;border:1px solid #1e3a5f;color:#f1f5f9;border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;"><option value="den">Denumire A–Z</option><option value="val">Valoare ↓</option><option value="fin">Cantitate ↓</option><option value="cod">Cod</option></select>
       </div>
       <div id="stocKpi" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:12px;"></div>
@@ -1760,6 +1762,36 @@ function gExportDuplicates(dups){
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'})); a.download='Duplicate_comasate_'+gToday()+'.csv'; document.body.appendChild(a); a.click(); a.remove();
 }
 
+
+function gStocRowsForExport(){
+  const gf=document.getElementById('stocGest').value;
+  return Object.entries(gSnap||{}).map(([k,i])=>{ const pd=gPendInv(k), gri=gGriQty(k); return {...i,k,fin:i.fin-pd,val:i.val-pd*i.pm,gri}; })
+    .filter(i=>!gf||i.g===gf).sort((a,b)=>a.g.localeCompare(b.g,'ro')||a.den.localeCompare(b.den,'ro'));
+}
+function gDownloadCsv(csv,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'})); a.download=name; document.body.appendChild(a); a.click(); a.remove(); }
+document.getElementById('stocExport').addEventListener('click',()=>{
+  const rows=gStocRowsForExport().filter(i=>i.fin>0||i.gri>0); if(!rows.length){ alert('Niciun articol cu stoc.'); return; }
+  const gf=document.getElementById('stocGest').value||'TOATE';
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"', n=(v,d=3)=>String(Math.round(v*Math.pow(10,d))/Math.pow(10,d)).replace('.',',');
+  const meta=gImportsSorted('scriptic')[0]||{};
+  let csv=q('Stoc gestiune '+gf+' — situație '+gI2D(meta.date)+' (export '+gI2D(gToday())+')')+'\n\n'+['Cod','Denumire','Gest.','UM','Stoc','Gri','Disponibil','Preț mediu','Valoare'].map(q).join(';')+'\n';
+  const tot={};
+  rows.forEach(i=>{ csv+=[q(gCode(i.g,i.cod)),q(i.den),q(i.g),q(i.um),n(i.fin),n(i.gri),n(i.fin-i.gri),n(i.pm,4),n(i.val,2)].join(';')+'\n'; const t=tot[i.g]=tot[i.g]||{n:0,val:0}; t.n++; t.val+=i.val; });
+  csv+='\n'+q('TOTALURI PE GESTIUNE')+'\n'+['Gestiune','Articole','Valoare'].map(q).join(';')+'\n';
+  let gv=0; Object.entries(tot).forEach(([g,t])=>{ gv+=t.val; csv+=[q(g),t.n,n(t.val,2)].join(';')+'\n'; });
+  csv+=[q('TOTAL'),rows.length,n(gv,2)].join(';')+'\n';
+  gDownloadCsv(csv,'Stoc_'+gf.replace(/[^A-Za-z0-9]+/g,'_')+'_'+gToday()+'.csv');
+});
+document.getElementById('stocFisa').addEventListener('click',()=>{
+  const rows=gStocRowsForExport().filter(i=>i.fin>0||i.gri>0); if(!rows.length){ alert('Niciun articol cu stoc.'); return; }
+  const gf=document.getElementById('stocGest').value||'TOATE';
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"', n=(v,d=3)=>String(Math.round(v*Math.pow(10,d))/Math.pow(10,d)).replace('.',',');
+  // Format compatibil cu importul „Inventar faptic": completezi cant_fin, salvezi CSV, imporți.
+  let csv=['den_gest','cod_intern','cod_art','denumire','um','stoc_scriptic','din_care_zona_gri','pret_mediu','cant_fin'].join(';')+'\n';
+  rows.forEach(i=>{ csv+=[q(i.g),q(gCode(i.g,i.cod)),q(i.cod),q(i.den),q(i.um),n(i.fin),n(i.gri),n(i.pm,4),''].join(';')+'\n'; });
+  gDownloadCsv(csv,'Fisa_inventar_'+gf.replace(/[^A-Za-z0-9]+/g,'_')+'_'+gToday()+'.csv');
+  alert('Fișa conține '+rows.length+' articole.\n\nCompletează coloana „cant_fin" cu cantitatea numărată, salvează ca CSV și import-o în ⬆ Import → „Inventar faptic".\n\nRândurile lăsate goale se consideră 0 (nenumărate).');
+});
 // ── Navigare ──
 function gShowTab(t){
   gTab=t; document.querySelectorAll('.gview').forEach(v=>v.style.display='none'); const v=document.getElementById('gView_'+t); if(v) v.style.display='block';
