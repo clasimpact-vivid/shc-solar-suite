@@ -1529,7 +1529,7 @@ function gRenderStoc(){
   const q=gNorm(document.getElementById('stocSearch').value), gf=document.getElementById('stocGest').value, flt=document.getElementById('stocFilter').value, sort=document.getElementById('stocSort').value;
   const dup=gDupSet();
   let arr=Object.entries(gSnap||{}).map(([k,i])=>{ const pend=gPendInv(k); return {...i,k,scrFin:i.fin,pend,fin:i.fin-pend,val:i.val-pend*i.pm,gri:gGriQty(k),dup:dup.has(i.cod),noPrice:i.fin>0&&!i.pm}; });
-  arr=arr.filter(i=>(!gf||i.g===gf)&&(!q||gNorm(i.cod+i.den).includes(q))&&(flt!=='cu'||i.fin>0)&&(flt!=='gri'||i.gri>0)&&(flt!=='flag'||i.dup||i.noPrice));
+  arr=arr.filter(i=>(!gf||i.g===gf)&&(!q||gNorm(i.cod+i.den).includes(q))&&(flt!=='cu'||i.scrFin>0||i.pend>0)&&(flt!=='gri'||i.gri>0)&&(flt!=='flag'||i.dup||i.noPrice));
   arr.sort((a,b)=>sort==='val'?b.val-a.val:sort==='fin'?b.fin-a.fin:sort==='cod'?a.cod.localeCompare(b.cod):a.den.localeCompare(b.den,'ro'));
   const totVal=arr.reduce((a,i)=>a+i.val,0), griVal=arr.reduce((a,i)=>a+i.gri*i.pm,0);
   const kpi=(l,v,c)=>'<div style="background:#0d1b2e;border:1px solid #1e3a5f;border-radius:10px;padding:10px 12px;"><div style="font-size:10.5px;color:#64748b;font-weight:700;text-transform:uppercase;">'+l+'</div><div style="font-size:17px;font-weight:800;color:'+(c||'#f1f5f9')+';margin-top:2px;">'+v+'</div></div>';
