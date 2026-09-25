@@ -1514,6 +1514,9 @@ function gFillGest(){
 // ── Zona gri helpers ──
 function gGriOpen(){ return Object.values(gGri).filter(x=>x&&x.status==='open'); }
 function gGriQty(k){ return gGriOpen().filter(x=>x.k===k).reduce((a,x)=>a+gN(x.qty),0); }
+// Facturat în aplicație după ultimul import scriptic → scade stocul până vine reimportul din contabilitate
+function gSnapTs(){ return ((gImports[gSnapId]||{}).ts)||0; }
+function gPendInv(k){ const t=gSnapTs(); return Object.values(gGri).filter(x=>x&&x.k===k&&x.status==='invoiced'&&(x.closedAt||0)>t).reduce((a,x)=>a+gN(x.qty),0); }
 function gIsOverdue(x){ return x.status==='open' && (x.due||gAddDays(x.date||gToday(),G_GRI_DAYS))<gToday(); }
 function gBadge(){ const n=gGriOpen().filter(gIsOverdue).length; const b=document.getElementById('griBadge'); if(b){ b.style.display=n?'inline-block':'none'; b.textContent=n; } }
 function gDupSet(){ const by={}; Object.values(gSnap||{}).forEach(i=>{ const k=gNorm(i.den); if(!k) return; (by[k]=by[k]||new Set()).add(i.cod); }); const d=new Set(); Object.values(by).forEach(set=>{ if(set.size>1) set.forEach(c=>d.add(c)); }); return d; }
@@ -1525,17 +1528,17 @@ function gRenderStoc(){
   document.getElementById('stocMeta').innerHTML=meta?('Stoc scriptic la <b style="color:#f1f5f9;">'+gI2D(meta.date)+'</b> · importat de '+gE(meta.by||'')+' · '+gQ(meta.n)+' articole'):'Niciun import încă. Mergi la <b>⬆ Import</b> și încarcă situația stocurilor din contabilitate.';
   const q=gNorm(document.getElementById('stocSearch').value), gf=document.getElementById('stocGest').value, flt=document.getElementById('stocFilter').value, sort=document.getElementById('stocSort').value;
   const dup=gDupSet();
-  let arr=Object.entries(gSnap||{}).map(([k,i])=>({...i,k,gri:gGriQty(k),dup:dup.has(i.cod),noPrice:i.fin>0&&!i.pm}));
+  let arr=Object.entries(gSnap||{}).map(([k,i])=>{ const pend=gPendInv(k); return {...i,k,scrFin:i.fin,pend,fin:i.fin-pend,val:i.val-pend*i.pm,gri:gGriQty(k),dup:dup.has(i.cod),noPrice:i.fin>0&&!i.pm}; });
   arr=arr.filter(i=>(!gf||i.g===gf)&&(!q||gNorm(i.cod+i.den).includes(q))&&(flt!=='cu'||i.fin>0)&&(flt!=='gri'||i.gri>0)&&(flt!=='flag'||i.dup||i.noPrice));
   arr.sort((a,b)=>sort==='val'?b.val-a.val:sort==='fin'?b.fin-a.fin:sort==='cod'?a.cod.localeCompare(b.cod):a.den.localeCompare(b.den,'ro'));
   const totVal=arr.reduce((a,i)=>a+i.val,0), griVal=arr.reduce((a,i)=>a+i.gri*i.pm,0);
   const kpi=(l,v,c)=>'<div style="background:#0d1b2e;border:1px solid #1e3a5f;border-radius:10px;padding:10px 12px;"><div style="font-size:10.5px;color:#64748b;font-weight:700;text-transform:uppercase;">'+l+'</div><div style="font-size:17px;font-weight:800;color:'+(c||'#f1f5f9')+';margin-top:2px;">'+v+'</div></div>';
-  document.getElementById('stocKpi').innerHTML=kpi('Articole',gQ(arr.length))+kpi('Valoare scriptică',gFmt(totVal)+' lei')+kpi('În zona gri',gFmt(griVal)+' lei','#fbbf24')+kpi('Disponibil real',gFmt(totVal-griVal)+' lei','#a78bfa');
+  document.getElementById('stocKpi').innerHTML=kpi('Articole',gQ(arr.length))+kpi('Valoare stoc',gFmt(totVal)+' lei')+kpi('În zona gri',gFmt(griVal)+' lei','#fbbf24')+kpi('Disponibil real',gFmt(totVal-griVal)+' lei','#a78bfa');
   const th='style="text-align:left;padding:9px 10px;background:#0a1628;color:#64748b;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;position:sticky;top:0;"';
   let h='<thead><tr><th '+th+'>Cod</th><th '+th+'>Denumire</th><th '+th+'>Gest.</th><th '+th+'>UM</th><th '+th+' style="text-align:right;">Stoc</th><th '+th+'>Gri</th><th '+th+'>Disponibil</th><th '+th+'>Preț mediu</th><th '+th+'>Valoare</th></tr></thead><tbody>';
   arr.slice(0,gStocLimit).forEach(i=>{
     const td='style="padding:8px 10px;border-top:1px solid #16263f;color:#cbd5e1;"', tdr='style="padding:8px 10px;border-top:1px solid #16263f;color:#cbd5e1;text-align:right;white-space:nowrap;"';
-    h+='<tr><td '+td+'><span style="font-family:monospace;color:#94a3b8;">'+gE(i.cod)+'</span></td><td '+td+'>'+gE(i.den)+(i.dup?' <span title="Aceeași denumire pe alt cod" style="background:#7c2d12;color:#fed7aa;font-size:10px;padding:1px 6px;border-radius:999px;">duplicat</span>':'')+(i.noPrice?' <span style="background:#7f1d1d;color:#fecaca;font-size:10px;padding:1px 6px;border-radius:999px;">fără preț</span>':'')+'</td><td '+td+'>'+gE(i.g)+'</td><td '+td+'>'+gE(i.um)+'</td><td '+tdr+'><b style="color:#f1f5f9;">'+gQ(i.fin)+'</b></td><td '+tdr+'>'+(i.gri?'<span style="color:#fbbf24;font-weight:700;">'+gQ(i.gri)+'</span>':'—')+'</td><td '+tdr+'>'+gQ(i.fin-i.gri)+'</td><td '+tdr+'>'+gFmt(i.pm,4).replace(/0{1,2}$/,'')+'</td><td '+tdr+'>'+gFmt(i.val)+'</td></tr>';
+    h+='<tr><td '+td+'><span style="font-family:monospace;color:#94a3b8;">'+gE(i.cod)+'</span></td><td '+td+'>'+gE(i.den)+(i.dup?' <span title="Aceeași denumire pe alt cod" style="background:#7c2d12;color:#fed7aa;font-size:10px;padding:1px 6px;border-radius:999px;">duplicat</span>':'')+(i.noPrice?' <span style="background:#7f1d1d;color:#fecaca;font-size:10px;padding:1px 6px;border-radius:999px;">fără preț</span>':'')+'</td><td '+td+'>'+gE(i.g)+'</td><td '+td+'>'+gE(i.um)+'</td><td '+tdr+'><b style="color:#f1f5f9;">'+gQ(i.fin)+'</b>'+(i.pend?'<div title="Facturat în aplicație, încă neapărut în importul din contabilitate" style="font-size:10.5px;color:#4ade80;font-weight:600;">−'+gQ(i.pend)+' facturat</div>':'')+'</td><td '+tdr+'>'+(i.gri?'<span style="color:#fbbf24;font-weight:700;">'+gQ(i.gri)+'</span>':'—')+'</td><td '+tdr+'>'+gQ(i.fin-i.gri)+'</td><td '+tdr+'>'+gFmt(i.pm,4).replace(/0{1,2}$/,'')+'</td><td '+tdr+'>'+gFmt(i.val)+'</td></tr>';
   });
   if(!arr.length) h+='<tr><td colspan="9" style="padding:18px;color:#64748b;text-align:center;">Niciun articol.</td></tr>';
   t.innerHTML=h+'</tbody>';
@@ -1583,7 +1586,7 @@ document.getElementById('griSave').addEventListener('click',()=>{
   if(!it){ alert('Alege articolul din listă.'); return; }
   if(!(qty>0)){ alert('Cantitate invalidă.'); return; }
   if(!to){ alert('Completează destinatarul.'); return; }
-  const avail=it.fin-gGriQty(k); if(qty>avail && !confirm('Cantitatea depășește disponibilul real ('+gQ(avail)+' '+it.um+'). Continui?')) return;
+  const avail=it.fin-gPendInv(k)-gGriQty(k); if(qty>avail && !confirm('Cantitatea depășește disponibilul real ('+gQ(avail)+' '+it.um+'). Continui?')) return;
   const date=gToday(); const due=gD2I(document.getElementById('griDue').value)||gAddDays(date,G_GRI_DAYS);
   const id='gri_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
   db.ref('shc_gestiune/gri/'+id).set({id,k,g:it.g,cod:it.cod,den:it.den,um:it.um,pm:it.pm,qty,to,toType:document.getElementById('griToType').value,note:document.getElementById('griNote').value.trim(),by:currentUser.name,byId:currentUser.id,date,due,ts:Date.now(),status:'open',baseIes:it.ies,baseFin:it.fin,baseSnap:gSnapId});
@@ -1750,7 +1753,7 @@ document.getElementById('stocMore').addEventListener('click',()=>{ gStocLimit+=3
 ['griStatus'].forEach(id=>document.getElementById(id).addEventListener('change',gRenderGri));
 document.getElementById('griSearch').addEventListener('input',gRenderGri);
 ['invFaptic','invScriptic','invGest','invOnlyDiff'].forEach(id=>document.getElementById(id).addEventListener('change',gRenderInventar));
-gPicker('griArt','griArtList',(k,it)=>{ const g=gGriQty(k); document.getElementById('griArtInfo').innerHTML='Stoc scriptic <b>'+gQ(it.fin)+' '+gE(it.um)+'</b> · deja în zona gri <b style="color:#fbbf24;">'+gQ(g)+'</b> · disponibil real <b style="color:#a78bfa;">'+gQ(it.fin-g)+'</b> · preț mediu '+gFmt(it.pm)+' lei'; });
+gPicker('griArt','griArtList',(k,it)=>{ const g=gGriQty(k), pd=gPendInv(k); document.getElementById('griArtInfo').innerHTML='Stoc <b>'+gQ(it.fin-pd)+' '+gE(it.um)+'</b>'+(pd?' (după '+gQ(pd)+' facturat)':'')+' · deja în zona gri <b style="color:#fbbf24;">'+gQ(g)+'</b> · disponibil real <b style="color:#a78bfa;">'+gQ(it.fin-pd-g)+'</b> · preț mediu '+gFmt(it.pm)+' lei'; });
 gPicker('trArt','trArtList',(k,it)=>{ document.getElementById('trFrom').value=it.g; });
 ['griDue','impDate'].forEach(id=>{ try{ if(typeof addDateMask==='function') addDateMask(id); if(typeof addCalendarPicker==='function') addCalendarPicker(id); }catch(e){} });
 
