@@ -2472,7 +2472,6 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
   const exportAll = targetUserId==='__ALL__';
   const u=exportAll?null:getUserById(targetUserId);
   const mine=Object.values(records).filter(r=>(exportAll||r.userId===targetUserId) && r.date>=dateFrom && r.date<=dateTo).sort((a,b)=>recName(a).localeCompare(recName(b),'ro')||a.date.localeCompare(b.date));
-  mine.sort((a,b)=>a.date.localeCompare(b.date)||(getUserById(a.userId)?.name||'').localeCompare(getUserById(b.userId)?.name||''));
   // Cereri de concediu/învoire aprobate, pentru a marca zilele fără pontaj dar cu absență motivată
   const approvedLeaves=leaveReqs.filter(l=>(exportAll||l.userId===targetUserId) && l.status==='A');
   function leaveTypeFor(dateIso,userId){
@@ -2487,38 +2486,44 @@ document.getElementById('btnExportCsv').addEventListener('click',()=>{
     perUser[name]=perUser[name]||{name,worked:0,leave:0,hours:0,km:0};
     perUser[name][field]+=amt;
   }
-  let _grpName=null, _grpDays=0, _grpHrs=0, grandHrs=0;
-  const _flushGrp=()=>{ if(exportAll && _grpName!==null){ csv+='"SUBTOTAL — '+_grpName.replace(/"/g,'""')+'",,Zile lucrate: '+_grpDays+',,,,,,,'+_grpHrs.toFixed(2)+',\n\n'; } };
+  let grandHrs=0;
+  // Rânduri unificate: pontaje + zile de concediu aprobat fără pontaj (doar zile lucrătoare)
+  const rows=[];
   mine.forEach(r=>{
-    const _nm=recName(r);
-    if(exportAll && _nm!==_grpName){ _flushGrp(); _grpName=_nm; _grpDays=0; _grpHrs=0; }
     let hrs='';
     if(r.checkIn&&r.checkOut){
       const [h1,m1]=r.checkIn.time.split(':').map(Number), [h2,m2]=r.checkOut.time.split(':').map(Number);
       const mins=(h2*60+m2)-(h1*60+m1); if(mins>=0) hrs=(mins/60).toFixed(2);
     }
     const lvType=leaveTypeFor(r.date,r.userId);
-    const tipZi = r.checkIn ? 'Lucrat' : (lvType || 'Absent');
-    if(r.checkIn){ workedDays++; _grpDays++; bumpUser(r,'worked',1); if(hrs){ bumpUser(r,'hours',parseFloat(hrs)); _grpHrs+=parseFloat(hrs); grandHrs+=parseFloat(hrs); } } else if(lvType){ leaveDaysCount++; bumpUser(r,'leave',1); }
     const dist = r.checkIn&&r.checkIn.distKm!=null ? r.checkIn.distKm : '';
-    if(dist) bumpUser(r,'km',parseFloat(dist)||0);
-    csv+=(exportAll?(recName(r))+',':'')+[isoToDmy(r.date), tipZi, r.checkIn?'Da':'Nu', r.checkIn?r.checkIn.time:'', r.checkIn&&r.checkIn.editedManually?'Da':'Nu', r.checkOut?'Da':'Nu', r.checkOut?r.checkOut.time:'', r.checkOut&&r.checkOut.editedManually?'Da':'Nu', hrs, dist].join(',')+'\n';
+    rows.push({name:recName(r),rec:r,date:r.date,worked:!!r.checkIn,leave:!r.checkIn&&!!lvType,hrs,
+      cells:[isoToDmy(r.date), r.checkIn?'Lucrat':(lvType||'Absent'), r.checkIn?'Da':'Nu', r.checkIn?r.checkIn.time:'', r.checkIn&&r.checkIn.editedManually?'Da':'Nu', r.checkOut?'Da':'Nu', r.checkOut?r.checkOut.time:'', r.checkOut&&r.checkOut.editedManually?'Da':'Nu', hrs, dist]});
   });
-  _flushGrp();
-  // Zile de concediu aprobate care nu au niciun record de pontaj (ex: concediu întreaga zi, fără logare)
   const recordedDates=new Set(mine.map(r=>r.userId+'|'+r.date));
   approvedLeaves.forEach(lv=>{
-    let d=new Date(lv.from);
-    const end=new Date(lv.to);
-    while(d<=end){
-      const iso=d.toISOString().slice(0,10);
-      if(iso>=dateFrom && iso<=dateTo && !recordedDates.has(lv.userId+'|'+iso)){
-        csv+=(exportAll?(getUserById(lv.userId)?.name||lv.userId)+',':'')+[isoToDmy(iso), LEAVE_LABELS[lv.type]||lv.type, 'Nu','','Nu','Nu','','Nu','',''].join(',')+'\n';
-        leaveDaysCount++;
+    const d=new Date(lv.from+'T00:00:00'); const endD=new Date(lv.to+'T00:00:00');
+    const nm=(getUserById(lv.userId)||{}).name||lv.userName||(Object.values(records).find(r=>r.userId===lv.userId&&r.userName)||{}).userName||((typeof fieldWorkers!=='undefined'?fieldWorkers:[]).find(f=>f.id===lv.userId)||{}).name||lv.userId;
+    while(d<=endD){
+      const iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      const dow=d.getDay();
+      if(iso>=dateFrom && iso<=dateTo && dow!==0 && dow!==6 && !isRoHoliday(iso) && !recordedDates.has(lv.userId+'|'+iso)){
+        rows.push({name:nm,rec:{userId:lv.userId,userName:nm},date:iso,worked:false,leave:true,hrs:'',
+          cells:[isoToDmy(iso), LEAVE_LABELS[lv.type]||lv.type, 'Nu','','Nu','Nu','','Nu','','']});
       }
       d.setDate(d.getDate()+1);
     }
   });
+  rows.sort((a,b)=>a.name.localeCompare(b.name,'ro')||a.date.localeCompare(b.date));
+  let _grpName=null, _grpDays=0, _grpHrs=0, _grpLeave=0;
+  const _flushGrp=()=>{ if(exportAll && _grpName!==null){ csv+='"SUBTOTAL — '+_grpName.replace(/"/g,'""')+'",Zile lucrate: '+_grpDays+',Zile concediu: '+_grpLeave+',,,,,,,'+_grpHrs.toFixed(2)+',\n\n'; } };
+  rows.forEach(x=>{
+    if(exportAll && x.name!==_grpName){ _flushGrp(); _grpName=x.name; _grpDays=0; _grpHrs=0; _grpLeave=0; }
+    if(x.worked){ workedDays++; _grpDays++; bumpUser(x.rec,'worked',1); if(x.hrs){ const h=parseFloat(x.hrs); bumpUser(x.rec,'hours',h); _grpHrs+=h; grandHrs+=h; } }
+    else if(x.leave){ leaveDaysCount++; _grpLeave++; bumpUser(x.rec,'leave',1); }
+    csv+=(exportAll?'"'+x.name.replace(/"/g,'""')+'",':'')+x.cells.join(',')+'\n';
+  });
+  _flushGrp();
   csv+='\n========== TOTAL GENERAL ('+isoToDmy(dateFrom)+' - '+isoToDmy(dateTo)+') ==========\n';
   csv+='Angajați în export,'+new Set(mine.map(r=>recName(r))).size+'\n';
   csv+='Total zile lucrate,'+workedDays+'\n';
