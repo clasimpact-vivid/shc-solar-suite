@@ -1354,10 +1354,13 @@ AVRAMUT	SORIN-ILIE	Electrician" style="width:100%;min-height:220px;font-family:m
           <div style="border-top:1px solid #f1f5f9;padding-top:12px;">
             <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Rol tipic (completează rapid aplicațiile)</label>
             <select value="{{ umForm.roleTemplate }}" onChange="{{ onUmRoleTemplate }}" style="width:100%;padding:9px 11px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;cursor:pointer;margin-bottom:10px;">
-              <option value="montator">Montator (doar Pontaj)</option>
-              <option value="sefechipa">Șef echipă (Pontaj + Planificare + Vizită)</option>
               <option value="agent">Agent vânzări (CRM + Calculator + Pontaj)</option>
               <option value="birou">Birou / Admin (toate aplicațiile)</option>
+              <option value="electrician">Electrician (doar Pontaj)</option>
+              <option value="inginer">Inginer (toate aplicațiile)</option>
+              <option value="managerproiecte">Manager proiecte (toate aplicațiile)</option>
+              <option value="montator">Montator (doar Pontaj)</option>
+              <option value="sefechipa">Șef echipă (Pontaj + Planificare + Vizită)</option>
             </select>
             <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Aplicații permise</div>
             <div style="display:flex;flex-direction:column;gap:7px;">
@@ -1439,10 +1442,13 @@ AVRAMUT	SORIN-ILIE	Electrician" style="width:100%;min-height:220px;font-family:m
           <div style="border-top:1px solid #f1f5f9;padding-top:12px;">
             <label style="display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Rol tipic (completează rapid aplicațiile)</label>
             <select value="{{ umForm.roleTemplate }}" onChange="{{ onUmRoleTemplate }}" style="width:100%;padding:9px 11px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;color:#0f172a;background:#fff;cursor:pointer;margin-bottom:10px;">
-              <option value="montator">Montator (doar Pontaj)</option>
-              <option value="sefechipa">Șef echipă (Pontaj + Planificare + Vizită)</option>
               <option value="agent">Agent vânzări (CRM + Calculator + Pontaj)</option>
               <option value="birou">Birou / Admin (toate aplicațiile)</option>
+              <option value="electrician">Electrician (doar Pontaj)</option>
+              <option value="inginer">Inginer (toate aplicațiile)</option>
+              <option value="managerproiecte">Manager proiecte (toate aplicațiile)</option>
+              <option value="montator">Montator (doar Pontaj)</option>
+              <option value="sefechipa">Șef echipă (Pontaj + Planificare + Vizită)</option>
             </select>
             <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Aplicații permise</div>
             <div style="display:flex;flex-direction:column;gap:7px;">
@@ -1824,6 +1830,9 @@ const APP_ROLE_TEMPLATES = {
   sefechipa:{appCrm:false,appCalculator:false,appPlanificare:true,appVizita:true,appPontaj:true},
   agent:{appCrm:true,appCalculator:true,appPlanificare:false,appVizita:false,appPontaj:true},
   birou:{appCrm:true,appCalculator:true,appPlanificare:true,appVizita:true,appPontaj:true},
+  electrician:{appCrm:false,appCalculator:false,appPlanificare:false,appVizita:false,appPontaj:true},
+  inginer:{appCrm:true,appCalculator:true,appPlanificare:true,appVizita:true,appPontaj:true},
+  managerproiecte:{appCrm:true,appCalculator:true,appPlanificare:true,appVizita:true,appPontaj:true},
 };
 const EMPTY_UM_FORM = {name:'',email:'',role:'Tehnician',password:'',password2:'',oldPw:'',pin:'',isSuperAdmin:false,segPV:true,segInverter:true,segBaterie:true,segBESS:false,notifSolarCRM:true,notifPlanificare:false,notifVizita:false,notifPontaj:false,roleTemplate:'birou',appCrm:true,appCalculator:true,appPlanificare:true,appVizita:true,appPontaj:true};
 function genUniquePin5(existingUsers){ let p; const used=new Set((existingUsers||[]).map(u=>u.pin).filter(Boolean)); do{ p=String(Math.floor(1000+Math.random()*9000)); }while(used.has(p)); return p; }
