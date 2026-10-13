@@ -2862,7 +2862,7 @@ class Component extends DCLogic {
   umGoBulk(){ this.setState({userMgmtMode:'bulk',bulkText:'',bulkResult:null,umErrMsg:''}); }
   umGoEmails(){
     const KNOWN={u_chirila:'alexandru.chirila@shc-group.ro',u_nicoras:'nicorasionut@shc-group.ro'};
-    const byName=[[/simon.*eszter|eszter.*simon/i,'eszter.simon@shc-group.ro'],[/palcu/i,'cristi.palcu@shc-group.ro']];
+    const byName=[[/simon.*eszter|eszter.*simon/i,'eszter.simon@shc-group.ro'],[/palcu/i,'cristi.palcu@shc-group.ro'],[/dobre/i,'cristian.dobre@shc-group.ro'],[/sirb|beniamin/i,'beniamin.sirb@shc-group.ro'],[/gliga/i,'andreea.gliga@shc-group.ro'],[/vesa/i,'cosmin.vesa@shc-group.ro']];
     const draft={};
     (this.state.users||[]).forEach(u=>{
       let e=u.email||KNOWN[u.id]||'';
