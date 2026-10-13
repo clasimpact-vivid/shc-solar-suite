@@ -8,6 +8,15 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'SHC Solar Suite <office@shc-group.ro>';
 const FULL_ACCESS_IDS = ['u_chirila', 'u_nicoras'];
 
+// Destinatari garantați — NU depind de baza de date (dacă lista de useri se pierde, mailurile pleacă oricum)
+const FIXED_EMAILS = { u_chirila: 'alexandru.chirila@shc-group.ro', u_nicoras: 'nicorasionut@shc-group.ro', u_simon_eszter: 'eszter.simon@shc-group.ro' };
+const OFFICE = { id: '_office', name: 'Office SHC', email: 'office@shc-group.ro' };
+function withFixedEmails(list){
+  const out = list.map(u => (!u.email && FIXED_EMAILS[u.id]) ? { ...u, email: FIXED_EMAILS[u.id] } : u);
+  Object.keys(FIXED_EMAILS).forEach(id => { if (!out.some(u => u.id === id)) out.push({ id, name: id === 'u_chirila' ? 'Alexandru Chirila' : id === 'u_nicoras' ? 'Ionut Nicoras' : 'Simon Eszter', email: FIXED_EMAILS[id] }); });
+  return out;
+}
+
 if (!RESEND_API_KEY) { console.error('Lipsește RESEND_API_KEY.'); process.exit(1); }
 
 async function fetchJson(path) {
@@ -28,7 +37,7 @@ async function main() {
     fetchJson('solarcrm_v2'), fetchJson('shc_planning'), fetchJson('shc_visits'), fetchJson('shc_pontaj'), fetchJson('solarcrm_v2/pontajLeave'),
   ]);
   const cfg = crmData.config || {};
-  const users = toArray(cfg.users);
+  const users = withFixedEmails(toArray(cfg.users));
   const projects = toArray(crmData.projects);
   const offers = toArray(crmData.oferte_calculator).filter(o => o.timestamp && inDay(o.timestamp));
   const planningProjects = toArray(planningData.projects);
@@ -103,7 +112,8 @@ async function main() {
       </div>
     </div>`;
 
-  const recipients = users.filter(u => FULL_ACCESS_IDS.includes(u.id) && u.email);
+  const recipients = [...users.filter(u => [...FULL_ACCESS_IDS, 'u_simon_eszter'].includes(u.id) && u.email), OFFICE]
+    .filter((u, i, arr) => arr.findIndex(x => x.email.toLowerCase() === u.email.toLowerCase()) === i);
   let sent = 0;
   for (const user of recipients) {
     try {

@@ -12,7 +12,16 @@
 const FIREBASE_BASE = 'https://solarcrm-ba919-default-rtdb.firebaseio.com';
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'SHC Solar Suite <office@shc-group.ro>';
-const FULL_ACCESS_IDS = ['u_chirila', 'u_nicoras'];
+const FULL_ACCESS_IDS = ['u_chirila', 'u_nicoras', '_office'];
+
+// Destinatari garantați — NU depind de baza de date (dacă lista de useri se pierde, mailurile pleacă oricum)
+const FIXED_EMAILS = { u_chirila: 'alexandru.chirila@shc-group.ro', u_nicoras: 'nicorasionut@shc-group.ro', u_simon_eszter: 'eszter.simon@shc-group.ro' };
+const OFFICE = { id: '_office', name: 'Office SHC', email: 'office@shc-group.ro' };
+function withFixedEmails(list){
+  const out = list.map(u => (!u.email && FIXED_EMAILS[u.id]) ? { ...u, email: FIXED_EMAILS[u.id] } : u);
+  Object.keys(FIXED_EMAILS).forEach(id => { if (!out.some(u => u.id === id)) out.push({ id, name: id === 'u_chirila' ? 'Alexandru Chirila' : id === 'u_nicoras' ? 'Ionut Nicoras' : 'Simon Eszter', email: FIXED_EMAILS[id] }); });
+  return out;
+}
 
 if (!RESEND_API_KEY) {
   console.error('Lipsește RESEND_API_KEY din variabilele de mediu. Adaugă-l ca GitHub Secret.');
@@ -48,8 +57,10 @@ async function main() {
   ]);
 
   const cfg = crmData.config || {};
-  const users = toArray(cfg.users);
-  const allUsers = [{ id: '_admin', name: 'Administrator', email: null }, ...users];
+  const users = withFixedEmails(toArray(cfg.users));
+  const allUsers = [...users, OFFICE];
+  // nu trimite de două ori la aceeași adresă
+  const seenMail = new Set();
   const projects = toArray(crmData.projects);
   const planningProjects = toArray(planningData.projects);
   const visits = toArray(visitsData.visits);
@@ -106,7 +117,7 @@ async function main() {
   // ── Pontaj: absențe azi (nicio intrare până acum) ──
   function pontajSectionFor(isFull) {
     if (!isFull) return '';
-    const activeUsers = users.filter(u => u.id !== '_admin');
+    const activeUsers = users.filter(u => u.id !== '_admin' && u.id !== '_office');
     const todayRecs = pontajRecords.filter(r => r.date === todayISO);
     const absent = activeUsers.filter(u => !todayRecs.some(r => r.userId === u.id && r.checkIn));
     let html = '';
@@ -193,10 +204,33 @@ async function main() {
     return html;
   }
 
+  // ── Gestiune — marfă dată fără factură de peste 14 zile ──
+  let griData = {};
+  try { griData = await fetchJson('shc_gestiune/gri'); } catch (e) { console.warn('Gestiune indisponibil:', e.message); }
+  const tok = n => String(n || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/[^a-z]+/).filter(x => x.length > 1);
+  const isGestRecipient = u => FULL_ACCESS_IDS.includes(u.id) || (t => (t.includes('simon') && t.includes('eszter')) || (t.includes('ardelean') && t.includes('stefan')) || (t.includes('chirila') && t.includes('alexandru')) || (t.includes('nicoras') && t.includes('ionut')))(tok(u.name));
+  const todayIso = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Bucharest' })).toISOString().slice(0, 10);
+  const addDays = (iso, n) => { const d = new Date(iso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+  const dmy = iso => iso ? iso.split('-').reverse().join('/') : '';
+  const griOverdue = Object.values(griData || {}).filter(x => x && x.status === 'open' && (x.due || addDays(x.date || todayIso, 14)) < todayIso)
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  function griSectionFor(user) {
+    if (!griOverdue.length || !isGestRecipient(user)) return '';
+    const total = griOverdue.reduce((a, x) => a + (Number(x.qty) || 0) * (Number(x.pm) || 0), 0);
+    const fmt = v => Number(v || 0).toLocaleString('ro-RO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return `<h3 style="color:#a78bfa;margin:18px 0 8px;">📦 Gestiune — marfă nefacturată (${griOverdue.length})</h3>
+      <p style="margin:4px 0 8px;color:#dc2626;font-weight:600;">Predată fără factură, termen depășit — valoare totală ${fmt(total)} lei:</p>
+      <ul style="margin:0;padding-left:20px;">${griOverdue.map(x => {
+        const days = Math.round((new Date(todayIso) - new Date(x.date)) / 86400000);
+        return `<li><strong>${x.den || x.cod}</strong> — ${x.qty} ${x.um || ''} → ${x.toType || ''}: ${x.to || ''} <span style="color:#94a3b8">· scos de ${x.by || '—'} pe ${dmy(x.date)} (${days} zile) · ${fmt((Number(x.qty) || 0) * (Number(x.pm) || 0))} lei</span></li>`;
+      }).join('')}</ul>`;
+  }
+
   // ── Compune și trimite câte un email per destinatar ──
   let sent = 0;
   for (const user of allUsers) {
     if (!user.email) continue; // fără adresă setată -> skip
+    const mk = user.email.trim().toLowerCase(); if (seenMail.has(mk)) continue; seenMail.add(mk);
     const isFull = FULL_ACCESS_IDS.includes(user.id);
     const notif = user.notif || {};
     let body = '';
@@ -209,6 +243,7 @@ async function main() {
     body += alerteTermenFor(user, isFull);
     body += tasksSectionFor(user, isFull);
     body += deplasariSectionFor(user, isFull);
+    body += griSectionFor(user);
 
     if (!body.trim()) { console.log(`Fără noutăți pentru ${user.name}, nu trimit.`); continue; }
 
