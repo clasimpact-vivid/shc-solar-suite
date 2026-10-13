@@ -11,8 +11,11 @@ const FULL_ACCESS_IDS = ['u_chirila', 'u_nicoras'];
 // Destinatari garantați — NU depind de baza de date (dacă lista de useri se pierde, mailurile pleacă oricum)
 const FIXED_EMAILS = { u_chirila: 'alexandru.chirila@shc-group.ro', u_nicoras: 'nicorasionut@shc-group.ro', u_simon_eszter: 'eszter.simon@shc-group.ro' };
 const OFFICE = { id: '_office', name: 'Office SHC', email: 'office@shc-group.ro' };
+
+const BY_NAME = [[/nicoras.*ionut|ionut.*nicoras/i,'nicorasionut@shc-group.ro'],[/chirila/i,'alexandru.chirila@shc-group.ro'],[/dobre/i,'cristian.dobre@shc-group.ro'],[/sirb|beniamin/i,'beniamin.sirb@shc-group.ro'],[/gliga/i,'andreea.gliga@shc-group.ro'],[/simon.*eszter|eszter/i,'eszter.simon@shc-group.ro'],[/vesa/i,'cosmin.vesa@shc-group.ro']];
+function mailByName(u){ const n=String(u.name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,''); for(const [re,m] of BY_NAME) if(re.test(n)) return m; return null; }
 function withFixedEmails(list){
-  const out = list.map(u => (!u.email && FIXED_EMAILS[u.id]) ? { ...u, email: FIXED_EMAILS[u.id] } : u);
+  const out = list.map(u => u.email ? u : (FIXED_EMAILS[u.id] || mailByName(u)) ? { ...u, email: FIXED_EMAILS[u.id] || mailByName(u) } : u);
   Object.keys(FIXED_EMAILS).forEach(id => { if (!out.some(u => u.id === id)) out.push({ id, name: id === 'u_chirila' ? 'Alexandru Chirila' : id === 'u_nicoras' ? 'Ionut Nicoras' : 'Simon Eszter', email: FIXED_EMAILS[id] }); });
   return out;
 }
