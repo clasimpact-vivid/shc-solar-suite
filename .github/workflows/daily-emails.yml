@@ -2,23 +2,34 @@ name: Notificări email zilnice SHC Solar Suite
 
 on:
   schedule:
-    # 04:00 UTC = 07:00 România (EEST, vară), luni-vineri
-    - cron: '0 4 * * 1-5'
-  workflow_dispatch: {}   # permite rulare manuală din tab-ul Actions, pentru testare
+    # 07:30 ora României, luni-vineri. Două orare (vară/iarnă); scriptul rulează doar pe cel potrivit.
+    - cron: '30 4 * * 1-5'   # 07:30 vara (EEST)
+    - cron: '30 5 * * 1-5'   # 07:30 iarna (EET)
+  workflow_dispatch: {}      # rulare manuală din tab-ul Actions
 
 jobs:
   send-emails:
     runs-on: ubuntu-latest
     steps:
+      - name: Verifică ora României
+        id: ora
+        run: |
+          H=$(TZ=Europe/Bucharest date +%H)
+          echo "Ora în România: $H"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "$H" = "07" ]; then echo "go=1" >> $GITHUB_OUTPUT; else echo "go=0" >> $GITHUB_OUTPUT; fi
+
       - name: Checkout
+        if: steps.ora.outputs.go == '1'
         uses: actions/checkout@v4
 
       - name: Setup Node.js
+        if: steps.ora.outputs.go == '1'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Trimite emailurile zilnice
+        if: steps.ora.outputs.go == '1'
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
         run: node scripts/send-daily-emails.js
