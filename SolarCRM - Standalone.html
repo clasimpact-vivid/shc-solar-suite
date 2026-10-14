@@ -9,6 +9,31 @@
 <x-dc>
 <helmet>
 <script>
+(function(){
+  // Protecție: dacă memoria locală a browserului e plină, eliberăm copia de rezervă (datele reale sunt în Firebase) și reîncercăm.
+  try{
+    var S=Storage.prototype, orig=S.setItem;
+    S.setItem=function(k,v){
+      try{ return orig.call(this,k,v); }
+      catch(e){
+        if(e && (e.name==='QuotaExceededError'||e.code===22||e.code===1014)){
+          try{ ['solarcrm_v3','shc_audit_log'].forEach(function(x){ if(x!==k) localStorage.removeItem(x); }); }catch(_){}
+          try{ return orig.call(this,k,v); }catch(_){ return; }
+        }
+        throw e;
+      }
+    };
+    // Curățare la pornire: copia de rezervă veche poate conține atașamente mari
+    var raw=localStorage.getItem('solarcrm_v3');
+    if(raw && raw.length>1500000){
+      try{ var d=JSON.parse(raw); if(d&&Array.isArray(d.projects)){ d.projects=d.projects.map(function(p){ var q={}; for(var k in p) if(k!=='attachments') q[k]=p[k]; return q; }); orig.call(localStorage,'solarcrm_v3',JSON.stringify(d)); } }
+      catch(_){ localStorage.removeItem('solarcrm_v3'); }
+    }
+  }catch(_){}
+})();
+</script>
+
+<script>
 window.sendMailViaWorker = function(to_email, subject, message){
   return fetch('https://shc-mail-relay.damp-resonance-4b65.workers.dev/', {
     method: 'POST',
@@ -2697,7 +2722,7 @@ class Component extends DCLogic {
         if(db){
           await db.ref('solarcrm_v2_files/'+sid+'/'+String(attId).replace(/\./g,'_')).set(dataUrl);
           await db.ref('solarcrm_v2/projects/'+sid+'/attachments/'+String(attId).replace(/\./g,'_')).set(att);
-          try{ localStorage.setItem('solarcrm_v3',JSON.stringify({projects:this.state.projects,users:this.state.users,adminPw:this.adminPassword,adminPin:this.adminPin,companyInfo:this.state.companyInfo})); }catch(e){}
+          try{ localStorage.setItem('solarcrm_v3',JSON.stringify({projects:this.state.projects.map(p=>{ const {attachments,...rest}=p; return rest; }),users:this.state.users,adminPw:this.adminPassword,adminPin:this.adminPin,companyInfo:this.state.companyInfo})); }catch(e){}
         }
       }catch(err){
         window.alert('Eroare la salvarea fișierului "'+f.name+'" — încearcă din nou: '+(err&&err.message?err.message:'necunoscută'));
