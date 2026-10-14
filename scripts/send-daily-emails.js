@@ -231,10 +231,12 @@ async function main() {
 
   // ── Compune și trimite câte un email per destinatar ──
   let sent = 0;
-  for (const user of allUsers) {
+  // Conturi cu acces total primele, ca o adresă comună (ex. office@) să primească varianta completă
+  const ordered = [...allUsers].sort((a, b) => (FULL_ACCESS_IDS.includes(b.id) ? 1 : 0) - (FULL_ACCESS_IDS.includes(a.id) ? 1 : 0));
+  for (const user of ordered) {
     if (!user.email) continue; // fără adresă setată -> skip
-    const mk = user.email.trim().toLowerCase(); if (seenMail.has(mk)) continue; seenMail.add(mk);
-    const isFull = FULL_ACCESS_IDS.includes(user.id);
+    const mk = user.email.trim().toLowerCase(); if (seenMail.has(mk)) continue;
+    const isFull = FULL_ACCESS_IDS.includes(user.id) || mk === 'office@shc-group.ro';
     const notif = user.notif || {};
     let body = '';
     const wantsCRM = notif.solarcrm !== false; // implicit true dacă nu e explicit dezactivat
@@ -269,6 +271,7 @@ async function main() {
         body: JSON.stringify({ from: FROM_EMAIL, to: user.email, subject: 'SHC Solar Suite — Sumar zilnic', html }),
       });
       if (!res.ok) { console.error(`Eroare trimitere către ${user.email}:`, await res.text()); continue; }
+      seenMail.add(mk);
       console.log(`✓ Trimis către ${user.name} (${user.email})`);
       sent++;
     } catch (e) {
