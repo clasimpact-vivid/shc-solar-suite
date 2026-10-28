@@ -2,21 +2,26 @@ name: Notificări email zilnice SHC Solar Suite
 
 on:
   schedule:
-    # 07:30 ora României, luni-vineri. Două orare (vară/iarnă); scriptul rulează doar pe cel potrivit.
-    - cron: '30 4 * * 1-5'   # 07:30 vara (EEST)
-    - cron: '30 5 * * 1-5'   # 07:30 iarna (EET)
+    # 07:30 ora României, luni-vineri. Două orare (vară/iarnă); se trimite doar pe cel potrivit sezonului.
+    - cron: '30 4 * * 1-5'   # 07:30 vara (EEST, UTC+3)
+    - cron: '30 5 * * 1-5'   # 07:30 iarna (EET, UTC+2)
   workflow_dispatch: {}      # rulare manuală din tab-ul Actions
 
 jobs:
   send-emails:
     runs-on: ubuntu-latest
     steps:
-      - name: Verifică ora României
+      - name: Verifică sezonul (vară/iarnă)
         id: ora
         run: |
-          H=$(TZ=Europe/Bucharest date +%H)
-          echo "Ora în România: $H"
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "$H" = "07" ]; then echo "go=1" >> $GITHUB_OUTPUT; else echo "go=0" >> $GITHUB_OUTPUT; fi
+          OFF=$(TZ=Europe/Bucharest date +%z)
+          SCH="${{ github.event.schedule }}"
+          echo "Decalaj România: $OFF | orar declanșat: $SCH | ora RO acum: $(TZ=Europe/Bucharest date +%H:%M)"
+          GO=0
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then GO=1; fi
+          if [ "$OFF" = "+0300" ] && [ "$SCH" = "30 4 * * 1-5" ]; then GO=1; fi
+          if [ "$OFF" = "+0200" ] && [ "$SCH" = "30 5 * * 1-5" ]; then GO=1; fi
+          echo "go=$GO" >> $GITHUB_OUTPUT
 
       - name: Checkout
         if: steps.ora.outputs.go == '1'
