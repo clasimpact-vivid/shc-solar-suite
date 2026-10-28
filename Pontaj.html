@@ -527,7 +527,7 @@ a:hover{color:#fbbf24;}
     <div class="modal-title">Corectează manual</div>
     <div class="row2">
       <div class="field"><label>Ora intrare</label><input type="text" id="editInTime" placeholder="HH:mm" maxlength="5"></div>
-      <div class="field"><label>Ora ieșire</label><input type="text" id="editOutTime" placeholder="HH:mm" maxlength="5"></div>
+      <div class="field"><label>Ora ieșire <span style="font-weight:400;color:#94a3b8;">(gol = anulează ieșirea)</span></label><input type="text" id="editOutTime" placeholder="HH:mm" maxlength="5"></div>
     </div>
     <div class="field"><label>Motiv corectare *</label><textarea id="editReason" rows="2" placeholder="ex: am uitat să apăs Intrare la ora 8"></textarea></div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;">
@@ -1259,6 +1259,7 @@ document.getElementById('btnSaveEdit').addEventListener('click',()=>{
   const outT=document.getElementById('editOutTime').value;
   if(inT) rec.checkIn={...(rec.checkIn||{}),time:inT,editedManually:true,editReason:reason};
   if(outT) rec.checkOut={...(rec.checkOut||{}),time:outT,editedManually:true,editReason:reason};
+  else if(rec.checkOut){ rec.checkOutRemoved={time:rec.checkOut.time,reason:reason,by:currentUser?currentUser.name:'',at:Date.now()}; delete rec.checkOut; }
   saveRecord(rec);
   document.getElementById('editModal').classList.remove('show');
 });
