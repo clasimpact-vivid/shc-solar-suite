@@ -480,6 +480,8 @@ a:hover{color:#fbbf24;}
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="shc-auth.js?v=1"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
@@ -576,7 +578,7 @@ function getUserById(id){ return loginUsers.find(u=>u.id===id); }
 // ── Firebase ──
 try{
   if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
-  db=firebase.database();
+  db=firebase.database(); if(window.SHCAuth) SHCAuth.startCompat(firebase);
 }catch(e){ console.warn('Firebase:',e); }
 
 function loadFirebase(){

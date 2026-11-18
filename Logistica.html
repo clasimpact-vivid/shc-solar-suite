@@ -8,6 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="shc-auth.js?v=1"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow:hidden;font-family:'DM Sans',system-ui,sans-serif;background:#090f1c;color:#e2e8f0;}
@@ -516,7 +518,7 @@ function attachDateAutoFormat(id){
 
 try{
   if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
-  db=firebase.database();
+  db=firebase.database(); if(window.SHCAuth) SHCAuth.startCompat(firebase);
   db.ref('.info/connected').on('value', snap=>{
     const el=document.getElementById('fbOfflineBanner');
     if(el) el.style.display = snap.val()===true ? 'none' : 'flex';

@@ -6,6 +6,8 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="shc-auth.js?v=1"></script>
 <style>
 
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -233,7 +235,7 @@ function loadFirebase(){
   try{
     if(typeof firebase==='undefined') return;
     if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
-    db=firebase.database();
+    db=firebase.database(); if(window.SHCAuth) SHCAuth.startCompat(firebase);
   }catch(e){ return; }
   if(!db) return;
   db.ref('solarcrm_v2/config').once('value', snap=>{

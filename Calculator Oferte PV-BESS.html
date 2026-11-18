@@ -163,6 +163,8 @@
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="shc-auth.js?v=1"></script>
 </head>
 <body>
 <div class="wrap">
@@ -3744,7 +3746,7 @@ window._crmSharedUsers = [];
   };
   try{
     if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
-    var db=firebase.database();
+    var db=firebase.database(); if(window.SHCAuth) SHCAuth.startCompat(firebase);
     window._pvbessFbDb = db;
     db.ref('solarcrm_v2/config').once('value', function(snap){
       var cfg=snap.val()||{};

@@ -241,6 +241,8 @@ a:hover{color:#93c5fd;}
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="shc-auth.js?v=1"></script>
 <script>
 // ═══════════════════════════════════════════════════════════
 // DOSAR PROSUMATOR — SHC Solar Suite
@@ -301,7 +303,7 @@ function emptyDosar(){
 // ── Firebase ──
 try{
   if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
-  db=firebase.database();
+  db=firebase.database(); if(window.SHCAuth) SHCAuth.startCompat(firebase);
 }catch(e){ console.warn('Firebase:',e); }
 
 function loadFirebase(){

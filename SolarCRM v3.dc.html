@@ -89,9 +89,11 @@ input,select,textarea,button{font-family:inherit;}
 .crm-mobile-cards{display:none;}
 [style*="cursor:pointer"]:active, [style*="cursor: pointer"]:active { filter:brightness(0.93); }
 </style>
+<script src="shc-auth.js?v=1"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 try {
   const DB_URL = "https://solarcrm-ba919-default-rtdb.firebaseio.com";
   const app = initializeApp({
@@ -104,6 +106,7 @@ try {
     appId: "1:349523166308:web:0533aa1dae74f9a0b3cb71"
   }, "solarcrm-isolated-app");
   const database = getDatabase(app);
+  try { if (window.SHCAuth) SHCAuth.startModular(getAuth(app), signInAnonymously, onAuthStateChanged); } catch (e) { console.warn("[SHCAuth]", e); }
   // Citirea live folosește SDK-ul (funcționează, testat). Scrierile folosesc REST simplu
   // (fetch direct la baza de date) — nu depind de conexiunea WebSocket persistentă a SDK-ului,
   // care poate fi blocată/degradată de anumite rețele fără să dea nicio eroare vizibilă.

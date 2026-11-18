@@ -10,8 +10,25 @@ const FULL_ACCESS_IDS = ['u_chirila', 'u_nicoras'];
 
 if (!RESEND_API_KEY) { console.error('Lipsește RESEND_API_KEY.'); process.exit(1); }
 
+// 18.11.2026 – login anonim la Firebase (faza 1 securizare): token pentru citirile REST.
+const FIREBASE_API_KEY = 'AIzaSyBVElgXbEabUcwjNMa27IEw0YkxaEaXYl0';
+let _fbToken = null;
+async function firebaseToken() {
+  if (_fbToken) return _fbToken;
+  try {
+    const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_API_KEY}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ returnSecureToken: true })
+    });
+    const j = await r.json();
+    _fbToken = j.idToken || null;
+    if (!_fbToken) console.warn('Login anonim Firebase eșuat:', JSON.stringify(j.error || j));
+  } catch (e) { console.warn('Login anonim Firebase eșuat:', e.message); }
+  return _fbToken;
+}
+
 async function fetchJson(path) {
-  const res = await fetch(`${FIREBASE_BASE}/${path}.json`);
+  const tok = await firebaseToken();
+  const res = await fetch(`${FIREBASE_BASE}/${path}.json${tok ? `?auth=${encodeURIComponent(tok)}` : ''}`);
   if (!res.ok) throw new Error(`Firebase fetch failed for ${path}: ${res.status}`);
   return (await res.json()) || {};
 }
