@@ -30,12 +30,12 @@
 
   /* Prima conectare într-un browser: listenerii SDK porniți înainte de login pot fi refuzați
    * de reguli. Reîncărcăm pagina o singură dată, imediat după primul login anonim. */
-  function reloadOnceAfterFirstSignIn() {
+  function reloadOnceAfterFirstSignIn(key) {
     try {
-      if (localStorage.getItem('shc_auth_first_done')) return;
-      localStorage.setItem('shc_auth_first_done', '1');
-      if (sessionStorage.getItem('shc_auth_reloaded')) return;
-      sessionStorage.setItem('shc_auth_reloaded', '1');
+      if (localStorage.getItem('shc_auth_first_done:' + key)) return;
+      localStorage.setItem('shc_auth_first_done:' + key, '1');
+      if (sessionStorage.getItem('shc_auth_reloaded:' + key)) return;
+      sessionStorage.setItem('shc_auth_reloaded:' + key, '1');
       log('prima conectare – reîncarc pagina o dată');
       location.reload();
     } catch (e) {}
@@ -46,12 +46,13 @@
     try {
       if (!fb || typeof fb.auth !== 'function') { warn('firebase-auth-compat lipsește'); resolveReady(); return; }
       var a = fb.auth();
+      var key = 'compat:' + (a.app && a.app.name || 'default');
       getToken = function () { var u = a.currentUser; return u ? u.getIdToken() : Promise.resolve(null); };
       var first = true;
       a.onAuthStateChanged(function (u) {
-        if (u) { resolveReady(); if (first) { first = false; try { localStorage.setItem('shc_auth_first_done', '1'); } catch (e) {} } return; }
+        if (u) { resolveReady(); if (first) { first = false; try { localStorage.setItem('shc_auth_first_done:' + key, '1'); } catch (e) {} } return; }
         first = false;
-        a.signInAnonymously().then(function () { log('conectat anonim'); resolveReady(); reloadOnceAfterFirstSignIn(); })
+        a.signInAnonymously().then(function () { log('conectat anonim'); resolveReady(); reloadOnceAfterFirstSignIn(key); })
           .catch(function (e) { warn('login anonim eșuat', e && e.code); resolveReady(); });
       });
     } catch (e) { warn(e); resolveReady(); }
@@ -61,11 +62,12 @@
   function startModular(auth, signInAnonymously, onAuthStateChanged) {
     try {
       getToken = function () { var u = auth.currentUser; return u ? u.getIdToken() : Promise.resolve(null); };
+      var key = 'mod:' + (auth.app && auth.app.name || 'default');
       var first = true;
       onAuthStateChanged(auth, function (u) {
-        if (u) { resolveReady(); if (first) { first = false; try { localStorage.setItem('shc_auth_first_done', '1'); } catch (e) {} } return; }
+        if (u) { resolveReady(); if (first) { first = false; try { localStorage.setItem('shc_auth_first_done:' + key, '1'); } catch (e) {} } return; }
         first = false;
-        signInAnonymously(auth).then(function () { log('conectat anonim'); resolveReady(); reloadOnceAfterFirstSignIn(); })
+        signInAnonymously(auth).then(function () { log('conectat anonim'); resolveReady(); reloadOnceAfterFirstSignIn(key); })
           .catch(function (e) { warn('login anonim eșuat', e && e.code); resolveReady(); });
       });
     } catch (e) { warn(e); resolveReady(); }
